@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { TrendingDown, TrendingUp } from "lucide-react";
+import { TrendingDown, TrendingUp, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TickerItem {
@@ -18,26 +18,21 @@ interface TickerAPIResponse {
   };
 }
 
-const fallbackData: TickerItem[] = [
-  { name: "Sensex", value: "85041.45", change: "-367.25", isPositive: false },
-  { name: "Nifty 50", value: "26042.30", change: "-99.80", isPositive: false },
-  { name: "Nifty Bank", value: "59011.35", change: "-172.25", isPositive: false },
-  { name: "Nifty Fin Service", value: "27430.75", change: "-134.75", isPositive: false },
-  { name: "Nifty Mid Select", value: "13722.85", change: "-90.25", isPositive: false },
-  { name: "Bankex", value: "65990.69", change: "-156.88", isPositive: false },
-];
-
 export function TickerRibbon() {
-  const [tickerData, setTickerData] = useState<TickerItem[]>(fallbackData);
+  const [tickerData, setTickerData] = useState<TickerItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const fetchTickerData = async () => {
       try {
+        setHasError(false);
         const { data, error } = await supabase.functions.invoke('ticker-data');
         
         if (error) {
           console.error('Error fetching ticker data:', error);
+          setHasError(true);
+          setTickerData([]);
           return;
         }
 
@@ -50,9 +45,15 @@ export function TickerRibbon() {
             isPositive: value.ch >= 0,
           }));
           setTickerData(formattedData);
+          setHasError(false);
+        } else {
+          setHasError(true);
+          setTickerData([]);
         }
       } catch (error) {
         console.error('Error fetching ticker data:', error);
+        setHasError(true);
+        setTickerData([]);
       } finally {
         setIsLoading(false);
       }
@@ -64,6 +65,29 @@ export function TickerRibbon() {
     const interval = setInterval(fetchTickerData, 30000);
     return () => clearInterval(interval);
   }, []);
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="bg-ticker-bg border-b border-border overflow-hidden py-2">
+        <div className="flex items-center justify-center gap-2 text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm">Loading market data...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if no data
+  if (hasError || tickerData.length === 0) {
+    return (
+      <div className="bg-ticker-bg border-b border-border overflow-hidden py-2">
+        <div className="flex items-center justify-center text-destructive">
+          <span className="text-sm font-medium">⚠️ Unable to fetch market data from API</span>
+        </div>
+      </div>
+    );
+  }
 
   const repeatedData = [...tickerData, ...tickerData];
 
