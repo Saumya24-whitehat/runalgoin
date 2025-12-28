@@ -438,8 +438,8 @@ export function IndicesSection() {
       <CardContent className="p-4 h-full flex flex-col">
         <h3 className="font-semibold mb-3">Advances/Declines</h3>
         
-        {/* Scrollable indices */}
-        <ScrollArea className="flex-1">
+        {/* Scrollable - only shows 3 items initially, scroll for more */}
+        <ScrollArea className="h-[180px]">
           <div className="space-y-3 pr-2">
             {advanceDeclineItems.map((item, idx) => (
               <AdvanceDeclineBar key={idx} item={item} />
