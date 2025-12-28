@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.option-chain-proxy]
 verify_jwt = false
+
+[functions.pcr-data]
+verify_jwt = false
