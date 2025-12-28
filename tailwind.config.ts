@@ -84,6 +84,9 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        call: "hsl(var(--call-color))",
+        put: "hsl(var(--put-color))",
+        "atm-highlight": "hsl(var(--atm-highlight))",
       },
       borderRadius: {
         lg: "var(--radius)",
