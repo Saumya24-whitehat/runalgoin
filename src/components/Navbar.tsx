@@ -1,6 +1,9 @@
 import { useState } from "react";
-import { ChevronDown, TrendingUp, Menu, X, LogOut, BarChart3, LineChart, Layers, Crown, Bot, Star, Link2, Target, Flame, Filter, Wrench, Scale, BarChart2, Calculator, PieChart, Activity } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ChevronDown, TrendingUp, Menu, X, LogOut, LogIn, BarChart3, LineChart, Layers, Crown, Bot, Star, Link2, Target, Flame, Filter, Wrench, Scale, BarChart2, Calculator, PieChart, Activity } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 interface NavDropdownItem {
   icon: React.ElementType;
@@ -159,9 +162,16 @@ export function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMobileDropdown = (label: string) => {
     setExpandedMobileItem(expandedMobileItem === label ? null : label);
+  };
+
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/");
   };
 
   return (
@@ -213,10 +223,25 @@ export function Navbar() {
           {/* Right Side Actions */}
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground hover:bg-secondary rounded-lg transition-colors">
-              <LogOut className="h-4 w-4" />
-              <span>Logout</span>
-            </button>
+            {user ? (
+              <Button
+                variant="ghost"
+                onClick={handleLogout}
+                className="hidden sm:flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span>Logout</span>
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                onClick={() => navigate("/auth")}
+                className="hidden sm:flex items-center gap-2"
+              >
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Button>
+            )}
 
             {/* Mobile Menu Button */}
             <button
@@ -290,13 +315,23 @@ export function Navbar() {
               </div>
             ))}
             <hr className="border-border my-2" />
-            <a
-              href="#"
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="font-medium">Logout</span>
-            </a>
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
+              >
+                <LogOut className="h-5 w-5" />
+                <span className="font-medium">Logout</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => navigate("/auth")}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-colors w-full"
+              >
+                <LogIn className="h-5 w-5" />
+                <span className="font-medium">Login</span>
+              </button>
+            )}
           </div>
         </div>
       )}
