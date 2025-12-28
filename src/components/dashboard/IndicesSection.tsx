@@ -436,28 +436,16 @@ export function IndicesSection() {
   const AdvancesCard = () => (
     <Card className="bg-card border-border h-full">
       <CardContent className="p-4 h-full flex flex-col">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">Advances/Declines</h3>
-          <a href="#" className="text-primary text-sm hover:underline">View All &gt;</a>
-        </div>
+        <h3 className="font-semibold mb-3">Advances/Declines</h3>
         
-        {/* Fixed top 3 priority indices */}
-        <div className="space-y-3 mb-2">
-          {advanceDeclineItems.slice(0, 3).map((item, idx) => (
-            <AdvanceDeclineBar key={idx} item={item} />
-          ))}
-        </div>
-        
-        {/* Scrollable remaining indices */}
-        {advanceDeclineItems.length > 3 && (
-          <ScrollArea className="flex-1 max-h-[180px]">
-            <div className="space-y-3 pr-3">
-              {advanceDeclineItems.slice(3).map((item, idx) => (
-                <AdvanceDeclineBar key={idx} item={item} />
-              ))}
-            </div>
-          </ScrollArea>
-        )}
+        {/* Scrollable indices */}
+        <ScrollArea className="flex-1">
+          <div className="space-y-3 pr-2">
+            {advanceDeclineItems.map((item, idx) => (
+              <AdvanceDeclineBar key={idx} item={item} />
+            ))}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
