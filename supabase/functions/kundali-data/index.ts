@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { symbol, expiry_date, strikeCount = 100 } = await req.json();
+    const { symbol, expiry_date, strikeCount = 5 } = await req.json();
     
     console.log("Fetching kundali data for:", { symbol, expiry_date, strikeCount });
     
@@ -27,8 +27,12 @@ serve(async (req) => {
     
     const response = await fetch(url, {
       headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': '*/*',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJpYXQiOjE3NTE3NjU4MjMsImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://runalgo.xyz/pcr/',
       },
     });
 
