@@ -172,8 +172,11 @@ const OptionChain = () => {
       
       if (error) throw error;
       
-      const idxSymbols = data?.index_symbols || [];
+      // API returns "index symbols" (with space) not "index_symbols"
+      const idxSymbols = data?.['index symbols'] || data?.index_symbols || [];
       const stkSymbols = data?.symbols || [];
+      console.log('Index symbols:', idxSymbols);
+      console.log('Stock symbols:', stkSymbols);
       setIndexSymbols(idxSymbols);
       setStockSymbols(stkSymbols);
     } catch (error) {
