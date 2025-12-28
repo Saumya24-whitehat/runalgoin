@@ -91,7 +91,8 @@ const SupportResistance = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   
-  const [symbols, setSymbols] = useState<string[]>([]);
+  const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
+  const [stockSymbols, setStockSymbols] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('Nifty 50');
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [selectedExpiry, setSelectedExpiry] = useState<string>('');
@@ -150,21 +151,15 @@ const SupportResistance = () => {
         });
         if (error) throw error;
         console.log('Symbols response:', data);
-        // Handle response format: { index_symbols: [...], symbols: [...] }
-        let symbolsList: string[] = [];
-        if (data?.index_symbols && Array.isArray(data.index_symbols)) {
-          symbolsList = data.index_symbols;
-        } else if (data?.symbols && Array.isArray(data.symbols)) {
-          symbolsList = data.symbols;
-        } else if (Array.isArray(data)) {
-          symbolsList = data;
-        }
-        if (symbolsList.length > 0) {
-          setSymbols(symbolsList);
-          // Auto-select first symbol if not already selected
-          if (!selectedSymbol || !symbolsList.includes(selectedSymbol)) {
-            setSelectedSymbol(symbolsList[0]);
-          }
+        
+        const idxSymbols = data?.index_symbols || [];
+        const stkSymbols = data?.symbols || [];
+        setIndexSymbols(idxSymbols);
+        setStockSymbols(stkSymbols);
+        
+        // Auto-select first index symbol if available
+        if (idxSymbols.length > 0 && !idxSymbols.includes(selectedSymbol) && !stkSymbols.includes(selectedSymbol)) {
+          setSelectedSymbol(idxSymbols[0]);
         }
       } catch (err) {
         console.error('Error fetching symbols:', err);
@@ -363,10 +358,23 @@ const SupportResistance = () => {
                 <SelectTrigger className="w-32 md:w-40 bg-muted border-border text-xs md:text-sm">
                   <SelectValue placeholder="Symbol" />
                 </SelectTrigger>
-                <SelectContent>
-                  {symbols.map(sym => (
-                    <SelectItem key={sym} value={sym}>{sym}</SelectItem>
-                  ))}
+                <SelectContent className="max-h-[300px] bg-popover">
+                  {indexSymbols.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
+                      {indexSymbols.map(sym => (
+                        <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {stockSymbols.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
+                      {stockSymbols.map(sym => (
+                        <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
 
