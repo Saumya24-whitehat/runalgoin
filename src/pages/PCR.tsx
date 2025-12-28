@@ -38,7 +38,7 @@ const PCR = () => {
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState("");
-  const [strikeCount, setStrikeCount] = useState(10);
+  const [strikeCount, setStrikeCount] = useState(5);
   const [historicalDate, setHistoricalDate] = useState<Date | undefined>();
   
   const [pcrData, setPcrData] = useState<PCRTimeData[]>([]);

@@ -25,11 +25,13 @@ serve(async (req) => {
     
     console.log("Fetching from URL:", url);
     
+    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN') || 'eyJpYXQiOjE3NTE3NjU4MjMsImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9';
+    
     const response = await fetch(url, {
       headers: {
         'Accept': '*/*',
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJpYXQiOjE3NTE3NjU4MjMsImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9',
+        'Authorization': `Bearer ${bearerToken}`,
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
         'X-Requested-With': 'XMLHttpRequest',
         'Referer': 'https://runalgo.xyz/pcr/',

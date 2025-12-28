@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.pcr-data]
 verify_jwt = false
+
+[functions.kundali-data]
+verify_jwt = false
