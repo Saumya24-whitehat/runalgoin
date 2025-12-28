@@ -37,14 +37,15 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
   // Reverse to show latest first
   const sortedData = [...data].reverse();
 
-  // Process data to fill missing Future values with previous time's Future
+  // Process data to fill missing Future and VWAP values with previous time's values
   const processedData = sortedData.map((row, index) => {
     let futureValue = row.Future;
     let isFutureBorrowed = false;
+    let vwapValue = row.VWAP;
+    let isVwapBorrowed = false;
     
     // If Future is 0 or missing, look for previous valid value
     if (futureValue === 0 || !futureValue) {
-      // Look in next items (which are earlier in time since array is reversed)
       for (let i = index + 1; i < sortedData.length; i++) {
         if (sortedData[i].Future && sortedData[i].Future !== 0) {
           futureValue = sortedData[i].Future;
@@ -54,7 +55,18 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
       }
     }
     
-    return { ...row, displayFuture: futureValue, isFutureBorrowed };
+    // If VWAP is 0 or missing, look for previous valid value
+    if (vwapValue === 0 || !vwapValue) {
+      for (let i = index + 1; i < sortedData.length; i++) {
+        if (sortedData[i].VWAP && sortedData[i].VWAP !== 0) {
+          vwapValue = sortedData[i].VWAP;
+          isVwapBorrowed = true;
+          break;
+        }
+      }
+    }
+    
+    return { ...row, displayFuture: futureValue, isFutureBorrowed, displayVwap: vwapValue, isVwapBorrowed };
   });
 
   return (
@@ -63,10 +75,10 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
         <CardTitle className="text-lg font-heading">Intraday Analysis</CardTitle>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+        <div className="overflow-x-auto max-h-[400px] overflow-y-auto relative">
           <Table>
-            <TableHeader className="sticky top-0 bg-card z-10">
-              <TableRow className="bg-secondary/80">
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow className="bg-secondary border-b-0">
                 <TableHead className="text-xs font-semibold whitespace-nowrap bg-secondary">Time</TableHead>
                 <TableHead className="text-xs font-semibold text-right whitespace-nowrap bg-secondary">Spot</TableHead>
                 <TableHead className="text-xs font-semibold text-right whitespace-nowrap bg-secondary">Future</TableHead>
@@ -93,7 +105,10 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
                       {row.displayFuture.toFixed(2)}
                       {row.isFutureBorrowed && <span className="text-yellow-400">*</span>}
                     </TableCell>
-                    <TableCell className="text-right">{row.VWAP.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">
+                      {row.displayVwap.toFixed(2)}
+                      {row.isVwapBorrowed && <span className="text-yellow-400">*</span>}
+                    </TableCell>
                     <TableCell className="text-right text-call">{formatNumber(row.CE_OI)}</TableCell>
                     <TableCell className="text-right text-put">{formatNumber(row.PE_OI)}</TableCell>
                     <TableCell className={`text-right font-medium ${row.PCR_OI < 1 ? 'text-red-400' : 'text-emerald-400'}`}>
