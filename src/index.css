@@ -167,6 +167,21 @@
   .ticker-scroll:hover {
     animation-play-state: paused;
   }
+
+  /* Option Chain: denser mobile table */
+  .optionchain-compact th,
+  .optionchain-compact td {
+    font-size: 11px;
+    line-height: 1.15;
+  }
+
+  @media (min-width: 640px) {
+    .optionchain-compact th,
+    .optionchain-compact td {
+      font-size: 0.75rem;
+      line-height: 1.25;
+    }
+  }
 }
 
 @keyframes ticker {
