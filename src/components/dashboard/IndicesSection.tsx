@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 
 interface TickerData {
@@ -21,10 +22,67 @@ interface FIIRecord {
   FIIDIIData: FIIDataItem[];
 }
 
-const advancesDeclines = [
-  { name: "Nifty 50", advances: 15, declines: 35, change: "0.4%", isPositive: false },
-  { name: "Nifty 500", advances: 174, declines: 320, change: "0.3%", isPositive: false },
-  { name: "Nifty Bank", advances: 7, declines: 5, change: "0.3%", isPositive: false },
+interface AdvanceDeclineItem {
+  time: string;
+  advance: number;
+  decline: number;
+}
+
+// Mapping of API keys to display names
+const symbolNameMap: Record<string, string> = {
+  "SYML:NSE;NIFTY": "Nifty 50",
+  "SYML:NSE;CNX500": "Nifty 500",
+  "SYML:NSE;BANKNIFTY": "Nifty Bank",
+  "SYML:NSE;SENSEX": "Sensex",
+  "SYML:NSE;CNXIT": "Nifty IT",
+  "SYML:NSE;CNXFINANCE": "Nifty Finance",
+  "SYML:NSE;CNXAUTO": "Nifty Auto",
+  "SYML:NSE;NIFTYJR": "Nifty Next 50",
+  "SYML:NSE;CNXPSUBANK": "Nifty PSU Bank",
+  "SYML:NSE;CNXPHARMA": "Nifty Pharma",
+  "SYML:NSE;CNXMETAL": "Nifty Metal",
+  "SYML:NSE;NIFTYFINSRV25_50": "Nifty Fin Srv 25/50",
+  "SYML:NSE;CNXFMCG": "Nifty FMCG",
+  "SYML:NSE;CNXINFRA": "Nifty Infra",
+  "SYML:NSE;NIFTYPVTBANK": "Nifty Pvt Bank",
+  "SYML:NSE;CNXMEDIA": "Nifty Media",
+  "SYML:NSE;CNXREALTY": "Nifty Realty",
+  "SYML:NSE;NIFTY_HEALTHCARE": "Nifty Healthcare",
+  "SYML:NSE;NIFTY_CONSR_DURBL": "Nifty Consumer Durables",
+  "SYML:NSE;NIFTY_OIL_AND_GAS": "Nifty Oil & Gas",
+  "SYML:NSE;CNXSMALLCAP": "Nifty Smallcap",
+  "SYML:NSE;NIFTY_MID_SELECT": "Nifty Mid Select",
+  "SYML:NSE;CNX200": "Nifty 200",
+  "SYML:NSE;CNXENERGY": "Nifty Energy",
+  "SYML:NSE;CNXCONSUMPTION": "Nifty Consumption",
+  "SYML:NSE;CNXMIDCAP": "Nifty Midcap",
+  "SYML:NSE;CNXCOMMODITIES": "Nifty Commodities",
+  "SYML:NSE;NIFTYMIDCAP50": "Nifty Midcap 50",
+  "SYML:NSE;NIFTYSMLCAP250": "Nifty Smallcap 250",
+  "SYML:NSE;NIFTYMIDSML400": "Nifty Midsml 400",
+  "SYML:NSE;CNXPSE": "Nifty PSE",
+  "SYML:NSE;NIFTYMIDCAP150": "Nifty Midcap 150",
+  "SYML:NSE;NIFTY_MICROCAP250": "Nifty Microcap 250",
+  "SYML:NSE;NIFTYALPHA50": "Nifty Alpha 50",
+  "SYML:NSE;NIFTY_TOTAL_MKT": "Nifty Total Mkt",
+  "SYML:NSE;CPSE": "CPSE",
+  "SYML:NSE;CNX100": "Nifty 100",
+  "SYML:NSE;CNXSERVICE": "Nifty Service",
+  "SYML:NSE;NIFTY500_MULTICAP": "Nifty 500 Multicap",
+  "SYML:NSE;CNXMNC": "Nifty MNC",
+  "SYML:NSE;NIFTY_INDIA_MFG": "Nifty India Mfg",
+  "SYML:NSE;NIFTY200MOMENTM30": "Nifty 200 Momentum 30",
+  "SYML:NSE;NIFTYSMLCAP50": "Nifty Smallcap 50",
+  "SYML:NSE;NIFTY_LARGEMID250": "Nifty Largemid 250",
+  "SYML:NSE;NIFTY50EQUALWEIGHT": "Nifty 50 Equal Wt",
+  "SYML:NSE;NIFTY_IND_DIGITAL": "Nifty Ind Digital",
+};
+
+// Priority order for fixed indices
+const prioritySymbols = [
+  "SYML:NSE;NIFTY",
+  "SYML:NSE;CNX500",
+  "SYML:NSE;BANKNIFTY",
 ];
 
 export function IndicesSection() {
@@ -33,6 +91,7 @@ export function IndicesSection() {
   const [activeSlide, setActiveSlide] = useState(0);
   const [tickerData, setTickerData] = useState<Record<string, TickerData> | null>(null);
   const [fiiData, setFiiData] = useState<FIIRecord[] | null>(null);
+  const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineItem> | null>(null);
 
   // Fetch ticker data
   useEffect(() => {
@@ -62,6 +121,21 @@ export function IndicesSection() {
       }
     };
     fetchFiiData();
+  }, []);
+
+  // Fetch Advance/Decline data
+  useEffect(() => {
+    const fetchAdvanceDecline = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('advance-decline');
+        if (!error && data) {
+          setAdvanceDeclineData(data);
+        }
+      } catch (err) {
+        console.error('Error fetching advance/decline data:', err);
+      }
+    };
+    fetchAdvanceDecline();
   }, []);
 
   // Auto-scroll for mobile carousel
@@ -126,9 +200,32 @@ export function IndicesSection() {
     };
   };
 
+  // Get sorted advance/decline data
+  const getSortedAdvanceDeclineData = () => {
+    if (!advanceDeclineData) return [];
+
+    const items = Object.entries(advanceDeclineData).map(([key, data]) => ({
+      key,
+      name: symbolNameMap[key] || key.replace("SYML:NSE;", ""),
+      advance: data.advance,
+      decline: data.decline,
+      time: data.time,
+    }));
+
+    // Sort: priority symbols first, then rest
+    const priorityItems = prioritySymbols
+      .map(sym => items.find(item => item.key === sym))
+      .filter(Boolean) as typeof items;
+    
+    const otherItems = items.filter(item => !prioritySymbols.includes(item.key));
+
+    return [...priorityItems, ...otherItems];
+  };
+
   const indexData = getCurrentIndexData();
   const fiiCalendarData = getFiiCalendarData();
   const latestFii = getLatestFiiCash();
+  const advanceDeclineItems = getSortedAdvanceDeclineData();
 
   const IndexCard = () => (
     <Card className="bg-card border-border h-full">
@@ -306,40 +403,61 @@ export function IndicesSection() {
     </Card>
   );
 
+  const AdvanceDeclineBar = ({ item }: { item: { name: string; advance: number; decline: number } }) => {
+    const total = item.advance + item.decline;
+    const advancePercent = total > 0 ? (item.advance / total) * 100 : 50;
+    const declinePercent = total > 0 ? (item.decline / total) * 100 : 50;
+    
+    return (
+      <div className="space-y-1">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-foreground font-medium">{item.name}</span>
+        </div>
+        <div className="flex items-center gap-0 h-5">
+          {/* Advances count */}
+          <span className="text-xs text-success mr-1 w-7 text-right">▲{item.advance}</span>
+          {/* Advance bar */}
+          <div 
+            className="h-4 bg-success rounded-l"
+            style={{ width: `${advancePercent}%`, maxWidth: '120px', minWidth: '8px' }}
+          />
+          {/* Decline bar */}
+          <div 
+            className="h-4 bg-destructive rounded-r"
+            style={{ width: `${declinePercent}%`, maxWidth: '120px', minWidth: '8px' }}
+          />
+          {/* Declines count */}
+          <span className="text-xs text-destructive ml-1 w-8">▼{item.decline}</span>
+        </div>
+      </div>
+    );
+  };
+
   const AdvancesCard = () => (
     <Card className="bg-card border-border h-full">
       <CardContent className="p-4 h-full flex flex-col">
-        <h3 className="font-semibold mb-4">Advances/Declines</h3>
-        <div className="space-y-4 flex-1">
-          {advancesDeclines.map((item, idx) => (
-            <div key={idx} className="space-y-1">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{item.name}</span>
-                <span className={item.isPositive ? "text-success" : "text-destructive"}>
-                  {item.isPositive ? "▲" : "▼"}{item.change}
-                </span>
-              </div>
-              <div className="flex items-center gap-1 h-5">
-                {/* Advances bar */}
-                <div className="flex items-center">
-                  <span className="text-xs text-success mr-1">▲{item.advances}</span>
-                  <div 
-                    className="h-4 bg-success rounded-l"
-                    style={{ width: `${(item.advances / (item.advances + item.declines)) * 150}px` }}
-                  />
-                </div>
-                {/* Declines bar */}
-                <div className="flex items-center">
-                  <div 
-                    className="h-4 bg-destructive rounded-r"
-                    style={{ width: `${(item.declines / (item.advances + item.declines)) * 150}px` }}
-                  />
-                  <span className="text-xs text-destructive ml-1">▼{item.declines}</span>
-                </div>
-              </div>
-            </div>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="font-semibold">Advances/Declines</h3>
+          <a href="#" className="text-primary text-sm hover:underline">View All &gt;</a>
+        </div>
+        
+        {/* Fixed top 3 priority indices */}
+        <div className="space-y-3 mb-2">
+          {advanceDeclineItems.slice(0, 3).map((item, idx) => (
+            <AdvanceDeclineBar key={idx} item={item} />
           ))}
         </div>
+        
+        {/* Scrollable remaining indices */}
+        {advanceDeclineItems.length > 3 && (
+          <ScrollArea className="flex-1 max-h-[180px]">
+            <div className="space-y-3 pr-3">
+              {advanceDeclineItems.slice(3).map((item, idx) => (
+                <AdvanceDeclineBar key={idx} item={item} />
+              ))}
+            </div>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );
