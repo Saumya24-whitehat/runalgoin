@@ -94,12 +94,12 @@ const Dashboard = () => {
         <Card className="bg-card border-border">
           <CardContent className="p-4">
             <Tabs defaultValue="candlestick" className="w-full">
-              <div className="flex items-center justify-between mb-4">
-                <TabsList className="bg-transparent gap-2 h-auto p-0">
-                  <TabsTrigger value="candlestick" className="bg-primary/20 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <TabsList className="bg-transparent gap-2 h-auto p-0 flex-wrap">
+                  <TabsTrigger value="candlestick" className="bg-primary/20 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg text-sm">
                     $ Candlestick
                   </TabsTrigger>
-                  <TabsTrigger value="chartpatterns" className="bg-secondary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg">
+                  <TabsTrigger value="chartpatterns" className="bg-secondary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg text-sm">
                     📊 Chart Patterns
                   </TabsTrigger>
                 </TabsList>
@@ -109,7 +109,8 @@ const Dashboard = () => {
                 </div>
               </div>
               <TabsContent value="candlestick">
-                <div className="overflow-x-auto">
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-border text-muted-foreground">
@@ -136,6 +137,41 @@ const Dashboard = () => {
                       ))}
                     </tbody>
                   </table>
+                </div>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border pb-2 mb-2">
+                    <span className="font-medium">Stock Name</span>
+                    <span className="font-medium">LTP</span>
+                  </div>
+                  <div className="space-y-0">
+                    {candlestickPatterns.map((pattern, idx) => (
+                      <div key={idx} className="border-b border-border/50 py-4">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="font-semibold text-foreground leading-tight mb-2">
+                              {pattern.symbol}
+                            </div>
+                            <div className="space-y-1 text-sm">
+                              <div className="text-primary font-medium">{pattern.pattern}</div>
+                              <div className="text-muted-foreground text-xs">
+                                Published On: {pattern.time.split(",")[0]}
+                              </div>
+                              <div className="text-muted-foreground text-xs">
+                                Price Point: <span className="text-foreground">--</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex-shrink-0">
+                            <div className="w-16 h-10 bg-primary/20 rounded flex items-center justify-center">
+                              <span className="text-xs text-muted-foreground">{pattern.timeframe}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </TabsContent>
               <TabsContent value="chartpatterns">
