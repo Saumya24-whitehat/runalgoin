@@ -65,8 +65,9 @@ const PCR = () => {
         });
         if (error) throw error;
         
-        const indexSymbols = data?.indexSymbols || [];
-        const stockSymbols = data?.stockSymbols || [];
+        // API returns "index symbols" and "symbols" keys
+        const indexSymbols = data?.["index symbols"] || [];
+        const stockSymbols = data?.symbols || [];
         setSymbols({ indexSymbols, stockSymbols });
       } catch (err) {
         console.error("Error fetching symbols:", err);
