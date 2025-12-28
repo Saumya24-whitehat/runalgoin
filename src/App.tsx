@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import OptionChain from "./pages/OptionChain";
+import SupportResistance from "./pages/SupportResistance";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
               <Route path="/auth" element={<Auth />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/option-chain" element={<OptionChain />} />
+              <Route path="/support-resistance" element={<SupportResistance />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
