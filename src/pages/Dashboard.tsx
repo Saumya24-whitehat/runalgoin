@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
 import { IndicesSection } from "@/components/dashboard/IndicesSection";
+import { ChartPatternsSection } from "@/components/dashboard/ChartPatternsSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -12,16 +13,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 
-interface CandlestickPattern {
-  id: number;
-  conditionName: string;
-  tradingSymbol: string;
-  securityDescription: string;
-  timestamp: number;
-  trendType: "Bullish" | "Bearish" | "Neutral";
-  thumbnail: string;
-  timeFrame: string;
-}
 
 const trendingStocks = [
   { symbol: "Nestle India", sector: "NESTLEIND", ltp: "1275.2", prev: "1259.7", change: "▲ 1.23%", isPositive: true, logo: "N" },
@@ -84,8 +75,6 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [fiiData, setFiiData] = useState<FIIRecord[] | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
-  const [candlestickPatterns, setCandlestickPatterns] = useState<CandlestickPattern[]>([]);
-  const [patternsLoading, setPatternsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -108,22 +97,6 @@ const Dashboard = () => {
     fetchFiiData();
   }, []);
 
-  // Fetch Chart Patterns data
-  useEffect(() => {
-    const fetchPatterns = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('chart-patterns');
-        if (!error && data?.stocks?.candlesticks) {
-          setCandlestickPatterns(data.stocks.candlesticks);
-        }
-      } catch (err) {
-        console.error('Error fetching chart patterns:', err);
-      } finally {
-        setPatternsLoading(false);
-      }
-    };
-    fetchPatterns();
-  }, []);
 
   // Get FII/DII data for display (with child data)
   const getFiiDiiDisplayData = () => {
@@ -219,136 +192,8 @@ const Dashboard = () => {
         {/* Indices Section */}
         <IndicesSection />
 
-        {/* Candlestick Patterns Section */}
-        <Card className="bg-card border-border">
-          <CardContent className="p-4">
-            <Tabs defaultValue="candlestick" className="w-full">
-              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                <TabsList className="bg-transparent gap-2 h-auto p-0 flex-wrap">
-                  <TabsTrigger value="candlestick" className="bg-primary/20 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg text-sm">
-                    $ Candlestick
-                  </TabsTrigger>
-                  <TabsTrigger value="chartpatterns" className="bg-secondary data-[state=active]:bg-primary data-[state=active]:text-primary-foreground px-4 py-2 rounded-lg text-sm">
-                    📊 Chart Patterns
-                  </TabsTrigger>
-                </TabsList>
-                <div className="flex gap-2">
-                  <Badge variant="default" className="bg-primary">Stocks</Badge>
-                  <Badge variant="outline">F&O</Badge>
-                </div>
-              </div>
-              <TabsContent value="candlestick">
-                {patternsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-pulse text-muted-foreground">Loading patterns...</div>
-                  </div>
-                ) : (
-                  <>
-                    {/* Desktop Table View */}
-                    <ScrollArea className="h-[400px]">
-                      <div className="hidden md:block overflow-x-auto">
-                        <table className="w-full text-sm">
-                          <thead className="sticky top-0 bg-card z-10">
-                            <tr className="border-b border-border text-muted-foreground">
-                              <th className="text-left py-3 px-2 font-medium">SYMBOL</th>
-                              <th className="text-left py-3 px-2 font-medium">PATTERN</th>
-                              <th className="text-left py-3 px-2 font-medium">TIMEFRAME</th>
-                              <th className="text-left py-3 px-2 font-medium">TIME</th>
-                              <th className="text-left py-3 px-2 font-medium">SENTIMENT</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {candlestickPatterns.slice(0, 50).map((pattern) => {
-                              const time = new Date(pattern.timestamp);
-                              const formattedTime = time.toLocaleString('en-IN', { 
-                                day: '2-digit', month: 'short', year: 'numeric', 
-                                hour: '2-digit', minute: '2-digit' 
-                              });
-                              const timeFrameLabel = pattern.timeFrame === "15mi" ? "15min" : 
-                                pattern.timeFrame === "1hr" ? "1hr" : pattern.timeFrame;
-                              const sentimentColor = pattern.trendType === "Bullish" 
-                                ? "bg-success/10 text-success border-success/20"
-                                : pattern.trendType === "Bearish"
-                                ? "bg-destructive/10 text-destructive border-destructive/20"
-                                : "bg-warning/10 text-warning border-warning/20";
-                              
-                              return (
-                                <tr key={pattern.id} className="border-b border-border/50 hover:bg-secondary/30 transition-colors">
-                                  <td className="py-3 px-2 font-medium">{pattern.securityDescription || pattern.tradingSymbol}</td>
-                                  <td className="py-3 px-2 text-primary">{pattern.conditionName}</td>
-                                  <td className="py-3 px-2">{timeFrameLabel}</td>
-                                  <td className="py-3 px-2 text-muted-foreground">{formattedTime}</td>
-                                  <td className="py-3 px-2">
-                                    <Badge variant="outline" className={sentimentColor}>
-                                      {pattern.trendType}
-                                    </Badge>
-                                  </td>
-                                </tr>
-                              );
-                            })}
-                          </tbody>
-                        </table>
-                      </div>
-
-                      {/* Mobile Card View */}
-                      <div className="md:hidden">
-                        <div className="flex items-center justify-between text-xs text-muted-foreground border-b border-border pb-2 mb-2">
-                          <span className="font-medium">Stock Name</span>
-                          <span className="font-medium">Timeframe</span>
-                        </div>
-                        <div className="space-y-0">
-                          {candlestickPatterns.slice(0, 50).map((pattern) => {
-                            const time = new Date(pattern.timestamp);
-                            const formattedDate = time.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
-                            const timeFrameLabel = pattern.timeFrame === "15mi" ? "15min" : 
-                              pattern.timeFrame === "1hr" ? "1hr" : pattern.timeFrame;
-                            
-                            return (
-                              <div key={pattern.id} className="border-b border-border/50 py-4">
-                                <div className="flex items-start justify-between gap-2">
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-semibold text-foreground leading-tight mb-2">
-                                      {pattern.tradingSymbol}
-                                    </div>
-                                    <div className="space-y-1 text-sm">
-                                      <div className="text-primary font-medium">{pattern.conditionName}</div>
-                                      <div className="text-muted-foreground text-xs">
-                                        Published On: {formattedDate}
-                                      </div>
-                                      <Badge variant="outline" className={`text-xs ${
-                                        pattern.trendType === "Bullish" 
-                                          ? "bg-success/10 text-success border-success/20"
-                                          : pattern.trendType === "Bearish"
-                                          ? "bg-destructive/10 text-destructive border-destructive/20"
-                                          : "bg-warning/10 text-warning border-warning/20"
-                                      }`}>
-                                        {pattern.trendType}
-                                      </Badge>
-                                    </div>
-                                  </div>
-                                  <div className="flex-shrink-0">
-                                    <div className="w-16 h-10 bg-primary/20 rounded flex items-center justify-center">
-                                      <span className="text-xs text-muted-foreground">{timeFrameLabel}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </ScrollArea>
-                  </>
-                )}
-              </TabsContent>
-              <TabsContent value="chartpatterns">
-                <div className="text-center py-8 text-muted-foreground">
-                  Use Candlestick tab for chart pattern data
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
+        {/* Chart Patterns Section */}
+        <ChartPatternsSection />
 
         {/* Trending Stocks Section */}
         <Card className="bg-card border-border">
