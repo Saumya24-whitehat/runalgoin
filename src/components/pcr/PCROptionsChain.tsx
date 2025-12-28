@@ -36,34 +36,11 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
 
   return (
     <Card className="bg-card/50 border-border/50">
-      <CardHeader className="py-3 px-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <CardTitle className="text-lg font-heading">Options Chain</CardTitle>
-          <div className="flex items-center gap-6 text-sm">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">PCR (OI):</span>
-              <span className={`font-semibold ${pcrOI < 1 ? 'text-red-400' : 'text-emerald-400'}`}>
-                {pcrOI.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">PCR (COI):</span>
-              <span className={`font-semibold ${pcrCOI < 1 ? 'text-red-400' : 'text-emerald-400'}`}>
-                {pcrCOI.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground">Current Price:</span>
-              <span className="font-semibold text-foreground">{spotPrice.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
+      <CardContent className="p-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Call Options Table */}
           <div>
-            <h3 className="text-base font-semibold mb-3 text-call">Call Options (CE)</h3>
+            <h3 className="text-base font-semibold mb-3 text-call text-center">Call Options (CE)</h3>
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>
@@ -105,7 +82,7 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
 
           {/* Put Options Table */}
           <div>
-            <h3 className="text-base font-semibold mb-3 text-put">Put Options (PE)</h3>
+            <h3 className="text-base font-semibold mb-3 text-put text-center">Put Options (PE)</h3>
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>
