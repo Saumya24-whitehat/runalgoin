@@ -149,8 +149,22 @@ const SupportResistance = () => {
           body: { action: 'getSymbols' }
         });
         if (error) throw error;
-        if (data && Array.isArray(data)) {
-          setSymbols(data);
+        console.log('Symbols response:', data);
+        // Handle response format: { index_symbols: [...], symbols: [...] }
+        let symbolsList: string[] = [];
+        if (data?.index_symbols && Array.isArray(data.index_symbols)) {
+          symbolsList = data.index_symbols;
+        } else if (data?.symbols && Array.isArray(data.symbols)) {
+          symbolsList = data.symbols;
+        } else if (Array.isArray(data)) {
+          symbolsList = data;
+        }
+        if (symbolsList.length > 0) {
+          setSymbols(symbolsList);
+          // Auto-select first symbol if not already selected
+          if (!selectedSymbol || !symbolsList.includes(selectedSymbol)) {
+            setSelectedSymbol(symbolsList[0]);
+          }
         }
       } catch (err) {
         console.error('Error fetching symbols:', err);
@@ -168,11 +182,17 @@ const SupportResistance = () => {
           body: { action: 'getExpiryDates', symbol: selectedSymbol }
         });
         if (error) throw error;
-        if (data && Array.isArray(data)) {
-          setExpiryDates(data);
-          if (data.length > 0) {
-            setSelectedExpiry(data[0]);
-          }
+        console.log('Expiry dates response:', data);
+        // Handle response format: { expiry_dates: [...] }
+        let expiryList: string[] = [];
+        if (data?.expiry_dates && Array.isArray(data.expiry_dates)) {
+          expiryList = data.expiry_dates;
+        } else if (Array.isArray(data)) {
+          expiryList = data;
+        }
+        if (expiryList.length > 0) {
+          setExpiryDates(expiryList);
+          setSelectedExpiry(expiryList[0]);
         }
       } catch (err) {
         console.error('Error fetching expiry dates:', err);
