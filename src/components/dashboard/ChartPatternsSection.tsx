@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-
+import dojiIcon from "@/assets/patterns/doji.svg";
 interface PatternItem {
   id: number;
   conditionName: string;
@@ -92,6 +92,14 @@ export function ChartPatternsSection() {
       case "Bearish": return "text-destructive bg-destructive/10";
       default: return "text-warning bg-warning/10";
     }
+  };
+
+  const getPatternIcon = (conditionName: string, thumbnail?: string) => {
+    const lowerName = conditionName.toLowerCase();
+    if (lowerName.includes("doji") || lowerName.includes("dozi")) {
+      return dojiIcon;
+    }
+    return thumbnail;
   };
 
   const formatTimeFrame = (tf: string) => {
@@ -271,18 +279,16 @@ export function ChartPatternsSection() {
               {filteredPatterns.slice(0, 50).map((pattern) => (
                 <div key={pattern.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
                   {/* Pattern Icon */}
-                  {pattern.thumbnail && (
-                    <div className="w-10 h-10 flex-shrink-0">
-                      <img 
-                        src={pattern.thumbnail} 
-                        alt={pattern.conditionName}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = 'none';
-                        }}
-                      />
-                    </div>
-                  )}
+                  <div className="w-10 h-10 flex-shrink-0">
+                    <img 
+                      src={getPatternIcon(pattern.conditionName, pattern.thumbnail)} 
+                      alt={pattern.conditionName}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
 
                   {/* Pattern Info */}
                   <div className="flex-1 min-w-0">
