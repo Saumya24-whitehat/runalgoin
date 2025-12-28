@@ -171,8 +171,9 @@
   /* Option Chain: denser mobile table */
   .optionchain-compact th,
   .optionchain-compact td {
-    font-size: 11px;
-    line-height: 1.15;
+    font-size: 9px;
+    line-height: 1.1;
+    padding: 2px 3px;
   }
 
   @media (min-width: 640px) {
@@ -180,6 +181,7 @@
     .optionchain-compact td {
       font-size: 0.75rem;
       line-height: 1.25;
+      padding: 0.5rem;
     }
   }
 }
