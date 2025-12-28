@@ -18,6 +18,7 @@ interface OptionData {
   call_options: {
     market_data: {
       ltp: number;
+      close_price: number;
       volume: number;
       oi: number;
       prev_oi: number;
@@ -35,6 +36,7 @@ interface OptionData {
   put_options: {
     market_data: {
       ltp: number;
+      close_price: number;
       volume: number;
       oi: number;
       prev_oi: number;
@@ -612,7 +614,13 @@ const OptionChain = () => {
                       const isMaxCallOI = row.call_options.market_data.oi === maxCallOI;
                       const isMaxPutOI = row.put_options.market_data.oi === maxPutOI;
                       
-                      // Calculate percentage change
+                      // Calculate LTP percentage change using close_price (previous day close) and ltp (current)
+                      const callClosePrice = row.call_options.market_data.close_price || row.call_options.market_data.ltp;
+                      const putClosePrice = row.put_options.market_data.close_price || row.put_options.market_data.ltp;
+                      const callLTPChange = callClosePrice ? ((row.call_options.market_data.ltp - callClosePrice) / callClosePrice) * 100 : 0;
+                      const putLTPChange = putClosePrice ? ((row.put_options.market_data.ltp - putClosePrice) / putClosePrice) * 100 : 0;
+                      
+                      // Calculate OI percentage change
                       const callPrevOI = row.call_options.market_data.prev_oi || 1;
                       const putPrevOI = row.put_options.market_data.prev_oi || 1;
                       const callOIChange = ((row.call_options.market_data.oi - callPrevOI) / callPrevOI) * 100;
@@ -645,8 +653,8 @@ const OptionChain = () => {
                                   </span>
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-amber-500/5' : ''}`}>
-                                  <span className={getCellColor(callOIChange)}>
-                                    {callOIChange >= 0 ? '+' : ''}{callOIChange.toFixed(2)}%
+                                  <span className={getCellColor(callLTPChange)}>
+                                    {callLTPChange >= 0 ? '+' : ''}{callLTPChange.toFixed(2)}%
                                   </span>
                                 </TableCell>
                               </>
@@ -712,8 +720,8 @@ const OptionChain = () => {
                             {viewMode === 'ltp_oi' && (
                               <>
                                 <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-sky-500/5' : ''}`}>
-                                  <span className={getCellColor(putOIChange)}>
-                                    {putOIChange >= 0 ? '+' : ''}{putOIChange.toFixed(2)}%
+                                  <span className={getCellColor(putLTPChange)}>
+                                    {putLTPChange >= 0 ? '+' : ''}{putLTPChange.toFixed(2)}%
                                   </span>
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 font-medium ${putITM ? 'bg-sky-500/5' : ''}`}>
