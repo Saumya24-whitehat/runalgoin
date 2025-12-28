@@ -92,7 +92,8 @@ const OptionChain = () => {
   const spotPriceRowRef = useRef<HTMLTableRowElement>(null);
   const historicalFetchTimerRef = useRef<number | null>(null);
   
-  const [symbols, setSymbols] = useState<string[]>([]);
+  const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
+  const [stockSymbols, setStockSymbols] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('Nifty 50');
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [selectedExpiry, setSelectedExpiry] = useState<string>('');
@@ -171,9 +172,10 @@ const OptionChain = () => {
       
       if (error) throw error;
       
-      const indexSymbols = ['Nifty 50', 'Nifty Bank', 'Nifty Fin Service', 'Nifty Mid Select'];
-      const stockSymbols = data.symbols || [];
-      setSymbols([...indexSymbols, ...stockSymbols]);
+      const idxSymbols = data?.index_symbols || [];
+      const stkSymbols = data?.symbols || [];
+      setIndexSymbols(idxSymbols);
+      setStockSymbols(stkSymbols);
     } catch (error) {
       console.error('Error fetching symbols:', error);
     } finally {
@@ -378,10 +380,23 @@ const OptionChain = () => {
                   <SelectTrigger className="w-[140px] sm:w-[160px] bg-background/50">
                     <SelectValue placeholder="Select Symbol" />
                   </SelectTrigger>
-                  <SelectContent className="max-h-[300px]">
-                    {symbols.map((sym) => (
-                      <SelectItem key={sym} value={sym}>{sym}</SelectItem>
-                    ))}
+                  <SelectContent className="max-h-[300px] bg-popover">
+                    {indexSymbols.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
+                        {indexSymbols.map((sym) => (
+                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {stockSymbols.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
+                        {stockSymbols.map((sym) => (
+                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                        ))}
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
