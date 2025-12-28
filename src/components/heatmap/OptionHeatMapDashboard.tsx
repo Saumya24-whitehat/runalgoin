@@ -50,13 +50,14 @@ const formatTime = (date: Date | null): string => {
 };
 
 export function OptionHeatMapDashboard() {
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [strikeCount, setStrikeCount] = useState<number>(10);
   const [optionData, setOptionData] = useState<OptionChainResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
+  const [initialExpirySet, setInitialExpirySet] = useState(false);
 
   // Fetch symbols
   const {
@@ -83,17 +84,20 @@ export function OptionHeatMapDashboard() {
 
   // Auto-select first expiry when expiry data loads
   useEffect(() => {
-    if (expiryData?.expiry_dates?.length && !selectedExpiry) {
+    if (expiryData?.expiry_dates?.length && !initialExpirySet) {
       setSelectedExpiry(expiryData.expiry_dates[0]);
+      setInitialExpirySet(true);
     }
-  }, [expiryData, selectedExpiry]);
+  }, [expiryData, initialExpirySet]);
 
   // Reset expiry when symbol changes
-  useEffect(() => {
+  const handleSymbolChange = (symbol: string) => {
+    setSelectedSymbol(symbol);
     setSelectedExpiry("");
     setOptionData(null);
     setLastRefreshed(null);
-  }, [selectedSymbol]);
+    setInitialExpirySet(false);
+  };
 
   // Fetch data function
   const fetchData = useCallback(async () => {
@@ -182,25 +186,22 @@ export function OptionHeatMapDashboard() {
         {/* Controls Section */}
         <Card className="mb-6 animate-fade-in">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
                   Symbol
                 </label>
                 <HeatMapSymbolSelector
                   symbols={symbols}
                   value={selectedSymbol}
-                  onChange={setSelectedSymbol}
+                  onChange={handleSymbolChange}
                   loading={symbolsLoading}
                 />
-                {symbolsError && (
-                  <p className="text-xs text-destructive">Failed to load symbols</p>
-                )}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
-                  Expiry Date
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
+                  Expiry
                 </label>
                 <HeatMapExpirySelector
                   expiryDates={expiryData?.expiry_dates || []}
@@ -209,14 +210,11 @@ export function OptionHeatMapDashboard() {
                   loading={expiryLoading}
                   disabled={!selectedSymbol}
                 />
-                {expiryError && (
-                  <p className="text-xs text-destructive">Failed to load expiry dates</p>
-                )}
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">
-                  Strike Count
+              <div className="space-y-1">
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
+                  Strikes
                 </label>
                 <HeatMapStrikeCountInput
                   value={strikeCount}
