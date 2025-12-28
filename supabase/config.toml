@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.advance-decline]
 verify_jwt = false
+
+[functions.chart-patterns]
+verify_jwt = false
