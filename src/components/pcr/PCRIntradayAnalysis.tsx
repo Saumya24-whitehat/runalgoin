@@ -66,7 +66,21 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
       }
     }
     
-    return { ...row, displayFuture: futureValue, isFutureBorrowed, displayVwap: vwapValue, isVwapBorrowed };
+    // Determine if VWAP Status should have * (when either Future or VWAP is borrowed)
+    const isVwapStatusBorrowed = isFutureBorrowed || isVwapBorrowed;
+    
+    // Calculate VWAP status using the display values (borrowed or original)
+    const displayVwapStatus = getVWAPStatus(futureValue, vwapValue);
+    
+    return { 
+      ...row, 
+      displayFuture: futureValue, 
+      isFutureBorrowed, 
+      displayVwap: vwapValue, 
+      isVwapBorrowed,
+      displayVwapStatus,
+      isVwapStatusBorrowed
+    };
   });
 
   return (
@@ -96,7 +110,6 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
             <TableBody>
               {processedData.map((row, index) => {
                 const sentiment = getSentiment(row.PCR_OI);
-                const vwapStatus = getVWAPStatus(row.underlyning, row.VWAP);
                 return (
                   <TableRow key={row.time} className={`text-xs ${index === 0 ? 'bg-primary/5' : ''}`}>
                     <TableCell className="font-medium">{row.time}</TableCell>
@@ -124,7 +137,10 @@ export function PCRIntradayAnalysis({ data }: PCRIntradayAnalysisProps) {
                       {row.PCR_COI.toFixed(2)}
                     </TableCell>
                     <TableCell className={`text-center ${sentiment.color}`}>{sentiment.text}</TableCell>
-                    <TableCell className={`text-center ${vwapStatus.color}`}>{vwapStatus.text}</TableCell>
+                    <TableCell className={`text-center ${row.displayVwapStatus.color}`}>
+                      {row.displayVwapStatus.text}
+                      {row.isVwapStatusBorrowed && <span className="text-yellow-400">*</span>}
+                    </TableCell>
                   </TableRow>
                 );
               })}

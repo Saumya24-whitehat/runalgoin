@@ -19,6 +19,7 @@ import { PCRIntradayAnalysis } from "@/components/pcr/PCRIntradayAnalysis";
 import { PCRSupportResistance } from "@/components/pcr/PCRSupportResistance";
 import { PCRSentimentGauge } from "@/components/pcr/PCRSentimentGauge";
 import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
+import { fetchKundaliData, extractSupportResistance, SupportResistanceData } from "@/services/kundaliApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer } from "lucide-react";
@@ -42,6 +43,8 @@ const PCR = () => {
   
   const [pcrData, setPcrData] = useState<PCRTimeData[]>([]);
   const [latestData, setLatestData] = useState<PCRTimeData | null>(null);
+  const [supportResistanceData, setSupportResistanceData] = useState<SupportResistanceData | null>(null);
+  const [loadingSR, setLoadingSR] = useState(false);
   
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
@@ -132,7 +135,10 @@ const PCR = () => {
     if (!selectedSymbol || !selectedExpiry) return;
     
     if (showLoader) setLoadingData(true);
+    setLoadingSR(true);
+    
     try {
+      // Fetch PCR data
       const response = await fetchPCRData(
         selectedSymbol,
         selectedExpiry,
@@ -149,6 +155,27 @@ const PCR = () => {
         const next = new Date(Date.now() + AUTO_REFRESH_INTERVAL);
         setNextRefresh(next);
       }
+      
+      // Fetch Kundali data for Support & Resistance
+      try {
+        const kundaliResponse = await fetchKundaliData(
+          selectedSymbol,
+          selectedExpiry,
+          100
+        );
+        
+        if (kundaliResponse.dataWhole && kundaliResponse.dataWhole.length > 0) {
+          const srData = extractSupportResistance(
+            kundaliResponse.dataWhole,
+            response.dataWhole[response.dataWhole.length - 1]?.underlyning || 0
+          );
+          setSupportResistanceData(srData);
+        }
+      } catch (srErr) {
+        console.error("Error fetching Kundali data:", srErr);
+        // Don't fail the whole request if SR data fails
+      }
+      
     } catch (err) {
       console.error("Error fetching PCR data:", err);
       if (showLoader) {
@@ -160,6 +187,7 @@ const PCR = () => {
       }
     } finally {
       if (showLoader) setLoadingData(false);
+      setLoadingSR(false);
     }
   }, [selectedSymbol, selectedExpiry, strikeCount, historicalDate, toast]);
 
@@ -424,9 +452,9 @@ const PCR = () => {
 
             {/* Support & Resistance */}
             <PCRSupportResistance
-              data={latestData.dataThis}
+              supportResistanceData={supportResistanceData}
               spotPrice={latestData.underlyning}
-              atm={latestData.atm}
+              loading={loadingSR}
             />
 
             {/* Market Sentiment */}
