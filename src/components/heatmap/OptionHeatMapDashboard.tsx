@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, RefreshCw, Flame, ArrowLeft } from "lucide-react";
+import { Loader2, Flame, ArrowLeft, Clock, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HeatMapSymbolSelector } from "@/components/heatmap/HeatMapSymbolSelector";
 import { HeatMapExpirySelector } from "@/components/heatmap/HeatMapExpirySelector";
@@ -17,12 +16,47 @@ import {
 } from "@/services/optionHeatMapApi";
 import { OptionChainResponse, GroupedSymbols } from "@/types/optionChain";
 
+const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+
+// Check if current time is within market hours (9:15 AM to 3:30 PM IST)
+const isMarketHours = (): boolean => {
+  const now = new Date();
+  const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+  const istTime = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
+  
+  const hours = istTime.getHours();
+  const minutes = istTime.getMinutes();
+  const day = istTime.getDay();
+  
+  // Skip weekends (Saturday = 6, Sunday = 0)
+  if (day === 0 || day === 6) return false;
+  
+  // Market hours: 9:15 AM to 3:30 PM
+  const totalMinutes = hours * 60 + minutes;
+  const marketOpen = 9 * 60 + 15; // 9:15 AM
+  const marketClose = 15 * 60 + 30; // 3:30 PM
+  
+  return totalMinutes >= marketOpen && totalMinutes <= marketClose;
+};
+
+const formatTime = (date: Date | null): string => {
+  if (!date) return "--:--:--";
+  return date.toLocaleTimeString('en-IN', { 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: true 
+  });
+};
+
 export function OptionHeatMapDashboard() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>("");
   const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [strikeCount, setStrikeCount] = useState<number>(10);
   const [optionData, setOptionData] = useState<OptionChainResponse | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
 
   // Fetch symbols
   const {
@@ -58,12 +92,14 @@ export function OptionHeatMapDashboard() {
   useEffect(() => {
     setSelectedExpiry("");
     setOptionData(null);
+    setLastRefreshed(null);
   }, [selectedSymbol]);
 
-  const handleSubmit = async () => {
+  // Fetch data function
+  const fetchData = useCallback(async () => {
     if (!selectedSymbol || !selectedExpiry) return;
 
-    setIsSubmitting(true);
+    setIsLoading(true);
     try {
       const data = await fetchHeatMapOptionChainData(
         selectedSymbol,
@@ -71,16 +107,42 @@ export function OptionHeatMapDashboard() {
         strikeCount
       );
       setOptionData(data);
+      setLastRefreshed(new Date());
+      
+      // Set next refresh time
+      if (isMarketHours()) {
+        setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
+      } else {
+        setNextRefresh(null);
+      }
     } catch (error) {
       console.error("Failed to fetch option chain data:", error);
     } finally {
-      setIsSubmitting(false);
+      setIsLoading(false);
     }
-  };
+  }, [selectedSymbol, selectedExpiry, strikeCount]);
 
-  const handleRefresh = () => {
-    handleSubmit();
-  };
+  // Auto-fetch when symbol and expiry are selected
+  useEffect(() => {
+    if (selectedSymbol && selectedExpiry) {
+      fetchData();
+    }
+  }, [selectedSymbol, selectedExpiry, fetchData]);
+
+  // Auto-refresh every 3 minutes during market hours
+  useEffect(() => {
+    if (!selectedSymbol || !selectedExpiry) return;
+
+    const checkAndRefresh = () => {
+      if (isMarketHours()) {
+        fetchData();
+      }
+    };
+
+    const interval = setInterval(checkAndRefresh, REFRESH_INTERVAL);
+
+    return () => clearInterval(interval);
+  }, [selectedSymbol, selectedExpiry, fetchData]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,6 +156,25 @@ export function OptionHeatMapDashboard() {
             <Flame className="h-6 w-6 text-orange-500" />
             <h1 className="text-xl font-heading font-semibold">Option Heat Map</h1>
           </div>
+          
+          {/* Last Updated & Refresh Info */}
+          {optionData && (
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5" />
+                <span>Data: {optionData.Time}</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                <span>Refreshed: {formatTime(lastRefreshed)}</span>
+              </div>
+              {nextRefresh && isMarketHours() && (
+                <div className="text-primary text-xs">
+                  Next: {formatTime(nextRefresh)}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
@@ -101,7 +182,7 @@ export function OptionHeatMapDashboard() {
         {/* Controls Section */}
         <Card className="mb-6 animate-fade-in">
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">
                   Symbol
@@ -142,37 +223,6 @@ export function OptionHeatMapDashboard() {
                   onChange={setStrikeCount}
                 />
               </div>
-
-              <div className="flex items-end">
-                <Button
-                  onClick={handleSubmit}
-                  disabled={!selectedSymbol || !selectedExpiry || isSubmitting}
-                  className="w-full"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    "Submit"
-                  )}
-                </Button>
-              </div>
-
-              {optionData && (
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={handleRefresh}
-                    disabled={isSubmitting}
-                    className="w-full"
-                  >
-                    <RefreshCw className={`mr-2 h-4 w-4 ${isSubmitting ? "animate-spin" : ""}`} />
-                    Refresh
-                  </Button>
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -205,7 +255,7 @@ export function OptionHeatMapDashboard() {
                   </div>
                   <div className="h-8 w-px bg-border hidden sm:block" />
                   <div>
-                    <p className="text-sm text-muted-foreground">Time</p>
+                    <p className="text-sm text-muted-foreground">Data Time</p>
                     <p className="text-lg font-heading font-semibold">{optionData.Time}</p>
                   </div>
                   <div className="h-8 w-px bg-border hidden sm:block" />
@@ -304,7 +354,7 @@ export function OptionHeatMapDashboard() {
         )}
 
         {/* Empty State */}
-        {!optionData && !isSubmitting && (
+        {!optionData && !isLoading && (
           <Card className="animate-fade-in">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Flame className="h-16 w-16 text-muted-foreground/30 mb-4" />
@@ -312,14 +362,14 @@ export function OptionHeatMapDashboard() {
                 No Data Selected
               </h2>
               <p className="text-sm text-muted-foreground text-center max-w-md">
-                Select a symbol and expiry date, then click Submit to view option heat map data with detailed analysis and charts.
+                Select a symbol and expiry date to view option heat map data. Data will auto-refresh every 3 minutes during market hours (9:15 AM - 3:30 PM).
               </p>
             </CardContent>
           </Card>
         )}
 
         {/* Loading State */}
-        {isSubmitting && (
+        {isLoading && !optionData && (
           <Card className="animate-fade-in">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
