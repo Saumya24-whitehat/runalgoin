@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Flame, ArrowLeft, Clock, RefreshCw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Loader2, Flame, Clock, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HeatMapSymbolSelector } from "@/components/heatmap/HeatMapSymbolSelector";
 import { HeatMapExpirySelector } from "@/components/heatmap/HeatMapExpirySelector";
@@ -154,43 +153,39 @@ export function OptionHeatMapDashboard() {
     <div className="min-h-screen bg-background flex flex-col">
       <TickerRibbon />
       <Navbar />
-      
-      {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
-        <div className="container flex h-16 items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Link to="/dashboard" className="p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ArrowLeft className="h-5 w-5 text-muted-foreground" />
-            </Link>
-            <Flame className="h-6 w-6 text-orange-500" />
-            <h1 className="text-xl font-heading font-semibold">Option Heat Map</h1>
-          </div>
-          
-          {/* Last Updated & Refresh Info */}
-          {optionData && (
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Clock className="h-3.5 w-3.5" />
-                <span>Data: {optionData.Time}</span>
+
+      <main className="container py-4 md:py-6">
+        {/* Controls Section with Title and Refresh Info */}
+        <Card className="mb-6 animate-fade-in">
+          <CardContent className="pt-4 pb-4">
+            {/* Header Row */}
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                <h1 className="text-lg font-heading font-semibold">Option Heat Map</h1>
               </div>
-              <div className="flex items-center gap-1.5">
-                <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
-                <span>Refreshed: {formatTime(lastRefreshed)}</span>
-              </div>
-              {nextRefresh && isMarketHours() && (
-                <div className="text-primary text-xs">
-                  Next: {formatTime(nextRefresh)}
+              
+              {/* Refresh Info */}
+              {optionData && (
+                <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>Data: {optionData.Time}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                    <span>Refreshed: {formatTime(lastRefreshed)}</span>
+                  </div>
+                  {nextRefresh && isMarketHours() && (
+                    <div className="text-primary text-xs">
+                      Next: {formatTime(nextRefresh)}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </header>
-
-      <main className="container py-6">
-        {/* Controls Section */}
-        <Card className="mb-6 animate-fade-in">
-          <CardContent className="pt-6">
+            
+            {/* Controls Row */}
             <div className="grid grid-cols-3 gap-2 sm:gap-4">
               <div className="space-y-1">
                 <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
