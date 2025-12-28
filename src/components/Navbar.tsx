@@ -158,6 +158,11 @@ function NavDropdown({ sections, isOpen }: { sections: NavDropdownSection[]; isO
 export function Navbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
+
+  const toggleMobileDropdown = (label: string) => {
+    setExpandedMobileItem(expandedMobileItem === label ? null : label);
+  };
 
   return (
     <nav className="sticky top-0 z-40 bg-nav-bg border-b border-nav-border">
@@ -230,18 +235,59 @@ export function Navbar() {
 
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden bg-nav-bg border-t border-nav-border animate-slide-down">
+        <div className="lg:hidden bg-nav-bg border-t border-nav-border animate-slide-down max-h-[80vh] overflow-y-auto">
           <div className="container mx-auto px-4 py-4 space-y-2">
             {navItems.map((item) => (
-              <a
-                key={item.label}
-                href="#"
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
-              >
-                {item.icon && <item.icon className="h-5 w-5 text-primary" />}
-                <span className="font-medium">{item.label}</span>
-                {item.hasDropdown && <ChevronDown className="h-4 w-4 ml-auto" />}
-              </a>
+              <div key={item.label}>
+                {item.hasDropdown ? (
+                  <>
+                    <button
+                      onClick={() => toggleMobileDropdown(item.label)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
+                    >
+                      {item.icon && <item.icon className="h-5 w-5 text-primary" />}
+                      <span className="font-medium">{item.label}</span>
+                      <ChevronDown 
+                        className={`h-4 w-4 ml-auto transition-transform duration-200 ${
+                          expandedMobileItem === item.label ? "rotate-180" : ""
+                        }`} 
+                      />
+                    </button>
+                    {expandedMobileItem === item.label && item.sections && (
+                      <div className="mt-2 ml-4 space-y-4 bg-secondary/30 rounded-lg p-3 animate-slide-down">
+                        {item.sections.map((section, idx) => (
+                          <div key={idx}>
+                            <h4 className="text-xs font-semibold text-muted-foreground mb-2 tracking-wide">
+                              {section.title}
+                            </h4>
+                            <ul className="space-y-1">
+                              {section.items.map((subItem, subIdx) => (
+                                <li key={subIdx}>
+                                  <a
+                                    href="#"
+                                    className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm text-foreground"
+                                  >
+                                    <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
+                                    <span>{subItem.label}</span>
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <a
+                    href="#"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                  >
+                    {item.icon && <item.icon className="h-5 w-5 text-primary" />}
+                    <span className="font-medium">{item.label}</span>
+                  </a>
+                )}
+              </div>
             ))}
             <hr className="border-border my-2" />
             <a
