@@ -42,7 +42,7 @@ export default function Auth() {
 
   useEffect(() => {
     if (user) {
-      navigate("/");
+      navigate("/dashboard");
     }
   }, [user, navigate]);
 
@@ -101,7 +101,7 @@ export default function Auth() {
             title: "Welcome back!",
             description: "You have successfully logged in.",
           });
-          navigate("/");
+          navigate("/dashboard");
         }
       } else if (mode === "signup") {
         const { error } = await signUp(email, password, name);
@@ -124,7 +124,7 @@ export default function Auth() {
             title: "Account Created!",
             description: "Welcome to Runalgo! You are now logged in.",
           });
-          navigate("/");
+          navigate("/dashboard");
         }
       } else {
         const { error } = await resetPassword(email);
