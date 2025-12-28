@@ -286,6 +286,7 @@ export function OptionHeatMapDashboard() {
                     data={optionData.data}
                     atm={optionData.atm}
                     type="oi"
+                    spotPrice={optionData.Spot_Price}
                   />
                 </CardContent>
               </Card>
@@ -301,6 +302,7 @@ export function OptionHeatMapDashboard() {
                     data={optionData.data}
                     atm={optionData.atm}
                     type="iv"
+                    spotPrice={optionData.Spot_Price}
                   />
                 </CardContent>
               </Card>
@@ -316,6 +318,7 @@ export function OptionHeatMapDashboard() {
                     data={optionData.data}
                     atm={optionData.atm}
                     type="ltp"
+                    spotPrice={optionData.Spot_Price}
                   />
                 </CardContent>
               </Card>
