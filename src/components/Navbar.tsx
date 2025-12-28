@@ -27,6 +27,12 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   {
+    label: "Dashboard",
+    icon: BarChart3,
+    hasDropdown: false,
+    path: "/dashboard",
+  },
+  {
     label: "Option Data",
     icon: TrendingUp,
     hasDropdown: true,
@@ -189,7 +195,7 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-2">
             <TrendingUp className="h-8 w-8 text-primary" />
             <span className="font-heading font-bold text-xl text-foreground">Runalgo</span>
           </Link>
@@ -203,23 +209,33 @@ export function Navbar() {
                 onMouseEnter={() => item.hasDropdown && setActiveDropdown(item.label)}
                 onMouseLeave={() => setActiveDropdown(null)}
               >
-                <button
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-secondary ${
-                    activeDropdown === item.label
-                      ? "bg-secondary text-primary"
-                      : "text-foreground"
-                  }`}
-                >
-                  {item.icon && <item.icon className="h-4 w-4 text-primary" />}
-                  <span>{item.label}</span>
-                  {item.hasDropdown && (
-                    <ChevronDown
-                      className={`h-4 w-4 transition-transform ${
-                        activeDropdown === item.label ? "rotate-180" : ""
-                      }`}
-                    />
-                  )}
-                </button>
+                {item.path && !item.hasDropdown ? (
+                  <Link
+                    to={item.path}
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-secondary text-foreground"
+                  >
+                    {item.icon && <item.icon className="h-4 w-4 text-primary" />}
+                    <span>{item.label}</span>
+                  </Link>
+                ) : (
+                  <button
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-secondary ${
+                      activeDropdown === item.label
+                        ? "bg-secondary text-primary"
+                        : "text-foreground"
+                    }`}
+                  >
+                    {item.icon && <item.icon className="h-4 w-4 text-primary" />}
+                    <span>{item.label}</span>
+                    {item.hasDropdown && (
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform ${
+                          activeDropdown === item.label ? "rotate-180" : ""
+                        }`}
+                      />
+                    )}
+                  </button>
+                )}
                 {item.sections && (
                   <NavDropdown
                     sections={item.sections}
