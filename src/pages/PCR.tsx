@@ -88,8 +88,11 @@ const PCR = () => {
     if (!selectedSymbol) return;
     
     // Set default strike count based on symbol type
-    const isIndexSymbol = symbols.indexSymbols.includes(selectedSymbol);
-    setStrikeCount(isIndexSymbol ? 5 : 2);
+    // Only update strike count if symbols list is loaded (not empty)
+    if (symbols.indexSymbols.length > 0 || symbols.stockSymbols.length > 0) {
+      const isIndexSymbol = symbols.indexSymbols.includes(selectedSymbol);
+      setStrikeCount(isIndexSymbol ? 5 : 2);
+    }
     
     const fetchExpiry = async () => {
       setLoadingExpiry(true);
@@ -387,15 +390,6 @@ const PCR = () => {
                 </Button>
               </div>
               
-              {/* Info Section */}
-              <div className="space-y-1 text-right">
-                <p className="text-xs text-muted-foreground">
-                  Symbol: <span className="text-primary font-medium">{selectedSymbol}</span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Data Time: <span className="text-foreground">{latestData?.time || "--:--"}</span>
-                </p>
-              </div>
             </div>
             
             {/* Refresh Info Bar */}
