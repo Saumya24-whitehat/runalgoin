@@ -70,6 +70,10 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 190 80% 45%;
+
+    --call-color: 190 80% 45%;
+    --put-color: 0 72% 51%;
+    --atm-highlight: 45 93% 47%;
   }
 
   .dark {
@@ -130,6 +134,10 @@
     --sidebar-accent-foreground: 210 30% 96%;
     --sidebar-border: 220 20% 15%;
     --sidebar-ring: 190 80% 50%;
+
+    --call-color: 190 80% 50%;
+    --put-color: 0 62% 50%;
+    --atm-highlight: 45 93% 50%;
   }
 }
 
