@@ -169,10 +169,6 @@
   }
 
   /* Option Chain: denser mobile table */
-  .optionchain-compact {
-    --oc-head-row1: 28px;
-  }
-
   .optionchain-compact th,
   .optionchain-compact td {
     font-size: 9px;
@@ -180,28 +176,7 @@
     padding: 2px 3px;
   }
 
-  /* Option Chain: sticky header (2 rows) inside scroll container */
-  .optionchain-compact thead tr:first-child th {
-    position: sticky;
-    top: 0;
-    z-index: 60;
-    background-color: hsl(var(--card));
-    box-shadow: 0 1px 0 hsl(var(--border));
-  }
-
-  .optionchain-compact thead tr:nth-child(2) th {
-    position: sticky;
-    top: var(--oc-head-row1);
-    z-index: 59;
-    background-color: hsl(var(--card));
-    box-shadow: 0 1px 0 hsl(var(--border));
-  }
-
   @media (min-width: 640px) {
-    .optionchain-compact {
-      --oc-head-row1: 40px;
-    }
-
     .optionchain-compact th,
     .optionchain-compact td {
       font-size: 0.75rem;

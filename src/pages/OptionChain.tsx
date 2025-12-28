@@ -519,7 +519,7 @@ const OptionChain = () => {
                 </div>
               ) : filteredData.length > 0 ? (
                 <Table className="min-w-[800px] table-fixed">
-                  <TableHeader className="bg-card">
+                  <TableHeader className="sticky top-0 z-30 bg-card">
                     <TableRow className="border-border/30">
                       <TableHead colSpan={4} className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-2 sm:py-3">
                         CALL
