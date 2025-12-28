@@ -53,18 +53,22 @@ interface OptionData {
 
 type ViewMode = 'ltp_oi' | 'oi_iv' | 'ltp_greeks' | 'oi_greeks';
 
-// Time slots from 9:15 AM to 3:30 PM in 1-minute intervals
+// Time slots from 9:15 AM to 3:30 PM in 3-minute intervals
 const generateTimeSlots = () => {
   const slots: string[] = [];
-  for (let h = 9; h <= 15; h++) {
-    const startMin = h === 9 ? 15 : 0;
-    const endMin = h === 15 ? 30 : 59;
-    for (let m = startMin; m <= endMin; m++) {
-      const hour = h.toString().padStart(2, '0');
-      const min = m.toString().padStart(2, '0');
-      slots.push(`${hour}${min}`);
-    }
+
+  const startTotalMinutes = 9 * 60 + 15;
+  const endTotalMinutes = 15 * 60 + 30;
+  const stepMinutes = 3;
+
+  for (let total = startTotalMinutes; total <= endTotalMinutes; total += stepMinutes) {
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    const hour = h.toString().padStart(2, '0');
+    const min = m.toString().padStart(2, '0');
+    slots.push(`${hour}${min}`);
   }
+
   return slots;
 };
 
@@ -84,6 +88,7 @@ const OptionChain = () => {
   const navigate = useNavigate();
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const spotPriceRowRef = useRef<HTMLTableRowElement>(null);
+  const historicalFetchTimerRef = useRef<number | null>(null);
   
   const [symbols, setSymbols] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('Nifty 50');
@@ -124,6 +129,27 @@ const OptionChain = () => {
       fetchOptionChain();
     }
   }, [selectedExpiry]);
+
+  // Auto-fetch historical data when time changes
+  useEffect(() => {
+    if (!isHistoricalMode) return;
+    if (!selectedTime || !selectedExpiry || !selectedSymbol) return;
+
+    if (historicalFetchTimerRef.current) {
+      window.clearTimeout(historicalFetchTimerRef.current);
+    }
+
+    historicalFetchTimerRef.current = window.setTimeout(() => {
+      fetchOptionChain();
+    }, 250);
+
+    return () => {
+      if (historicalFetchTimerRef.current) {
+        window.clearTimeout(historicalFetchTimerRef.current);
+        historicalFetchTimerRef.current = null;
+      }
+    };
+  }, [selectedTime, isHistoricalMode, selectedExpiry, selectedSymbol]);
 
   // Scroll to spot price row on mobile when data loads
   useEffect(() => {
@@ -207,12 +233,24 @@ const OptionChain = () => {
   };
 
   const handleTimeChange = (direction: 'prev' | 'next') => {
-    const currentIndex = TIME_SLOTS.indexOf(selectedTime);
-    if (direction === 'prev' && currentIndex > 0) {
-      setSelectedTime(TIME_SLOTS[currentIndex - 1]);
-    } else if (direction === 'next' && currentIndex < TIME_SLOTS.length - 1) {
-      setSelectedTime(TIME_SLOTS[currentIndex + 1]);
-    }
+    const getClosestSlot = () => {
+      const now = new Date();
+      const currentHour = now.getHours().toString().padStart(2, '0');
+      const currentMin = now.getMinutes().toString().padStart(2, '0');
+      const currentTime = `${currentHour}${currentMin}`;
+      return TIME_SLOTS.reduce((prev, curr) => {
+        return Math.abs(parseInt(curr) - parseInt(currentTime)) < Math.abs(parseInt(prev) - parseInt(currentTime))
+          ? curr
+          : prev;
+      }, TIME_SLOTS[0]);
+    };
+
+    const baseTime = selectedTime && TIME_SLOTS.includes(selectedTime) ? selectedTime : getClosestSlot();
+    const baseIndex = TIME_SLOTS.indexOf(baseTime);
+    const delta = direction === 'prev' ? -1 : 1;
+    const nextIndex = Math.min(Math.max(baseIndex + delta, 0), TIME_SLOTS.length - 1);
+
+    setSelectedTime(TIME_SLOTS[nextIndex]);
   };
 
   const resetToLive = () => {
@@ -314,7 +352,7 @@ const OptionChain = () => {
     <TableRow ref={spotPriceRowRef} className="bg-primary/20 border-y-2 border-primary">
       <TableCell colSpan={viewMode === 'ltp_oi' || viewMode === 'oi_iv' ? 9 : 9} className="py-2">
         <div className="flex items-center justify-center">
-          <div className="bg-primary text-primary-foreground px-6 py-2 rounded-full font-bold text-lg shadow-lg">
+          <div className="bg-primary text-primary-foreground px-5 sm:px-6 py-2 rounded-full font-bold text-base sm:text-lg shadow-lg">
             {spotPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
@@ -430,12 +468,12 @@ const OptionChain = () => {
             </div>
 
             {/* View Mode Tabs */}
-            <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-border/30">
+            <div className="flex flex-nowrap items-center gap-2 mb-4 pb-4 border-b border-border/30 overflow-x-auto whitespace-nowrap -mx-2 px-2">
               <Button 
                 variant={viewMode === 'ltp_oi' ? 'default' : 'outline'} 
                 size="sm"
                 onClick={() => setViewMode('ltp_oi')}
-                className={viewMode === 'ltp_oi' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'ltp_oi' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}`}
               >
                 LTP & OI
               </Button>
@@ -443,7 +481,7 @@ const OptionChain = () => {
                 variant={viewMode === 'oi_iv' ? 'default' : 'outline'} 
                 size="sm"
                 onClick={() => setViewMode('oi_iv')}
-                className={viewMode === 'oi_iv' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'oi_iv' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}`}
               >
                 OI & IV
               </Button>
@@ -451,7 +489,7 @@ const OptionChain = () => {
                 variant={viewMode === 'ltp_greeks' ? 'default' : 'outline'} 
                 size="sm"
                 onClick={() => setViewMode('ltp_greeks')}
-                className={viewMode === 'ltp_greeks' ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-600' : 'border-border/50'}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'ltp_greeks' ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-600' : 'border-border/50'}`}
               >
                 LTP & Greeks
               </Button>
@@ -459,7 +497,7 @@ const OptionChain = () => {
                 variant={viewMode === 'oi_greeks' ? 'default' : 'outline'} 
                 size="sm"
                 onClick={() => setViewMode('oi_greeks')}
-                className={viewMode === 'oi_greeks' ? 'bg-amber-600 hover:bg-amber-700 border-amber-600' : 'border-border/50'}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'oi_greeks' ? 'bg-amber-600 hover:bg-amber-700 border-amber-600' : 'border-border/50'}`}
               >
                 OI & Greeks
               </Button>
@@ -468,7 +506,7 @@ const OptionChain = () => {
             {/* Option Chain Table */}
             <div 
               ref={tableContainerRef}
-              className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50"
+              className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               {loadingChain ? (
@@ -479,12 +517,12 @@ const OptionChain = () => {
                 </div>
               ) : filteredData.length > 0 ? (
                 <Table className="min-w-[800px]">
-                  <TableHeader className="sticky top-0 z-10">
+                  <TableHeader className="sticky top-16 z-20">
                     <TableRow className="border-border/30 bg-card">
                       <TableHead colSpan={4} className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-3">
                         CALL
                       </TableHead>
-                      <TableHead className="text-center bg-muted/30 font-bold text-sm py-3 sticky left-0 z-20 bg-card border-x border-border/30">
+                      <TableHead className="text-center bg-muted/30 font-bold text-sm py-3 sticky left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 z-20 bg-card border-x border-border/30">
                         STRIKE
                       </TableHead>
                       <TableHead colSpan={4} className="text-center bg-emerald-500/10 text-emerald-400 font-bold text-sm py-3">
@@ -526,7 +564,7 @@ const OptionChain = () => {
                         </>
                       )}
                       
-                      <TableHead className="text-center text-xs py-2 sticky left-0 z-20 bg-muted/20 border-x border-border/30 text-foreground font-medium">
+                      <TableHead className="text-center text-[11px] sm:text-xs py-2 sticky left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 z-20 bg-muted/20 border-x border-border/30 text-foreground font-medium">
                         PCR
                       </TableHead>
                       
@@ -663,7 +701,7 @@ const OptionChain = () => {
                             )}
                             
                             {/* Strike Price with PCR */}
-                            <TableCell className="text-center font-bold text-sm py-2 sticky left-0 z-10 bg-card border-x border-border/30">
+                            <TableCell className="text-center font-bold text-[12px] sm:text-sm py-2 sticky left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 z-10 bg-card border-x border-border/30">
                               <div className="flex flex-col items-center">
                                 <span className="text-foreground">{row.strike_price.toLocaleString('en-IN')}</span>
                                 <span className="text-[10px] text-muted-foreground">PCR: {row.pcr?.toFixed(2) || '-'}</span>
