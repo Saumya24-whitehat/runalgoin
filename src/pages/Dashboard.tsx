@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 const candlestickPatterns = [
   { symbol: "BAJAJ FINANCE LIMITED", pattern: "Doji", timeframe: "15min", time: "26 Dec 2025, 03:15:00 pm", sentiment: "Neutral" },
   { symbol: "SBI LIFE INSURANCE CO LTD", pattern: "Doji", timeframe: "15min", time: "26 Dec 2025, 03:15:00 pm", sentiment: "Neutral" },
@@ -42,10 +43,17 @@ const bulkDeals = [
   { client: "BORGES MULTITRADE LLP", type: "SELL", company: "LLOYDSME", qty: "3008910", price: "1382.25" },
 ];
 
+interface FIIChildData {
+  Name: string;
+  ShortName: string;
+  Value: number;
+}
+
 interface FIIDataItem {
   Name: string;
   ShortName: string;
   Value: number;
+  ChildData?: FIIChildData[] | null;
 }
 
 interface ClosePrice {
@@ -71,6 +79,7 @@ const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [fiiData, setFiiData] = useState<FIIRecord[] | null>(null);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (!loading && !user) {
@@ -93,7 +102,7 @@ const Dashboard = () => {
     fetchFiiData();
   }, []);
 
-  // Get FII/DII data for display
+  // Get FII/DII data for display (with child data)
   const getFiiDiiDisplayData = () => {
     if (!fiiData || fiiData.length === 0) {
       return [];
@@ -102,8 +111,15 @@ const Dashboard = () => {
     const latest = fiiData[0];
     return latest.FIIDIIData?.map(item => ({
       name: item.ShortName,
+      fullName: item.Name,
       value: item.Value,
-      isPositive: item.Value >= 0
+      isPositive: item.Value >= 0,
+      hasChildren: item.ChildData && item.ChildData.length > 0,
+      children: item.ChildData?.map(child => ({
+        name: child.ShortName,
+        value: child.Value,
+        isPositive: child.Value >= 0
+      })) || []
     })) || [];
   };
 
@@ -123,11 +139,34 @@ const Dashboard = () => {
     };
   };
 
-  // Get latest date
+  // Get latest date formatted nicely
   const getLatestDate = () => {
     if (!fiiData || fiiData.length === 0) return "--";
     const date = new Date(fiiData[0].Date);
-    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${days[date.getDay()]}, ${date.getDate().toString().padStart(2, '0')} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const toggleRow = (name: string) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(name)) {
+        newSet.delete(name);
+      } else {
+        newSet.add(name);
+      }
+      return newSet;
+    });
+  };
+
+  // Calculate max value for bar width scaling
+  const getMaxValue = () => {
+    const allValues = fiiDiiDisplayData.flatMap(item => [
+      Math.abs(item.value),
+      ...item.children.map(c => Math.abs(c.value))
+    ]);
+    return Math.max(...allValues, 1);
   };
 
   const fiiDiiDisplayData = getFiiDiiDisplayData();
@@ -405,39 +444,101 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-xs text-muted-foreground mb-4">{latestDate}</div>
-            <div className="flex justify-between text-xs text-muted-foreground mb-2">
+            <div className="flex justify-between text-xs text-muted-foreground mb-2 px-1">
               <span>Net Buy/(Sell)</span>
               <span>(Rs. Crores)</span>
             </div>
-            <div className="space-y-3">
-              {fiiDiiDisplayData.length > 0 ? fiiDiiDisplayData.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4">
-                  <span className="text-sm min-w-24">{item.name}</span>
-                  <div className="flex-1 relative h-6 flex items-center justify-center">
-                    <div className="absolute left-1/2 w-px h-full bg-border" />
-                    {item.isPositive ? (
-                      <div 
-                        className="absolute h-5 bg-success rounded-sm" 
-                        style={{ 
-                          left: '50%', 
-                          width: `${Math.min((item.value / 100), 40)}%` 
-                        }}
-                      />
-                    ) : (
-                      <div 
-                        className="absolute h-5 bg-destructive rounded-sm" 
-                        style={{ 
-                          right: '50%', 
-                          width: `${Math.min((Math.abs(item.value) / 100), 40)}%` 
-                        }}
-                      />
+            <div className="space-y-0">
+              {fiiDiiDisplayData.length > 0 ? fiiDiiDisplayData.map((item, idx) => {
+                const maxValue = getMaxValue();
+                const barWidthPercent = (Math.abs(item.value) / maxValue) * 40;
+                const isExpanded = expandedRows.has(item.name);
+                
+                return (
+                  <div key={idx}>
+                    {/* Main Row */}
+                    <div className="flex items-center gap-2 py-2 border-b border-border/30">
+                      {/* Expand/Collapse button */}
+                      <button 
+                        onClick={() => item.hasChildren && toggleRow(item.name)}
+                        className={`w-4 h-4 flex items-center justify-center text-xs ${
+                          item.hasChildren ? "text-muted-foreground hover:text-foreground cursor-pointer" : "text-transparent"
+                        }`}
+                      >
+                        {item.hasChildren && (isExpanded ? <Minus className="w-3 h-3" /> : <Plus className="w-3 h-3" />)}
+                      </button>
+                      
+                      <span className="text-sm min-w-24">{item.name}</span>
+                      
+                      {/* Bar visualization */}
+                      <div className="flex-1 relative h-5 flex items-center">
+                        <div className="absolute left-1/2 w-px h-full bg-border/50" />
+                        {item.isPositive ? (
+                          <div 
+                            className="absolute h-4 bg-success rounded-sm" 
+                            style={{ 
+                              left: '50%', 
+                              width: `${Math.max(barWidthPercent, 2)}%` 
+                            }}
+                          />
+                        ) : (
+                          <div 
+                            className="absolute h-4 bg-destructive rounded-sm" 
+                            style={{ 
+                              right: '50%', 
+                              width: `${Math.max(barWidthPercent, 2)}%` 
+                            }}
+                          />
+                        )}
+                      </div>
+                      
+                      <span className={`text-sm font-medium min-w-20 text-right ${item.isPositive ? "text-success" : "text-destructive"}`}>
+                        {item.isPositive ? "+" : ""}{item.value.toFixed(2)}
+                      </span>
+                    </div>
+                    
+                    {/* Child Rows (expandable) */}
+                    {item.hasChildren && isExpanded && (
+                      <div className="bg-secondary/20">
+                        {item.children.map((child, childIdx) => {
+                          const childBarWidth = (Math.abs(child.value) / maxValue) * 40;
+                          return (
+                            <div key={childIdx} className="flex items-center gap-2 py-2 pl-6 border-b border-border/20">
+                              <span className="w-4" />
+                              <span className="text-sm min-w-24 text-muted-foreground">{child.name}</span>
+                              
+                              <div className="flex-1 relative h-4 flex items-center">
+                                <div className="absolute left-1/2 w-px h-full bg-border/30" />
+                                {child.isPositive ? (
+                                  <div 
+                                    className="absolute h-3 bg-success/80 rounded-sm" 
+                                    style={{ 
+                                      left: '50%', 
+                                      width: `${Math.max(childBarWidth, 1)}%` 
+                                    }}
+                                  />
+                                ) : (
+                                  <div 
+                                    className="absolute h-3 bg-destructive/80 rounded-sm" 
+                                    style={{ 
+                                      right: '50%', 
+                                      width: `${Math.max(childBarWidth, 1)}%` 
+                                    }}
+                                  />
+                                )}
+                              </div>
+                              
+                              <span className={`text-sm font-medium min-w-20 text-right ${child.isPositive ? "text-success" : "text-destructive"}`}>
+                                {child.isPositive ? "+" : ""}{child.value.toFixed(2)}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
                     )}
                   </div>
-                  <span className={`text-sm font-medium min-w-24 text-right ${item.isPositive ? "text-success" : "text-destructive"}`}>
-                    {item.isPositive ? "+" : ""}{item.value.toFixed(2)}
-                  </span>
-                </div>
-              )) : (
+                );
+              }) : (
                 <div className="text-center py-4 text-muted-foreground">Loading...</div>
               )}
             </div>
@@ -450,7 +551,7 @@ const Dashboard = () => {
                   {closePrices.nifty?.C?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || "--"}
                 </div>
                 <div className={`text-xs ${(closePrices.nifty?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
-                  {closePrices.nifty ? `${closePrices.nifty.CZ >= 0 ? '+' : ''}${closePrices.nifty.CZ.toFixed(2)} (${closePrices.nifty.CZG >= 0 ? '+' : ''}${closePrices.nifty.CZG.toFixed(2)}%)` : "--"}
+                  {closePrices.nifty ? `${closePrices.nifty.CZ >= 0 ? '+' : ''}${closePrices.nifty.CZ.toFixed(2)} (${closePrices.nifty.CZG >= 0 ? '▼' : '▼'}${Math.abs(closePrices.nifty.CZG).toFixed(1)}%)` : "--"}
                 </div>
               </div>
               <div className="text-center">
@@ -459,7 +560,7 @@ const Dashboard = () => {
                   {closePrices.vix?.C?.toFixed(2) || "--"}
                 </div>
                 <div className={`text-xs ${(closePrices.vix?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
-                  {closePrices.vix ? `${closePrices.vix.CZ >= 0 ? '+' : ''}${closePrices.vix.CZ.toFixed(2)} (${closePrices.vix.CZG >= 0 ? '+' : ''}${closePrices.vix.CZG.toFixed(2)}%)` : "--"}
+                  {closePrices.vix ? `${closePrices.vix.CZ >= 0 ? '+' : ''}${closePrices.vix.CZ.toFixed(2)} (${closePrices.vix.CZG >= 0 ? '▲' : '▼'}${Math.abs(closePrices.vix.CZG).toFixed(1)}%)` : "--"}
                 </div>
               </div>
               <div className="text-center">
@@ -468,7 +569,7 @@ const Dashboard = () => {
                   {closePrices.sensex?.C?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || "--"}
                 </div>
                 <div className={`text-xs ${(closePrices.sensex?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
-                  {closePrices.sensex ? `${closePrices.sensex.CZ >= 0 ? '+' : ''}${closePrices.sensex.CZ.toFixed(2)} (${closePrices.sensex.CZG >= 0 ? '+' : ''}${closePrices.sensex.CZG.toFixed(2)}%)` : "--"}
+                  {closePrices.sensex ? `${closePrices.sensex.CZ >= 0 ? '+' : ''}${closePrices.sensex.CZ.toFixed(2)} (${closePrices.sensex.CZG >= 0 ? '▲' : '▼'}${Math.abs(closePrices.sensex.CZG).toFixed(1)}%)` : "--"}
                 </div>
               </div>
             </div>
