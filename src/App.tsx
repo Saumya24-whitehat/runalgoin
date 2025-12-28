@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import OptionChain from "./pages/OptionChain";
 import SupportResistance from "./pages/SupportResistance";
+import OptionHeatMap from "./pages/OptionHeatMap";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/option-chain" element={<OptionChain />} />
               <Route path="/support-resistance" element={<SupportResistance />} />
+              <Route path="/option-heatmap" element={<OptionHeatMap />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
