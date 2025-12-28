@@ -190,32 +190,37 @@ export function IndicesSection() {
 
         {/* FII Cash with Bar Calendar */}
         <div className="flex-1">
-          <div className="flex items-start justify-between mb-3">
+          <div className="flex items-start justify-between">
             <div>
               <div className="text-sm text-muted-foreground">FII Cash</div>
               <div className={`text-lg font-semibold ${latestFii.isPositive ? "text-success" : "text-destructive"}`}>
                 {latestFii.value} Cr.
               </div>
-              <div className="text-xs text-muted-foreground mt-1">{latestFii.date}</div>
+              <div className="text-xs text-muted-foreground mt-0.5">{latestFii.date}</div>
             </div>
           </div>
           
-          {/* FII Calendar Bars - Like reference image */}
-          <div className="flex items-end gap-1 h-16 mt-2">
+          {/* FII Calendar Bars - Stacked style like reference */}
+          <div className="flex items-end justify-end gap-0.5 h-12 mt-2">
             {fiiCalendarData.map((item, idx) => {
-              // Normalize the bar height (max 100% of container)
+              // Scale bars relative to max value
               const maxValue = Math.max(...fiiCalendarData.map(d => Math.abs(d.value)));
               const heightPercent = maxValue > 0 ? (Math.abs(item.value) / maxValue) * 100 : 20;
-              const minHeight = 15; // Minimum visible height
-              const barHeight = Math.max(heightPercent, minHeight);
+              const barHeight = Math.max(heightPercent, 15);
               
               return (
-                <div key={idx} className="flex flex-col items-center flex-1">
-                  <div
-                    className={`w-full rounded-sm ${item.isPositive ? "bg-success" : "bg-destructive"}`}
-                    style={{ height: `${barHeight}%`, minHeight: '8px' }}
-                  />
-                  <span className="text-[9px] text-muted-foreground mt-1">{item.day}</span>
+                <div 
+                  key={idx} 
+                  className={`flex items-center justify-center rounded-sm text-[8px] font-medium text-white ${
+                    item.isPositive ? "bg-success" : "bg-destructive"
+                  }`}
+                  style={{ 
+                    height: `${barHeight}%`, 
+                    minHeight: '16px',
+                    width: '20px'
+                  }}
+                >
+                  {item.day}
                 </div>
               );
             })}
