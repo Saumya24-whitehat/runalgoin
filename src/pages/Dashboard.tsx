@@ -1,31 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
-import { TrendingUp, TrendingDown, ChevronDown, ChevronUp, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { IndicesSection } from "@/components/dashboard/IndicesSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data for the dashboard
-const indicesData = {
-  nifty: { value: "26,042.30", change: "+88.80", changePercent: "+0.34%", isPositive: true },
-  sensex: { value: "85,912.45", change: "+245.32", changePercent: "+0.29%", isPositive: true }
-};
-
-const advancesDeclines = [
-  { name: "Bank Nifty", advances: 7, declines: 5, change: "▲ 1.2%" },
-  { name: "Nifty IT", advances: 4, declines: 6, change: "▼ 0.5%" },
-  { name: "Nifty Financial Services", advances: 9, declines: 11, change: "▼ 0.3%" },
-  { name: "Nifty 50", advances: 32, declines: 18, change: "▲ 0.5%" },
-  { name: "Nifty Auto", advances: 8, declines: 7, change: "▲ 0.7%" },
-  { name: "Nifty Next 50", advances: 28, declines: 22, change: "▲ 0.4%" },
-  { name: "Nifty 500", advances: 312, declines: 188, change: "▲ 0.6%" },
-  { name: "Nifty PSU Bank", advances: 8, declines: 4, change: "▲ 1.1%" },
-  { name: "Nifty Pharma", advances: 6, declines: 9, change: "▼ 0.4%" },
-];
 
 const candlestickPatterns = [
   { symbol: "BAJAJ FINANCE LIMITED", pattern: "Doji", timeframe: "15min", time: "26 Dec 2025, 03:15:00 pm", sentiment: "Neutral" },
@@ -78,7 +60,6 @@ const ipoListings = [
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [activeIndex, setActiveIndex] = useState<"nifty" | "sensex">("nifty");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -107,123 +88,7 @@ const Dashboard = () => {
       
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Indices Section */}
-        <Card className="bg-card border-border">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xl font-semibold">Indices</CardTitle>
-            <a href="#" className="text-primary text-sm hover:underline">View All ›</a>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Index Value Card */}
-              <Card className="bg-secondary/50 border-border">
-                <CardContent className="p-4">
-                  <div className="flex gap-4 mb-4">
-                    <button
-                      onClick={() => setActiveIndex("nifty")}
-                      className={`text-sm font-medium pb-1 border-b-2 transition-colors ${
-                        activeIndex === "nifty" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
-                      }`}
-                    >
-                      NIFTY
-                    </button>
-                    <button
-                      onClick={() => setActiveIndex("sensex")}
-                      className={`text-sm font-medium pb-1 border-b-2 transition-colors ${
-                        activeIndex === "sensex" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
-                      }`}
-                    >
-                      SENSEX
-                    </button>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold">{indicesData[activeIndex].value}</div>
-                      <div className={`text-sm ${indicesData[activeIndex].isPositive ? "text-green-500" : "text-red-500"}`}>
-                        {indicesData[activeIndex].change} ({indicesData[activeIndex].changePercent})
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">26 Dec 2025</div>
-                    </div>
-                    <svg className="w-24 h-12" viewBox="0 0 120 44">
-                      <polyline points="0,28 20,26 40,30 60,20 80,18 100,24 120,16" fill="none" stroke="hsl(var(--primary))" strokeWidth="2"/>
-                      <circle cx="118" cy="16" r="2" fill="hsl(var(--primary))"/>
-                    </svg>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-border">
-                    <div className="text-sm text-muted-foreground">FII Cash</div>
-                    <div className="text-xl font-semibold text-red-500">317.56 Cr.</div>
-                    <div className="text-xs text-muted-foreground">26 Dec 2025</div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Chart Card */}
-              <Card className="bg-secondary/50 border-border">
-                <CardContent className="p-4">
-                  <Tabs defaultValue="nifty50" className="w-full">
-                    <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start gap-4 h-auto p-0">
-                      <TabsTrigger value="nifty50" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2">Nifty 50</TabsTrigger>
-                      <TabsTrigger value="nifty500" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2">Nifty 500</TabsTrigger>
-                      <TabsTrigger value="niftybank" className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2">Nifty Bank</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="nifty50" className="mt-4">
-                      <div className="text-xs text-muted-foreground mb-2">
-                        <span className="text-primary">NSE INDEXNIFTY 50</span>
-                        <span className="ml-2">Time: 26/12/2025, 08:15:00</span>
-                      </div>
-                      <div className="text-lg font-semibold">
-                        O 26043.30 H 26047.45
-                        <span className="ml-2 text-green-500">Chg: +5.98 (+0.02%)</span>
-                      </div>
-                      <svg viewBox="0 0 400 120" className="w-full h-32 mt-4">
-                        <line x1="0" y1="30" x2="400" y2="30" stroke="hsl(var(--border))" strokeDasharray="2"/>
-                        <line x1="0" y1="60" x2="400" y2="60" stroke="hsl(var(--border))" strokeDasharray="2"/>
-                        <line x1="0" y1="90" x2="400" y2="90" stroke="hsl(var(--border))" strokeDasharray="2"/>
-                        <polyline points="50,70 100,65 150,68 200,58 250,62 300,52 350,55" fill="none" stroke="hsl(var(--primary))" strokeWidth="2"/>
-                        <circle cx="350" cy="55" r="4" fill="hsl(var(--primary))"/>
-                        <text x="40" y="115" fill="hsl(var(--muted-foreground))" fontSize="10">14:00</text>
-                        <text x="180" y="115" fill="hsl(var(--muted-foreground))" fontSize="10">14:30</text>
-                        <text x="320" y="115" fill="hsl(var(--muted-foreground))" fontSize="10">15:00</text>
-                      </svg>
-                    </TabsContent>
-                    <TabsContent value="nifty500">
-                      <div className="text-center py-8 text-muted-foreground">Chart data loading...</div>
-                    </TabsContent>
-                    <TabsContent value="niftybank">
-                      <div className="text-center py-8 text-muted-foreground">Chart data loading...</div>
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-
-              {/* Advances/Declines Card */}
-              <Card className="bg-secondary/50 border-border">
-                <CardContent className="p-4">
-                  <h3 className="font-semibold mb-4">Advances/Declines</h3>
-                  <div className="space-y-3 max-h-64 overflow-y-auto">
-                    {advancesDeclines.map((item, idx) => (
-                      <div key={idx} className="flex items-center gap-3">
-                        <span className="text-sm min-w-24 truncate">{item.name}</span>
-                        <div className="flex-1 relative h-2 bg-border rounded overflow-hidden">
-                          <div 
-                            className="absolute left-0 h-full bg-green-500" 
-                            style={{ width: `${(item.advances / (item.advances + item.declines)) * 100}%` }}
-                          />
-                          <div 
-                            className="absolute right-0 h-full bg-red-500" 
-                            style={{ width: `${(item.declines / (item.advances + item.declines)) * 100}%` }}
-                          />
-                        </div>
-                        <span className={`text-xs min-w-14 text-right ${item.change.includes("▲") ? "text-green-500" : "text-red-500"}`}>
-                          {item.change}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+        <IndicesSection />
 
         {/* Candlestick Patterns Section */}
         <Card className="bg-card border-border">
