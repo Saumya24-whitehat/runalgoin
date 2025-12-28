@@ -83,9 +83,13 @@ const PCR = () => {
     fetchSymbols();
   }, [toast]);
 
-  // Fetch expiry dates when symbol changes
+  // Fetch expiry dates when symbol changes and update default strike count
   useEffect(() => {
     if (!selectedSymbol) return;
+    
+    // Set default strike count based on symbol type
+    const isIndexSymbol = symbols.indexSymbols.includes(selectedSymbol);
+    setStrikeCount(isIndexSymbol ? 5 : 2);
     
     const fetchExpiry = async () => {
       setLoadingExpiry(true);
@@ -149,7 +153,39 @@ const PCR = () => {
       
       if (response.dataWhole && response.dataWhole.length > 0) {
         setPcrData(response.dataWhole);
-        setLatestData(response.dataWhole[response.dataWhole.length - 1]);
+        
+        // Get the latest data entry and fill missing Future/VWAP from previous entries
+        let latest = { ...response.dataWhole[response.dataWhole.length - 1] };
+        let futureFromPrevious = false;
+        let vwapFromPrevious = false;
+        
+        if (latest.Future === 0 || !latest.Future) {
+          // Find Future from previous entries
+          for (let i = response.dataWhole.length - 2; i >= 0; i--) {
+            if (response.dataWhole[i].Future && response.dataWhole[i].Future !== 0) {
+              latest.Future = response.dataWhole[i].Future;
+              futureFromPrevious = true;
+              break;
+            }
+          }
+        }
+        
+        if (latest.VWAP === 0 || !latest.VWAP) {
+          // Find VWAP from previous entries
+          for (let i = response.dataWhole.length - 2; i >= 0; i--) {
+            if (response.dataWhole[i].VWAP && response.dataWhole[i].VWAP !== 0) {
+              latest.VWAP = response.dataWhole[i].VWAP;
+              vwapFromPrevious = true;
+              break;
+            }
+          }
+        }
+        
+        // Store flags for UI display
+        (latest as any).futureFromPrevious = futureFromPrevious;
+        (latest as any).vwapFromPrevious = vwapFromPrevious;
+        
+        setLatestData(latest);
         setLastRefresh(new Date());
         
         // Set next refresh time
@@ -427,11 +463,17 @@ const PCR = () => {
               </Card>
               <Card className="bg-card/50 border-border/50 p-4">
                 <p className="text-xs text-muted-foreground">Future</p>
-                <p className="text-2xl font-bold text-foreground">{latestData.Future.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {latestData.Future.toFixed(2)}
+                  {(latestData as any).futureFromPrevious && <span className="text-primary text-sm">*</span>}
+                </p>
               </Card>
               <Card className="bg-card/50 border-border/50 p-4">
                 <p className="text-xs text-muted-foreground">VWAP</p>
-                <p className="text-2xl font-bold text-foreground">{latestData.VWAP.toFixed(2)}</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {latestData.VWAP.toFixed(2)}
+                  {(latestData as any).vwapFromPrevious && <span className="text-primary text-sm">*</span>}
+                </p>
               </Card>
               <Card className="bg-card/50 border-border/50 p-4">
                 <p className="text-xs text-muted-foreground">ATM Strike</p>
