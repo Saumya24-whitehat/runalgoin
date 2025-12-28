@@ -98,13 +98,13 @@ const PCR = () => {
         let dates: string[] = [];
         if (Array.isArray(data)) {
           dates = data;
+        } else if (data?.expiry_dates && Array.isArray(data.expiry_dates)) {
+          // API returns expiry_dates (snake_case)
+          dates = data.expiry_dates;
         } else if (data?.expiryDates && Array.isArray(data.expiryDates)) {
           dates = data.expiryDates;
         } else if (data?.data && Array.isArray(data.data)) {
           dates = data.data;
-        } else if (typeof data === 'object') {
-          // Try to extract dates from object keys or values
-          dates = Object.values(data).filter(v => typeof v === 'string') as string[];
         }
         
         console.log("Parsed expiry dates:", dates);
