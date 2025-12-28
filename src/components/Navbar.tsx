@@ -49,7 +49,7 @@ const navItems: NavItem[] = [
         title: "OPTION CHAIN",
         items: [
           { icon: Link2, label: "Option Chain", iconColor: "text-primary", path: "/option-chain" },
-          { icon: Target, label: "Open Chain Support-Resistance", iconColor: "text-emerald-500" },
+          { icon: Target, label: "Open Chain Support-Resistance", iconColor: "text-emerald-500", path: "/support-resistance" },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500" },
           { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
           { icon: Wrench, label: "Option Builder", iconColor: "text-muted-foreground" },
