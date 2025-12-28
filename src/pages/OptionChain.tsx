@@ -508,7 +508,7 @@ const OptionChain = () => {
             {/* Option Chain Table */}
             <div 
               ref={tableContainerRef}
-              className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact"
+              className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact max-h-[70vh] overflow-y-auto"
               style={{ WebkitOverflowScrolling: 'touch' }}
             >
               {loadingChain ? (
@@ -518,89 +518,89 @@ const OptionChain = () => {
                   ))}
                 </div>
               ) : filteredData.length > 0 ? (
-                <Table className="min-w-[800px]">
-                  <TableHeader className="sticky top-16 z-20">
-                    <TableRow className="border-border/30 bg-card">
-                      <TableHead colSpan={4} className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-3">
+                <Table className="min-w-[800px] table-fixed">
+                  <TableHeader className="sticky top-0 z-30 bg-card">
+                    <TableRow className="border-border/30">
+                      <TableHead colSpan={4} className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-2 sm:py-3">
                         CALL
                       </TableHead>
-                      <TableHead className="text-center bg-muted/30 font-bold text-sm py-3 sticky left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 z-20 bg-card border-x border-border/30">
+                      <TableHead className="text-center bg-card font-bold text-sm py-2 sm:py-3 border-x border-border/30 w-[80px] sm:w-[100px]">
                         STRIKE
                       </TableHead>
-                      <TableHead colSpan={4} className="text-center bg-emerald-500/10 text-emerald-400 font-bold text-sm py-3">
+                      <TableHead colSpan={4} className="text-center bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2 sm:py-3">
                         PUT
                       </TableHead>
                     </TableRow>
-                    <TableRow className="border-border/30 bg-muted/5">
+                    <TableRow className="border-border/30 bg-muted/10">
                       {/* Call Headers */}
                       {viewMode === 'ltp_oi' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">OI (L)</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">COI</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">LTP</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Chg%</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Chg%</TableHead>
                         </>
                       )}
                       {viewMode === 'oi_iv' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">OI (L)</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">COI</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">IV</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Vol</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vol</TableHead>
                         </>
                       )}
                       {viewMode === 'ltp_greeks' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">LTP</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Delta</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Theta</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Vega</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Theta</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vega</TableHead>
                         </>
                       )}
                       {viewMode === 'oi_greeks' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">OI</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Delta</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Gamma</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">IV</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Gamma</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
                         </>
                       )}
                       
-                      <TableHead className="text-center text-[11px] sm:text-xs py-2 sticky left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 z-20 bg-muted/20 border-x border-border/30 text-foreground font-medium">
+                      <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 bg-card border-x border-border/30 text-foreground font-medium w-[80px] sm:w-[100px]">
                         PCR
                       </TableHead>
                       
                       {/* Put Headers */}
                       {viewMode === 'ltp_oi' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Chg%</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">LTP</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">COI</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">OI (L)</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Chg%</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
                         </>
                       )}
                       {viewMode === 'oi_iv' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Vol</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">IV</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">COI</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">OI (L)</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vol</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
                         </>
                       )}
                       {viewMode === 'ltp_greeks' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Vega</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Theta</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Delta</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">LTP</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vega</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Theta</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
                         </>
                       )}
                       {viewMode === 'oi_greeks' && (
                         <>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">IV</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Gamma</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">Delta</TableHead>
-                          <TableHead className="text-center text-xs py-2 text-muted-foreground">OI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Gamma</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI</TableHead>
                         </>
                       )}
                     </TableRow>
@@ -709,10 +709,10 @@ const OptionChain = () => {
                             )}
                             
                             {/* Strike Price with PCR */}
-                            <TableCell className="text-center font-bold text-[12px] sm:text-sm py-2 sticky left-1/2 -translate-x-1/2 sm:left-0 sm:translate-x-0 z-10 bg-card border-x border-border/30">
+                            <TableCell className="text-center font-bold text-[11px] sm:text-sm py-1.5 sm:py-2 bg-card border-x border-border/30 w-[80px] sm:w-[100px]">
                               <div className="flex flex-col items-center">
                                 <span className="text-foreground">{row.strike_price.toLocaleString('en-IN')}</span>
-                                <span className="text-[10px] text-muted-foreground">PCR: {row.pcr?.toFixed(2) || '-'}</span>
+                                <span className="text-[9px] sm:text-[10px] text-muted-foreground">PCR: {row.pcr?.toFixed(2) || '-'}</span>
                               </div>
                             </TableCell>
                             
