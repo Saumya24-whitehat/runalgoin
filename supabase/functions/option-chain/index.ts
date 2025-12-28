@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { action, symbol, expiry_date } = await req.json();
-    console.log(`Option chain request: action=${action}, symbol=${symbol}, expiry=${expiry_date}`);
+    const { action, symbol, expiry_date, time } = await req.json();
+    console.log(`Option chain request: action=${action}, symbol=${symbol}, expiry=${expiry_date}, time=${time}`);
 
     let url = '';
     
@@ -26,6 +26,10 @@ serve(async (req) => {
         break;
       case 'getOptionChain':
         url = `https://runalgo.xyz/data/getOptionChain.php?symbol=${encodeURIComponent(symbol)}&expiry_date=${encodeURIComponent(expiry_date)}`;
+        // Add time parameter for historical data
+        if (time) {
+          url += `&time=${encodeURIComponent(time)}`;
+        }
         break;
       default:
         throw new Error(`Unknown action: ${action}`);
