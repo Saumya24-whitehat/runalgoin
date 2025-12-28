@@ -324,8 +324,8 @@ const OptionChain = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <TickerRibbon />
+      <Navbar />
       
       <div className="container mx-auto px-2 sm:px-4 py-4">
         <Card className="bg-card border-border/30 shadow-xl">
@@ -431,22 +431,38 @@ const OptionChain = () => {
 
             {/* View Mode Tabs */}
             <div className="flex flex-wrap gap-2 mb-4 pb-4 border-b border-border/30">
-              {[
-                { mode: 'ltp_oi' as ViewMode, label: 'LTP & OI', color: 'cyan' },
-                { mode: 'oi_iv' as ViewMode, label: 'OI & IV', color: 'cyan' },
-                { mode: 'ltp_greeks' as ViewMode, label: 'LTP & Greeks', color: 'emerald' },
-                { mode: 'oi_greeks' as ViewMode, label: 'OI & Greeks', color: 'amber' },
-              ].map(({ mode, label, color }) => (
-                <Button 
-                  key={mode}
-                  variant={viewMode === mode ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setViewMode(mode)}
-                  className={viewMode === mode ? `bg-${color}-600 hover:bg-${color}-700 border-${color}-600` : 'border-border/50'}
-                >
-                  {label}
-                </Button>
-              ))}
+              <Button 
+                variant={viewMode === 'ltp_oi' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setViewMode('ltp_oi')}
+                className={viewMode === 'ltp_oi' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}
+              >
+                LTP & OI
+              </Button>
+              <Button 
+                variant={viewMode === 'oi_iv' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setViewMode('oi_iv')}
+                className={viewMode === 'oi_iv' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}
+              >
+                OI & IV
+              </Button>
+              <Button 
+                variant={viewMode === 'ltp_greeks' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setViewMode('ltp_greeks')}
+                className={viewMode === 'ltp_greeks' ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-600' : 'border-border/50'}
+              >
+                LTP & Greeks
+              </Button>
+              <Button 
+                variant={viewMode === 'oi_greeks' ? 'default' : 'outline'} 
+                size="sm"
+                onClick={() => setViewMode('oi_greeks')}
+                className={viewMode === 'oi_greeks' ? 'bg-amber-600 hover:bg-amber-700 border-amber-600' : 'border-border/50'}
+              >
+                OI & Greeks
+              </Button>
             </div>
 
             {/* Option Chain Table */}
