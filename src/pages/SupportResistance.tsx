@@ -12,6 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { TickerRibbon } from '@/components/TickerRibbon';
+import LTPCalculatorModal from '@/components/LTPCalculatorModal';
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 
 interface OptionData {
@@ -118,6 +119,15 @@ const SupportResistance = () => {
     { time: '09:28:18 AM', callShift: '-', putShift: 'SFT : 26100 -> 26000' },
     { time: '09:28:06 AM', callShift: '-', putShift: 'SFT : 26000 -> 26100' },
   ]);
+
+  // LTP Calculator modal
+  const [ltpModalOpen, setLtpModalOpen] = useState(false);
+  const [selectedStrikeData, setSelectedStrikeData] = useState<OptionData | null>(null);
+
+  const handleStrikeClick = (row: OptionData) => {
+    setSelectedStrikeData(row);
+    setLtpModalOpen(true);
+  };
 
   // Calculate support and resistance levels
   const calculateLevels = useCallback(() => {
@@ -550,9 +560,12 @@ const SupportResistance = () => {
                           -
                         </TableCell>
                         
-                        {/* Strike Price Center */}
-                        <TableCell className="p-1 text-center bg-indigo-900/30 font-bold">
-                          <div>{row.strike_price}</div>
+                        {/* Strike Price Center - Clickable */}
+                        <TableCell 
+                          className="p-1 text-center bg-indigo-900/30 font-bold cursor-pointer hover:bg-indigo-800/50 transition-colors"
+                          onClick={() => handleStrikeClick(row)}
+                        >
+                          <div className="hover:text-amber-400 transition-colors">{row.strike_price}</div>
                           <div className="text-[9px] text-muted-foreground">
                             {row.pcr?.toFixed(2)} ({pcrOfCoi})
                           </div>
@@ -755,6 +768,21 @@ const SupportResistance = () => {
           </Table>
         </DialogContent>
       </Dialog>
+
+      {/* LTP Calculator Modal */}
+      {selectedStrikeData && (
+        <LTPCalculatorModal
+          open={ltpModalOpen}
+          onOpenChange={setLtpModalOpen}
+          strikePrice={selectedStrikeData.strike_price}
+          spotPrice={spotPrice}
+          callLTP={selectedStrikeData.call_options.market_data.ltp}
+          putLTP={selectedStrikeData.put_options.market_data.ltp}
+          callIV={selectedStrikeData.call_options.option_greeks.iv}
+          putIV={selectedStrikeData.put_options.option_greeks.iv}
+          expiry={selectedExpiry}
+        />
+      )}
     </div>
   );
 };
