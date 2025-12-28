@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.chart-patterns]
 verify_jwt = false
+
+[functions.option-chain]
+verify_jwt = false
