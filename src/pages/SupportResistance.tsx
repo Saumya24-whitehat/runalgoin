@@ -338,14 +338,14 @@ const SupportResistance = () => {
   // Get highlight class for a value
   const getHighlightClass = (value: number, topValues: number[], isPut: boolean) => {
     const index = topValues.indexOf(value);
-    if (index === -1) return '';
-    if (index === 0) return isPut ? 'bg-green-700 text-white border border-white rounded' : 'bg-red-700 text-white border border-white rounded';
+    if (index === -1) return { bg: '', isHighlighted: false };
+    if (index === 0) return { bg: isPut ? 'bg-green-700 border border-white/50 rounded' : 'bg-red-700 border border-white/50 rounded', isHighlighted: true };
     if (value >= topValues[0] * (highlightPercentage / 100)) {
-      if (index === 1) return 'bg-amber-600 text-white border border-white rounded';
-      if (index === 2) return 'bg-pink-600 text-white border border-white rounded';
-      if (index === 3) return 'bg-gray-500 text-white border border-white rounded';
+      if (index === 1) return { bg: 'bg-amber-600 border border-white/50 rounded', isHighlighted: true };
+      if (index === 2) return { bg: 'bg-pink-600 border border-white/50 rounded', isHighlighted: true };
+      if (index === 3) return { bg: 'bg-gray-500 border border-white/50 rounded', isHighlighted: true };
     }
-    return '';
+    return { bg: '', isHighlighted: false };
   };
 
   // Format values based on lots/quantity setting
@@ -541,17 +541,17 @@ const SupportResistance = () => {
                           <div className="font-semibold">{row.call_options.option_greeks.delta}</div>
                           <div className="text-muted-foreground text-[9px]">{row.call_options.option_greeks.iv?.toFixed(2)}</div>
                         </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(callCOI, topCallCOIs, false)}`}>
-                          <div className={callCOI < 0 ? 'text-red-400' : ''}>{formatValue(callCOI)}</div>
-                          <div className="text-muted-foreground text-[9px]">{callCOIPercent}%</div>
+                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(callCOI, topCallCOIs, false).bg}`}>
+                          <div className={`font-medium ${getHighlightClass(callCOI, topCallCOIs, false).isHighlighted ? 'text-white' : callCOI < 0 ? 'text-red-400' : ''}`}>{formatValue(callCOI)}</div>
+                          <div className={`text-[9px] ${getHighlightClass(callCOI, topCallCOIs, false).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{callCOIPercent}%</div>
                         </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false)}`}>
-                          <div>{formatValue(row.call_options.market_data.oi)}</div>
-                          <div className="text-muted-foreground text-[9px]">{callOIPercent}%</div>
+                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).bg}`}>
+                          <div className={`font-medium ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.call_options.market_data.oi)}</div>
+                          <div className={`text-[9px] ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{callOIPercent}%</div>
                         </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false)}`}>
-                          <div>{formatValue(row.call_options.market_data.volume)}</div>
-                          <div className="text-muted-foreground text-[9px]">{callVolPercent}%</div>
+                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).bg}`}>
+                          <div className={`font-medium ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.call_options.market_data.volume)}</div>
+                          <div className={`text-[9px] ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{callVolPercent}%</div>
                         </TableCell>
                         <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''}`}>
                           {row.call_options.market_data.ltp}
@@ -578,17 +578,17 @@ const SupportResistance = () => {
                         <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''}`}>
                           {row.put_options.market_data.ltp}
                         </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true)}`}>
-                          <div>{formatValue(row.put_options.market_data.volume)}</div>
-                          <div className="text-muted-foreground text-[9px]">{putVolPercent}%</div>
+                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).bg}`}>
+                          <div className={`font-medium ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.put_options.market_data.volume)}</div>
+                          <div className={`text-[9px] ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{putVolPercent}%</div>
                         </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true)}`}>
-                          <div>{formatValue(row.put_options.market_data.oi)}</div>
-                          <div className="text-muted-foreground text-[9px]">{putOIPercent}%</div>
+                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).bg}`}>
+                          <div className={`font-medium ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.put_options.market_data.oi)}</div>
+                          <div className={`text-[9px] ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{putOIPercent}%</div>
                         </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(putCOI, topPutCOIs, true)}`}>
-                          <div className={putCOI < 0 ? 'text-red-400' : ''}>{formatValue(putCOI)}</div>
-                          <div className="text-muted-foreground text-[9px]">{putCOIPercent}%</div>
+                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(putCOI, topPutCOIs, true).bg}`}>
+                          <div className={`font-medium ${getHighlightClass(putCOI, topPutCOIs, true).isHighlighted ? 'text-white' : putCOI < 0 ? 'text-red-400' : ''}`}>{formatValue(putCOI)}</div>
+                          <div className={`text-[9px] ${getHighlightClass(putCOI, topPutCOIs, true).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{putCOIPercent}%</div>
                         </TableCell>
                         <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''}`}>
                           <div className="font-semibold">{row.put_options.option_greeks.delta}</div>
