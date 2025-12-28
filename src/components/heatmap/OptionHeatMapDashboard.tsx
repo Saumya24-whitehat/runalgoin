@@ -15,6 +15,8 @@ import {
   fetchHeatMapOptionChainData,
 } from "@/services/optionHeatMapApi";
 import { OptionChainResponse, GroupedSymbols } from "@/types/optionChain";
+import { Navbar } from "@/components/Navbar";
+import { TickerRibbon } from "@/components/TickerRibbon";
 
 const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 
@@ -149,7 +151,10 @@ export function OptionHeatMapDashboard() {
   }, [selectedSymbol, selectedExpiry, fetchData]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
+      <TickerRibbon />
+      <Navbar />
+      
       {/* Header */}
       <header className="sticky top-0 z-50 w-full border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60">
         <div className="container flex h-16 items-center justify-between">
