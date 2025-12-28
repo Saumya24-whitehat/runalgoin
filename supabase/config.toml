@@ -2,3 +2,6 @@ project_id = "ucvstbihgvuuaficfjsu"
 
 [functions.ticker-data]
 verify_jwt = false
+
+[functions.fii-data]
+verify_jwt = false

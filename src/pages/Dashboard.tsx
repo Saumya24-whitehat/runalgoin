@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -8,7 +8,7 @@ import { IndicesSection } from "@/components/dashboard/IndicesSection";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-
+import { supabase } from "@/integrations/supabase/client";
 const candlestickPatterns = [
   { symbol: "BAJAJ FINANCE LIMITED", pattern: "Doji", timeframe: "15min", time: "26 Dec 2025, 03:15:00 pm", sentiment: "Neutral" },
   { symbol: "SBI LIFE INSURANCE CO LTD", pattern: "Doji", timeframe: "15min", time: "26 Dec 2025, 03:15:00 pm", sentiment: "Neutral" },
@@ -42,14 +42,24 @@ const bulkDeals = [
   { client: "BORGES MULTITRADE LLP", type: "SELL", company: "LLOYDSME", qty: "3008910", price: "1382.25" },
 ];
 
-const fiiDiiData = [
-  { name: "FII CM*", value: -317.50, isPositive: false },
-  { name: "DII CM*", value: 1773.58, isPositive: true },
-  { name: "FII Idx Fut", value: -1153.71, isPositive: false },
-  { name: "FII Idx Opt", value: 7847.80, isPositive: true },
-  { name: "FII Stk Fut", value: 1189.28, isPositive: true },
-  { name: "FII Stk Opt", value: 118.15, isPositive: true },
-];
+interface FIIDataItem {
+  Name: string;
+  ShortName: string;
+  Value: number;
+}
+
+interface ClosePrice {
+  Symbol: string;
+  C: number;
+  CZ: number;
+  CZG: number;
+}
+
+interface FIIRecord {
+  Date: string;
+  FIIDIIData: FIIDataItem[];
+  ClosePrice: ClosePrice[];
+}
 
 const ipoListings = [
   { name: "Modern Diagnostic & Research Centre Ltd.", symbol: "MD", openDate: "Dec 31, 2025", closeDate: "Jan 02, 2026", allotDate: "Jan 05, 2026", listStatus: "Pending" },
@@ -60,12 +70,69 @@ const ipoListings = [
 const Dashboard = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [fiiData, setFiiData] = useState<FIIRecord[] | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Fetch FII data
+  useEffect(() => {
+    const fetchFiiData = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('fii-data');
+        if (!error && data) {
+          setFiiData(data);
+        }
+      } catch (err) {
+        console.error('Error fetching FII data:', err);
+      }
+    };
+    fetchFiiData();
+  }, []);
+
+  // Get FII/DII data for display
+  const getFiiDiiDisplayData = () => {
+    if (!fiiData || fiiData.length === 0) {
+      return [];
+    }
+    
+    const latest = fiiData[0];
+    return latest.FIIDIIData?.map(item => ({
+      name: item.ShortName,
+      value: item.Value,
+      isPositive: item.Value >= 0
+    })) || [];
+  };
+
+  // Get close prices for index summary
+  const getClosePrices = () => {
+    if (!fiiData || fiiData.length === 0) {
+      return { nifty: null, vix: null, sensex: null };
+    }
+    
+    const latest = fiiData[0];
+    const prices = latest.ClosePrice || [];
+    
+    return {
+      nifty: prices.find(p => p.Symbol === "NIFTY"),
+      vix: prices.find(p => p.Symbol === "INDIA VIX"),
+      sensex: prices.find(p => p.Symbol === "SENSEX")
+    };
+  };
+
+  // Get latest date
+  const getLatestDate = () => {
+    if (!fiiData || fiiData.length === 0) return "--";
+    const date = new Date(fiiData[0].Date);
+    return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
+  };
+
+  const fiiDiiDisplayData = getFiiDiiDisplayData();
+  const closePrices = getClosePrices();
+  const latestDate = getLatestDate();
 
   if (loading) {
     return (
@@ -337,20 +404,20 @@ const Dashboard = () => {
             <a href="#" className="text-primary text-sm hover:underline">View All ›</a>
           </CardHeader>
           <CardContent>
-            <div className="text-xs text-muted-foreground mb-4">26/12/2025</div>
+            <div className="text-xs text-muted-foreground mb-4">{latestDate}</div>
             <div className="flex justify-between text-xs text-muted-foreground mb-2">
               <span>Net Buy/(Sell)</span>
               <span>(Rs. Crores)</span>
             </div>
             <div className="space-y-3">
-              {fiiDiiData.map((item, idx) => (
+              {fiiDiiDisplayData.length > 0 ? fiiDiiDisplayData.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-4">
                   <span className="text-sm min-w-24">{item.name}</span>
                   <div className="flex-1 relative h-6 flex items-center justify-center">
                     <div className="absolute left-1/2 w-px h-full bg-border" />
                     {item.isPositive ? (
                       <div 
-                        className="absolute h-5 bg-green-500 rounded-sm" 
+                        className="absolute h-5 bg-success rounded-sm" 
                         style={{ 
                           left: '50%', 
                           width: `${Math.min((item.value / 100), 40)}%` 
@@ -358,7 +425,7 @@ const Dashboard = () => {
                       />
                     ) : (
                       <div 
-                        className="absolute h-5 bg-red-500 rounded-sm" 
+                        className="absolute h-5 bg-destructive rounded-sm" 
                         style={{ 
                           right: '50%', 
                           width: `${Math.min((Math.abs(item.value) / 100), 40)}%` 
@@ -366,29 +433,43 @@ const Dashboard = () => {
                       />
                     )}
                   </div>
-                  <span className={`text-sm font-medium min-w-24 text-right ${item.isPositive ? "text-green-500" : "text-red-500"}`}>
+                  <span className={`text-sm font-medium min-w-24 text-right ${item.isPositive ? "text-success" : "text-destructive"}`}>
                     {item.isPositive ? "+" : ""}{item.value.toFixed(2)}
                   </span>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-4 text-muted-foreground">Loading...</div>
+              )}
             </div>
             
             {/* Index Summary */}
             <div className="grid grid-cols-3 gap-4 mt-8 pt-6 border-t border-border">
               <div className="text-center">
                 <div className="text-xs text-muted-foreground">NIFTY</div>
-                <div className="text-xl font-bold text-green-500">25,810.85</div>
-                <div className="text-xs text-green-500">+38.85 (+0.15%)</div>
+                <div className={`text-xl font-bold ${(closePrices.nifty?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {closePrices.nifty?.C?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || "--"}
+                </div>
+                <div className={`text-xs ${(closePrices.nifty?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {closePrices.nifty ? `${closePrices.nifty.CZ >= 0 ? '+' : ''}${closePrices.nifty.CZ.toFixed(2)} (${closePrices.nifty.CZG >= 0 ? '+' : ''}${closePrices.nifty.CZG.toFixed(2)}%)` : "--"}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-muted-foreground">INDIA VIX</div>
-                <div className="text-xl font-bold text-red-500">11.94</div>
-                <div className="text-xs text-red-500">-0.22 (-1.80%)</div>
+                <div className={`text-xl font-bold ${(closePrices.vix?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {closePrices.vix?.C?.toFixed(2) || "--"}
+                </div>
+                <div className={`text-xs ${(closePrices.vix?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {closePrices.vix ? `${closePrices.vix.CZ >= 0 ? '+' : ''}${closePrices.vix.CZ.toFixed(2)} (${closePrices.vix.CZG >= 0 ? '+' : ''}${closePrices.vix.CZG.toFixed(2)}%)` : "--"}
+                </div>
               </div>
               <div className="text-center">
                 <div className="text-xs text-muted-foreground">SENSEX</div>
-                <div className="text-xl font-bold text-green-500">84,562.78</div>
-                <div className="text-xs text-green-500">+84.11 (+0.17%)</div>
+                <div className={`text-xl font-bold ${(closePrices.sensex?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {closePrices.sensex?.C?.toLocaleString('en-IN', { minimumFractionDigits: 2 }) || "--"}
+                </div>
+                <div className={`text-xs ${(closePrices.sensex?.CZ ?? 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {closePrices.sensex ? `${closePrices.sensex.CZ >= 0 ? '+' : ''}${closePrices.sensex.CZ.toFixed(2)} (${closePrices.sensex.CZG >= 0 ? '+' : ''}${closePrices.sensex.CZG.toFixed(2)}%)` : "--"}
+                </div>
               </div>
             </div>
           </CardContent>
