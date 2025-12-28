@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { ChevronDown, TrendingUp, Menu, X, LogOut, LogIn, BarChart3, LineChart, Layers, Crown, Bot, Star, Link2, Target, Flame, Filter, Wrench, Scale, BarChart2, Calculator, PieChart, Activity } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,6 +9,7 @@ interface NavDropdownItem {
   icon: React.ElementType;
   label: string;
   iconColor?: string;
+  path?: string;
 }
 
 interface NavDropdownSection {
@@ -21,6 +22,7 @@ interface NavItem {
   icon?: React.ElementType;
   hasDropdown?: boolean;
   sections?: NavDropdownSection[];
+  path?: string;
 }
 
 const navItems: NavItem[] = [
@@ -40,7 +42,7 @@ const navItems: NavItem[] = [
       {
         title: "OPTION CHAIN",
         items: [
-          { icon: Link2, label: "Option Chain", iconColor: "text-primary" },
+          { icon: Link2, label: "Option Chain", iconColor: "text-primary", path: "/option-chain" },
           { icon: Target, label: "Open Chain Support-Resistance", iconColor: "text-emerald-500" },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500" },
           { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
@@ -127,7 +129,7 @@ const navItems: NavItem[] = [
   },
 ];
 
-function NavDropdown({ sections, isOpen }: { sections: NavDropdownSection[]; isOpen: boolean }) {
+function NavDropdown({ sections, isOpen, onItemClick }: { sections: NavDropdownSection[]; isOpen: boolean; onItemClick?: () => void }) {
   if (!isOpen) return null;
 
   return (
@@ -141,13 +143,21 @@ function NavDropdown({ sections, isOpen }: { sections: NavDropdownSection[]; isO
             <ul className="space-y-1">
               {section.items.map((item, itemIdx) => (
                 <li key={itemIdx}>
-                  <a
-                    href="#"
-                    className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-sm text-foreground"
-                  >
-                    <item.icon className={`h-4 w-4 ${item.iconColor || "text-primary"}`} />
-                    <span>{item.label}</span>
-                  </a>
+                  {item.path ? (
+                    <Link
+                      to={item.path}
+                      onClick={onItemClick}
+                      className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-sm text-foreground"
+                    >
+                      <item.icon className={`h-4 w-4 ${item.iconColor || "text-primary"}`} />
+                      <span>{item.label}</span>
+                    </Link>
+                  ) : (
+                    <span className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-sm text-foreground cursor-pointer opacity-60">
+                      <item.icon className={`h-4 w-4 ${item.iconColor || "text-primary"}`} />
+                      <span>{item.label}</span>
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -179,10 +189,10 @@ export function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <TrendingUp className="h-8 w-8 text-primary" />
             <span className="font-heading font-bold text-xl text-foreground">Runalgo</span>
-          </a>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-1">
@@ -214,6 +224,7 @@ export function Navbar() {
                   <NavDropdown
                     sections={item.sections}
                     isOpen={activeDropdown === item.label}
+                    onItemClick={() => setActiveDropdown(null)}
                   />
                 )}
               </div>
@@ -288,13 +299,21 @@ export function Navbar() {
                             <ul className="space-y-1">
                               {section.items.map((subItem, subIdx) => (
                                 <li key={subIdx}>
-                                  <a
-                                    href="#"
-                                    className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm text-foreground"
-                                  >
-                                    <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
-                                    <span>{subItem.label}</span>
-                                  </a>
+                                  {subItem.path ? (
+                                    <Link
+                                      to={subItem.path}
+                                      onClick={() => setIsMobileMenuOpen(false)}
+                                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm text-foreground"
+                                    >
+                                      <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
+                                      <span>{subItem.label}</span>
+                                    </Link>
+                                  ) : (
+                                    <span className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm text-foreground cursor-pointer opacity-60">
+                                      <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
+                                      <span>{subItem.label}</span>
+                                    </span>
+                                  )}
                                 </li>
                               ))}
                             </ul>
