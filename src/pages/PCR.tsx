@@ -227,8 +227,10 @@ const PCR = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <TickerRibbon />
-      <Navbar />
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
       
       <main className="container py-6 space-y-6">
         {/* Controls Card */}

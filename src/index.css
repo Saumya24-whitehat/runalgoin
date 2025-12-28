@@ -73,7 +73,7 @@
 
     --call-color: 190 80% 45%;
     --put-color: 0 72% 51%;
-    --atm-highlight: 45 93% 47%;
+    --atm-highlight: 45 93% 47% / 0.25;
   }
 
   .dark {
@@ -137,7 +137,7 @@
 
     --call-color: 190 80% 50%;
     --put-color: 0 62% 50%;
-    --atm-highlight: 45 93% 50%;
+    --atm-highlight: 45 93% 50% / 0.3;
   }
 }
 
