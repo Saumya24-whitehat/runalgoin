@@ -1,0 +1,293 @@
+================================================================================
+                         RUNALGO DESIGN SYSTEM
+                    Colors, Fonts & Theme Documentation
+================================================================================
+
+================================================================================
+1. FONTS (TYPOGRAPHY)
+================================================================================
+
+Primary Fonts:
+--------------
+• Outfit    - Used for Headings (h1-h6)
+              Weights: 400 (Regular), 500 (Medium), 600 (SemiBold), 700 (Bold)
+              
+• Inter     - Used for Body text
+              Weights: 400 (Regular), 500 (Medium)
+
+CSS Usage:
+----------
+font-family: 'Outfit', sans-serif;    /* Headings */
+font-family: 'Inter', sans-serif;     /* Body text */
+
+Tailwind Classes:
+-----------------
+className="font-heading"    /* Uses Outfit */
+className="font-body"       /* Uses Inter */
+className="font-sans"       /* Uses Inter (default) */
+
+
+================================================================================
+2. COLOR PALETTE - DARK MODE (Primary Theme)
+================================================================================
+
+HSL Format: Hue Saturation% Lightness%
+--------------------------------------
+
+MAIN COLORS:
+------------
+--background:           220 25% 8%      #0f1318   Dark Blue-Gray (Main BG)
+--foreground:           210 30% 96%     #f2f5f9   Light Gray (Main Text)
+--card:                 220 25% 10%     #141921   Card Background
+--card-foreground:      210 30% 96%     #f2f5f9   Card Text
+
+PRIMARY (Cyan/Teal):
+--------------------
+--primary:              190 80% 50%     #1ab3cc   Cyan - Buttons, Links
+--primary-foreground:   220 25% 8%      #0f1318   Text on Primary
+
+SECONDARY:
+----------
+--secondary:            220 20% 15%     #1f242d   Dark Gray Surface
+--secondary-foreground: 210 30% 96%     #f2f5f9   Text on Secondary
+
+MUTED:
+------
+--muted:                220 20% 15%     #1f242d   Muted Background
+--muted-foreground:     215 15% 60%     #8b9bb0   Muted/Gray Text
+
+ACCENT:
+-------
+--accent:               190 80% 50%     #1ab3cc   Same as Primary
+--accent-foreground:    220 25% 8%      #0f1318   Text on Accent
+
+STATUS COLORS:
+--------------
+--destructive:          0 62% 50%       #d13d3d   Red - Errors/Delete
+--destructive-foreground: 0 0% 100%    #ffffff   White text on Red
+--success:              142 70% 45%     #22c45e   Green - Success
+--success-foreground:   0 0% 100%       #ffffff   White text on Green
+
+BORDERS & INPUTS:
+-----------------
+--border:               220 20% 18%     #262d38   Border Color
+--input:                220 20% 18%     #262d38   Input Border
+--ring:                 190 80% 50%     #1ab3cc   Focus Ring (Cyan)
+
+
+================================================================================
+3. COLOR PALETTE - LIGHT MODE
+================================================================================
+
+MAIN COLORS:
+------------
+--background:           0 0% 100%       #ffffff   White Background
+--foreground:           220 20% 15%     #1f242d   Dark Gray Text
+--card:                 0 0% 100%       #ffffff   White Card
+--card-foreground:      220 20% 15%     #1f242d   Dark Text
+
+PRIMARY:
+--------
+--primary:              190 80% 45%     #17a1b8   Cyan (slightly darker)
+--primary-foreground:   0 0% 100%       #ffffff   White text
+
+SECONDARY:
+----------
+--secondary:            220 15% 95%     #eff1f5   Light Gray
+--secondary-foreground: 220 20% 15%     #1f242d   Dark Text
+
+MUTED:
+------
+--muted:                220 15% 94%     #ebeef3   Light Gray
+--muted-foreground:     220 10% 45%     #6b7280   Gray Text
+
+BORDERS:
+--------
+--border:               220 15% 90%     #e2e6ed   Light Border
+--input:                220 15% 90%     #e2e6ed   Light Input Border
+
+
+================================================================================
+4. COMPONENT-SPECIFIC TOKENS
+================================================================================
+
+TICKER RIBBON:
+--------------
+Dark:  --ticker-bg: 220 30% 6%    --ticker-text: 210 30% 96%
+Light: --ticker-bg: 220 20% 96%   --ticker-text: 220 20% 25%
+
+NAVBAR:
+-------
+Dark:  --nav-bg: 220 25% 10%      --nav-border: 220 20% 16%
+Light: --nav-bg: 0 0% 100%        --nav-border: 220 15% 90%
+
+DROPDOWN MENU:
+--------------
+Dark:  --dropdown-bg: 220 25% 12%
+       --dropdown-border: 220 20% 18%
+       --dropdown-hover: 220 25% 16%
+Light: --dropdown-bg: 0 0% 100%
+       --dropdown-border: 220 15% 88%
+       --dropdown-hover: 220 15% 96%
+
+FEATURE CARDS:
+--------------
+Dark:  --feature-card-bg: 220 25% 11%
+       --feature-card-border: 220 20% 16%
+       --feature-icon-bg: 190 80% 15%
+       --feature-icon-color: 190 80% 55%
+Light: --feature-card-bg: 0 0% 100%
+       --feature-card-border: 220 15% 92%
+       --feature-icon-bg: 190 80% 95%
+       --feature-icon-color: 190 80% 40%
+
+SIDEBAR:
+--------
+Dark:  --sidebar-background: 220 25% 8%
+       --sidebar-foreground: 210 30% 96%
+       --sidebar-primary: 190 80% 50%
+       --sidebar-accent: 220 20% 15%
+       --sidebar-border: 220 20% 15%
+Light: --sidebar-background: 0 0% 98%
+       --sidebar-foreground: 240 5.3% 26.1%
+       --sidebar-primary: 240 5.9% 10%
+       --sidebar-accent: 240 4.8% 95.9%
+       --sidebar-border: 220 13% 91%
+
+
+================================================================================
+5. BORDER RADIUS
+================================================================================
+
+--radius: 0.5rem (8px)
+
+Tailwind Classes:
+-----------------
+rounded-lg     0.5rem    (8px)
+rounded-md     0.375rem  (6px)  = calc(--radius - 2px)
+rounded-sm     0.25rem   (4px)  = calc(--radius - 4px)
+
+
+================================================================================
+6. ANIMATIONS & KEYFRAMES
+================================================================================
+
+FADE IN:
+--------
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+Class: .animate-fade-in (0.5s ease-out)
+
+SLIDE DOWN:
+-----------
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+Class: .animate-slide-down (0.2s ease-out)
+
+TICKER SCROLL:
+--------------
+@keyframes ticker {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+Class: .ticker-scroll (40s linear infinite)
+       Pauses on hover
+
+ACCORDION:
+----------
+accordion-down: Height 0 → auto (0.2s)
+accordion-up:   Height auto → 0 (0.2s)
+
+
+================================================================================
+7. UTILITY CLASSES
+================================================================================
+
+.font-heading     → Uses Outfit font
+.font-body        → Uses Inter font
+.text-gradient    → Gradient text from primary to accent
+
+/* Option Chain compact table */
+.optionchain-compact th, td {
+  Mobile:  font-size: 9px, padding: 2px 3px
+  Desktop: font-size: 0.75rem, padding: 0.5rem
+}
+
+
+================================================================================
+8. TAILWIND USAGE EXAMPLES
+================================================================================
+
+BACKGROUNDS:
+------------
+bg-background          Main page background
+bg-card                Card/panel background
+bg-primary             Cyan button/highlight
+bg-secondary           Secondary surface
+bg-muted               Muted/disabled background
+bg-destructive         Red/error background
+bg-success             Green/success background
+
+TEXT COLORS:
+------------
+text-foreground        Main text
+text-muted-foreground  Muted/gray text
+text-primary           Cyan text
+text-primary-foreground  Text on primary bg
+text-destructive       Red text
+text-success           Green text
+
+BORDERS:
+--------
+border-border          Default border
+border-primary         Cyan border
+border-destructive     Red border
+
+CUSTOM COMPONENTS:
+------------------
+bg-ticker-bg           Ticker ribbon background
+text-ticker-text       Ticker text color
+bg-nav-bg              Navbar background
+bg-dropdown-bg         Dropdown background
+bg-feature-card        Feature card background
+text-feature-iconColor Feature icon color
+
+
+================================================================================
+9. HEX COLOR QUICK REFERENCE (Dark Mode)
+================================================================================
+
+Background:     #0f1318
+Foreground:     #f2f5f9
+Card:           #141921
+Primary:        #1ab3cc (Cyan)
+Secondary:      #1f242d
+Muted Text:     #8b9bb0
+Border:         #262d38
+Destructive:    #d13d3d (Red)
+Success:        #22c45e (Green)
+
+
+================================================================================
+10. IMPORT STATEMENTS (index.css)
+================================================================================
+
+@import '@fontsource/outfit/400.css';
+@import '@fontsource/outfit/500.css';
+@import '@fontsource/outfit/600.css';
+@import '@fontsource/outfit/700.css';
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================
