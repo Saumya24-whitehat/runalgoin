@@ -217,11 +217,20 @@ const SupportResistance = () => {
       const { data, error } = await supabase.functions.invoke('option-chain', { body });
       if (error) throw error;
       
-      if (data?.data && Array.isArray(data.data)) {
-        setOptionData(data.data);
-        if (data.data.length > 0) {
-          setSpotPrice(data.data[0].underlying_spot_price);
-        }
+      console.log('Option chain response:', data);
+      
+      // API returns: { option_chain: { status, data: [...] } } OR { data: [...] }
+      let chainData: OptionData[] = [];
+      if (data?.option_chain?.data && Array.isArray(data.option_chain.data)) {
+        chainData = data.option_chain.data;
+      } else if (data?.data && Array.isArray(data.data)) {
+        chainData = data.data;
+      }
+      
+      if (chainData.length > 0) {
+        setOptionData(chainData);
+        setSpotPrice(chainData[0].underlying_spot_price);
+        console.log('Option data set:', chainData.length, 'rows, spot:', chainData[0].underlying_spot_price);
       }
     } catch (err) {
       console.error('Error fetching option chain:', err);
