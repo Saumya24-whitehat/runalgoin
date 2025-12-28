@@ -367,8 +367,8 @@ const SupportResistance = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
       <TickerRibbon />
+      <Navbar />
       
       <main className="flex-1 p-2 md:p-4">
         {/* Header Controls */}
