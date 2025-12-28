@@ -1,27 +1,25 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
-// Mock data
-const indicesData = {
-  nifty: { value: "26,042.30", change: "-99.80", isPositive: false },
-  sensex: { value: "85,912.45", change: "+245.32", isPositive: true }
-};
+interface TickerData {
+  ltp: number;
+  ch: number;
+  chPer: string;
+  c: string;
+  symbol: string;
+}
 
-const fiiData = {
-  value: "-317.56",
-  isPositive: false,
-  calendar: [
-    { day: 15, positive: false },
-    { day: 16, positive: false },
-    { day: 17, positive: false },
-    { day: 18, positive: false },
-    { day: 19, positive: false },
-    { day: 22, positive: true },
-    { day: 23, positive: true },
-    { day: 24, positive: true },
-    { day: 26, positive: false },
-  ]
-};
+interface FIIDataItem {
+  Name: string;
+  ShortName: string;
+  Value: number;
+}
+
+interface FIIRecord {
+  Date: string;
+  FIIDIIData: FIIDataItem[];
+}
 
 const advancesDeclines = [
   { name: "Nifty 50", advances: 15, declines: 35, change: "0.4%", isPositive: false },
@@ -33,6 +31,38 @@ export function IndicesSection() {
   const [activeIndex, setActiveIndex] = useState<"nifty" | "sensex">("nifty");
   const [activeChart, setActiveChart] = useState<"nifty50" | "nifty500" | "niftybank">("nifty50");
   const [activeSlide, setActiveSlide] = useState(0);
+  const [tickerData, setTickerData] = useState<Record<string, TickerData> | null>(null);
+  const [fiiData, setFiiData] = useState<FIIRecord[] | null>(null);
+
+  // Fetch ticker data
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('ticker-data');
+        if (!error && data) {
+          setTickerData(data);
+        }
+      } catch (err) {
+        console.error('Error fetching ticker data:', err);
+      }
+    };
+    fetchData();
+  }, []);
+
+  // Fetch FII data
+  useEffect(() => {
+    const fetchFiiData = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('fii-data');
+        if (!error && data) {
+          setFiiData(data);
+        }
+      } catch (err) {
+        console.error('Error fetching FII data:', err);
+      }
+    };
+    fetchFiiData();
+  }, []);
 
   // Auto-scroll for mobile carousel
   useEffect(() => {
@@ -41,6 +71,64 @@ export function IndicesSection() {
     }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Get current index data
+  const getCurrentIndexData = () => {
+    if (!tickerData) {
+      return { value: "--", change: "--", isPositive: false };
+    }
+    
+    const key = activeIndex === "nifty" ? "Nifty 50" : "Sensex";
+    const data = tickerData[key];
+    
+    if (!data) {
+      return { value: "--", change: "--", isPositive: false };
+    }
+
+    const value = data.ltp?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || "--";
+    const change = data.ch >= 0 ? `+${data.ch.toFixed(2)}` : data.ch.toFixed(2);
+    const isPositive = data.ch >= 0;
+
+    return { value, change, isPositive };
+  };
+
+  // Get FII Cash data for calendar bars
+  const getFiiCalendarData = () => {
+    if (!fiiData || fiiData.length === 0) return [];
+    
+    // Get last 10 days of data
+    return fiiData.slice(0, 10).map(record => {
+      const fiiCM = record.FIIDIIData?.find(item => item.ShortName === "FII CM*");
+      const date = new Date(record.Date);
+      return {
+        day: date.getDate(),
+        value: fiiCM?.Value || 0,
+        isPositive: (fiiCM?.Value || 0) >= 0
+      };
+    }).reverse();
+  };
+
+  // Get latest FII Cash value
+  const getLatestFiiCash = () => {
+    if (!fiiData || fiiData.length === 0) {
+      return { value: "--", isPositive: false, date: "--" };
+    }
+    
+    const latest = fiiData[0];
+    const fiiCM = latest.FIIDIIData?.find(item => item.ShortName === "FII CM*");
+    const date = new Date(latest.Date);
+    const formattedDate = `${date.getDate()} ${date.toLocaleString('en-US', { month: 'short' })} ${date.getFullYear()}`;
+    
+    return {
+      value: fiiCM?.Value?.toFixed(2) || "0.00",
+      isPositive: (fiiCM?.Value || 0) >= 0,
+      date: formattedDate
+    };
+  };
+
+  const indexData = getCurrentIndexData();
+  const fiiCalendarData = getFiiCalendarData();
+  const latestFii = getLatestFiiCash();
 
   const IndexCard = () => (
     <Card className="bg-card border-border h-full">
@@ -73,12 +161,12 @@ export function IndicesSection() {
         <div className="flex items-start justify-between mb-1">
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold">{indicesData[activeIndex].value}</span>
-              <span className={`text-sm ${indicesData[activeIndex].isPositive ? "text-success" : "text-destructive"}`}>
-                ({indicesData[activeIndex].change})
+              <span className="text-xl font-bold">{indexData.value}</span>
+              <span className={`text-sm ${indexData.isPositive ? "text-success" : "text-destructive"}`}>
+                ({indexData.change})
               </span>
             </div>
-            <div className="text-xs text-muted-foreground mt-1">26 Dec 2025</div>
+            <div className="text-xs text-muted-foreground mt-1">{latestFii.date}</div>
           </div>
           {/* Mini Line Chart */}
           <svg className="w-24 h-12" viewBox="0 0 100 40">
@@ -100,41 +188,37 @@ export function IndicesSection() {
         {/* Divider */}
         <div className="border-t border-dashed border-border my-4" />
 
-        {/* FII Cash */}
-        <div className="flex items-start justify-between flex-1">
-          <div>
-            <div className="text-sm text-muted-foreground">FII Cash</div>
-            <div className={`text-lg font-semibold ${fiiData.isPositive ? "text-success" : "text-destructive"}`}>
-              {fiiData.value} Cr.
+        {/* FII Cash with Bar Calendar */}
+        <div className="flex-1">
+          <div className="flex items-start justify-between mb-3">
+            <div>
+              <div className="text-sm text-muted-foreground">FII Cash</div>
+              <div className={`text-lg font-semibold ${latestFii.isPositive ? "text-success" : "text-destructive"}`}>
+                {latestFii.value} Cr.
+              </div>
+              <div className="text-xs text-muted-foreground mt-1">{latestFii.date}</div>
             </div>
-            <div className="text-xs text-muted-foreground mt-1">26 Dec 2025</div>
           </div>
-          {/* Calendar Heatmap */}
-          <div className="grid grid-cols-5 gap-1">
-            <div className="grid grid-rows-2 gap-1">
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white">15</div>
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white">17</div>
-            </div>
-            <div className="grid grid-rows-2 gap-1">
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white">16</div>
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white">18</div>
-            </div>
-            <div className="grid grid-rows-2 gap-1">
-              <div className="w-6 h-6 rounded bg-success/80 flex items-center justify-center text-[10px] font-medium text-white"></div>
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white">19</div>
-            </div>
-            <div className="grid grid-rows-2 gap-1">
-              <div className="w-6 h-6 rounded bg-success/80 flex items-center justify-center text-[10px] font-medium text-white">22</div>
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white"></div>
-            </div>
-            <div className="grid grid-rows-2 gap-1">
-              <div className="w-6 h-6 rounded bg-success/80 flex items-center justify-center text-[10px] font-medium text-white">23</div>
-              <div className="w-6 h-6 rounded bg-success/80 flex items-center justify-center text-[10px] font-medium text-white">24</div>
-            </div>
-            <div className="grid grid-rows-2 gap-1 col-start-5">
-              <div className="w-6 h-6 rounded bg-destructive/80 flex items-center justify-center text-[10px] font-medium text-white">26</div>
-              <div className="w-6 h-6 rounded bg-transparent"></div>
-            </div>
+          
+          {/* FII Calendar Bars - Like reference image */}
+          <div className="flex items-end gap-1 h-16 mt-2">
+            {fiiCalendarData.map((item, idx) => {
+              // Normalize the bar height (max 100% of container)
+              const maxValue = Math.max(...fiiCalendarData.map(d => Math.abs(d.value)));
+              const heightPercent = maxValue > 0 ? (Math.abs(item.value) / maxValue) * 100 : 20;
+              const minHeight = 15; // Minimum visible height
+              const barHeight = Math.max(heightPercent, minHeight);
+              
+              return (
+                <div key={idx} className="flex flex-col items-center flex-1">
+                  <div
+                    className={`w-full rounded-sm ${item.isPositive ? "bg-success" : "bg-destructive"}`}
+                    style={{ height: `${barHeight}%`, minHeight: '8px' }}
+                  />
+                  <span className="text-[9px] text-muted-foreground mt-1">{item.day}</span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardContent>
