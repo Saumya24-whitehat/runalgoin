@@ -14,6 +14,7 @@ import SupportResistance from "./pages/SupportResistance";
 import OptionHeatMap from "./pages/OptionHeatMap";
 import PCR from "./pages/PCR";
 import PCRLongShort from "./pages/PCRLongShort";
+import PCRAllStrikes from "./pages/PCRAllStrikes";
 import TOI from "./pages/TOI";
 import MaxPain from "./pages/MaxPain";
 import OTR from "./pages/OTR";
@@ -39,6 +40,7 @@ const App = () => (
               <Route path="/option-heatmap" element={<OptionHeatMap />} />
               <Route path="/pcr" element={<PCR />} />
               <Route path="/pcr-long-short" element={<PCRLongShort />} />
+              <Route path="/pcr-all-strikes" element={<PCRAllStrikes />} />
               <Route path="/toi" element={<TOI />} />
               <Route path="/max-pain" element={<MaxPain />} />
               <Route path="/otr" element={<OTR />} />
