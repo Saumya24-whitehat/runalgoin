@@ -1097,9 +1097,9 @@ export default function PCRAllStrikes() {
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
                             fontSize: "12px",
-                            color: "hsl(var(--foreground))",
+                            color: "white",
                           }}
-                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                          labelStyle={{ color: "white" }}
                           formatter={(value: number, name: string) => [value.toFixed(2), name === "pcr" ? "PCR" : name]}
                         />
                         <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" />
