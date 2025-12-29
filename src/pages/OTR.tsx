@@ -619,6 +619,25 @@ const OTR = () => {
                           </ul>
                         </div>
                         
+                        <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-lg">
+                          <h4 className="font-semibold text-blue-500 mb-2">📊 Chart Features:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li><strong>EMA Crossover Markers:</strong> Green ▲ appears on chart when EMA 10 crosses above EMA 30 (bullish). Red ▼ appears when EMA 10 crosses below EMA 30 (bearish).</li>
+                            <li><strong>Trend Column:</strong> Shows real-time trend status (Bullish/Bearish/Neutral) based on EMA position and TOI value.</li>
+                            <li><strong>Zero Line:</strong> Horizontal reference at 0 to quickly see if TOI is positive (Put heavy) or negative (Call heavy).</li>
+                          </ul>
+                        </div>
+                        
+                        <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-lg">
+                          <h4 className="font-semibold text-amber-500 mb-2">📋 Data Table:</h4>
+                          <ul className="list-disc list-inside space-y-1 text-sm">
+                            <li><strong>Put OI / Call OI:</strong> Shows total Put and Call open interest for selected strikes.</li>
+                            <li><strong>TOI:</strong> Calculated as Put OI - Call OI. Positive = Put heavy, Negative = Call heavy.</li>
+                            <li><strong>EMA 10 / 30:</strong> Exponential moving averages on TOI values.</li>
+                            <li><strong>Trend:</strong> Bullish when EMA10 {'>'} EMA30 and TOI {'>'} EMA10. Bearish when EMA10 {'<'} EMA30 and TOI {'<'} EMA10.</li>
+                          </ul>
+                        </div>
+                        
                         <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg">
                           <h4 className="font-semibold text-primary mb-2">💡 Pro Tips:</h4>
                           <ul className="list-disc list-inside space-y-1 text-sm">
@@ -626,6 +645,7 @@ const OTR = () => {
                             <li>Look for strong EMA separation after crossover for trend confirmation</li>
                             <li>Combine with price action and support/resistance levels</li>
                             <li>Previous day's TOI pattern can give context for current day's direction</li>
+                            <li>Check data table for exact values when crossover markers appear</li>
                           </ul>
                         </div>
                       </DialogDescription>
