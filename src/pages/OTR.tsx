@@ -243,21 +243,40 @@ const OTR = () => {
     fetchData();
   };
 
-  // Prepare chart data - combine today and previous day
+  // Calculate EMA
+  const calculateEMA = (data: number[], period: number): number[] => {
+    const ema: number[] = [];
+    const multiplier = 2 / (period + 1);
+    
+    for (let i = 0; i < data.length; i++) {
+      if (i < period - 1) {
+        ema.push(NaN);
+      } else if (i === period - 1) {
+        // First EMA is SMA
+        const sum = data.slice(0, period).reduce((a, b) => a + b, 0);
+        ema.push(sum / period);
+      } else {
+        ema.push((data[i] - ema[i - 1]) * multiplier + ema[i - 1]);
+      }
+    }
+    return ema;
+  };
+
+  // Prepare chart data - calculate TOI = total_put_oi - total_call_oi with EMAs
   const getChartData = () => {
     if (!otrData) return [];
 
-    const combinedData: any[] = [];
+    const rawData: { time: string; displayTime: string; toi: number; spotPrice: number; isToday: boolean }[] = [];
     
     // Add previous day data with date prefix
     if (otrData.previous_day && otrData.previous_day.length > 0) {
       otrData.previous_day.forEach((entry) => {
         const formattedTime = entry.Time.slice(0, 2) + ":" + entry.Time.slice(2);
-        combinedData.push({
+        const toi = entry.Total_Put_OI - entry.Total_Call_OI;
+        rawData.push({
           time: `${otrData.yesterday_date?.slice(5)} ${formattedTime}`,
           displayTime: formattedTime,
-          pcrOI: entry.Combined_PCR_OI,
-          pcrCOI: entry.Combined_PCR_COI,
+          toi,
           spotPrice: entry.Spot_Price,
           isToday: false,
         });
@@ -268,29 +287,50 @@ const OTR = () => {
     if (otrData.data && otrData.data.length > 0) {
       otrData.data.forEach((entry) => {
         const formattedTime = entry.Time.slice(0, 2) + ":" + entry.Time.slice(2);
-        combinedData.push({
+        const toi = entry.Total_Put_OI - entry.Total_Call_OI;
+        rawData.push({
           time: `${otrData.date.slice(5)} ${formattedTime}`,
           displayTime: formattedTime,
-          pcrOI: entry.Combined_PCR_OI,
-          pcrCOI: entry.Combined_PCR_COI,
+          toi,
           spotPrice: entry.Spot_Price,
           isToday: true,
         });
       });
     }
 
-    return combinedData;
+    // Calculate EMAs on TOI values
+    const toiValues = rawData.map(d => d.toi);
+    const ema10 = calculateEMA(toiValues, 10);
+    const ema30 = calculateEMA(toiValues, 30);
+
+    // Combine all data
+    return rawData.map((d, i) => ({
+      ...d,
+      ema10: isNaN(ema10[i]) ? null : ema10[i],
+      ema30: isNaN(ema30[i]) ? null : ema30[i],
+    }));
   };
 
   const chartData = getChartData();
   const latestData = otrData?.data?.[otrData.data.length - 1];
+  const latestChartPoint = chartData.length > 0 ? chartData[chartData.length - 1] : null;
   
-  // Calculate trend from PCR
+  // Calculate trend from EMA crossover and TOI position
   const getTrend = () => {
-    if (!latestData) return null;
-    const pcrCOI = latestData.Combined_PCR_COI;
-    if (pcrCOI > 1) return { text: "Bullish", color: "text-emerald-500", icon: TrendingUp };
-    if (pcrCOI < 1) return { text: "Bearish", color: "text-red-500", icon: TrendingDown };
+    if (!latestChartPoint || latestChartPoint.ema10 === null || latestChartPoint.ema30 === null) return null;
+    
+    const toi = latestChartPoint.toi;
+    const ema10 = latestChartPoint.ema10;
+    const ema30 = latestChartPoint.ema30;
+    
+    // Bullish: EMA10 > EMA30 and TOI above EMA10
+    // Bearish: EMA10 < EMA30 and TOI below EMA10
+    if (ema10 > ema30 && toi > ema10) {
+      return { text: "Bullish", color: "text-emerald-500", icon: TrendingUp };
+    }
+    if (ema10 < ema30 && toi < ema10) {
+      return { text: "Bearish", color: "text-red-500", icon: TrendingDown };
+    }
     return { text: "Neutral", color: "text-yellow-500", icon: Activity };
   };
   
@@ -312,7 +352,7 @@ const OTR = () => {
               <span className="font-medium" style={{ color: entry.color }}>
                 {entry.name === "Spot Price" 
                   ? entry.value?.toLocaleString('en-IN', { maximumFractionDigits: 2 })
-                  : entry.value?.toFixed(2)}
+                  : entry.value?.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
               </span>
             </div>
           ))}
@@ -322,15 +362,25 @@ const OTR = () => {
     return null;
   };
 
+  // Format TOI value for display
+  const formatTOI = (value: number) => {
+    if (Math.abs(value) >= 10000000) {
+      return (value / 10000000).toFixed(2) + " Cr";
+    } else if (Math.abs(value) >= 100000) {
+      return (value / 100000).toFixed(2) + " L";
+    }
+    return value.toLocaleString('en-IN');
+  };
+
   return (
     <>
       <Helmet>
-        <title>OTR - OI Trend Ratio Analysis | Runalgo Options Trading</title>
-        <meta name="description" content="Analyze OI Trend Ratio (OTR) with combined PCR OI and PCR COI charts for Nifty, Bank Nifty, and stocks. Track total open interest trends for smart options trading." />
-        <meta name="keywords" content="OTR, OI Trend Ratio, PCR OI, PCR COI, options trading, Nifty 50, Bank Nifty, open interest analysis, intraday trading, stock market India" />
+        <title>TOI - Total Open Interest Analysis with EMA Crossover | Runalgo Options Trading</title>
+        <meta name="description" content="Analyze Total Open Interest (TOI = Put OI - Call OI) with 10 & 30 period EMA crossovers for Nifty, Bank Nifty. Identify trend direction for smart options trading." />
+        <meta name="keywords" content="TOI, Total Open Interest, EMA crossover, Put OI, Call OI, options trading, Nifty 50, Bank Nifty, intraday trading, stock market India, trend analysis" />
         <link rel="canonical" href="https://runalgo.lovable.app/otr" />
-        <meta property="og:title" content="OTR - OI Trend Ratio Analysis | Runalgo" />
-        <meta property="og:description" content="Track OI Trend Ratio with combined PCR charts for smart options trading decisions." />
+        <meta property="og:title" content="TOI - Total Open Interest with EMA Analysis | Runalgo" />
+        <meta property="og:description" content="Track TOI (Put OI - Call OI) with EMA 10 & 30 crossovers for trend identification in options trading." />
         <meta property="og:type" content="website" />
       </Helmet>
       
@@ -485,53 +535,53 @@ const OTR = () => {
                       <DialogHeader>
                         <DialogTitle className="text-xl flex items-center gap-2">
                           <Activity className="h-5 w-5 text-primary" />
-                          What is OTR (OI Trend Ratio)?
+                          What is TOI (Total Open Interest)?
                         </DialogTitle>
                       </DialogHeader>
                       <DialogDescription className="text-foreground space-y-4 pt-4">
                         <p>
-                          <strong>OTR (OI Trend Ratio)</strong> is a powerful tool that plots Total Open Interest data to help traders identify market direction. 
-                          It shows what <strong>NOT to do</strong> and what <strong>TO do</strong> in the market.
+                          <strong>TOI (Total Open Interest)</strong> is calculated as <strong>Put OI - Call OI</strong>. This chart plots TOI along with 10-period EMA and 30-period EMA to help identify trend direction through EMA crossovers.
                         </p>
                         
                         <div className="bg-muted/50 p-4 rounded-lg">
-                          <h4 className="font-semibold mb-2">How OTR Works:</h4>
+                          <h4 className="font-semibold mb-2">How TOI Works:</h4>
                           <ul className="list-disc list-inside space-y-1 text-sm">
                             <li>Select your symbol (e.g., Nifty 50)</li>
-                            <li>Select ATM strike and number of strikes around it (e.g., 5 strikes above and below ATM)</li>
-                            <li>The chart plots Combined PCR OI and PCR COI based on these strikes</li>
-                            <li>Watch for upper band and lower band breaks</li>
+                            <li>For index, 5 strikes ATM± is recommended</li>
+                            <li>TOI = Total Put OI - Total Call OI</li>
+                            <li>EMA 10 (green) and EMA 30 (red) are plotted on TOI values</li>
+                            <li>Watch for EMA crossovers after 10:00 AM for trend signals</li>
                           </ul>
                         </div>
                         
                         <div className="grid md:grid-cols-2 gap-4">
                           <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-lg">
                             <h4 className="font-semibold text-emerald-500 mb-2">🟢 Bullish Signal</h4>
-                            <p className="text-sm">When PCR COI breaks above 1.0 (upper band), it indicates bullish opportunity. Look for long positions.</p>
+                            <p className="text-sm">When EMA 10 crosses above EMA 30 (positive crossover) and TOI is above EMA 10, it indicates a bullish trend. Look for long positions.</p>
                           </div>
                           <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-lg">
                             <h4 className="font-semibold text-red-500 mb-2">🔴 Bearish Signal</h4>
-                            <p className="text-sm">When PCR COI breaks below 1.0 (lower band), it indicates bearish opportunity. Look for short positions.</p>
+                            <p className="text-sm">When EMA 10 crosses below EMA 30 (negative crossover) and TOI is below EMA 10, it indicates a bearish trend. Look for short positions.</p>
                           </div>
                         </div>
                         
                         <div className="bg-muted/50 p-4 rounded-lg">
                           <h4 className="font-semibold mb-2">Trading Strategy:</h4>
                           <ul className="list-disc list-inside space-y-1 text-sm">
-                            <li><strong>Entry:</strong> When upper band breaks → Look for longs. When lower band breaks → Look for shorts.</li>
-                            <li><strong>Exit:</strong> When price crosses the cloud/middle band, consider exiting the position.</li>
-                            <li><strong>Stay:</strong> If no band break, stay in the current position until next signal.</li>
-                            <li><strong>Tip:</strong> Lower timeframe + higher brick size = Less impact cost, more precise signals.</li>
+                            <li><strong>Wait for 10 AM:</strong> Let the market settle first. EMA crossovers after 10 AM are more reliable.</li>
+                            <li><strong>Entry:</strong> When EMA 10 crosses above EMA 30 + TOI above EMA 10 → Go long. When EMA 10 crosses below EMA 30 + TOI below EMA 10 → Go short.</li>
+                            <li><strong>Exit:</strong> When the crossover reverses or TOI moves back to the opposite side of EMA 10.</li>
+                            <li><strong>Avoid:</strong> Trading during choppy EMA crossovers (multiple quick crosses).</li>
                           </ul>
                         </div>
                         
                         <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg">
                           <h4 className="font-semibold text-primary mb-2">💡 Pro Tips:</h4>
                           <ul className="list-disc list-inside space-y-1 text-sm">
-                            <li>Use 9-minute or lower timeframe for better accuracy</li>
-                            <li>Combine with price patterns (Turtle breakout, Anchor breakout) for confirmation</li>
-                            <li>If no upper band break at open, avoid longs even if price goes up</li>
-                            <li>The cloud/middle band can be used for exit signals</li>
+                            <li>Use 3-minute timeframe for intraday trading</li>
+                            <li>Look for strong EMA separation after crossover for trend confirmation</li>
+                            <li>Combine with price action and support/resistance levels</li>
+                            <li>Previous day's TOI pattern can give context for current day's direction</li>
                           </ul>
                         </div>
                       </DialogDescription>
@@ -556,15 +606,15 @@ const OTR = () => {
                     <p className="text-sm font-semibold">{latestData.Spot_Price.toLocaleString('en-IN', { maximumFractionDigits: 2 })}</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-muted-foreground">PCR OI</p>
-                    <p className={`text-sm font-semibold ${latestData.Combined_PCR_OI >= 1 ? "text-emerald-500" : "text-red-500"}`}>
-                      {latestData.Combined_PCR_OI.toFixed(2)}
+                    <p className="text-xs text-muted-foreground">TOI (Put - Call)</p>
+                    <p className={`text-sm font-semibold ${latestChartPoint && latestChartPoint.toi >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                      {latestChartPoint ? formatTOI(latestChartPoint.toi) : "-"}
                     </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-xs text-muted-foreground">PCR COI</p>
-                    <p className={`text-sm font-semibold ${latestData.Combined_PCR_COI >= 1 ? "text-emerald-500" : "text-red-500"}`}>
-                      {latestData.Combined_PCR_COI.toFixed(2)}
+                    <p className="text-xs text-muted-foreground">EMA 10 / 30</p>
+                    <p className="text-sm font-semibold">
+                      {latestChartPoint?.ema10 !== null ? formatTOI(latestChartPoint?.ema10 || 0) : "-"} / {latestChartPoint?.ema30 !== null ? formatTOI(latestChartPoint?.ema30 || 0) : "-"}
                     </p>
                   </div>
                   <div className="text-center">
@@ -617,7 +667,7 @@ const OTR = () => {
               <CardHeader className="p-3 pb-0">
                 <CardTitle className="text-sm flex items-center gap-2">
                   <Activity className="h-4 w-4 text-primary" />
-                  OTR - OI Trend Ratio
+                  TOI Chart (Put OI - Call OI) with EMA 10 & 30
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3">
@@ -632,12 +682,17 @@ const OTR = () => {
                         interval="preserveStartEnd"
                       />
                       <YAxis 
-                        yAxisId="pcr"
+                        yAxisId="toi"
                         orientation="left"
                         tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                         tickLine={{ stroke: 'hsl(var(--border))' }}
                         domain={['auto', 'auto']}
-                        label={{ value: 'PCR', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                        tickFormatter={(value) => {
+                          if (Math.abs(value) >= 10000000) return (value / 10000000).toFixed(1) + "Cr";
+                          if (Math.abs(value) >= 100000) return (value / 100000).toFixed(1) + "L";
+                          return value.toLocaleString('en-IN');
+                        }}
+                        label={{ value: 'TOI', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
                       />
                       <YAxis 
                         yAxisId="price"
@@ -654,39 +709,52 @@ const OTR = () => {
                         formatter={(value) => <span className="text-xs">{value}</span>}
                       />
                       <ReferenceLine 
-                        yAxisId="pcr"
-                        y={1} 
+                        yAxisId="toi"
+                        y={0} 
                         stroke="hsl(var(--muted-foreground))" 
                         strokeDasharray="5 5" 
-                        label={{ value: 'PCR = 1', position: 'left', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                        label={{ value: 'Zero Line', position: 'left', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
                       />
                       <Line
-                        yAxisId="pcr"
+                        yAxisId="toi"
                         type="monotone"
-                        dataKey="pcrOI"
-                        name="PCR OI"
+                        dataKey="toi"
+                        name="TOI (Put-Call)"
+                        stroke="hsl(220 70% 50%)"
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 4 }}
+                      />
+                      <Line
+                        yAxisId="toi"
+                        type="monotone"
+                        dataKey="ema10"
+                        name="EMA 10"
                         stroke="hsl(142 71% 45%)"
                         strokeWidth={2}
                         dot={false}
                         activeDot={{ r: 4 }}
+                        connectNulls={false}
                       />
                       <Line
-                        yAxisId="pcr"
+                        yAxisId="toi"
                         type="monotone"
-                        dataKey="pcrCOI"
-                        name="PCR COI"
-                        stroke="hsl(280 71% 60%)"
+                        dataKey="ema30"
+                        name="EMA 30"
+                        stroke="hsl(0 72% 51%)"
                         strokeWidth={2}
                         dot={false}
                         activeDot={{ r: 4 }}
+                        connectNulls={false}
                       />
                       <Line
                         yAxisId="price"
                         type="monotone"
                         dataKey="spotPrice"
                         name="Spot Price"
-                        stroke="hsl(0 72% 51%)"
+                        stroke="hsl(280 71% 60%)"
                         strokeWidth={1.5}
+                        strokeDasharray="5 5"
                         dot={false}
                         activeDot={{ r: 4 }}
                       />
