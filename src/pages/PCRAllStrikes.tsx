@@ -1099,7 +1099,6 @@ export default function PCRAllStrikes() {
                             fontSize: "12px",
                             color: "white",
                           }}
-                          labelStyle={{ color: "white" }}
                           formatter={(value: number, name: string) => [value.toFixed(2), name === "pcr" ? "PCR" : name]}
                         />
                         <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" />
