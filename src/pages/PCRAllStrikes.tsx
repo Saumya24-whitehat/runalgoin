@@ -450,15 +450,36 @@ export default function PCRAllStrikes() {
     });
   };
 
-  // Get heatmap data for strikes
+  // Get heatmap data for strikes - centered around ATM (5 strikes above and below)
   const getHeatmapData = () => {
     if (pcrData.length === 0) return [];
     const latest = pcrData[pcrData.length - 1];
-    return strikes.map(strike => ({
+    const atmStrike = getATMStrike(latest.Spot_Price);
+    const atmIndex = strikes.indexOf(atmStrike);
+    
+    // Get 5 strikes on each side of ATM
+    const startIndex = Math.max(0, atmIndex - 5);
+    const endIndex = Math.min(strikes.length, atmIndex + 6);
+    const visibleStrikes = strikes.slice(startIndex, endIndex);
+    
+    return visibleStrikes.map(strike => ({
       strike,
       pcr: latest.PCR_COI[strike] || 0,
-      isATM: strike === getATMStrike(latest.Spot_Price)
+      isATM: strike === atmStrike
     }));
+  };
+  
+  // Get visible strikes for table - centered around ATM
+  const getVisibleStrikes = (): string[] => {
+    if (pcrData.length === 0 || strikes.length === 0) return strikes;
+    const latest = pcrData[pcrData.length - 1];
+    const atmStrike = getATMStrike(latest.Spot_Price);
+    const atmIndex = strikes.indexOf(atmStrike);
+    
+    // Get 5 strikes on each side of ATM
+    const startIndex = Math.max(0, atmIndex - 5);
+    const endIndex = Math.min(strikes.length, atmIndex + 6);
+    return strikes.slice(startIndex, endIndex);
   };
 
   const parseTimeToMinutes = (t: string) => {
@@ -477,6 +498,7 @@ export default function PCRAllStrikes() {
     (d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 30,
   );
   const heatmapData = getHeatmapData();
+  const visibleStrikes = getVisibleStrikes();
 
   return (
     <>
@@ -571,13 +593,16 @@ export default function PCRAllStrikes() {
                 
                 {/* Strike Count */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Strikes</label>
+                  <label className="text-xs font-medium text-muted-foreground">Strikes (max 9)</label>
                   <Input
                     type="number"
                     min={1}
-                    max={50}
+                    max={9}
                     value={strikeCount}
-                    onChange={(e) => setStrikeCount(parseInt(e.target.value) || 5)}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 5;
+                      setStrikeCount(Math.min(9, Math.max(1, val)));
+                    }}
                     className="bg-secondary"
                   />
                 </div>
@@ -946,8 +971,10 @@ export default function PCRAllStrikes() {
                             backgroundColor: 'hsl(var(--card))', 
                             border: '1px solid hsl(var(--border))',
                             borderRadius: '8px',
-                            fontSize: '12px'
+                            fontSize: '12px',
+                            color: 'hsl(var(--foreground))'
                           }}
+                          labelStyle={{ color: 'hsl(var(--foreground))' }}
                           formatter={(value: number, name: string) => [
                             value.toFixed(2),
                             name === 'pcr' ? 'PCR' : name
@@ -988,7 +1015,7 @@ export default function PCRAllStrikes() {
                       <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
                       <TableHead className="whitespace-nowrap">Index</TableHead>
                       <TableHead className="whitespace-nowrap">MMA</TableHead>
-                      {strikes.map((strike) => (
+                      {visibleStrikes.map((strike) => (
                         <TableHead key={strike} className="text-center whitespace-nowrap min-w-[70px]">
                           {strike}
                         </TableHead>
@@ -1008,7 +1035,7 @@ export default function PCRAllStrikes() {
                           </TableCell>
                           <TableCell className="font-mono whitespace-nowrap">{row.Spot_Price.toFixed(2)}</TableCell>
                           <TableCell className="font-mono text-xs whitespace-nowrap">{row.MMA_Data?.NP?.toFixed(2) || "--"}</TableCell>
-                          {strikes.map((strike) => {
+                          {visibleStrikes.map((strike) => {
                             const pcr = row.PCR_COI[strike];
                             const previousPCR = previousRow?.PCR_COI[strike];
                             const isATM = strike === atmStrike;
