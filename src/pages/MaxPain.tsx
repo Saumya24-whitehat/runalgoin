@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,10 +21,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMaxPainData, MaxPainTimeEntry, MaxPainStrikeData } from "@/services/maxPainApi";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, RefreshCw, Timer, ChevronLeft, ChevronRight, Target, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { CalendarIcon, Loader2, RefreshCw, Timer, ChevronLeft, ChevronRight, Target, TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
 import { format } from "date-fns";
 import {
   BarChart,
@@ -37,6 +45,7 @@ import {
   Line,
   ReferenceLine,
   Cell,
+  Legend,
 } from "recharts";
 
 interface SymbolGroup {
@@ -287,6 +296,15 @@ const MaxPain = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Max Pain Calculator | Options Max Pain Analysis for Nifty & Bank Nifty</title>
+        <meta name="description" content="Free Max Pain calculator for Nifty 50, Bank Nifty & all F&O stocks. Analyze option chain data, track intraday max pain changes, and make informed trading decisions." />
+        <meta name="keywords" content="max pain, options max pain, nifty max pain, bank nifty max pain, option pain theory, options trading, strike price analysis" />
+        <link rel="canonical" href="https://runalgo.xyz/max-pain" />
+        <meta property="og:title" content="Max Pain Calculator | Options Max Pain Analysis" />
+        <meta property="og:description" content="Track real-time max pain levels for Nifty, Bank Nifty and all F&O stocks. Free intraday max pain analysis tool." />
+        <meta property="og:type" content="website" />
+      </Helmet>
       <div className="sticky top-0 z-50">
         <TickerRibbon />
         <Navbar />
@@ -501,11 +519,49 @@ const MaxPain = () => {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-4">
           {/* Left: Table */}
-          <Card className="bg-card/50 border-border/50 flex flex-col h-[500px]">
+          <Card className="bg-card/50 border-border/50 flex flex-col lg:h-[520px]">
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
                 Strike-wise Pain Data
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto">
+                      <Info className="h-4 w-4 text-muted-foreground hover:text-primary" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Target className="h-5 w-5 text-primary" />
+                        What is Max Pain?
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 text-sm text-muted-foreground">
+                      <p>
+                        <strong className="text-foreground">Max Pain</strong> is the strike price where option buyers (both Call and Put) would lose the maximum amount of money at expiration. It represents the point where option sellers (writers) would profit the most.
+                      </p>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">How to use this page:</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li><strong>Strike-wise Pain Data:</strong> Shows the pain value at each strike. The highlighted row is the current Max Pain strike.</li>
+                          <li><strong>Pain Distribution Chart:</strong> Visual representation of CE and PE pain across strikes. Highest bar indicates Max Pain.</li>
+                          <li><strong>Index vs Max Pain Chart:</strong> Track how spot price moves relative to Max Pain throughout the day.</li>
+                          <li><strong>Trend Indicator:</strong> Shows if spot is above or below Max Pain and by what percentage.</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-foreground mb-2">Trading Strategy:</h4>
+                        <ul className="list-disc list-inside space-y-1">
+                          <li>Price tends to gravitate towards Max Pain near expiry</li>
+                          <li>If spot is far above Max Pain, expect bearish pressure</li>
+                          <li>If spot is far below Max Pain, expect bullish pressure</li>
+                          <li>Use historical data to see how Max Pain shifted during the day</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardTitle>
             </CardHeader>
             <CardContent className="p-3 pt-0 flex-1 overflow-hidden">
@@ -610,7 +666,7 @@ const MaxPain = () => {
                 <CardTitle className="text-sm">Index Price vs Max Pain</CardTitle>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <div className="h-[200px]">
+                <div className="h-[230px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={priceHistoryData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -620,7 +676,15 @@ const MaxPain = () => {
                         interval="preserveStartEnd"
                       />
                       <YAxis
-                        domain={["dataMin - 50", "dataMax + 50"]}
+                        domain={[(dataMin: number) => {
+                          const allValues = priceHistoryData.flatMap(d => [d.index, d.maxPain]);
+                          const min = Math.min(...allValues);
+                          return Math.floor(min - 100);
+                        }, (dataMax: number) => {
+                          const allValues = priceHistoryData.flatMap(d => [d.index, d.maxPain]);
+                          const max = Math.max(...allValues);
+                          return Math.ceil(max + 100);
+                        }]}
                         tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
                         width={55}
                       />
@@ -631,6 +695,21 @@ const MaxPain = () => {
                           borderRadius: "8px",
                           fontSize: "10px",
                         }}
+                        formatter={(value: number, name: string) => [
+                          value.toFixed(2),
+                          name === "index" ? "Nifty Price" : name === "maxPain" ? "Intraday Max Pain" : name
+                        ]}
+                        labelFormatter={(label) => `Time: ${label}`}
+                      />
+                      <Legend 
+                        verticalAlign="top" 
+                        height={30}
+                        formatter={(value) => {
+                          if (value === "index") return "Nifty Price";
+                          if (value === "maxPain") return "Intraday Max Pain";
+                          return value;
+                        }}
+                        wrapperStyle={{ fontSize: "10px" }}
                       />
                       <Line
                         type="monotone"
@@ -638,7 +717,7 @@ const MaxPain = () => {
                         stroke="hsl(var(--primary))"
                         strokeWidth={2}
                         dot={false}
-                        name="Index"
+                        name="index"
                       />
                       <Line
                         type="stepAfter"
@@ -647,7 +726,7 @@ const MaxPain = () => {
                         strokeWidth={2}
                         strokeDasharray="5 5"
                         dot={false}
-                        name="Max Pain History"
+                        name="maxPain"
                       />
                       {latestEntry && (
                         <ReferenceLine
