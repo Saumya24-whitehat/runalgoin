@@ -461,10 +461,21 @@ export default function PCRAllStrikes() {
     }));
   };
 
+  const parseTimeToMinutes = (t: string) => {
+    const parts = String(t ?? "").split(":");
+    const h = Number(parts[0] ?? 0);
+    const m = Number(parts[1] ?? 0);
+    return h * 60 + m;
+  };
+
   // Reverse data for display (latest first)
   const displayData = [...pcrData].reverse();
   const currentTimeData = pcrData[selectedTimeIndex];
   const chartData = getChartData();
+  // MMA is first available after 09:30
+  const mmaChartData = chartData.filter(
+    (d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 30,
+  );
   const heatmapData = getHeatmapData();
 
   return (
@@ -480,7 +491,7 @@ export default function PCRAllStrikes() {
           <Navbar />
         </div>
 
-        <main className="container mx-auto px-4 py-6 space-y-6">
+        <main className="container mx-auto px-4 py-6 space-y-6 overflow-x-hidden">
           {/* Controls Card */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-4">
@@ -816,7 +827,7 @@ export default function PCRAllStrikes() {
                 <CardContent>
                   <div className="h-[250px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={chartData}>
+                      <ComposedChart data={mmaChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                         <XAxis 
                           dataKey="time" 
@@ -969,63 +980,55 @@ export default function PCRAllStrikes() {
 
           {/* Data Table */}
           {pcrData.length > 0 && (
-            <Card className="bg-card/50 border-border/50 overflow-hidden">
+            <Card className="bg-card/50 border-border/50">
               <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <Table className="min-w-max">
-                    <TableHeader>
-                      <TableRow className="border-border">
-                        <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
-                        <TableHead className="whitespace-nowrap">Index</TableHead>
-                        <TableHead className="whitespace-nowrap">MMA</TableHead>
-                        {strikes.map((strike) => (
-                          <TableHead key={strike} className="text-center whitespace-nowrap min-w-[70px]">
-                            {strike}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {displayData.map((row, rowIndex) => {
-                        const atmStrike = getATMStrike(row.Spot_Price);
-                        const originalIndex = pcrData.length - 1 - rowIndex;
-                        const previousRow = originalIndex > 0 ? pcrData[originalIndex - 1] : undefined;
-                        
-                        return (
-                          <TableRow key={rowIndex} className="border-border hover:bg-muted/30">
-                            <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
-                              {row.Time}
-                            </TableCell>
-                            <TableCell className="font-mono whitespace-nowrap">
-                              {row.Spot_Price.toFixed(2)}
-                            </TableCell>
-                            <TableCell className="font-mono text-xs whitespace-nowrap">
-                              {row.MMA_Data?.NP?.toFixed(2) || "--"}
-                            </TableCell>
-                            {strikes.map((strike) => {
-                              const pcr = row.PCR_COI[strike];
-                              const previousPCR = previousRow?.PCR_COI[strike];
-                              const isATM = strike === atmStrike;
-                              const colorClass = getPCRColorClass(pcr);
-                              
-                              return (
-                                <TableCell
-                                  key={strike}
-                                  className={`text-center font-mono text-xs whitespace-nowrap ${colorClass} ${
-                                    isATM ? "ring-2 ring-blue-500 ring-inset" : ""
-                                  }`}
-                                >
-                                  {pcr?.toFixed(2) || "--"}
-                                  {getArrowIndicator(pcr, previousPCR)}
-                                </TableCell>
-                              );
-                            })}
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                <Table className="w-max min-w-max">
+                  <TableHeader>
+                    <TableRow className="border-border">
+                      <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
+                      <TableHead className="whitespace-nowrap">Index</TableHead>
+                      <TableHead className="whitespace-nowrap">MMA</TableHead>
+                      {strikes.map((strike) => (
+                        <TableHead key={strike} className="text-center whitespace-nowrap min-w-[70px]">
+                          {strike}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {displayData.map((row, rowIndex) => {
+                      const atmStrike = getATMStrike(row.Spot_Price);
+                      const originalIndex = pcrData.length - 1 - rowIndex;
+                      const previousRow = originalIndex > 0 ? pcrData[originalIndex - 1] : undefined;
+
+                      return (
+                        <TableRow key={rowIndex} className="border-border hover:bg-muted/30">
+                          <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
+                            {row.Time}
+                          </TableCell>
+                          <TableCell className="font-mono whitespace-nowrap">{row.Spot_Price.toFixed(2)}</TableCell>
+                          <TableCell className="font-mono text-xs whitespace-nowrap">{row.MMA_Data?.NP?.toFixed(2) || "--"}</TableCell>
+                          {strikes.map((strike) => {
+                            const pcr = row.PCR_COI[strike];
+                            const previousPCR = previousRow?.PCR_COI[strike];
+                            const isATM = strike === atmStrike;
+                            const colorClass = getPCRColorClass(pcr);
+
+                            return (
+                              <TableCell
+                                key={strike}
+                                className={`text-center font-mono text-xs whitespace-nowrap ${colorClass} ${isATM ? "ring-2 ring-blue-500 ring-inset" : ""}`}
+                              >
+                                {pcr?.toFixed(2) || "--"}
+                                {getArrowIndicator(pcr, previousPCR)}
+                              </TableCell>
+                            );
+                          })}
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               </CardContent>
             </Card>
           )}
