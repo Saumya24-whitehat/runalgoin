@@ -298,7 +298,8 @@ const PCRLongShort = () => {
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
         ) : currentTimeData ? (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+          <>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* CE Table */}
             <Card className="bg-card/50 backdrop-blur border-border/30">
               <CardHeader className="pb-2">
@@ -416,79 +417,80 @@ const PCRLongShort = () => {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Intraday Analysis Table */}
-            <Card className="bg-card/50 backdrop-blur border-border/30">
-              <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Activity className="h-5 w-5 text-primary" />
-                  Intraday Analysis
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto max-h-[500px]">
-                  <Table>
-                    <TableHeader className="sticky top-0 bg-card z-10">
-                      <TableRow className="bg-muted/30">
-                        <TableHead className="text-center font-semibold">Time</TableHead>
-                        <TableHead className="text-center font-semibold">Index</TableHead>
-                        <TableHead colSpan={2} className="text-center font-semibold border-l border-border">CE</TableHead>
-                        <TableHead colSpan={2} className="text-center font-semibold border-l border-border">PE</TableHead>
-                        <TableHead className="text-center font-semibold border-l border-border">PCR</TableHead>
-                      </TableRow>
-                      <TableRow className="bg-muted/20">
-                        <TableHead></TableHead>
-                        <TableHead></TableHead>
-                        <TableHead className="text-center text-xs border-l border-border">BUYING</TableHead>
-                        <TableHead className="text-center text-xs">SELLING</TableHead>
-                        <TableHead className="text-center text-xs border-l border-border">BUYING</TableHead>
-                        <TableHead className="text-center text-xs">SELLING</TableHead>
-                        <TableHead className="text-center text-xs border-l border-border">L/S</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {intradayData.map((timeData, idx) => {
-                        const ceLongShort = timeData.CE_Sell_OI > 0 
-                          ? timeData.CE_Buy_OI / timeData.CE_Sell_OI 
-                          : 0;
-                        const peLongShort = timeData.PE_Sell_OI > 0 
-                          ? timeData.PE_Buy_OI / timeData.PE_Sell_OI 
-                          : 0;
-                        
-                        return (
-                          <TableRow 
-                            key={idx} 
-                            className="hover:bg-muted/20 cursor-pointer"
-                            onClick={() => setSelectedTimeIndex(data.length - 1 - idx)}
-                          >
-                            <TableCell className="text-center text-xs font-medium">{timeData.time}</TableCell>
-                            <TableCell className="text-center text-xs">{timeData.underlyning.toFixed(2)}</TableCell>
-                            <TableCell className="text-center text-xs border-l border-border text-emerald-400">
-                              {formatNumber(timeData.CE_Buy_OI)}
-                            </TableCell>
-                            <TableCell className="text-center text-xs text-red-400">
-                              {formatNumber(timeData.CE_Sell_OI)}
-                            </TableCell>
-                            <TableCell className="text-center text-xs border-l border-border text-emerald-400">
-                              {formatNumber(timeData.PE_Buy_OI)}
-                            </TableCell>
-                            <TableCell className="text-center text-xs text-red-400">
-                              {formatNumber(timeData.PE_Sell_OI)}
-                            </TableCell>
-                            <TableCell className="text-center border-l border-border">
-                              <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getPCRColor(timeData.PCR_OI)}`}>
-                                {formatRatio(timeData.PCR_OI)}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </CardContent>
-            </Card>
           </div>
+
+          {/* Intraday Analysis Table - Full Width Below */}
+          <Card className="bg-card/50 backdrop-blur border-border/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Activity className="h-5 w-5 text-primary" />
+                Intraday Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto max-h-[500px]">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-card z-10">
+                    <TableRow className="bg-muted/30">
+                      <TableHead className="text-center font-semibold">Time</TableHead>
+                      <TableHead className="text-center font-semibold">Index</TableHead>
+                      <TableHead colSpan={2} className="text-center font-semibold border-l border-border">CE</TableHead>
+                      <TableHead colSpan={2} className="text-center font-semibold border-l border-border">PE</TableHead>
+                      <TableHead className="text-center font-semibold border-l border-border">PCR</TableHead>
+                    </TableRow>
+                    <TableRow className="bg-muted/20">
+                      <TableHead></TableHead>
+                      <TableHead></TableHead>
+                      <TableHead className="text-center text-xs border-l border-border">BUYING</TableHead>
+                      <TableHead className="text-center text-xs">SELLING</TableHead>
+                      <TableHead className="text-center text-xs border-l border-border">BUYING</TableHead>
+                      <TableHead className="text-center text-xs">SELLING</TableHead>
+                      <TableHead className="text-center text-xs border-l border-border">L/S</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {intradayData.map((timeData, idx) => {
+                      const ceLongShort = timeData.CE_Sell_OI > 0 
+                        ? timeData.CE_Buy_OI / timeData.CE_Sell_OI 
+                        : 0;
+                      const peLongShort = timeData.PE_Sell_OI > 0 
+                        ? timeData.PE_Buy_OI / timeData.PE_Sell_OI 
+                        : 0;
+                      
+                      return (
+                        <TableRow 
+                          key={idx} 
+                          className="hover:bg-muted/20 cursor-pointer"
+                          onClick={() => setSelectedTimeIndex(data.length - 1 - idx)}
+                        >
+                          <TableCell className="text-center text-xs font-medium">{timeData.time}</TableCell>
+                          <TableCell className="text-center text-xs">{timeData.underlyning.toFixed(2)}</TableCell>
+                          <TableCell className="text-center text-xs border-l border-border text-emerald-400">
+                            {formatNumber(timeData.CE_Buy_OI)}
+                          </TableCell>
+                          <TableCell className="text-center text-xs text-red-400">
+                            {formatNumber(timeData.CE_Sell_OI)}
+                          </TableCell>
+                          <TableCell className="text-center text-xs border-l border-border text-emerald-400">
+                            {formatNumber(timeData.PE_Buy_OI)}
+                          </TableCell>
+                          <TableCell className="text-center text-xs text-red-400">
+                            {formatNumber(timeData.PE_Sell_OI)}
+                          </TableCell>
+                          <TableCell className="text-center border-l border-border">
+                            <span className={`px-2 py-0.5 rounded text-xs font-semibold ${getPCRColor(timeData.PCR_OI)}`}>
+                              {formatRatio(timeData.PCR_OI)}
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+          </>
         ) : (
           <Card className="bg-card/50 backdrop-blur border-border/30">
             <CardContent className="py-20">
