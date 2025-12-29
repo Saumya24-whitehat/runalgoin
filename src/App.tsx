@@ -16,6 +16,7 @@ import PCR from "./pages/PCR";
 import PCRLongShort from "./pages/PCRLongShort";
 import TOI from "./pages/TOI";
 import MaxPain from "./pages/MaxPain";
+import OTR from "./pages/OTR";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/pcr-long-short" element={<PCRLongShort />} />
               <Route path="/toi" element={<TOI />} />
               <Route path="/max-pain" element={<MaxPain />} />
+              <Route path="/otr" element={<OTR />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
