@@ -147,11 +147,23 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased text-[11px];
+    font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1 {
     font-family: 'Outfit', sans-serif;
+    @apply text-xl;
+  }
+  
+  h2 {
+    font-family: 'Outfit', sans-serif;
+    @apply text-lg;
+  }
+  
+  h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    @apply text-sm;
   }
 }
 
