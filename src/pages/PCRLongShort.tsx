@@ -1,6 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Loader2, RefreshCw, TrendingUp, TrendingDown, Activity, BarChart2 } from "lucide-react";
+import { Loader2, RefreshCw, TrendingUp, TrendingDown, Activity, BarChart2, Clock, Timer, ChevronLeft, ChevronRight, Calendar as CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +50,8 @@ const formatRatio = (value: number): string => {
   return value.toFixed(2);
 };
 
+const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+
 const PCRLongShort = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -58,10 +63,18 @@ const PCRLongShort = () => {
   const [strikeCount, setStrikeCount] = useState<string>("5");
   const [data, setData] = useState<LongShortTimeData[]>([]);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState<number>(0);
+  const [historicalDate, setHistoricalDate] = useState<Date | undefined>();
 
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
+  
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
+  const [countdown, setCountdown] = useState<string>("");
+  
+  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auth check
   useEffect(() => {
@@ -131,31 +144,97 @@ const PCRLongShort = () => {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async (showLoader = true) => {
     if (!selectedSymbol || !selectedExpiry) return;
 
-    setLoadingData(true);
+    if (showLoader) setLoadingData(true);
     try {
       const response = await fetchPCRLongShortData(
         selectedSymbol,
         selectedExpiry,
-        parseInt(strikeCount)
+        parseInt(strikeCount),
+        historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined
       );
 
       if (response.dataWhole && response.dataWhole.length > 0) {
         setData(response.dataWhole);
         setSelectedTimeIndex(response.dataWhole.length - 1); // Latest time
+        setLastRefresh(new Date());
+        const next = new Date(Date.now() + AUTO_REFRESH_INTERVAL);
+        setNextRefresh(next);
       } else {
         setData([]);
         toast.error("No data available");
       }
     } catch (error) {
       console.error("Error fetching PCR Long/Short data:", error);
-      toast.error("Failed to fetch data");
+      if (showLoader) toast.error("Failed to fetch data");
       setData([]);
     } finally {
-      setLoadingData(false);
+      if (showLoader) setLoadingData(false);
     }
+  }, [selectedSymbol, selectedExpiry, strikeCount, historicalDate]);
+
+  // Auto-refresh interval
+  useEffect(() => {
+    if (selectedSymbol && selectedExpiry) {
+      if (refreshIntervalRef.current) {
+        clearInterval(refreshIntervalRef.current);
+      }
+      
+      refreshIntervalRef.current = setInterval(() => {
+        fetchData(false);
+      }, AUTO_REFRESH_INTERVAL);
+      
+      return () => {
+        if (refreshIntervalRef.current) {
+          clearInterval(refreshIntervalRef.current);
+        }
+      };
+    }
+  }, [selectedSymbol, selectedExpiry, fetchData]);
+
+  // Countdown timer
+  useEffect(() => {
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    
+    countdownIntervalRef.current = setInterval(() => {
+      if (nextRefresh) {
+        const diff = nextRefresh.getTime() - Date.now();
+        if (diff > 0) {
+          const minutes = Math.floor(diff / 60000);
+          const seconds = Math.floor((diff % 60000) / 1000);
+          setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+        } else {
+          setCountdown("0:00");
+        }
+      }
+    }, 1000);
+    
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+    };
+  }, [nextRefresh]);
+
+  // Time navigation
+  const availableTimes = useMemo(() => {
+    return data.map((d) => d.time);
+  }, [data]);
+
+  const handleTimeChange = (direction: 'prev' | 'next') => {
+    if (direction === 'prev' && selectedTimeIndex > 0) {
+      setSelectedTimeIndex(selectedTimeIndex - 1);
+    } else if (direction === 'next' && selectedTimeIndex < data.length - 1) {
+      setSelectedTimeIndex(selectedTimeIndex + 1);
+    }
+  };
+
+  const handleManualRefresh = () => {
+    fetchData();
   };
 
   // Current time data
@@ -270,25 +349,112 @@ const PCRLongShort = () => {
                 </Select>
               </div>
 
+              {/* Historical Date */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Historical Date</label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[140px] justify-start text-left font-normal bg-background/50"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0 z-50" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={historicalDate}
+                      onSelect={setHistoricalDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
               {/* Go Button */}
               <Button
-                onClick={fetchData}
+                onClick={() => fetchData()}
                 disabled={loadingData || !selectedExpiry}
                 className="bg-primary hover:bg-primary/90"
               >
                 {loadingData ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 Go
               </Button>
+            </div>
 
-              {/* Symbol Info */}
-              {currentTimeData && (
-                <div className="ml-auto flex items-center gap-4">
-                  <div className="text-right">
-                    <div className="text-sm font-semibold text-foreground">Symbol: {selectedSymbol}</div>
-                    <div className="text-xs text-muted-foreground">Time: {currentTimeData.time}</div>
-                  </div>
+            {/* Time Navigation & Refresh Info Bar */}
+            <div className="flex flex-wrap items-center justify-between mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground gap-4">
+              {/* Time Navigation */}
+              {data.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleTimeChange('prev')}
+                    disabled={selectedTimeIndex === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Select
+                    value={availableTimes[selectedTimeIndex] || ""}
+                    onValueChange={(val) => {
+                      const idx = availableTimes.indexOf(val);
+                      if (idx !== -1) setSelectedTimeIndex(idx);
+                    }}
+                  >
+                    <SelectTrigger className="w-[90px] h-7 text-xs bg-background/50">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover">
+                      {availableTimes.map((time) => (
+                        <SelectItem key={time} value={time}>{time}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleTimeChange('next')}
+                    disabled={selectedTimeIndex === data.length - 1}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                 </div>
               )}
+
+              {/* Status Info */}
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <RefreshCw className="h-3.5 w-3.5" />
+                  <span>Last Updated: <span className="text-foreground font-medium">
+                    {lastRefresh ? format(lastRefresh, "hh:mm:ss a") : "--:--:--"}
+                  </span></span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <Timer className="h-3.5 w-3.5" />
+                  <span>Next Refresh: <span className="text-primary font-medium">{countdown || "--:--"}</span></span>
+                </div>
+              </div>
+
+              {/* Refresh Button */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleManualRefresh}
+                disabled={loadingData}
+                className="h-7 px-3"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 mr-1.5 ${loadingData ? 'animate-spin' : ''}`} />
+                Refresh Now
+              </Button>
             </div>
           </CardContent>
         </Card>
