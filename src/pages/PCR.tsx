@@ -22,7 +22,7 @@ import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
 import { fetchKundaliData, extractSupportResistance, SupportResistanceData } from "@/services/kundaliApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer } from "lucide-react";
+import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -43,6 +43,7 @@ const PCR = () => {
   
   const [pcrData, setPcrData] = useState<PCRTimeData[]>([]);
   const [latestData, setLatestData] = useState<PCRTimeData | null>(null);
+  const [selectedTimeIndex, setSelectedTimeIndex] = useState<number>(-1);
   const [supportResistanceData, setSupportResistanceData] = useState<SupportResistanceData | null>(null);
   const [loadingSR, setLoadingSR] = useState(false);
   
@@ -156,6 +157,7 @@ const PCR = () => {
       
       if (response.dataWhole && response.dataWhole.length > 0) {
         setPcrData(response.dataWhole);
+        setSelectedTimeIndex(response.dataWhole.length - 1);
         
         // Get the latest data entry and fill missing Future/VWAP from previous entries
         let latest = { ...response.dataWhole[response.dataWhole.length - 1] };
@@ -293,6 +295,63 @@ const PCR = () => {
     fetchData();
   };
 
+  // Time navigation handlers
+  const handlePrevTime = () => {
+    if (selectedTimeIndex > 0) {
+      const newIndex = selectedTimeIndex - 1;
+      setSelectedTimeIndex(newIndex);
+      updateSelectedData(newIndex);
+    }
+  };
+
+  const handleNextTime = () => {
+    if (selectedTimeIndex < pcrData.length - 1) {
+      const newIndex = selectedTimeIndex + 1;
+      setSelectedTimeIndex(newIndex);
+      updateSelectedData(newIndex);
+    }
+  };
+
+  const handleTimeSelect = (index: string) => {
+    const newIndex = parseInt(index);
+    setSelectedTimeIndex(newIndex);
+    updateSelectedData(newIndex);
+  };
+
+  const updateSelectedData = (index: number) => {
+    if (pcrData[index]) {
+      let data = { ...pcrData[index] };
+      let futureFromPrevious = false;
+      let vwapFromPrevious = false;
+      
+      if (data.Future === 0 || !data.Future) {
+        for (let i = index - 1; i >= 0; i--) {
+          if (pcrData[i].Future && pcrData[i].Future !== 0) {
+            data.Future = pcrData[i].Future;
+            futureFromPrevious = true;
+            break;
+          }
+        }
+      }
+      
+      if (data.VWAP === 0 || !data.VWAP) {
+        for (let i = index - 1; i >= 0; i--) {
+          if (pcrData[i].VWAP && pcrData[i].VWAP !== 0) {
+            data.VWAP = pcrData[i].VWAP;
+            vwapFromPrevious = true;
+            break;
+          }
+        }
+      }
+      
+      (data as any).futureFromPrevious = futureFromPrevious;
+      (data as any).vwapFromPrevious = vwapFromPrevious;
+      setLatestData(data);
+    }
+  };
+
+  const currentTimeData = pcrData[selectedTimeIndex];
+
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-50">
@@ -409,12 +468,50 @@ const PCR = () => {
               
             </div>
             
-            {/* Refresh Info Bar */}
+            {/* Refresh Info Bar with Time Navigation */}
             <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
+              {/* Time Navigation Controls */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handlePrevTime}
+                  disabled={selectedTimeIndex <= 0 || pcrData.length === 0}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Select
+                  value={selectedTimeIndex.toString()}
+                  onValueChange={handleTimeSelect}
+                  disabled={pcrData.length === 0}
+                >
+                  <SelectTrigger className="w-[80px] h-7 bg-secondary text-xs">
+                    <SelectValue placeholder="Time" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border z-50 max-h-[200px]">
+                    {pcrData.map((item, index) => (
+                      <SelectItem key={index} value={index.toString()}>
+                        {item.time}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={handleNextTime}
+                  disabled={selectedTimeIndex >= pcrData.length - 1 || pcrData.length === 0}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-1.5">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Data Time: <span className="text-foreground font-medium">{latestData?.time || "--:--"}</span></span>
+                  <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <RefreshCw className="h-3.5 w-3.5" />
