@@ -15,6 +15,7 @@ import OptionHeatMap from "./pages/OptionHeatMap";
 import PCR from "./pages/PCR";
 import PCRLongShort from "./pages/PCRLongShort";
 import TOI from "./pages/TOI";
+import MaxPain from "./pages/MaxPain";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
               <Route path="/pcr" element={<PCR />} />
               <Route path="/pcr-long-short" element={<PCRLongShort />} />
               <Route path="/toi" element={<TOI />} />
+              <Route path="/max-pain" element={<MaxPain />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>

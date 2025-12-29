@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.toi-data]
 verify_jwt = false
+
+[functions.maxpain-data]
+verify_jwt = false
