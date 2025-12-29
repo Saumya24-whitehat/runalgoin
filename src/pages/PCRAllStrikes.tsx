@@ -9,16 +9,53 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, Info, TrendingUp, TrendingDown, ArrowUp, ArrowDown, CalendarIcon, Loader2, Timer, ChevronLeft, ChevronRight, Clock, Volume2, VolumeX } from "lucide-react";
+import {
+  RefreshCw,
+  Info,
+  TrendingUp,
+  TrendingDown,
+  ArrowUp,
+  ArrowDown,
+  CalendarIcon,
+  Loader2,
+  Timer,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Volume2,
+  VolumeX,
+} from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAllStrikesApi";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, AreaChart, Area, ComposedChart, Bar, Cell } from "recharts";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ReferenceLine,
+  AreaChart,
+  Area,
+  ComposedChart,
+  Bar,
+  Cell,
+} from "recharts";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -44,25 +81,25 @@ export default function PCRAllStrikes() {
   const [selectedExpiry, setSelectedExpiry] = useState("");
   const [strikeCount, setStrikeCount] = useState(5);
   const [historicalDate, setHistoricalDate] = useState<Date | undefined>();
-  
+
   const [pcrData, setPcrData] = useState<PCRAllStrikesTimeData[]>([]);
   const [kundaliData, setKundaliData] = useState<KundaliTimeData[]>([]);
   const [supportResistance, setSupportResistance] = useState<SupportResistanceDisplay | null>(null);
-  
+
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  
+
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<string>("");
-  
+
   const [strikes, setStrikes] = useState<string[]>([]);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState<number>(-1);
   const [alertEnabled, setAlertEnabled] = useState(false);
   const [lastAlertTime, setLastAlertTime] = useState<string>("");
-  
+
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -76,7 +113,7 @@ export default function PCRAllStrikes() {
           body: { endpoint: "symbols" },
         });
         if (error) throw error;
-        
+
         const indexSymbols = data?.["index symbols"] || [];
         const stockSymbols = data?.symbols || [];
         setSymbols({ indexSymbols, stockSymbols });
@@ -97,13 +134,13 @@ export default function PCRAllStrikes() {
   // Fetch expiry dates when symbol changes
   useEffect(() => {
     if (!selectedSymbol) return;
-    
+
     // Set default strike count based on symbol type
     if (symbols.indexSymbols.length > 0 || symbols.stockSymbols.length > 0) {
       const isIndexSymbol = symbols.indexSymbols.includes(selectedSymbol);
       setStrikeCount(isIndexSymbol ? 5 : 2);
     }
-    
+
     const fetchExpiry = async () => {
       setLoadingExpiry(true);
       setSelectedExpiry("");
@@ -112,7 +149,7 @@ export default function PCRAllStrikes() {
           body: { endpoint: "expiry", params: { symbol: selectedSymbol } },
         });
         if (error) throw error;
-        
+
         let dates: string[] = [];
         if (Array.isArray(data)) {
           dates = data;
@@ -123,7 +160,7 @@ export default function PCRAllStrikes() {
         } else if (data?.data && Array.isArray(data.data)) {
           dates = data.data;
         }
-        
+
         setExpiryDates(dates);
         if (dates.length > 0) {
           setSelectedExpiry(dates[0]);
@@ -145,14 +182,14 @@ export default function PCRAllStrikes() {
   // Extract support/resistance from kundali data
   const extractSupportResistanceDisplay = (data: KundaliTimeData[]): SupportResistanceDisplay | null => {
     if (!data || data.length === 0) return null;
-    
+
     const latest = data[data.length - 1];
-    
+
     // volumeConditionPE[0] = Vol & OI condition
     // volumeConditionCE[0] = Vol & OI condition for resistance
     const supportVolOI = latest.volumeConditionPE[0];
     const resistanceVolOI = latest.volumeConditionCE[0];
-    
+
     return {
       supportVolOI,
       supportStrong: latest.max_pe_strike2,
@@ -164,58 +201,60 @@ export default function PCRAllStrikes() {
   };
 
   // Fetch data
-  const fetchData = useCallback(async (showLoader = true) => {
-    if (!selectedSymbol || !selectedExpiry) return;
-    
-    if (showLoader) setLoadingData(true);
-    
-    try {
-      const strikeCountForApi = strikeCount * 2 + 1;
+  const fetchData = useCallback(
+    async (showLoader = true) => {
+      if (!selectedSymbol || !selectedExpiry) return;
 
-      const [pcrResponse, kundaliResponse] = await Promise.all([
-        fetchPCRAllStrikesData(
-          selectedSymbol,
-          selectedExpiry,
-          strikeCountForApi,
-          historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined
-        ),
-        fetchKundaliData(selectedSymbol, selectedExpiry, 100),
-      ]);
+      if (showLoader) setLoadingData(true);
 
-      if (pcrResponse.data && pcrResponse.data.length > 0) {
-        setPcrData(pcrResponse.data);
-        setSelectedTimeIndex(pcrResponse.data.length - 1);
-        
-        // Extract strikes from first data point
-        const firstEntry = pcrResponse.data[0];
-        const strikeKeys = Object.keys(firstEntry.PCR_COI).sort((a, b) => Number(a) - Number(b));
-        setStrikes(strikeKeys);
+      try {
+        const strikeCountForApi = strikeCount * 2 + 1;
+
+        const [pcrResponse, kundaliResponse] = await Promise.all([
+          fetchPCRAllStrikesData(
+            selectedSymbol,
+            selectedExpiry,
+            strikeCountForApi,
+            historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined,
+          ),
+          fetchKundaliData(selectedSymbol, selectedExpiry, 100),
+        ]);
+
+        if (pcrResponse.data && pcrResponse.data.length > 0) {
+          setPcrData(pcrResponse.data);
+          setSelectedTimeIndex(pcrResponse.data.length - 1);
+
+          // Extract strikes from first data point
+          const firstEntry = pcrResponse.data[0];
+          const strikeKeys = Object.keys(firstEntry.PCR_COI).sort((a, b) => Number(a) - Number(b));
+          setStrikes(strikeKeys);
+        }
+
+        if (kundaliResponse.dataWhole && kundaliResponse.dataWhole.length > 0) {
+          setKundaliData(kundaliResponse.dataWhole);
+          const srData = extractSupportResistanceDisplay(kundaliResponse.dataWhole);
+          setSupportResistance(srData);
+        }
+
+        setLastRefresh(new Date());
+        const next = new Date(Date.now() + AUTO_REFRESH_INTERVAL);
+        setNextRefresh(next);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+        if (showLoader) {
+          toast({
+            title: "Error",
+            description: "Failed to fetch PCR All Strikes data",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        if (showLoader) setLoadingData(false);
+        setIsRefreshing(false);
       }
-      
-      if (kundaliResponse.dataWhole && kundaliResponse.dataWhole.length > 0) {
-        setKundaliData(kundaliResponse.dataWhole);
-        const srData = extractSupportResistanceDisplay(kundaliResponse.dataWhole);
-        setSupportResistance(srData);
-      }
-      
-      setLastRefresh(new Date());
-      const next = new Date(Date.now() + AUTO_REFRESH_INTERVAL);
-      setNextRefresh(next);
-      
-    } catch (error) {
-      console.error("Error fetching data:", error);
-      if (showLoader) {
-        toast({
-          title: "Error",
-          description: "Failed to fetch PCR All Strikes data",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      if (showLoader) setLoadingData(false);
-      setIsRefreshing(false);
-    }
-  }, [selectedSymbol, selectedExpiry, strikeCount, historicalDate, toast]);
+    },
+    [selectedSymbol, selectedExpiry, strikeCount, historicalDate, toast],
+  );
 
   // Auto-fetch when selections change
   useEffect(() => {
@@ -230,11 +269,11 @@ export default function PCRAllStrikes() {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current);
       }
-      
+
       refreshIntervalRef.current = setInterval(() => {
         fetchData(false);
       }, AUTO_REFRESH_INTERVAL);
-      
+
       return () => {
         if (refreshIntervalRef.current) {
           clearInterval(refreshIntervalRef.current);
@@ -248,20 +287,20 @@ export default function PCRAllStrikes() {
     if (countdownIntervalRef.current) {
       clearInterval(countdownIntervalRef.current);
     }
-    
+
     countdownIntervalRef.current = setInterval(() => {
       if (nextRefresh) {
         const diff = nextRefresh.getTime() - Date.now();
         if (diff > 0) {
           const minutes = Math.floor(diff / 60000);
           const seconds = Math.floor((diff % 60000) / 1000);
-          setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+          setCountdown(`${minutes}:${seconds.toString().padStart(2, "0")}`);
         } else {
           setCountdown("0:00");
         }
       }
     }, 1000);
-    
+
     return () => {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
@@ -300,7 +339,7 @@ export default function PCRAllStrikes() {
     if (strikes.length === 0) return "";
     let closest = strikes[0];
     let minDiff = Math.abs(Number(strikes[0]) - spotPrice);
-    
+
     for (const strike of strikes) {
       const diff = Math.abs(Number(strike) - spotPrice);
       if (diff < minDiff) {
@@ -314,7 +353,7 @@ export default function PCRAllStrikes() {
   // Get PCR color class
   const getPCRColorClass = (pcr: number): string => {
     if (pcr >= 1.25) return "bg-emerald-500/20 text-emerald-400";
-    if (pcr <= 0.80) return "bg-red-500/20 text-red-400";
+    if (pcr <= 0.8) return "bg-red-500/20 text-red-400";
     return "";
   };
 
@@ -334,78 +373,82 @@ export default function PCRAllStrikes() {
     if (pcrData.length < 2) return 0;
     const latest = pcrData[pcrData.length - 1];
     const previous = pcrData[pcrData.length - 2];
-    
+
     let divergenceCount = 0;
     const priceUp = latest.Spot_Price > previous.Spot_Price;
-    
+
     for (const strike of strikes) {
       const currentPCR = latest.PCR_COI[strike];
       const previousPCR = previous.PCR_COI[strike];
       const pcrUp = currentPCR > previousPCR;
-      
+
       if ((priceUp && !pcrUp) || (!priceUp && pcrUp)) {
         divergenceCount++;
       }
     }
-    
+
     return divergenceCount;
   };
 
   // Play alert sound
-  const playAlertSound = useCallback((type: "bullish" | "bearish") => {
-    if (!alertEnabled) return;
-    
-    // Create audio context for beep sound
-    try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      // Different frequencies for bullish/bearish
-      oscillator.frequency.value = type === "bullish" ? 800 : 400;
-      oscillator.type = "sine";
-      
-      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.5);
-      
-      // Play second beep for emphasis
-      setTimeout(() => {
-        const osc2 = audioContext.createOscillator();
-        const gain2 = audioContext.createGain();
-        osc2.connect(gain2);
-        gain2.connect(audioContext.destination);
-        osc2.frequency.value = type === "bullish" ? 1000 : 300;
-        osc2.type = "sine";
-        gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-        osc2.start(audioContext.currentTime);
-        osc2.stop(audioContext.currentTime + 0.3);
-      }, 200);
-    } catch (e) {
-      console.error("Error playing alert sound:", e);
-    }
-  }, [alertEnabled]);
+  const playAlertSound = useCallback(
+    (type: "bullish" | "bearish") => {
+      if (!alertEnabled) return;
+
+      // Create audio context for beep sound
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Different frequencies for bullish/bearish
+        oscillator.frequency.value = type === "bullish" ? 800 : 400;
+        oscillator.type = "sine";
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+
+        // Play second beep for emphasis
+        setTimeout(() => {
+          const osc2 = audioContext.createOscillator();
+          const gain2 = audioContext.createGain();
+          osc2.connect(gain2);
+          gain2.connect(audioContext.destination);
+          osc2.frequency.value = type === "bullish" ? 1000 : 300;
+          osc2.type = "sine";
+          gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          osc2.start(audioContext.currentTime);
+          osc2.stop(audioContext.currentTime + 0.3);
+        }, 200);
+      } catch (e) {
+        console.error("Error playing alert sound:", e);
+      }
+    },
+    [alertEnabled],
+  );
 
   // Check for PCR alert conditions
   useEffect(() => {
     if (!alertEnabled || pcrData.length < 2) return;
-    
+
     const latest = pcrData[pcrData.length - 1];
     const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
     const currentATMPCR = latest.PCR_COI[atmStrike];
-    
+
     if (prevATMPCRRef.current !== null && currentATMPCR !== prevATMPCRRef.current) {
       const now = new Date();
       const hours = now.getHours();
       const minutes = now.getMinutes();
-      const isMarketHours = (hours === 9 && minutes >= 15) || (hours > 9 && hours < 15) || (hours === 15 && minutes <= 30);
-      
+      const isMarketHours =
+        (hours === 9 && minutes >= 15) || (hours > 9 && hours < 15) || (hours === 15 && minutes <= 30);
+
       if (isMarketHours) {
         // Check if crossed above 1.25 (bullish)
         if (currentATMPCR >= 1.25 && prevATMPCRRef.current < 1.25) {
@@ -417,7 +460,7 @@ export default function PCRAllStrikes() {
           });
         }
         // Check if crossed below 0.80 (bearish)
-        else if (currentATMPCR <= 0.80 && prevATMPCRRef.current > 0.80) {
+        else if (currentATMPCR <= 0.8 && prevATMPCRRef.current > 0.8) {
           playAlertSound("bearish");
           setLastAlertTime(now.toLocaleTimeString());
           toast({
@@ -427,7 +470,7 @@ export default function PCRAllStrikes() {
         }
       }
     }
-    
+
     prevATMPCRRef.current = currentATMPCR;
   }, [pcrData, alertEnabled, playAlertSound, toast]);
 
@@ -468,8 +511,7 @@ export default function PCRAllStrikes() {
 
       // Calculate average PCR across all strikes
       const pcrValues = Object.values(entry.PCR_COI).filter((v) => typeof v === "number");
-      const avgPCR =
-        pcrValues.length > 0 ? pcrValues.reduce((a, b) => a + b, 0) / pcrValues.length : 0;
+      const avgPCR = pcrValues.length > 0 ? pcrValues.reduce((a, b) => a + b, 0) / pcrValues.length : 0;
 
       return {
         time: entry.Time,
@@ -524,9 +566,7 @@ export default function PCRAllStrikes() {
   const currentTimeData = pcrData[selectedTimeIndex];
   const chartData = getChartData();
   // MMA is first available after 09:30
-  const mmaChartData = chartData.filter(
-    (d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 30,
-  );
+  const mmaChartData = chartData.filter((d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 30);
   const heatmapData = getHeatmapData();
   const visibleStrikes = getVisibleStrikes();
 
@@ -534,7 +574,10 @@ export default function PCRAllStrikes() {
     <>
       <Helmet>
         <title>PCR All Strikes - Real-time PCR Analysis | Runalgo</title>
-        <meta name="description" content="Track PCR (Put-Call Ratio) changes across all strike prices in real-time for Indian indices and stocks." />
+        <meta
+          name="description"
+          content="Track PCR (Put-Call Ratio) changes across all strike prices in real-time for Indian indices and stocks."
+        />
       </Helmet>
 
       <div className="min-h-screen bg-background text-foreground">
@@ -560,7 +603,9 @@ export default function PCRAllStrikes() {
                         <>
                           <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
                           {symbols.indexSymbols.map((sym) => (
-                            <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                            <SelectItem key={sym} value={sym}>
+                              {sym}
+                            </SelectItem>
                           ))}
                         </>
                       )}
@@ -568,14 +613,16 @@ export default function PCRAllStrikes() {
                         <>
                           <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
                           {symbols.stockSymbols.map((sym) => (
-                            <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                            <SelectItem key={sym} value={sym}>
+                              {sym}
+                            </SelectItem>
                           ))}
                         </>
                       )}
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Expiry Selector */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Expiry Date</label>
@@ -596,31 +643,23 @@ export default function PCRAllStrikes() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 {/* Historical Date */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Historical Date</label>
                   <Popover>
                     <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start text-left font-normal bg-secondary"
-                      >
+                      <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary">
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 z-50" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={historicalDate}
-                        onSelect={setHistoricalDate}
-                        initialFocus
-                      />
+                      <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} initialFocus />
                     </PopoverContent>
                   </Popover>
                 </div>
-                
+
                 {/* Strike Count */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Strikes each side (max 9)</label>
@@ -636,7 +675,7 @@ export default function PCRAllStrikes() {
                     className="bg-secondary"
                   />
                 </div>
-                
+
                 {/* GO Button */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground invisible">Action</label>
@@ -645,14 +684,10 @@ export default function PCRAllStrikes() {
                     disabled={loadingData || !selectedSymbol || !selectedExpiry}
                     className="w-full bg-primary hover:bg-primary/90"
                   >
-                    {loadingData ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      "GO"
-                    )}
+                    {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
                   </Button>
                 </div>
-                
+
                 {/* Info Button */}
                 <div className="space-y-1.5 flex items-end">
                   <Dialog>
@@ -668,43 +703,82 @@ export default function PCRAllStrikes() {
                           <div className="space-y-4 text-sm text-muted-foreground mt-4">
                             <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-emerald-500 mb-2">📊 What is PCR All Strikes?</h4>
-                              <p>This page shows PCR (Put-Call Ratio) changes based on Change in OI (COI) across all strike prices over time. It helps understand option writers&apos; behavior across different strikes.</p>
+                              <p>
+                                This page shows PCR (Put-Call Ratio) changes based on Change in OI (COI) across all
+                                strike prices over time. It helps understand option writers&apos; behavior across
+                                different strikes.
+                              </p>
                             </div>
 
                             <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-cyan-500 mb-2">📈 MMA (Market Moving Average):</h4>
-                              <p className="mb-2">MMA is a <strong>neutral point of market</strong> based on real money flow across all segments of the instrument including Cash, Futures, and Options.</p>
+                              <p className="mb-2">
+                                MMA is a <strong>neutral point of market</strong> based on real money flow across all
+                                segments of the instrument including Cash, Futures, and Options.
+                              </p>
                               <ul className="list-disc list-inside space-y-1">
-                                <li><span className="text-emerald-400">Spot Price {">"} MMA</span>: Bullish - Real money flowing into the instrument</li>
-                                <li><span className="text-red-400">Spot Price {"<"} MMA</span>: Bearish - Real money flowing out of the instrument</li>
+                                <li>
+                                  <span className="text-emerald-400">Spot Price {">"} MMA</span>: Bullish - Real money
+                                  flowing into the instrument
+                                </li>
+                                <li>
+                                  <span className="text-red-400">Spot Price {"<"} MMA</span>: Bearish - Real money
+                                  flowing out of the instrument
+                                </li>
                               </ul>
-                              <p className="mt-2 text-xs italic">Note: MMA calculation is proprietary but indicates true market sentiment based on actual money movement.</p>
+                              <p className="mt-2 text-xs italic">
+                                Note: MMA calculation is proprietary but indicates true market sentiment based on actual
+                                money movement.
+                              </p>
                             </div>
 
                             <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-primary mb-2">🎨 Color Coding:</h4>
                               <ul className="list-disc list-inside space-y-1">
-                                <li><span className="text-emerald-400">Green (PCR {">"} 1.25)</span>: Bullish - Put writers dominating</li>
-                                <li><span className="text-red-400">Red (PCR {"<"} 0.80)</span>: Bearish - Call writers dominating</li>
-                                <li><span className="text-blue-400">Blue Border</span>: ATM (At The Money) strike</li>
+                                <li>
+                                  <span className="text-emerald-400">Green (PCR {">"} 1.25)</span>: Bullish - Put
+                                  writers dominating
+                                </li>
+                                <li>
+                                  <span className="text-red-400">Red (PCR {"<"} 0.80)</span>: Bearish - Call writers
+                                  dominating
+                                </li>
+                                <li>
+                                  <span className="text-blue-400">Blue Border</span>: ATM (At The Money) strike
+                                </li>
                               </ul>
                             </div>
 
                             <div className="bg-yellow-500/10 border border-yellow-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-yellow-500 mb-2">🔺🔻 Arrow Indicators:</h4>
                               <ul className="list-disc list-inside space-y-1">
-                                <li><span className="text-emerald-400">▲ Up Arrow</span>: PCR increased from previous reading</li>
-                                <li><span className="text-red-400">▼ Down Arrow</span>: PCR decreased from previous reading</li>
+                                <li>
+                                  <span className="text-emerald-400">▲ Up Arrow</span>: PCR increased from previous
+                                  reading
+                                </li>
+                                <li>
+                                  <span className="text-red-400">▼ Down Arrow</span>: PCR decreased from previous
+                                  reading
+                                </li>
                               </ul>
                             </div>
 
                             <div className="bg-blue-500/10 border border-blue-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-blue-500 mb-2">📋 Table Columns:</h4>
                               <ul className="list-disc list-inside space-y-1">
-                                <li><strong>Time:</strong> Timestamp of the data point</li>
-                                <li><strong>Index:</strong> Current spot price of the index</li>
-                                <li><strong>MMA:</strong> Market neutral point based on real money flow (Cash + Futures + Options)</li>
-                                <li><strong>Strike Columns:</strong> PCR COI values for each strike</li>
+                                <li>
+                                  <strong>Time:</strong> Timestamp of the data point
+                                </li>
+                                <li>
+                                  <strong>Index:</strong> Current spot price of the index
+                                </li>
+                                <li>
+                                  <strong>MMA:</strong> Market neutral point based on real money flow (Cash + Futures +
+                                  Options)
+                                </li>
+                                <li>
+                                  <strong>Strike Columns:</strong> PCR COI values for each strike
+                                </li>
                               </ul>
                             </div>
 
@@ -712,8 +786,14 @@ export default function PCRAllStrikes() {
                               <h4 className="font-semibold text-red-500 mb-2">💡 Trading Insights:</h4>
                               <ul className="list-disc list-inside space-y-1">
                                 <li>Market normally doesn&apos;t go below positive OI support</li>
-                                <li>If price breaks support but PCR keeps falling → likely stoploss hunting, market may recover</li>
-                                <li>If ATM moves to red PCR column and PCR still not rising → market likely to fall further</li>
+                                <li>
+                                  If price breaks support but PCR keeps falling → likely stoploss hunting, market may
+                                  recover
+                                </li>
+                                <li>
+                                  If ATM moves to red PCR column and PCR still not rising → market likely to fall
+                                  further
+                                </li>
                                 <li>Watch for divergence between price movement and PCR changes</li>
                                 <li>When Spot Price crosses above MMA → potential bullish momentum</li>
                                 <li>When Spot Price crosses below MMA → potential bearish momentum</li>
@@ -722,12 +802,18 @@ export default function PCRAllStrikes() {
 
                             <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-amber-500 mb-2">📊 Divergence Count:</h4>
-                              <p>Shows number of strikes where PCR direction differs from price direction. High divergence may indicate potential reversal or stoploss hunting moves.</p>
+                              <p>
+                                Shows number of strikes where PCR direction differs from price direction. High
+                                divergence may indicate potential reversal or stoploss hunting moves.
+                              </p>
                             </div>
 
                             <div className="bg-purple-500/10 border border-purple-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-purple-500 mb-2">🔔 PCR Alert:</h4>
-                              <p>Enable sound alerts to get notified when ATM strike PCR crosses above 1.25 (bullish) or below 0.80 (bearish) during market hours (9:15 AM - 3:30 PM).</p>
+                              <p>
+                                Enable sound alerts to get notified when ATM strike PCR crosses above 1.25 (bullish) or
+                                below 0.80 (bearish) during market hours (9:15 AM - 3:30 PM).
+                              </p>
                             </div>
                           </div>
                         </DialogDescription>
@@ -736,7 +822,7 @@ export default function PCRAllStrikes() {
                   </Dialog>
                 </div>
               </div>
-              
+
               {/* Refresh Info Bar with Time Navigation */}
               <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
                 {/* Time Navigation Controls */}
@@ -750,7 +836,7 @@ export default function PCRAllStrikes() {
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </Button>
-                  
+
                   <Select
                     value={selectedTimeIndex.toString()}
                     onValueChange={handleTimeSelect}
@@ -767,7 +853,7 @@ export default function PCRAllStrikes() {
                       ))}
                     </SelectContent>
                   </Select>
-                  
+
                   <Button
                     variant="outline"
                     size="icon"
@@ -778,16 +864,12 @@ export default function PCRAllStrikes() {
                     <ChevronRight className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {/* Right side - refresh info and alert toggle */}
                 <div className="flex items-center gap-4">
                   {/* Alert Toggle */}
                   <div className="flex items-center gap-2">
-                    <Switch
-                      id="alert-toggle"
-                      checked={alertEnabled}
-                      onCheckedChange={setAlertEnabled}
-                    />
+                    <Switch id="alert-toggle" checked={alertEnabled} onCheckedChange={setAlertEnabled} />
                     <Label htmlFor="alert-toggle" className="flex items-center gap-1 cursor-pointer">
                       {alertEnabled ? (
                         <Volume2 className="h-3 w-3 text-emerald-400" />
@@ -800,23 +882,23 @@ export default function PCRAllStrikes() {
                       <span className="text-[10px] text-muted-foreground">({lastAlertTime})</span>
                     )}
                   </div>
-                  
+
                   <div className="h-4 w-px bg-border" />
-                  
+
                   {lastRefresh && (
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
                       <span>Updated: {lastRefresh.toLocaleTimeString()}</span>
                     </div>
                   )}
-                  
+
                   {countdown && (
                     <div className="flex items-center gap-1">
                       <Timer className="h-3 w-3" />
                       <span>Next: {countdown}</span>
                     </div>
                   )}
-                  
+
                   <Button
                     variant="ghost"
                     size="sm"
@@ -824,14 +906,14 @@ export default function PCRAllStrikes() {
                     onClick={handleManualRefresh}
                     disabled={isRefreshing}
                   >
-                    <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-3 w-3 mr-1 ${isRefreshing ? "animate-spin" : ""}`} />
                     Refresh
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Support & Resistance Bar - Single Row */}
           {supportResistance && kundaliData.length > 0 && (
             <Card className="bg-card/50 border-border/50">
@@ -843,24 +925,26 @@ export default function PCRAllStrikes() {
                     <span className="text-muted-foreground">Vol & OI</span>
                     <span className="text-foreground">Strong 🛡️ @ {supportResistance.supportStrong}</span>
                   </div>
-                  
+
                   <div className="h-4 w-px bg-border" />
-                  
+
                   {/* Resistance */}
                   <div className="flex items-center gap-2">
                     <span className="text-red-400 font-semibold">Resistance</span>
                     <span className="text-muted-foreground">Vol & OI</span>
                     <span className="text-foreground flex items-center gap-1">
-                      WTT {supportResistance.resistanceWTTDirection === "up" ? (
+                      WTT{" "}
+                      {supportResistance.resistanceWTTDirection === "up" ? (
                         <TrendingUp className="h-4 w-4 text-emerald-400" />
                       ) : (
                         <TrendingDown className="h-4 w-4 text-red-400" />
-                      )} {supportResistance.resistanceRange}
+                      )}{" "}
+                      {supportResistance.resistanceRange}
                     </span>
                   </div>
-                  
+
                   <div className="h-4 w-px bg-border" />
-                  
+
                   {/* Divergence */}
                   <div className="flex items-center gap-2">
                     <span className="text-yellow-400 font-semibold">Divergence</span>
@@ -884,41 +968,42 @@ export default function PCRAllStrikes() {
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={mmaChartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                        <XAxis 
-                          dataKey="time" 
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        <XAxis
+                          dataKey="time"
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickLine={false}
                         />
-                        <YAxis 
-                          domain={['auto', 'auto']}
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        <YAxis
+                          domain={["auto", "auto"]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickLine={false}
                           width={60}
                         />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))', 
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '12px'
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                            color: "white",
                           }}
                         />
-                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Line 
-                          type="monotone" 
-                          dataKey="spotPrice" 
-                          stroke="#3b82f6" 
-                          strokeWidth={2} 
-                          dot={false} 
+                        <Legend wrapperStyle={{ fontSize: "11px" }} />
+                        <Line
+                          type="monotone"
+                          dataKey="spotPrice"
+                          stroke="#3b82f6"
+                          strokeWidth={2}
+                          dot={false}
                           name="Spot Price"
                         />
-                        <Line 
-                          type="monotone" 
-                          dataKey="mma" 
-                          stroke="#f59e0b" 
-                          strokeWidth={2} 
+                        <Line
+                          type="monotone"
+                          dataKey="mma"
+                          stroke="#f59e0b"
+                          strokeWidth={2}
                           strokeDasharray="5 5"
-                          dot={false} 
+                          dot={false}
                           name="MMA"
                         />
                       </ComposedChart>
@@ -937,36 +1022,46 @@ export default function PCRAllStrikes() {
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                        <XAxis 
-                          dataKey="time" 
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        <XAxis
+                          dataKey="time"
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickLine={false}
                         />
-                        <YAxis 
-                          domain={[0, 'auto']}
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        <YAxis
+                          domain={[0, "auto"]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickLine={false}
                           width={40}
                         />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))', 
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '12px'
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
                           }}
                         />
-                        <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" label={{ value: '1.25', position: 'right', fontSize: 10, fill: '#10b981' }} />
-                        <ReferenceLine y={0.80} stroke="#ef4444" strokeDasharray="3 3" label={{ value: '0.80', position: 'right', fontSize: 10, fill: '#ef4444' }} />
+                        <Legend wrapperStyle={{ fontSize: "11px" }} />
+                        <ReferenceLine
+                          y={1.25}
+                          stroke="#10b981"
+                          strokeDasharray="3 3"
+                          label={{ value: "1.25", position: "right", fontSize: 10, fill: "#10b981" }}
+                        />
+                        <ReferenceLine
+                          y={0.8}
+                          stroke="#ef4444"
+                          strokeDasharray="3 3"
+                          label={{ value: "0.80", position: "right", fontSize: 10, fill: "#ef4444" }}
+                        />
                         <ReferenceLine y={1.0} stroke="#6b7280" strokeDasharray="2 2" />
-                        <Area 
-                          type="monotone" 
-                          dataKey="atmPCR" 
-                          stroke="#8b5cf6" 
+                        <Area
+                          type="monotone"
+                          dataKey="atmPCR"
+                          stroke="#8b5cf6"
                           fill="#8b5cf6"
                           fillOpacity={0.3}
-                          strokeWidth={2} 
+                          strokeWidth={2}
                           name="ATM PCR"
                         />
                       </AreaChart>
@@ -985,44 +1080,37 @@ export default function PCRAllStrikes() {
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={heatmapData} layout="horizontal">
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                        <XAxis 
-                          dataKey="strike" 
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        <XAxis
+                          dataKey="strike"
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickLine={false}
                         />
-                        <YAxis 
-                          domain={[0, 'auto']}
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        <YAxis
+                          domain={[0, "auto"]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           tickLine={false}
                           width={40}
                         />
-                        <Tooltip 
-                          contentStyle={{ 
-                            backgroundColor: 'hsl(var(--card))', 
-                            border: '1px solid hsl(var(--border))',
-                            borderRadius: '8px',
-                            fontSize: '12px',
-                            color: 'hsl(var(--foreground))'
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                            color: "hsl(var(--foreground))",
                           }}
-                          labelStyle={{ color: 'hsl(var(--foreground))' }}
-                          formatter={(value: number, name: string) => [
-                            value.toFixed(2),
-                            name === 'pcr' ? 'PCR' : name
-                          ]}
+                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                          formatter={(value: number, name: string) => [value.toFixed(2), name === "pcr" ? "PCR" : name]}
                         />
                         <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" />
-                        <ReferenceLine y={0.80} stroke="#ef4444" strokeDasharray="3 3" />
+                        <ReferenceLine y={0.8} stroke="#ef4444" strokeDasharray="3 3" />
                         <ReferenceLine y={1.0} stroke="#6b7280" strokeDasharray="2 2" />
-                        <Bar 
-                          dataKey="pcr" 
-                          name="PCR"
-                          radius={[4, 4, 0, 0]}
-                        >
+                        <Bar dataKey="pcr" name="PCR" radius={[4, 4, 0, 0]}>
                           {heatmapData.map((entry, index) => (
                             <Cell
                               key={`cell-${index}`}
-                              fill={entry.pcr >= 1.25 ? '#10b981' : entry.pcr <= 0.80 ? '#ef4444' : '#8b5cf6'}
-                              stroke={entry.isATM ? '#3b82f6' : 'transparent'}
+                              fill={entry.pcr >= 1.25 ? "#10b981" : entry.pcr <= 0.8 ? "#ef4444" : "#8b5cf6"}
+                              stroke={entry.isATM ? "#3b82f6" : "transparent"}
                               strokeWidth={entry.isATM ? 3 : 0}
                             />
                           ))}
@@ -1065,7 +1153,9 @@ export default function PCRAllStrikes() {
                               {row.Time}
                             </TableCell>
                             <TableCell className="font-mono whitespace-nowrap">{row.Spot_Price.toFixed(2)}</TableCell>
-                            <TableCell className="font-mono text-xs whitespace-nowrap">{row.MMA_Data?.NP?.toFixed(2) || "--"}</TableCell>
+                            <TableCell className="font-mono text-xs whitespace-nowrap">
+                              {row.MMA_Data?.NP?.toFixed(2) || "--"}
+                            </TableCell>
                             {visibleStrikes.map((strike) => {
                               const pcr = row.PCR_COI[strike];
                               const previousPCR = previousRow?.PCR_COI[strike];
@@ -1091,7 +1181,7 @@ export default function PCRAllStrikes() {
               </CardContent>
             </Card>
           )}
-          
+
           {/* Loading State */}
           {loadingData && pcrData.length === 0 && (
             <Card className="bg-card/50 border-border/50">
@@ -1101,7 +1191,7 @@ export default function PCRAllStrikes() {
               </CardContent>
             </Card>
           )}
-          
+
           {/* No Data State */}
           {!loadingData && pcrData.length === 0 && selectedExpiry && (
             <Card className="bg-card/50 border-border/50">
