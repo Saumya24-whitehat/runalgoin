@@ -96,6 +96,10 @@ export default function PCRAllStrikes() {
   const [countdown, setCountdown] = useState<string>("");
 
   const [strikes, setStrikes] = useState<string[]>([]);
+  const [availableStrikes, setAvailableStrikes] = useState<string[]>([]);
+  const [selectedCustomStrike, setSelectedCustomStrike] = useState<string>("");
+  const [useCustomStrike, setUseCustomStrike] = useState(false);
+  const [loadingStrikes, setLoadingStrikes] = useState(false);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState<number>(-1);
   const [alertEnabled, setAlertEnabled] = useState(false);
   const [lastAlertTime, setLastAlertTime] = useState<string>("");
@@ -137,6 +141,9 @@ export default function PCRAllStrikes() {
 
     // Fixed window: always fetch/display +/- 7 strikes from the 09:15 ATM reference
     setStrikeCount(7);
+    setSelectedCustomStrike("");
+    setUseCustomStrike(false);
+    setAvailableStrikes([]);
 
     const fetchExpiry = async () => {
       setLoadingExpiry(true);
@@ -175,6 +182,35 @@ export default function PCRAllStrikes() {
     };
     fetchExpiry();
   }, [selectedSymbol, symbols, toast]);
+
+  // Fetch available strikes from TOI API when expiry changes
+  useEffect(() => {
+    if (!selectedSymbol || !selectedExpiry) return;
+
+    const fetchAvailableStrikes = async () => {
+      setLoadingStrikes(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("toi-data", {
+          body: { endpoint: "strikes", symbol: selectedSymbol, expiry: selectedExpiry },
+        });
+        if (error) throw error;
+
+        let strikesList: string[] = [];
+        if (data?.strikes && Array.isArray(data.strikes)) {
+          strikesList = data.strikes.map((s: number | string) => String(s)).sort((a: string, b: string) => Number(a) - Number(b));
+        } else if (Array.isArray(data)) {
+          strikesList = data.map((s: number | string) => String(s)).sort((a: string, b: string) => Number(a) - Number(b));
+        }
+
+        setAvailableStrikes(strikesList);
+      } catch (err) {
+        console.error("Error fetching available strikes:", err);
+      } finally {
+        setLoadingStrikes(false);
+      }
+    };
+    fetchAvailableStrikes();
+  }, [selectedSymbol, selectedExpiry]);
 
   // Extract support/resistance from kundali data
   const extractSupportResistanceDisplay = (data: KundaliTimeData[]): SupportResistanceDisplay | null => {
@@ -499,13 +535,12 @@ export default function PCRAllStrikes() {
     return getATMStrike(refEntry.Spot_Price);
   }, [pcrData, strikes]);
 
-  // Prepare chart data
+  // Prepare chart data - show actual ATM strike per time point
   const getChartData = () => {
-    const atmStrikeForDay = fixedATMStrike;
-
     return pcrData.map((entry) => {
-      const atmStrike = atmStrikeForDay || getATMStrike(entry.Spot_Price);
-      const atmPCR = entry.PCR_COI[atmStrike];
+      // Get actual ATM strike for this time based on spot price
+      const actualATMStrike = getATMStrike(entry.Spot_Price);
+      const atmPCR = entry.PCR_COI[actualATMStrike];
 
       // Calculate average PCR across all strikes
       const pcrValues = Object.values(entry.PCR_COI).filter((v) => typeof v === "number");
@@ -516,20 +551,24 @@ export default function PCRAllStrikes() {
         spotPrice: entry.Spot_Price,
         mma: entry.MMA_Data?.NP || 0,
         atmPCR: atmPCR || 0,
+        atmStrike: actualATMStrike,
         avgPCR,
         ...Object.fromEntries(strikes.map((s) => [`pcr_${s}`, entry.PCR_COI[s] || 0])),
       };
     });
   };
 
-  // Get heatmap data for strikes - fixed window around 09:15 ATM (+/- 7 strikes)
+  // Get heatmap data for strikes - use custom strike or fixed window around 09:15 ATM (+/- 7 strikes)
   const getHeatmapData = () => {
     if (pcrData.length === 0) return [];
 
     const latest = pcrData[pcrData.length - 1];
     const sideCount = 7;
 
-    const windowCenterStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
+    // If custom strike is selected, use it as center; otherwise use 09:15 ATM
+    const windowCenterStrike = useCustomStrike && selectedCustomStrike 
+      ? selectedCustomStrike 
+      : (fixedATMStrike || getATMStrike(latest.Spot_Price));
     const windowCenterIndex = strikes.indexOf(windowCenterStrike);
 
     const startIndex = Math.max(0, windowCenterIndex - sideCount);
@@ -546,14 +585,17 @@ export default function PCRAllStrikes() {
     }));
   };
 
-  // Get visible strikes for table - fixed window around 09:15 ATM (+/- 7 strikes)
+  // Get visible strikes for table - use custom strike or fixed window around 09:15 ATM (+/- 7 strikes)
   const getVisibleStrikes = (): string[] => {
     if (pcrData.length === 0 || strikes.length === 0) return strikes;
 
     const latest = pcrData[pcrData.length - 1];
     const sideCount = 7;
 
-    const windowCenterStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
+    // If custom strike is selected, use it as center; otherwise use 09:15 ATM
+    const windowCenterStrike = useCustomStrike && selectedCustomStrike 
+      ? selectedCustomStrike 
+      : (fixedATMStrike || getATMStrike(latest.Spot_Price));
     const windowCenterIndex = strikes.indexOf(windowCenterStrike);
 
     const startIndex = Math.max(0, windowCenterIndex - sideCount);
@@ -661,10 +703,34 @@ export default function PCRAllStrikes() {
                   </Popover>
                 </div>
 
-                {/* Strike Count */}
+                {/* Custom Strike Selector */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Strikes each side (fixed)</label>
-                  <Input type="number" min={7} max={7} value={7} disabled className="bg-secondary" />
+                  <label className="text-xs font-medium text-muted-foreground">Center Strike</label>
+                  <Select
+                    value={useCustomStrike ? selectedCustomStrike : "auto"}
+                    onValueChange={(val) => {
+                      if (val === "auto") {
+                        setUseCustomStrike(false);
+                        setSelectedCustomStrike("");
+                      } else {
+                        setUseCustomStrike(true);
+                        setSelectedCustomStrike(val);
+                      }
+                    }}
+                    disabled={loadingStrikes || availableStrikes.length === 0}
+                  >
+                    <SelectTrigger className="w-full bg-secondary text-secondary-foreground">
+                      <SelectValue placeholder={loadingStrikes ? "Loading..." : "Auto (09:15 ATM)"} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-50 max-h-[300px]">
+                      <SelectItem value="auto">Auto (09:15 ATM ±7)</SelectItem>
+                      {availableStrikes.map((strike) => (
+                        <SelectItem key={strike} value={strike}>
+                          {strike}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* GO Button */}
@@ -1006,7 +1072,7 @@ export default function PCRAllStrikes() {
               {/* ATM PCR Over Time Chart */}
               <Card className="bg-card/50 border-border/50">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm font-medium">ATM PCR Over Time</CardTitle>
+                  <CardTitle className="text-sm font-medium">ATM PCR Over Time (Live ATM)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[250px]">
@@ -1030,6 +1096,17 @@ export default function PCRAllStrikes() {
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
                             fontSize: "12px",
+                            color: "hsl(var(--foreground))",
+                          }}
+                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                          formatter={(value: number, name: string, props: any) => {
+                            const atmStrike = props?.payload?.atmStrike || "";
+                            return [
+                              <span key="value">
+                                {value.toFixed(2)} <span style={{ fontSize: "10px", opacity: 0.7 }}>(Strike: {atmStrike})</span>
+                              </span>,
+                              "ATM PCR"
+                            ];
                           }}
                         />
                         <Legend wrapperStyle={{ fontSize: "11px" }} />
