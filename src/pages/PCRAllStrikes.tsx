@@ -559,25 +559,20 @@ export default function PCRAllStrikes() {
     });
   };
 
-  // Get heatmap data for strikes - use custom strike or fixed window around 09:15 ATM (+/- 7 strikes)
+  // Get heatmap data for strikes - use LIVE ATM ±3 strikes for the bar chart
   const getHeatmapData = () => {
     if (pcrData.length === 0) return [];
 
     const latest = pcrData[pcrData.length - 1];
-    const sideCount = 7;
+    const sideCount = 3; // Only ±3 strikes around live ATM for heatmap chart
 
-    // If custom strike is selected, use it as center; otherwise use 09:15 ATM
-    const windowCenterStrike = useCustomStrike && selectedCustomStrike 
-      ? selectedCustomStrike 
-      : (fixedATMStrike || getATMStrike(latest.Spot_Price));
-    const windowCenterIndex = strikes.indexOf(windowCenterStrike);
-
-    const startIndex = Math.max(0, windowCenterIndex - sideCount);
-    const endIndex = Math.min(strikes.length, windowCenterIndex + sideCount + 1);
-    const visibleStrikesLocal = strikes.slice(startIndex, endIndex);
-
-    // Blue highlight should reflect the live ATM of the selected time (here: latest)
+    // Always use live ATM as center for this chart
     const liveATMStrike = getATMStrike(latest.Spot_Price);
+    const atmIndex = strikes.indexOf(liveATMStrike);
+
+    const startIndex = Math.max(0, atmIndex - sideCount);
+    const endIndex = Math.min(strikes.length, atmIndex + sideCount + 1);
+    const visibleStrikesLocal = strikes.slice(startIndex, endIndex);
 
     return visibleStrikesLocal.map((strike) => ({
       strike,
