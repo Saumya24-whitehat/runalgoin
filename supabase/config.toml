@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.otr-data]
 verify_jwt = false
+
+[functions.pcr-all-strikes]
+verify_jwt = false
