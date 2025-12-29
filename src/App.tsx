@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { SessionManager } from "@/components/SessionManager";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -21,6 +22,7 @@ const App = () => (
     <BrowserRouter>
       <ThemeProvider defaultTheme="dark" storageKey="runalgo-theme">
         <AuthProvider>
+          <SessionManager />
           <TooltipProvider>
             <Toaster />
             <Sonner />
