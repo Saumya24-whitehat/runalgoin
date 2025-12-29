@@ -32,3 +32,6 @@ verify_jwt = false
 
 [functions.maxpain-data]
 verify_jwt = false
+
+[functions.otr-data]
+verify_jwt = false
