@@ -8,6 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PCRStrikeData } from "@/services/pcrApi";
+import { TrendingUp } from "lucide-react";
 
 interface PCROptionsChainProps {
   data: PCRStrikeData[];
@@ -40,7 +41,10 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Call Options Table */}
           <div>
-            <h3 className="text-base font-semibold mb-3 text-call text-center">Call Options (CE)</h3>
+            <h3 className="text-base font-semibold mb-3 text-call text-center flex items-center justify-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              CE (Call Options)
+            </h3>
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>
@@ -82,7 +86,10 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
 
           {/* Put Options Table */}
           <div>
-            <h3 className="text-base font-semibold mb-3 text-put text-center">Put Options (PE)</h3>
+            <h3 className="text-base font-semibold mb-3 text-put text-center flex items-center justify-center gap-2">
+              <TrendingUp className="h-5 w-5" />
+              PE (Put Options)
+            </h3>
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>

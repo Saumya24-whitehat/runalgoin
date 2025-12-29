@@ -469,8 +469,8 @@ const PCRLongShort = () => {
             {/* CE Table */}
             <Card className="bg-card/50 backdrop-blur border-border/30">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <TrendingDown className="h-5 w-5 text-red-500" />
+                <CardTitle className="flex items-center justify-center gap-2 text-lg">
+                  <TrendingUp className="h-5 w-5 text-emerald-500" />
                   CE (Call Options)
                 </CardTitle>
               </CardHeader>
@@ -528,7 +528,7 @@ const PCRLongShort = () => {
             {/* PE Table */}
             <Card className="bg-card/50 backdrop-blur border-border/30">
               <CardHeader className="pb-2">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className="flex items-center justify-center gap-2 text-lg">
                   <TrendingUp className="h-5 w-5 text-emerald-500" />
                   PE (Put Options)
                 </CardTitle>
