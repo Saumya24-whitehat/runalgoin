@@ -59,7 +59,7 @@ const navItems: NavItem[] = [
         title: "OI & COI CALCULATION",
         items: [
           { icon: Scale, label: "PCR", iconColor: "text-primary", path: "/pcr" },
-          { icon: BarChart2, label: "PCR Long & Short", iconColor: "text-emerald-500" },
+          { icon: BarChart2, label: "PCR Long & Short", iconColor: "text-emerald-500", path: "/pcr-long-short" },
           { icon: Calculator, label: "TOI", iconColor: "text-emerald-500" },
           { icon: BarChart3, label: "PCR All Strikes", iconColor: "text-emerald-500" },
           { icon: Target, label: "Max Pain", iconColor: "text-red-500" },

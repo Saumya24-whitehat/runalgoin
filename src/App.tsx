@@ -13,6 +13,7 @@ import OptionChain from "./pages/OptionChain";
 import SupportResistance from "./pages/SupportResistance";
 import OptionHeatMap from "./pages/OptionHeatMap";
 import PCR from "./pages/PCR";
+import PCRLongShort from "./pages/PCRLongShort";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/support-resistance" element={<SupportResistance />} />
               <Route path="/option-heatmap" element={<OptionHeatMap />} />
               <Route path="/pcr" element={<PCR />} />
+              <Route path="/pcr-long-short" element={<PCRLongShort />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
