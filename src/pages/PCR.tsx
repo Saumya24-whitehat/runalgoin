@@ -13,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HeatMapSymbolSelector } from "@/components/heatmap/HeatMapSymbolSelector";
+
 import { PCROptionsChain } from "@/components/pcr/PCROptionsChain";
 import { PCRIntradayAnalysis } from "@/components/pcr/PCRIntradayAnalysis";
 import { PCRSupportResistance } from "@/components/pcr/PCRSupportResistance";
@@ -308,12 +308,29 @@ const PCR = () => {
               {/* Symbol Selector */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Symbol</label>
-                <HeatMapSymbolSelector
-                  symbols={symbols}
-                  value={selectedSymbol}
-                  onChange={setSelectedSymbol}
-                  loading={loadingSymbols}
-                />
+                <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>
+                  <SelectTrigger className="w-full bg-background/50">
+                    <SelectValue placeholder="Select Symbol" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] bg-popover">
+                    {symbols.indexSymbols.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
+                        {symbols.indexSymbols.map((sym) => (
+                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {symbols.stockSymbols.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
+                        {symbols.stockSymbols.map((sym) => (
+                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Expiry Selector */}
