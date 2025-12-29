@@ -46,7 +46,16 @@ import {
   Legend,
   ResponsiveContainer,
   ReferenceLine,
+  ReferenceDot,
 } from "recharts";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -264,9 +273,9 @@ const OTR = () => {
 
   // Prepare chart data - calculate TOI = total_put_oi - total_call_oi with EMAs
   const getChartData = () => {
-    if (!otrData) return [];
+    if (!otrData) return { chartData: [], crossoverPoints: [] };
 
-    const rawData: { time: string; displayTime: string; toi: number; spotPrice: number; isToday: boolean }[] = [];
+    const rawData: { time: string; displayTime: string; toi: number; spotPrice: number; isToday: boolean; totalPutOI: number; totalCallOI: number }[] = [];
     
     // Add previous day data with date prefix
     if (otrData.previous_day && otrData.previous_day.length > 0) {
@@ -279,6 +288,8 @@ const OTR = () => {
           toi,
           spotPrice: entry.Spot_Price,
           isToday: false,
+          totalPutOI: entry.Total_Put_OI,
+          totalCallOI: entry.Total_Call_OI,
         });
       });
     }
@@ -294,6 +305,8 @@ const OTR = () => {
           toi,
           spotPrice: entry.Spot_Price,
           isToday: true,
+          totalPutOI: entry.Total_Put_OI,
+          totalCallOI: entry.Total_Call_OI,
         });
       });
     }
@@ -303,15 +316,46 @@ const OTR = () => {
     const ema10 = calculateEMA(toiValues, 10);
     const ema30 = calculateEMA(toiValues, 30);
 
-    // Combine all data
-    return rawData.map((d, i) => ({
-      ...d,
-      ema10: isNaN(ema10[i]) ? null : ema10[i],
-      ema30: isNaN(ema30[i]) ? null : ema30[i],
-    }));
+    // Detect EMA crossover points
+    const crossoverPoints: { index: number; type: 'bullish' | 'bearish'; time: string; toi: number }[] = [];
+    for (let i = 1; i < ema10.length; i++) {
+      if (!isNaN(ema10[i]) && !isNaN(ema30[i]) && !isNaN(ema10[i-1]) && !isNaN(ema30[i-1])) {
+        const prevDiff = ema10[i-1] - ema30[i-1];
+        const currDiff = ema10[i] - ema30[i];
+        
+        // Bullish crossover: EMA10 crosses above EMA30
+        if (prevDiff <= 0 && currDiff > 0) {
+          crossoverPoints.push({ index: i, type: 'bullish', time: rawData[i].time, toi: rawData[i].toi });
+        }
+        // Bearish crossover: EMA10 crosses below EMA30
+        else if (prevDiff >= 0 && currDiff < 0) {
+          crossoverPoints.push({ index: i, type: 'bearish', time: rawData[i].time, toi: rawData[i].toi });
+        }
+      }
+    }
+
+    // Combine all data with trend
+    const chartData = rawData.map((d, i) => {
+      let trend: 'bullish' | 'bearish' | 'neutral' = 'neutral';
+      if (!isNaN(ema10[i]) && !isNaN(ema30[i])) {
+        if (ema10[i] > ema30[i] && d.toi > ema10[i]) {
+          trend = 'bullish';
+        } else if (ema10[i] < ema30[i] && d.toi < ema10[i]) {
+          trend = 'bearish';
+        }
+      }
+      return {
+        ...d,
+        ema10: isNaN(ema10[i]) ? null : ema10[i],
+        ema30: isNaN(ema30[i]) ? null : ema30[i],
+        trend,
+      };
+    });
+
+    return { chartData, crossoverPoints };
   };
 
-  const chartData = getChartData();
+  const { chartData, crossoverPoints } = getChartData();
   const latestData = otrData?.data?.[otrData.data.length - 1];
   const latestChartPoint = chartData.length > 0 ? chartData[chartData.length - 1] : null;
   
@@ -758,6 +802,26 @@ const OTR = () => {
                         dot={false}
                         activeDot={{ r: 4 }}
                       />
+                      {/* EMA Crossover markers */}
+                      {crossoverPoints.map((point, idx) => (
+                        <ReferenceDot
+                          key={`crossover-${idx}`}
+                          x={point.time}
+                          y={point.toi}
+                          yAxisId="toi"
+                          r={8}
+                          fill={point.type === 'bullish' ? 'hsl(142 71% 45%)' : 'hsl(0 72% 51%)'}
+                          stroke={point.type === 'bullish' ? 'hsl(142 71% 25%)' : 'hsl(0 72% 31%)'}
+                          strokeWidth={2}
+                          label={{
+                            value: point.type === 'bullish' ? '▲' : '▼',
+                            position: point.type === 'bullish' ? 'top' : 'bottom',
+                            fill: point.type === 'bullish' ? 'hsl(142 71% 45%)' : 'hsl(0 72% 51%)',
+                            fontSize: 14,
+                            fontWeight: 'bold',
+                          }}
+                        />
+                      ))}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -768,6 +832,78 @@ const OTR = () => {
               <CardContent className="flex flex-col items-center justify-center h-[400px] text-muted-foreground">
                 <Activity className="h-12 w-12 mb-4 opacity-50" />
                 <p>Select symbol, expiry and click Go to load OTR data</p>
+              </CardContent>
+            </Card>
+          )}
+          
+          {/* TOI Data Table */}
+          {otrData && chartData.length > 0 && (
+            <Card className="bg-card/50 border-border/50">
+              <CardHeader className="p-3 pb-0">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-primary" />
+                  TOI Data Table
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-3">
+                <div className="max-h-[400px] overflow-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-card z-10">
+                      <TableRow className="border-border/50">
+                        <TableHead className="text-xs font-semibold text-center">Time</TableHead>
+                        <TableHead className="text-xs font-semibold text-center">Spot Price</TableHead>
+                        <TableHead className="text-xs font-semibold text-center text-emerald-500">Put OI</TableHead>
+                        <TableHead className="text-xs font-semibold text-center text-red-500">Call OI</TableHead>
+                        <TableHead className="text-xs font-semibold text-center">TOI (Put-Call)</TableHead>
+                        <TableHead className="text-xs font-semibold text-center text-emerald-500">EMA 10</TableHead>
+                        <TableHead className="text-xs font-semibold text-center text-red-500">EMA 30</TableHead>
+                        <TableHead className="text-xs font-semibold text-center">Trend</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {[...chartData].reverse().map((row, idx) => (
+                        <TableRow key={idx} className={`border-border/30 ${row.isToday ? '' : 'bg-muted/20'}`}>
+                          <TableCell className="text-xs text-center font-medium">
+                            {row.time}
+                          </TableCell>
+                          <TableCell className="text-xs text-center">
+                            {row.spotPrice.toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+                          </TableCell>
+                          <TableCell className="text-xs text-center text-emerald-500">
+                            {formatTOI(row.totalPutOI)}
+                          </TableCell>
+                          <TableCell className="text-xs text-center text-red-500">
+                            {formatTOI(row.totalCallOI)}
+                          </TableCell>
+                          <TableCell className={`text-xs text-center font-semibold ${row.toi >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                            {formatTOI(row.toi)}
+                          </TableCell>
+                          <TableCell className="text-xs text-center text-emerald-500">
+                            {row.ema10 !== null ? formatTOI(row.ema10) : '-'}
+                          </TableCell>
+                          <TableCell className="text-xs text-center text-red-500">
+                            {row.ema30 !== null ? formatTOI(row.ema30) : '-'}
+                          </TableCell>
+                          <TableCell className="text-xs text-center">
+                            {row.trend === 'bullish' && (
+                              <span className="inline-flex items-center gap-1 text-emerald-500">
+                                <TrendingUp className="h-3 w-3" /> Bullish
+                              </span>
+                            )}
+                            {row.trend === 'bearish' && (
+                              <span className="inline-flex items-center gap-1 text-red-500">
+                                <TrendingDown className="h-3 w-3" /> Bearish
+                              </span>
+                            )}
+                            {row.trend === 'neutral' && (
+                              <span className="text-muted-foreground">Neutral</span>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           )}
