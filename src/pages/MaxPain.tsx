@@ -519,7 +519,7 @@ const MaxPain = () => {
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-4">
           {/* Left: Table */}
-          <Card className="bg-card/50 border-border/50 flex flex-col lg:h-[520px]">
+          <Card className="bg-card/50 border-border/50 flex flex-col lg:h-[600px]">
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
