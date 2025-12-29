@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Flame, Clock, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { HeatMapSymbolSelector } from "@/components/heatmap/HeatMapSymbolSelector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { HeatMapExpirySelector } from "@/components/heatmap/HeatMapExpirySelector";
 import { HeatMapStrikeCountInput } from "@/components/heatmap/HeatMapStrikeCountInput";
 import { HeatMapOptionTable } from "@/components/heatmap/HeatMapOptionTable";
@@ -191,12 +191,29 @@ export function OptionHeatMapDashboard() {
                 <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
                   Symbol
                 </label>
-                <HeatMapSymbolSelector
-                  symbols={symbols}
-                  value={selectedSymbol}
-                  onChange={handleSymbolChange}
-                  loading={symbolsLoading}
-                />
+                <Select value={selectedSymbol} onValueChange={handleSymbolChange} disabled={symbolsLoading}>
+                  <SelectTrigger className="w-full bg-background/50">
+                    <SelectValue placeholder="Select Symbol" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px] bg-popover">
+                    {symbols.indexSymbols.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
+                        {symbols.indexSymbols.map((sym) => (
+                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                        ))}
+                      </>
+                    )}
+                    {symbols.stockSymbols.length > 0 && (
+                      <>
+                        <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
+                        {symbols.stockSymbols.map((sym) => (
+                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                        ))}
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-1">
