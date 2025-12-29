@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
@@ -10,13 +10,15 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw, Info, TrendingUp, TrendingDown, ArrowUp, ArrowDown, CalendarIcon, Loader2, Timer, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { RefreshCw, Info, TrendingUp, TrendingDown, ArrowUp, ArrowDown, CalendarIcon, Loader2, Timer, ChevronLeft, ChevronRight, Clock, Volume2, VolumeX } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAllStrikesApi";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine, AreaChart, Area, ComposedChart, Bar, Cell } from "recharts";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -58,9 +60,13 @@ export default function PCRAllStrikes() {
   
   const [strikes, setStrikes] = useState<string[]>([]);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState<number>(-1);
+  const [alertEnabled, setAlertEnabled] = useState(false);
+  const [lastAlertTime, setLastAlertTime] = useState<string>("");
   
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const prevATMPCRRef = useRef<number | null>(null);
 
   // Fetch symbols on mount
   useEffect(() => {
@@ -343,9 +349,123 @@ export default function PCRAllStrikes() {
     return divergenceCount;
   };
 
+  // Play alert sound
+  const playAlertSound = useCallback((type: "bullish" | "bearish") => {
+    if (!alertEnabled) return;
+    
+    // Create audio context for beep sound
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Different frequencies for bullish/bearish
+      oscillator.frequency.value = type === "bullish" ? 800 : 400;
+      oscillator.type = "sine";
+      
+      gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.5);
+      
+      // Play second beep for emphasis
+      setTimeout(() => {
+        const osc2 = audioContext.createOscillator();
+        const gain2 = audioContext.createGain();
+        osc2.connect(gain2);
+        gain2.connect(audioContext.destination);
+        osc2.frequency.value = type === "bullish" ? 1000 : 300;
+        osc2.type = "sine";
+        gain2.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain2.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        osc2.start(audioContext.currentTime);
+        osc2.stop(audioContext.currentTime + 0.3);
+      }, 200);
+    } catch (e) {
+      console.error("Error playing alert sound:", e);
+    }
+  }, [alertEnabled]);
+
+  // Check for PCR alert conditions
+  useEffect(() => {
+    if (!alertEnabled || pcrData.length < 2) return;
+    
+    const latest = pcrData[pcrData.length - 1];
+    const atmStrike = getATMStrike(latest.Spot_Price);
+    const currentATMPCR = latest.PCR_COI[atmStrike];
+    
+    if (prevATMPCRRef.current !== null && currentATMPCR !== prevATMPCRRef.current) {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const isMarketHours = (hours === 9 && minutes >= 15) || (hours > 9 && hours < 15) || (hours === 15 && minutes <= 30);
+      
+      if (isMarketHours) {
+        // Check if crossed above 1.25 (bullish)
+        if (currentATMPCR >= 1.25 && prevATMPCRRef.current < 1.25) {
+          playAlertSound("bullish");
+          setLastAlertTime(now.toLocaleTimeString());
+          toast({
+            title: "🟢 Bullish PCR Alert",
+            description: `ATM Strike ${atmStrike} PCR crossed above 1.25 (${currentATMPCR.toFixed(2)})`,
+          });
+        }
+        // Check if crossed below 0.80 (bearish)
+        else if (currentATMPCR <= 0.80 && prevATMPCRRef.current > 0.80) {
+          playAlertSound("bearish");
+          setLastAlertTime(now.toLocaleTimeString());
+          toast({
+            title: "🔴 Bearish PCR Alert",
+            description: `ATM Strike ${atmStrike} PCR crossed below 0.80 (${currentATMPCR.toFixed(2)})`,
+          });
+        }
+      }
+    }
+    
+    prevATMPCRRef.current = currentATMPCR;
+  }, [pcrData, alertEnabled, playAlertSound, toast]);
+
+  // Prepare chart data
+  const getChartData = () => {
+    return pcrData.map((entry, index) => {
+      const atmStrike = getATMStrike(entry.Spot_Price);
+      const atmPCR = entry.PCR_COI[atmStrike];
+      
+      // Calculate average PCR across all strikes
+      const pcrValues = Object.values(entry.PCR_COI).filter(v => typeof v === 'number');
+      const avgPCR = pcrValues.length > 0 ? pcrValues.reduce((a, b) => a + b, 0) / pcrValues.length : 0;
+      
+      return {
+        time: entry.Time,
+        spotPrice: entry.Spot_Price,
+        mma: entry.MMA_Data?.NP || 0,
+        atmPCR: atmPCR || 0,
+        avgPCR,
+        ...Object.fromEntries(strikes.map(s => [`pcr_${s}`, entry.PCR_COI[s] || 0]))
+      };
+    });
+  };
+
+  // Get heatmap data for strikes
+  const getHeatmapData = () => {
+    if (pcrData.length === 0) return [];
+    const latest = pcrData[pcrData.length - 1];
+    return strikes.map(strike => ({
+      strike,
+      pcr: latest.PCR_COI[strike] || 0,
+      isATM: strike === getATMStrike(latest.Spot_Price)
+    }));
+  };
+
   // Reverse data for display (latest first)
   const displayData = [...pcrData].reverse();
   const currentTimeData = pcrData[selectedTimeIndex];
+  const chartData = getChartData();
+  const heatmapData = getHeatmapData();
 
   return (
     <>
@@ -482,11 +602,21 @@ export default function PCRAllStrikes() {
                           <div className="space-y-4 text-sm text-muted-foreground mt-4">
                             <div className="bg-emerald-500/10 border border-emerald-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-emerald-500 mb-2">📊 What is PCR All Strikes?</h4>
-                              <p>This page shows PCR (Put-Call Ratio) changes based on Change in OI (COI) across all strike prices over time. It helps understand option writers' behavior across different strikes.</p>
+                              <p>This page shows PCR (Put-Call Ratio) changes based on Change in OI (COI) across all strike prices over time. It helps understand option writers&apos; behavior across different strikes.</p>
+                            </div>
+
+                            <div className="bg-cyan-500/10 border border-cyan-500/30 p-4 rounded-lg">
+                              <h4 className="font-semibold text-cyan-500 mb-2">📈 MMA (Market Moving Average):</h4>
+                              <p className="mb-2">MMA is a <strong>neutral point of market</strong> based on real money flow across all segments of the instrument including Cash, Futures, and Options.</p>
+                              <ul className="list-disc list-inside space-y-1">
+                                <li><span className="text-emerald-400">Spot Price {">"} MMA</span>: Bullish - Real money flowing into the instrument</li>
+                                <li><span className="text-red-400">Spot Price {"<"} MMA</span>: Bearish - Real money flowing out of the instrument</li>
+                              </ul>
+                              <p className="mt-2 text-xs italic">Note: MMA calculation is proprietary but indicates true market sentiment based on actual money movement.</p>
                             </div>
 
                             <div className="bg-primary/10 border border-primary/30 p-4 rounded-lg">
-                              <h4 className="font-semibold text-primary mb-2">📈 Color Coding:</h4>
+                              <h4 className="font-semibold text-primary mb-2">🎨 Color Coding:</h4>
                               <ul className="list-disc list-inside space-y-1">
                                 <li><span className="text-emerald-400">Green (PCR {">"} 1.25)</span>: Bullish - Put writers dominating</li>
                                 <li><span className="text-red-400">Red (PCR {"<"} 0.80)</span>: Bearish - Call writers dominating</li>
@@ -507,7 +637,7 @@ export default function PCRAllStrikes() {
                               <ul className="list-disc list-inside space-y-1">
                                 <li><strong>Time:</strong> Timestamp of the data point</li>
                                 <li><strong>Index:</strong> Current spot price of the index</li>
-                                <li><strong>MMA:</strong> Market Moving Average data</li>
+                                <li><strong>MMA:</strong> Market neutral point based on real money flow (Cash + Futures + Options)</li>
                                 <li><strong>Strike Columns:</strong> PCR COI values for each strike</li>
                               </ul>
                             </div>
@@ -515,16 +645,23 @@ export default function PCRAllStrikes() {
                             <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-red-500 mb-2">💡 Trading Insights:</h4>
                               <ul className="list-disc list-inside space-y-1">
-                                <li>Market normally doesn't go below positive OI support</li>
+                                <li>Market normally doesn&apos;t go below positive OI support</li>
                                 <li>If price breaks support but PCR keeps falling → likely stoploss hunting, market may recover</li>
                                 <li>If ATM moves to red PCR column and PCR still not rising → market likely to fall further</li>
                                 <li>Watch for divergence between price movement and PCR changes</li>
+                                <li>When Spot Price crosses above MMA → potential bullish momentum</li>
+                                <li>When Spot Price crosses below MMA → potential bearish momentum</li>
                               </ul>
                             </div>
 
                             <div className="bg-amber-500/10 border border-amber-500/30 p-4 rounded-lg">
                               <h4 className="font-semibold text-amber-500 mb-2">📊 Divergence Count:</h4>
                               <p>Shows number of strikes where PCR direction differs from price direction. High divergence may indicate potential reversal or stoploss hunting moves.</p>
+                            </div>
+
+                            <div className="bg-purple-500/10 border border-purple-500/30 p-4 rounded-lg">
+                              <h4 className="font-semibold text-purple-500 mb-2">🔔 PCR Alert:</h4>
+                              <p>Enable sound alerts to get notified when ATM strike PCR crosses above 1.25 (bullish) or below 0.80 (bearish) during market hours (9:15 AM - 3:30 PM).</p>
                             </div>
                           </div>
                         </DialogDescription>
@@ -576,8 +713,30 @@ export default function PCRAllStrikes() {
                   </Button>
                 </div>
                 
-                {/* Right side - refresh info */}
+                {/* Right side - refresh info and alert toggle */}
                 <div className="flex items-center gap-4">
+                  {/* Alert Toggle */}
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="alert-toggle"
+                      checked={alertEnabled}
+                      onCheckedChange={setAlertEnabled}
+                    />
+                    <Label htmlFor="alert-toggle" className="flex items-center gap-1 cursor-pointer">
+                      {alertEnabled ? (
+                        <Volume2 className="h-3 w-3 text-emerald-400" />
+                      ) : (
+                        <VolumeX className="h-3 w-3" />
+                      )}
+                      Alert
+                    </Label>
+                    {lastAlertTime && alertEnabled && (
+                      <span className="text-[10px] text-muted-foreground">({lastAlertTime})</span>
+                    )}
+                  </div>
+                  
+                  <div className="h-4 w-px bg-border" />
+                  
                   {lastRefresh && (
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -644,6 +803,168 @@ export default function PCRAllStrikes() {
                 </div>
               </CardContent>
             </Card>
+          )}
+
+          {/* Charts Section */}
+          {pcrData.length > 0 && chartData.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Spot Price vs MMA Chart */}
+              <Card className="bg-card/50 border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Spot Price vs MMA</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                        <XAxis 
+                          dataKey="time" 
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          domain={['auto', 'auto']}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                          width={60}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        <Line 
+                          type="monotone" 
+                          dataKey="spotPrice" 
+                          stroke="#3b82f6" 
+                          strokeWidth={2} 
+                          dot={false} 
+                          name="Spot Price"
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="mma" 
+                          stroke="#f59e0b" 
+                          strokeWidth={2} 
+                          strokeDasharray="5 5"
+                          dot={false} 
+                          name="MMA"
+                        />
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ATM PCR Over Time Chart */}
+              <Card className="bg-card/50 border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">ATM PCR Over Time</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[250px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                        <XAxis 
+                          dataKey="time" 
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          domain={[0, 'auto']}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                          width={40}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                        />
+                        <Legend wrapperStyle={{ fontSize: '11px' }} />
+                        <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" label={{ value: '1.25', position: 'right', fontSize: 10, fill: '#10b981' }} />
+                        <ReferenceLine y={0.80} stroke="#ef4444" strokeDasharray="3 3" label={{ value: '0.80', position: 'right', fontSize: 10, fill: '#ef4444' }} />
+                        <ReferenceLine y={1.0} stroke="#6b7280" strokeDasharray="2 2" />
+                        <Area 
+                          type="monotone" 
+                          dataKey="atmPCR" 
+                          stroke="#8b5cf6" 
+                          fill="#8b5cf6"
+                          fillOpacity={0.3}
+                          strokeWidth={2} 
+                          name="ATM PCR"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* PCR Heatmap Bar Chart */}
+              <Card className="bg-card/50 border-border/50 lg:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Current PCR Across Strikes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[200px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={heatmapData} layout="horizontal">
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                        <XAxis 
+                          dataKey="strike" 
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                        />
+                        <YAxis 
+                          domain={[0, 'auto']}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={false}
+                          width={40}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                          formatter={(value: number, name: string) => [
+                            value.toFixed(2),
+                            name === 'pcr' ? 'PCR' : name
+                          ]}
+                        />
+                        <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" />
+                        <ReferenceLine y={0.80} stroke="#ef4444" strokeDasharray="3 3" />
+                        <ReferenceLine y={1.0} stroke="#6b7280" strokeDasharray="2 2" />
+                        <Bar 
+                          dataKey="pcr" 
+                          name="PCR"
+                          radius={[4, 4, 0, 0]}
+                        >
+                          {heatmapData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={entry.pcr >= 1.25 ? '#10b981' : entry.pcr <= 0.80 ? '#ef4444' : '#8b5cf6'}
+                              stroke={entry.isATM ? '#3b82f6' : 'transparent'}
+                              strokeWidth={entry.isATM ? 3 : 0}
+                            />
+                          ))}
+                        </Bar>
+                      </ComposedChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Data Table */}
