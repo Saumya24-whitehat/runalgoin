@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.pcr-long-short]
 verify_jwt = false
+
+[functions.toi-data]
+verify_jwt = false
