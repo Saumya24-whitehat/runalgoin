@@ -62,7 +62,7 @@ const navItems: NavItem[] = [
           { icon: BarChart2, label: "PCR Long & Short", iconColor: "text-emerald-500", path: "/pcr-long-short" },
           { icon: Calculator, label: "TOI", iconColor: "text-emerald-500", path: "/toi" },
           { icon: BarChart3, label: "PCR All Strikes", iconColor: "text-emerald-500" },
-          { icon: Target, label: "Max Pain", iconColor: "text-red-500" },
+          { icon: Target, label: "Max Pain", iconColor: "text-red-500", path: "/max-pain" },
         ],
       },
       {
