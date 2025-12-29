@@ -23,7 +23,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMaxPainData, MaxPainTimeEntry, MaxPainStrikeData } from "@/services/maxPainApi";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, RefreshCw, Timer, ChevronLeft, ChevronRight, Target } from "lucide-react";
+import { CalendarIcon, Loader2, RefreshCw, Timer, ChevronLeft, ChevronRight, Target, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format } from "date-fns";
 import {
   BarChart,
@@ -467,21 +467,49 @@ const MaxPain = () => {
               <span className="text-muted-foreground">ATM:</span>
               <span className="font-medium">{latestEntry.atm}</span>
             </div>
+            {/* Max Pain Trend Indicator */}
+            {(() => {
+              const diff = latestEntry.index - latestEntry.maxPainStrike;
+              const percentDiff = ((diff / latestEntry.maxPainStrike) * 100).toFixed(2);
+              const isAbove = diff > 0;
+              const isAtMaxPain = Math.abs(diff) < 10;
+              return (
+                <div className="flex items-center gap-2 px-2 py-1 rounded-md bg-muted/50">
+                  <span className="text-muted-foreground">Trend:</span>
+                  {isAtMaxPain ? (
+                    <>
+                      <Minus className="h-4 w-4 text-warning" />
+                      <span className="font-medium text-warning">At Max Pain</span>
+                    </>
+                  ) : isAbove ? (
+                    <>
+                      <TrendingUp className="h-4 w-4 text-success" />
+                      <span className="font-medium text-success">+{percentDiff}% Above</span>
+                    </>
+                  ) : (
+                    <>
+                      <TrendingDown className="h-4 w-4 text-destructive" />
+                      <span className="font-medium text-destructive">{percentDiff}% Below</span>
+                    </>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         )}
 
         {/* Main Content Grid */}
         <div className="grid lg:grid-cols-2 gap-4">
           {/* Left: Table */}
-          <Card className="bg-card/50 border-border/50">
+          <Card className="bg-card/50 border-border/50 flex flex-col h-[500px]">
             <CardHeader className="p-3 pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Target className="h-4 w-4 text-primary" />
                 Strike-wise Pain Data
               </CardTitle>
             </CardHeader>
-            <CardContent className="p-3 pt-0">
-              <div className="max-h-[400px] overflow-auto">
+            <CardContent className="p-3 pt-0 flex-1 overflow-hidden">
+              <div className="h-full overflow-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -546,15 +574,26 @@ const MaxPain = () => {
                           name === "CE" ? "Call Option" : "Put Option",
                         ]}
                       />
-                      <Bar dataKey="CE" fill="hsl(var(--primary))" name="CE" stackId="a" />
-                      <Bar dataKey="PE" fill="hsl(var(--chart-4))" name="PE" stackId="a">
+                      <Bar dataKey="CE" name="CE" stackId="a">
                         {chartData.map((entry, index) => (
                           <Cell
-                            key={`cell-${index}`}
+                            key={`ce-cell-${index}`}
                             fill={
                               parseInt(entry.strike) === latestEntry?.maxPainStrike
                                 ? "hsl(var(--destructive))"
-                                : "hsl(var(--chart-4))"
+                                : "hsl(142 71% 45%)"
+                            }
+                          />
+                        ))}
+                      </Bar>
+                      <Bar dataKey="PE" name="PE" stackId="a">
+                        {chartData.map((entry, index) => (
+                          <Cell
+                            key={`pe-cell-${index}`}
+                            fill={
+                              parseInt(entry.strike) === latestEntry?.maxPainStrike
+                                ? "hsl(var(--destructive))"
+                                : "hsl(0 72% 51%)"
                             }
                           />
                         ))}
@@ -601,13 +640,22 @@ const MaxPain = () => {
                         dot={false}
                         name="Index"
                       />
+                      <Line
+                        type="stepAfter"
+                        dataKey="maxPain"
+                        stroke="hsl(217 91% 60%)"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={false}
+                        name="Max Pain History"
+                      />
                       {latestEntry && (
                         <ReferenceLine
                           y={latestEntry.maxPainStrike}
                           stroke="hsl(var(--destructive))"
                           strokeDasharray="5 5"
                           label={{
-                            value: `Max Pain: ${latestEntry.maxPainStrike}`,
+                            value: `Current: ${latestEntry.maxPainStrike}`,
                             position: "right",
                             fontSize: 9,
                             fill: "hsl(var(--destructive))",
