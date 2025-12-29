@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -170,11 +170,13 @@ export default function PCRAllStrikes() {
     if (showLoader) setLoadingData(true);
     
     try {
+      const strikeCountForApi = strikeCount * 2 + 1;
+
       const [pcrResponse, kundaliResponse] = await Promise.all([
         fetchPCRAllStrikesData(
           selectedSymbol,
           selectedExpiry,
-          strikeCount,
+          strikeCountForApi,
           historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined
         ),
         fetchKundaliData(selectedSymbol, selectedExpiry, 100),
@@ -395,7 +397,7 @@ export default function PCRAllStrikes() {
     if (!alertEnabled || pcrData.length < 2) return;
     
     const latest = pcrData[pcrData.length - 1];
-    const atmStrike = getATMStrike(latest.Spot_Price);
+    const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
     const currentATMPCR = latest.PCR_COI[atmStrike];
     
     if (prevATMPCRRef.current !== null && currentATMPCR !== prevATMPCRRef.current) {
@@ -429,64 +431,92 @@ export default function PCRAllStrikes() {
     prevATMPCRRef.current = currentATMPCR;
   }, [pcrData, alertEnabled, playAlertSound, toast]);
 
+  const parseTimeToMinutes = (t: string) => {
+    const parts = String(t ?? "").split(":");
+    const h = Number(parts[0] ?? 0);
+    const m = Number(parts[1] ?? 0);
+    return h * 60 + m;
+  };
+
+  // ATM should stay fixed for the whole day based on the 09:17 spot price
+  const fixedATMStrike = useMemo(() => {
+    if (pcrData.length === 0 || strikes.length === 0) return "";
+
+    const targetMinutes = 9 * 60 + 17;
+    let bestEntry: PCRAllStrikesTimeData | null = null;
+    let bestMinutes = Number.POSITIVE_INFINITY;
+
+    for (const entry of pcrData) {
+      const mins = parseTimeToMinutes(entry.Time);
+      if (mins >= targetMinutes && mins < bestMinutes) {
+        bestEntry = entry;
+        bestMinutes = mins;
+      }
+    }
+
+    const refEntry = bestEntry ?? pcrData[0];
+    return getATMStrike(refEntry.Spot_Price);
+  }, [pcrData, strikes]);
+
   // Prepare chart data
   const getChartData = () => {
-    return pcrData.map((entry, index) => {
-      const atmStrike = getATMStrike(entry.Spot_Price);
+    const atmStrikeForDay = fixedATMStrike;
+
+    return pcrData.map((entry) => {
+      const atmStrike = atmStrikeForDay || getATMStrike(entry.Spot_Price);
       const atmPCR = entry.PCR_COI[atmStrike];
-      
+
       // Calculate average PCR across all strikes
-      const pcrValues = Object.values(entry.PCR_COI).filter(v => typeof v === 'number');
-      const avgPCR = pcrValues.length > 0 ? pcrValues.reduce((a, b) => a + b, 0) / pcrValues.length : 0;
-      
+      const pcrValues = Object.values(entry.PCR_COI).filter((v) => typeof v === "number");
+      const avgPCR =
+        pcrValues.length > 0 ? pcrValues.reduce((a, b) => a + b, 0) / pcrValues.length : 0;
+
       return {
         time: entry.Time,
         spotPrice: entry.Spot_Price,
         mma: entry.MMA_Data?.NP || 0,
         atmPCR: atmPCR || 0,
         avgPCR,
-        ...Object.fromEntries(strikes.map(s => [`pcr_${s}`, entry.PCR_COI[s] || 0]))
+        ...Object.fromEntries(strikes.map((s) => [`pcr_${s}`, entry.PCR_COI[s] || 0])),
       };
     });
   };
 
-  // Get heatmap data for strikes - centered around ATM (5 strikes above and below)
+  // Get heatmap data for strikes - centered around FIXED ATM (selected strikeCount on each side)
   const getHeatmapData = () => {
     if (pcrData.length === 0) return [];
+
     const latest = pcrData[pcrData.length - 1];
-    const atmStrike = getATMStrike(latest.Spot_Price);
+    const sideCount = Math.min(9, Math.max(1, strikeCount));
+
+    const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
     const atmIndex = strikes.indexOf(atmStrike);
-    
-    // Get 5 strikes on each side of ATM
-    const startIndex = Math.max(0, atmIndex - 5);
-    const endIndex = Math.min(strikes.length, atmIndex + 6);
-    const visibleStrikes = strikes.slice(startIndex, endIndex);
-    
-    return visibleStrikes.map(strike => ({
+
+    const startIndex = Math.max(0, atmIndex - sideCount);
+    const endIndex = Math.min(strikes.length, atmIndex + sideCount + 1);
+    const visibleStrikesLocal = strikes.slice(startIndex, endIndex);
+
+    return visibleStrikesLocal.map((strike) => ({
       strike,
       pcr: latest.PCR_COI[strike] || 0,
-      isATM: strike === atmStrike
+      isATM: strike === atmStrike,
     }));
   };
-  
-  // Get visible strikes for table - centered around ATM
+
+  // Get visible strikes for table - centered around FIXED ATM (selected strikeCount on each side)
   const getVisibleStrikes = (): string[] => {
     if (pcrData.length === 0 || strikes.length === 0) return strikes;
-    const latest = pcrData[pcrData.length - 1];
-    const atmStrike = getATMStrike(latest.Spot_Price);
-    const atmIndex = strikes.indexOf(atmStrike);
-    
-    // Get 5 strikes on each side of ATM
-    const startIndex = Math.max(0, atmIndex - 5);
-    const endIndex = Math.min(strikes.length, atmIndex + 6);
-    return strikes.slice(startIndex, endIndex);
-  };
 
-  const parseTimeToMinutes = (t: string) => {
-    const parts = String(t ?? "").split(":");
-    const h = Number(parts[0] ?? 0);
-    const m = Number(parts[1] ?? 0);
-    return h * 60 + m;
+    const latest = pcrData[pcrData.length - 1];
+    const sideCount = Math.min(9, Math.max(1, strikeCount));
+
+    const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
+    const atmIndex = strikes.indexOf(atmStrike);
+
+    const startIndex = Math.max(0, atmIndex - sideCount);
+    const endIndex = Math.min(strikes.length, atmIndex + sideCount + 1);
+
+    return strikes.slice(startIndex, endIndex);
   };
 
   // Reverse data for display (latest first)
@@ -593,7 +623,7 @@ export default function PCRAllStrikes() {
                 
                 {/* Strike Count */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Strikes (max 9)</label>
+                  <label className="text-xs font-medium text-muted-foreground">Strikes each side (max 9)</label>
                   <Input
                     type="number"
                     min={1}
@@ -1009,53 +1039,55 @@ export default function PCRAllStrikes() {
           {pcrData.length > 0 && (
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-0">
-                <Table className="w-max min-w-max">
-                  <TableHeader>
-                    <TableRow className="border-border">
-                      <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
-                      <TableHead className="whitespace-nowrap">Index</TableHead>
-                      <TableHead className="whitespace-nowrap">MMA</TableHead>
-                      {visibleStrikes.map((strike) => (
-                        <TableHead key={strike} className="text-center whitespace-nowrap min-w-[70px]">
-                          {strike}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayData.map((row, rowIndex) => {
-                      const atmStrike = getATMStrike(row.Spot_Price);
-                      const originalIndex = pcrData.length - 1 - rowIndex;
-                      const previousRow = originalIndex > 0 ? pcrData[originalIndex - 1] : undefined;
+                <div className="w-full overflow-x-auto">
+                  <Table className="w-max min-w-max">
+                    <TableHeader>
+                      <TableRow className="border-border">
+                        <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
+                        <TableHead className="whitespace-nowrap">Index</TableHead>
+                        <TableHead className="whitespace-nowrap">MMA</TableHead>
+                        {visibleStrikes.map((strike) => (
+                          <TableHead key={strike} className="text-center whitespace-nowrap min-w-[70px]">
+                            {strike}
+                          </TableHead>
+                        ))}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {displayData.map((row, rowIndex) => {
+                        const atmStrike = fixedATMStrike || getATMStrike(row.Spot_Price);
+                        const originalIndex = pcrData.length - 1 - rowIndex;
+                        const previousRow = originalIndex > 0 ? pcrData[originalIndex - 1] : undefined;
 
-                      return (
-                        <TableRow key={rowIndex} className="border-border hover:bg-muted/30">
-                          <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
-                            {row.Time}
-                          </TableCell>
-                          <TableCell className="font-mono whitespace-nowrap">{row.Spot_Price.toFixed(2)}</TableCell>
-                          <TableCell className="font-mono text-xs whitespace-nowrap">{row.MMA_Data?.NP?.toFixed(2) || "--"}</TableCell>
-                          {visibleStrikes.map((strike) => {
-                            const pcr = row.PCR_COI[strike];
-                            const previousPCR = previousRow?.PCR_COI[strike];
-                            const isATM = strike === atmStrike;
-                            const colorClass = getPCRColorClass(pcr);
+                        return (
+                          <TableRow key={rowIndex} className="border-border hover:bg-muted/30">
+                            <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
+                              {row.Time}
+                            </TableCell>
+                            <TableCell className="font-mono whitespace-nowrap">{row.Spot_Price.toFixed(2)}</TableCell>
+                            <TableCell className="font-mono text-xs whitespace-nowrap">{row.MMA_Data?.NP?.toFixed(2) || "--"}</TableCell>
+                            {visibleStrikes.map((strike) => {
+                              const pcr = row.PCR_COI[strike];
+                              const previousPCR = previousRow?.PCR_COI[strike];
+                              const isATM = strike === atmStrike;
+                              const colorClass = getPCRColorClass(pcr);
 
-                            return (
-                              <TableCell
-                                key={strike}
-                                className={`text-center font-mono text-xs whitespace-nowrap ${colorClass} ${isATM ? "ring-2 ring-blue-500 ring-inset" : ""}`}
-                              >
-                                {pcr?.toFixed(2) || "--"}
-                                {getArrowIndicator(pcr, previousPCR)}
-                              </TableCell>
-                            );
-                          })}
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
+                              return (
+                                <TableCell
+                                  key={strike}
+                                  className={`text-center font-mono text-xs whitespace-nowrap ${colorClass} ${isATM ? "ring-2 ring-blue-500 ring-inset" : ""}`}
+                                >
+                                  {pcr?.toFixed(2) || "--"}
+                                  {getArrowIndicator(pcr, previousPCR)}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           )}
