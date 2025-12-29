@@ -79,7 +79,7 @@ export default function PCRAllStrikes() {
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState("");
-  const [strikeCount, setStrikeCount] = useState(5);
+  const [strikeCount, setStrikeCount] = useState(7);
   const [historicalDate, setHistoricalDate] = useState<Date | undefined>();
 
   const [pcrData, setPcrData] = useState<PCRAllStrikesTimeData[]>([]);
@@ -135,11 +135,8 @@ export default function PCRAllStrikes() {
   useEffect(() => {
     if (!selectedSymbol) return;
 
-    // Set default strike count based on symbol type
-    if (symbols.indexSymbols.length > 0 || symbols.stockSymbols.length > 0) {
-      const isIndexSymbol = symbols.indexSymbols.includes(selectedSymbol);
-      setStrikeCount(isIndexSymbol ? 5 : 2);
-    }
+    // Fixed window: always fetch/display +/- 7 strikes from the 09:15 ATM reference
+    setStrikeCount(7);
 
     const fetchExpiry = async () => {
       setLoadingExpiry(true);
@@ -481,11 +478,11 @@ export default function PCRAllStrikes() {
     return h * 60 + m;
   };
 
-  // ATM should stay fixed for the whole day based on the 09:17 spot price
+  // Strike window anchor: ATM should stay fixed for the whole day based on the 09:15 spot price
   const fixedATMStrike = useMemo(() => {
     if (pcrData.length === 0 || strikes.length === 0) return "";
 
-    const targetMinutes = 9 * 60 + 17;
+    const targetMinutes = 9 * 60 + 15;
     let bestEntry: PCRAllStrikesTimeData | null = null;
     let bestMinutes = Number.POSITIVE_INFINITY;
 
@@ -496,6 +493,7 @@ export default function PCRAllStrikes() {
         bestMinutes = mins;
       }
     }
+
 
     const refEntry = bestEntry ?? pcrData[0];
     return getATMStrike(refEntry.Spot_Price);
@@ -524,39 +522,42 @@ export default function PCRAllStrikes() {
     });
   };
 
-  // Get heatmap data for strikes - centered around FIXED ATM (selected strikeCount on each side)
+  // Get heatmap data for strikes - fixed window around 09:15 ATM (+/- 7 strikes)
   const getHeatmapData = () => {
     if (pcrData.length === 0) return [];
 
     const latest = pcrData[pcrData.length - 1];
-    const sideCount = Math.min(9, Math.max(1, strikeCount));
+    const sideCount = 7;
 
-    const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
-    const atmIndex = strikes.indexOf(atmStrike);
+    const windowCenterStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
+    const windowCenterIndex = strikes.indexOf(windowCenterStrike);
 
-    const startIndex = Math.max(0, atmIndex - sideCount);
-    const endIndex = Math.min(strikes.length, atmIndex + sideCount + 1);
+    const startIndex = Math.max(0, windowCenterIndex - sideCount);
+    const endIndex = Math.min(strikes.length, windowCenterIndex + sideCount + 1);
     const visibleStrikesLocal = strikes.slice(startIndex, endIndex);
+
+    // Blue highlight should reflect the live ATM of the selected time (here: latest)
+    const liveATMStrike = getATMStrike(latest.Spot_Price);
 
     return visibleStrikesLocal.map((strike) => ({
       strike,
       pcr: latest.PCR_COI[strike] || 0,
-      isATM: strike === atmStrike,
+      isATM: strike === liveATMStrike,
     }));
   };
 
-  // Get visible strikes for table - centered around FIXED ATM (selected strikeCount on each side)
+  // Get visible strikes for table - fixed window around 09:15 ATM (+/- 7 strikes)
   const getVisibleStrikes = (): string[] => {
     if (pcrData.length === 0 || strikes.length === 0) return strikes;
 
     const latest = pcrData[pcrData.length - 1];
-    const sideCount = Math.min(9, Math.max(1, strikeCount));
+    const sideCount = 7;
 
-    const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
-    const atmIndex = strikes.indexOf(atmStrike);
+    const windowCenterStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
+    const windowCenterIndex = strikes.indexOf(windowCenterStrike);
 
-    const startIndex = Math.max(0, atmIndex - sideCount);
-    const endIndex = Math.min(strikes.length, atmIndex + sideCount + 1);
+    const startIndex = Math.max(0, windowCenterIndex - sideCount);
+    const endIndex = Math.min(strikes.length, windowCenterIndex + sideCount + 1);
 
     return strikes.slice(startIndex, endIndex);
   };
@@ -662,18 +663,8 @@ export default function PCRAllStrikes() {
 
                 {/* Strike Count */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-muted-foreground">Strikes each side (max 9)</label>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={9}
-                    value={strikeCount}
-                    onChange={(e) => {
-                      const val = parseInt(e.target.value) || 5;
-                      setStrikeCount(Math.min(9, Math.max(1, val)));
-                    }}
-                    className="bg-secondary"
-                  />
+                  <label className="text-xs font-medium text-muted-foreground">Strikes each side (fixed)</label>
+                  <Input type="number" min={7} max={7} value={7} disabled className="bg-secondary" />
                 </div>
 
                 {/* GO Button */}
@@ -1097,9 +1088,10 @@ export default function PCRAllStrikes() {
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
                             fontSize: "12px",
-                            color: "white",
+                            color: "hsl(var(--foreground))",
                           }}
-                          itemStyle={{ color: "white" }}
+                          labelStyle={{ color: "hsl(var(--foreground))" }}
+                          itemStyle={{ color: "hsl(var(--foreground))" }}
                           formatter={(value: number, name: string) => [value.toFixed(2), name === "pcr" ? "PCR" : name]}
                         />
                         <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" />
@@ -1143,7 +1135,7 @@ export default function PCRAllStrikes() {
                     </TableHeader>
                     <TableBody>
                       {displayData.map((row, rowIndex) => {
-                        const atmStrike = fixedATMStrike || getATMStrike(row.Spot_Price);
+                        const atmStrike = getATMStrike(row.Spot_Price);
                         const originalIndex = pcrData.length - 1 - rowIndex;
                         const previousRow = originalIndex > 0 ? pcrData[originalIndex - 1] : undefined;
 
