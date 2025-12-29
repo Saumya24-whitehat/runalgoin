@@ -1097,7 +1097,6 @@ export default function PCRAllStrikes() {
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
                             fontSize: "12px",
-                            color: "white",
                           }}
                           formatter={(value: number, name: string) => [value.toFixed(2), name === "pcr" ? "PCR" : name]}
                         />
