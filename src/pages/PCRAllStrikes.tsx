@@ -40,6 +40,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAllStrikesApi";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
+import { CenterStrikePicker } from "@/components/pcr/CenterStrikePicker";
 import {
   LineChart,
   Line,
@@ -706,31 +707,29 @@ export default function PCRAllStrikes() {
                 {/* Custom Strike Selector */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Center Strike</label>
-                  <Select
-                    value={useCustomStrike ? selectedCustomStrike : "auto"}
-                    onValueChange={(val) => {
+                  <CenterStrikePicker
+                    value={useCustomStrike && selectedCustomStrike ? selectedCustomStrike : "auto"}
+                    strikes={availableStrikes}
+                    loading={loadingStrikes}
+                    disabled={availableStrikes.length === 0}
+                    onChange={(val) => {
                       if (val === "auto") {
                         setUseCustomStrike(false);
                         setSelectedCustomStrike("");
-                      } else {
-                        setUseCustomStrike(true);
-                        setSelectedCustomStrike(val);
+                        return;
+                      }
+
+                      setUseCustomStrike(true);
+                      setSelectedCustomStrike(val);
+
+                      if (strikes.length > 0 && !strikes.includes(val)) {
+                        toast({
+                          title: "Strike not available",
+                          description: `Selected strike ${val} is not present in PCR data right now.`,
+                        });
                       }
                     }}
-                    disabled={loadingStrikes || availableStrikes.length === 0}
-                  >
-                    <SelectTrigger className="w-full bg-secondary text-secondary-foreground">
-                      <SelectValue placeholder={loadingStrikes ? "Loading..." : "Auto (09:15 ATM)"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border-border z-50 max-h-[300px]">
-                      <SelectItem value="auto">Auto (09:15 ATM ±7)</SelectItem>
-                      {availableStrikes.map((strike) => (
-                        <SelectItem key={strike} value={strike}>
-                          {strike}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
 
                 {/* GO Button */}
