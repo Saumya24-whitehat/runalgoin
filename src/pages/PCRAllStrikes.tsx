@@ -368,14 +368,28 @@ export default function PCRAllStrikes() {
     setSelectedTimeIndex(parseInt(index));
   };
 
+  const toFiniteNumber = (value: unknown): number | null => {
+    const n = typeof value === "number" ? value : typeof value === "string" ? Number(value) : null;
+    return n !== null && Number.isFinite(n) ? n : null;
+  };
+
+  const formatFixed = (value: unknown, digits = 2): string => {
+    const n = toFiniteNumber(value);
+    return n === null ? "--" : n.toFixed(digits);
+  };
+
   // Find ATM strike based on spot price
-  const getATMStrike = (spotPrice: number): string => {
+  const getATMStrike = (spotPrice: unknown): string => {
     if (strikes.length === 0) return "";
+
+    const spot = toFiniteNumber(spotPrice);
+    if (spot === null) return strikes[0] ?? "";
+
     let closest = strikes[0];
-    let minDiff = Math.abs(Number(strikes[0]) - spotPrice);
+    let minDiff = Math.abs(Number(strikes[0]) - spot);
 
     for (const strike of strikes) {
-      const diff = Math.abs(Number(strike) - spotPrice);
+      const diff = Math.abs(Number(strike) - spot);
       if (diff < minDiff) {
         minDiff = diff;
         closest = strike;
@@ -385,15 +399,20 @@ export default function PCRAllStrikes() {
   };
 
   // Get PCR color class
-  const getPCRColorClass = (pcr: number): string => {
+  const getPCRColorClass = (pcrValue: unknown): string => {
+    const pcr = toFiniteNumber(pcrValue);
+    if (pcr === null) return "";
     if (pcr >= 1.25) return "bg-emerald-500/20 text-emerald-400";
     if (pcr <= 0.8) return "bg-red-500/20 text-red-400";
     return "";
   };
 
   // Get arrow indicator
-  const getArrowIndicator = (currentPCR: number, previousPCR: number | undefined) => {
-    if (previousPCR === undefined) return null;
+  const getArrowIndicator = (currentPCRValue: unknown, previousPCRValue: unknown) => {
+    const currentPCR = toFiniteNumber(currentPCRValue);
+    const previousPCR = toFiniteNumber(previousPCRValue);
+    if (currentPCR === null || previousPCR === null) return null;
+
     if (currentPCR > previousPCR) {
       return <ArrowUp className="h-3 w-3 text-emerald-400 inline ml-1" />;
     } else if (currentPCR < previousPCR) {
@@ -474,7 +493,10 @@ export default function PCRAllStrikes() {
 
     const latest = pcrData[pcrData.length - 1];
     const atmStrike = fixedATMStrike || getATMStrike(latest.Spot_Price);
-    const currentATMPCR = latest.PCR_COI[atmStrike];
+    const currentATMPCR = toFiniteNumber(latest.PCR_COI[atmStrike]);
+
+    // If PCR is not numeric for this tick, skip (prevents page crash)
+    if (currentATMPCR === null) return;
 
     if (prevATMPCRRef.current !== null && currentATMPCR !== prevATMPCRRef.current) {
       const now = new Date();
@@ -490,7 +512,7 @@ export default function PCRAllStrikes() {
           setLastAlertTime(now.toLocaleTimeString());
           toast({
             title: "🟢 Bullish PCR Alert",
-            description: `ATM Strike ${atmStrike} PCR crossed above 1.25 (${currentATMPCR.toFixed(2)})`,
+            description: `ATM Strike ${atmStrike} PCR crossed above 1.25 (${formatFixed(currentATMPCR, 2)})`,
           });
         }
         // Check if crossed below 0.80 (bearish)
@@ -499,7 +521,7 @@ export default function PCRAllStrikes() {
           setLastAlertTime(now.toLocaleTimeString());
           toast({
             title: "🔴 Bearish PCR Alert",
-            description: `ATM Strike ${atmStrike} PCR crossed below 0.80 (${currentATMPCR.toFixed(2)})`,
+            description: `ATM Strike ${atmStrike} PCR crossed below 0.80 (${formatFixed(currentATMPCR, 2)})`,
           });
         }
       }
@@ -541,20 +563,22 @@ export default function PCRAllStrikes() {
     return pcrData.map((entry) => {
       // Get actual ATM strike for this time based on spot price
       const actualATMStrike = getATMStrike(entry.Spot_Price);
-      const atmPCR = entry.PCR_COI[actualATMStrike];
+      const atmPCR = toFiniteNumber(entry.PCR_COI[actualATMStrike]) ?? 0;
 
       // Calculate average PCR across all strikes
-      const pcrValues = Object.values(entry.PCR_COI).filter((v) => typeof v === "number");
+      const pcrValues = Object.values(entry.PCR_COI)
+        .map((v) => toFiniteNumber(v))
+        .filter((v): v is number => v !== null);
       const avgPCR = pcrValues.length > 0 ? pcrValues.reduce((a, b) => a + b, 0) / pcrValues.length : 0;
 
       return {
         time: entry.Time,
-        spotPrice: entry.Spot_Price,
-        mma: entry.MMA_Data?.NP || 0,
-        atmPCR: atmPCR || 0,
+        spotPrice: toFiniteNumber(entry.Spot_Price) ?? 0,
+        mma: toFiniteNumber(entry.MMA_Data?.NP) ?? 0,
+        atmPCR,
         atmStrike: actualATMStrike,
         avgPCR,
-        ...Object.fromEntries(strikes.map((s) => [`pcr_${s}`, entry.PCR_COI[s] || 0])),
+        ...Object.fromEntries(strikes.map((s) => [`pcr_${s}`, toFiniteNumber(entry.PCR_COI[s]) ?? 0])),
       };
     });
   };
@@ -576,7 +600,7 @@ export default function PCRAllStrikes() {
 
     return visibleStrikesLocal.map((strike) => ({
       strike,
-      pcr: latest.PCR_COI[strike] || 0,
+      pcr: toFiniteNumber(latest.PCR_COI[strike]) ?? 0,
       isATM: strike === liveATMStrike,
     }));
   };
@@ -1093,13 +1117,14 @@ export default function PCRAllStrikes() {
                             color: "hsl(var(--foreground))",
                           }}
                           labelStyle={{ color: "hsl(var(--foreground))" }}
-                          formatter={(value: number, name: string, props: any) => {
+                          formatter={(value: unknown, name: string, props: any) => {
                             const atmStrike = props?.payload?.atmStrike || "";
                             return [
                               <span key="value">
-                                {value.toFixed(2)} <span style={{ fontSize: "10px", opacity: 0.7 }}>(Strike: {atmStrike})</span>
+                                {formatFixed(value, 2)}{" "}
+                                <span style={{ fontSize: "10px", opacity: 0.7 }}>(Strike: {atmStrike})</span>
                               </span>,
-                              "ATM PCR"
+                              "ATM PCR",
                             ];
                           }}
                         />
@@ -1163,7 +1188,10 @@ export default function PCRAllStrikes() {
                           }}
                           labelStyle={{ color: "hsl(var(--foreground))" }}
                           itemStyle={{ color: "hsl(var(--foreground))" }}
-                          formatter={(value: number, name: string) => [value.toFixed(2), name === "pcr" ? "PCR" : name]}
+                          formatter={(value: unknown, name: string) => [
+                            formatFixed(value, 2),
+                            name === "pcr" ? "PCR" : name,
+                          ]}
                         />
                         <ReferenceLine y={1.25} stroke="#10b981" strokeDasharray="3 3" />
                         <ReferenceLine y={0.8} stroke="#ef4444" strokeDasharray="3 3" />
@@ -1215,9 +1243,9 @@ export default function PCRAllStrikes() {
                             <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
                               {row.Time}
                             </TableCell>
-                            <TableCell className="font-mono whitespace-nowrap">{row.Spot_Price.toFixed(2)}</TableCell>
+                            <TableCell className="font-mono whitespace-nowrap">{formatFixed(row.Spot_Price, 2)}</TableCell>
                             <TableCell className="font-mono text-xs whitespace-nowrap">
-                              {row.MMA_Data?.NP?.toFixed(2) || "--"}
+                              {formatFixed(row.MMA_Data?.NP, 2)}
                             </TableCell>
                             {visibleStrikes.map((strike) => {
                               const pcr = row.PCR_COI[strike];
@@ -1230,7 +1258,7 @@ export default function PCRAllStrikes() {
                                   key={strike}
                                   className={`text-center font-mono text-xs whitespace-nowrap ${colorClass} ${isATM ? "ring-2 ring-blue-500 ring-inset" : ""}`}
                                 >
-                                  {pcr?.toFixed(2) || "--"}
+                                  {formatFixed(pcr, 2)}
                                   {getArrowIndicator(pcr, previousPCR)}
                                 </TableCell>
                               );
