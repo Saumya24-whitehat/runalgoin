@@ -607,37 +607,39 @@ export default function PCRAllStrikes() {
             </CardContent>
           </Card>
           
-          {/* Support & Resistance Card */}
+          {/* Support & Resistance Bar - Single Row */}
           {supportResistance && kundaliData.length > 0 && (
             <Card className="bg-card/50 border-border/50">
-              <CardContent className="p-4">
-                <div className="flex flex-wrap items-center gap-8 text-sm">
-                  {/* Support Section */}
-                  <div>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-start gap-6 text-sm flex-wrap">
+                  {/* Support */}
+                  <div className="flex items-center gap-2">
                     <span className="text-emerald-400 font-semibold">Support</span>
-                    <div className="text-muted-foreground">Vol & OI</div>
-                    <div className="text-foreground">
-                      Strong 🛡️ @ {supportResistance.supportStrong}
-                    </div>
+                    <span className="text-muted-foreground">Vol & OI</span>
+                    <span className="text-foreground">Strong 🛡️ @ {supportResistance.supportStrong}</span>
                   </div>
                   
-                  {/* Resistance Section */}
-                  <div>
+                  <div className="h-4 w-px bg-border" />
+                  
+                  {/* Resistance */}
+                  <div className="flex items-center gap-2">
                     <span className="text-red-400 font-semibold">Resistance</span>
-                    <div className="text-muted-foreground">Vol & OI</div>
-                    <div className="text-foreground flex items-center gap-1">
+                    <span className="text-muted-foreground">Vol & OI</span>
+                    <span className="text-foreground flex items-center gap-1">
                       WTT {supportResistance.resistanceWTTDirection === "up" ? (
                         <TrendingUp className="h-4 w-4 text-emerald-400" />
                       ) : (
                         <TrendingDown className="h-4 w-4 text-red-400" />
                       )} {supportResistance.resistanceRange}
-                    </div>
+                    </span>
                   </div>
                   
-                  {/* Divergence Section */}
-                  <div>
+                  <div className="h-4 w-px bg-border" />
+                  
+                  {/* Divergence */}
+                  <div className="flex items-center gap-2">
                     <span className="text-yellow-400 font-semibold">Divergence</span>
-                    <div className="text-2xl font-bold text-foreground">{calculateDivergence()}</div>
+                    <span className="text-xl font-bold text-foreground">{calculateDivergence()}</span>
                   </div>
                 </div>
               </CardContent>
@@ -646,17 +648,17 @@ export default function PCRAllStrikes() {
 
           {/* Data Table */}
           {pcrData.length > 0 && (
-            <Card className="bg-card/50 border-border/50">
+            <Card className="bg-card/50 border-border/50 overflow-hidden">
               <CardContent className="p-0">
-                <ScrollArea className="w-full">
-                  <Table>
+                <div className="overflow-x-auto">
+                  <Table className="min-w-max">
                     <TableHeader>
                       <TableRow className="border-border">
-                        <TableHead className="sticky left-0 bg-card z-10">Time</TableHead>
-                        <TableHead>Index</TableHead>
-                        <TableHead>MMA</TableHead>
+                        <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
+                        <TableHead className="whitespace-nowrap">Index</TableHead>
+                        <TableHead className="whitespace-nowrap">MMA</TableHead>
                         {strikes.map((strike) => (
-                          <TableHead key={strike} className="text-center min-w-[80px]">
+                          <TableHead key={strike} className="text-center whitespace-nowrap min-w-[70px]">
                             {strike}
                           </TableHead>
                         ))}
@@ -670,13 +672,13 @@ export default function PCRAllStrikes() {
                         
                         return (
                           <TableRow key={rowIndex} className="border-border hover:bg-muted/30">
-                            <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs">
+                            <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
                               {row.Time}
                             </TableCell>
-                            <TableCell className="font-mono">
+                            <TableCell className="font-mono whitespace-nowrap">
                               {row.Spot_Price.toFixed(2)}
                             </TableCell>
-                            <TableCell className="font-mono text-xs">
+                            <TableCell className="font-mono text-xs whitespace-nowrap">
                               {row.MMA_Data?.NP?.toFixed(2) || "--"}
                             </TableCell>
                             {strikes.map((strike) => {
@@ -688,7 +690,7 @@ export default function PCRAllStrikes() {
                               return (
                                 <TableCell
                                   key={strike}
-                                  className={`text-center font-mono text-xs ${colorClass} ${
+                                  className={`text-center font-mono text-xs whitespace-nowrap ${colorClass} ${
                                     isATM ? "ring-2 ring-blue-500 ring-inset" : ""
                                   }`}
                                 >
@@ -702,7 +704,7 @@ export default function PCRAllStrikes() {
                       })}
                     </TableBody>
                   </Table>
-                </ScrollArea>
+                </div>
               </CardContent>
             </Card>
           )}
