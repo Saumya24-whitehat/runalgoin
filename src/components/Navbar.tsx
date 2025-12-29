@@ -132,6 +132,7 @@ const navItems: NavItem[] = [
     label: "Algo",
     icon: Bot,
     hasDropdown: false,
+    path: "/algo",
   },
 ];
 
