@@ -19,6 +19,7 @@ import TOI from "./pages/TOI";
 import MaxPain from "./pages/MaxPain";
 import OTR from "./pages/OTR";
 import Algo from "./pages/Algo";
+import OptionBuilder from "./pages/OptionBuilder";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -46,6 +47,7 @@ const App = () => (
               <Route path="/max-pain" element={<MaxPain />} />
               <Route path="/otr" element={<OTR />} />
               <Route path="/algo" element={<Algo />} />
+              <Route path="/option-builder" element={<OptionBuilder />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
