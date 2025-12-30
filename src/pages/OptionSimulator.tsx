@@ -252,6 +252,43 @@ const OptionSimulator = () => {
     }
   }, [activeExpiry]);
 
+  // Update positions' currentPrice when simulator data changes
+  useEffect(() => {
+    if (!simulatorData || simulatorData.strikes.length === 0) return;
+
+    setPositions((prevPositions) =>
+      prevPositions.map((pos) => {
+        // Find the strike data for this position
+        const strikeData = simulatorData.strikes.find((s) => s.strike === pos.strike);
+        if (!strikeData) return pos;
+
+        // Get the current price based on option type
+        const newCurrentPrice = pos.optType === "CE" ? strikeData.cePrice : strikeData.pePrice;
+        const newIV = pos.optType === "CE" ? strikeData.ceIV : strikeData.peIV;
+
+        // Only update if not exited
+        if (pos.exitPrice !== undefined) return pos;
+
+        return {
+          ...pos,
+          currentPrice: newCurrentPrice,
+          IV: newIV,
+        };
+      })
+    );
+  }, [simulatorData]);
+
+  // Auto-play interval
+  useEffect(() => {
+    if (!autoPlay) return;
+
+    const interval = setInterval(() => {
+      adjustTime(3); // Move forward by 3 minutes
+    }, 2000); // Every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [autoPlay, adjustTime]);
+
   // Calculate chart data
   const chartData = generatePLChartData(positions, currentPrice, 0.03);
   const breakevens = findBreakevenPoints(chartData.expiry);
