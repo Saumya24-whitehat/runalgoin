@@ -788,6 +788,29 @@ const OptionBuilder = () => {
       </div>
 
       <Footer />
+
+      {/* Dialogs */}
+      <OptionBuilderSettings
+        isOpen={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        settings={settings}
+        onSave={setSettings}
+      />
+
+      <SaveStrategyDialog
+        isOpen={saveDialogOpen}
+        onClose={() => setSaveDialogOpen(false)}
+        onSave={handleSaveStrategy}
+        positions={positions}
+      />
+
+      <LoadStrategyDialog
+        isOpen={loadDialogOpen}
+        onClose={() => setLoadDialogOpen(false)}
+        strategies={savedStrategies}
+        onLoad={handleLoadStrategy}
+        onDelete={handleDeleteStrategy}
+      />
     </div>
   );
 };
