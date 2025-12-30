@@ -52,7 +52,7 @@ const navItems: NavItem[] = [
           { icon: Target, label: "Open Chain Support-Resistance", iconColor: "text-emerald-500", path: "/support-resistance" },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500", path: "/option-heatmap" },
           { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
-          { icon: Wrench, label: "Option Builder", iconColor: "text-muted-foreground" },
+          { icon: Wrench, label: "Option Builder", iconColor: "text-primary", path: "/option-builder" },
         ],
       },
       {
