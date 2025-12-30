@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Save, Download, RefreshCw, Plus, Copy, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Save, Download, RefreshCw, Plus, Copy, Settings, ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import OptionBuilderChart from '@/components/optionBuilder/OptionBuilderChart';
 import OptionBuilderPositions from '@/components/optionBuilder/OptionBuilderPositions';
 import OptionBuilderGreeks from '@/components/optionBuilder/OptionBuilderGreeks';
@@ -47,6 +47,7 @@ const OptionBuilder = () => {
   const [currentPrice, setCurrentPrice] = useState(0);
   const [lotSize, setLotSize] = useState(75);
   const [showStrategies, setShowStrategies] = useState(true);
+  const [showOptionChain, setShowOptionChain] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [margin, setMargin] = useState<number>(0);
 
@@ -188,6 +189,19 @@ const OptionBuilder = () => {
       p.id === id ? { ...p, exitPrice } : p
     ));
     toast.success('Position exited');
+  }, []);
+
+  const updatePosition = useCallback((id: string, updates: Partial<Position>) => {
+    setPositions(prev => prev.map(p => 
+      p.id === id ? { ...p, ...updates } : p
+    ));
+  }, []);
+
+  const reEntryPosition = useCallback((id: string) => {
+    setPositions(prev => prev.map(p => 
+      p.id === id ? { ...p, exitPrice: undefined } : p
+    ));
+    toast.success('Position re-entered');
   }, []);
 
   const clearAllPositions = useCallback(() => {
@@ -342,6 +356,8 @@ const OptionBuilder = () => {
     );
   }
 
+  const hasPositions = positions.length > 0;
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -445,23 +461,38 @@ const OptionBuilder = () => {
       {/* Main Content */}
       <div className="container mx-auto px-4 py-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Left Panel - Option Chain / Strategy Cards */}
+          {/* Left Panel - Option Chain (always visible) */}
           <div className="space-y-6">
-            {showStrategies && positions.length === 0 ? (
+            {/* Strategies Panel - only show when no positions */}
+            {showStrategies && !hasPositions && (
               <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} />
-            ) : (
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Option Chain - {activeExpiry}</h3>
-                    <Button 
-                      variant="ghost" 
+            )}
+
+            {/* Option Chain - always visible */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold">Option Chain - {activeExpiry}</h3>
+                  <div className="flex items-center gap-2">
+                    {hasPositions && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowStrategies(!showStrategies)}
+                      >
+                        {showStrategies ? 'Hide' : 'Show'} Strategies
+                      </Button>
+                    )}
+                    <Button
+                      variant="ghost"
                       size="sm"
-                      onClick={() => setShowStrategies(true)}
+                      onClick={() => setShowOptionChain(!showOptionChain)}
                     >
-                      Show Strategies
+                      {showOptionChain ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
                   </div>
+                </div>
+                {showOptionChain && (
                   <OptionBuilderChain
                     symbol={symbol}
                     expiry={activeExpiry}
@@ -471,36 +502,51 @@ const OptionBuilder = () => {
                     isLoading={isLoading}
                     onAddPosition={addPosition}
                   />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Panel - Chart & Metrics (only show when positions exist) */}
+          <div className="space-y-6">
+            {hasPositions && (
+              <>
+                {/* Metrics */}
+                <OptionBuilderMetrics
+                  maxProfit={maxProfit}
+                  maxLoss={maxLoss}
+                  breakevens={breakevens}
+                  currentPL={currentPL}
+                  riskReward={typeof maxProfit === 'number' && typeof maxLoss === 'number' && maxLoss !== 0
+                    ? Math.abs(maxProfit / maxLoss)
+                    : null
+                  }
+                  margin={margin}
+                />
+
+                {/* Chart */}
+                <Card>
+                  <CardContent className="p-4">
+                    <OptionBuilderChart
+                      expiryData={chartData.expiry}
+                      todayData={chartData.today}
+                      currentPrice={currentPrice}
+                    />
+                  </CardContent>
+                </Card>
+              </>
+            )}
+
+            {!hasPositions && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="text-muted-foreground">
+                    <p className="text-lg mb-2">No positions yet</p>
+                    <p className="text-sm">Select a strategy or add positions from the option chain to see the payoff chart</p>
+                  </div>
                 </CardContent>
               </Card>
             )}
-          </div>
-
-          {/* Right Panel - Chart & Metrics */}
-          <div className="space-y-6">
-            {/* Metrics */}
-            <OptionBuilderMetrics
-              maxProfit={maxProfit}
-              maxLoss={maxLoss}
-              breakevens={breakevens}
-              currentPL={currentPL}
-              riskReward={typeof maxProfit === 'number' && typeof maxLoss === 'number' && maxLoss !== 0
-                ? Math.abs(maxProfit / maxLoss)
-                : null
-              }
-              margin={margin}
-            />
-
-            {/* Chart */}
-            <Card>
-              <CardContent className="p-4">
-                <OptionBuilderChart
-                  expiryData={chartData.expiry}
-                  todayData={chartData.today}
-                  currentPrice={currentPrice}
-                />
-              </CardContent>
-            </Card>
           </div>
         </div>
 
@@ -519,6 +565,8 @@ const OptionBuilder = () => {
                     onToggle={togglePosition}
                     onExit={exitPosition}
                     onRemove={removePosition}
+                    onUpdatePosition={updatePosition}
+                    onReEntry={reEntryPosition}
                   />
                 </TabsContent>
                 <TabsContent value="greeks" className="mt-4">
