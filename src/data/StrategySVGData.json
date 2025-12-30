@@ -1,0 +1,154 @@
+{
+    "batman": {
+      "svg": "batman.svg",
+      "type": "neutral"
+    },
+    "bear-butterfly": {
+      "svg": "bear-butterfly.svg",
+      "type": "bearish"
+    },
+    "bear-call-spread": {
+      "svg": "bear-call-spread.svg",
+      "type": "bearish"
+    },
+    "bear-condor": {
+      "svg": "bear-condor.svg",
+      "type": "bearish"
+    },
+    "bear-put-spread": {
+      "svg": "bear-put-spread.svg",
+      "type": "bearish"
+    },
+    "bull-butterfly": {
+      "svg": "bull-butterfly.svg",
+      "type": "bullish"
+    },
+    "bull-call-spread": {
+      "svg": "bull-call-spread.svg",
+      "type": "bullish"
+    },
+    "bull-condor": {
+      "svg": "bull-condor.svg",
+      "type": "bullish"
+    },
+    "bull-put-spread": {
+      "svg": "bull-put-spread.svg",
+      "type": "bullish"
+    },
+    "buy-futures": {
+      "svg": "buy-futures.svg",
+      "type": "bullish"
+    },
+    "buy-put": {
+      "svg": "buy-put.svg",
+      "type": "bearish"
+    },
+    "call-ratio-back-spread": {
+      "svg": "call-ratio-back-spread.svg",
+      "type": "bullish"
+    },
+    "call-ratio-spread": {
+      "svg": "call-ratio-spread.svg",
+      "type": "others"
+    },
+    "double-plateu": {
+      "svg": "double-plateu.svg",
+      "type": "neutral"
+    },
+    "iron-butterfly": {
+      "svg": "iron-butterfly.svg",
+      "type": "neutral"
+    },
+    "jade-lizard": {
+      "svg": "jade-lizard.svg",
+      "type": "neutral"
+    },
+    "buy-call": {
+      "svg": "long call.svg",
+      "type": "bullish"
+    },
+    "long-calendar-with-calls-BuaBwyDA": {
+      "svg": "long-calendar-with-calls-BuaBwyDA.svg",
+      "type": "bullish"
+    },
+    "long-calendar-with-puts": {
+      "svg": "long-calendar-with-puts.svg",
+      "type": "bearish"
+    },
+    "long-iron-butterfly": {
+      "svg": "long-iron-butterfly.svg",
+      "type": "others"
+    },
+    "long-iron-condor": {
+      "svg": "long-iron-condor.svg",
+      "type": "others"
+    },
+    "long-straddle": {
+      "svg": "long-straddle.svg",
+      "type": "others"
+    },
+    "long-strangle": {
+      "svg": "long-strangle.svg",
+      "type": "others"
+    },
+    "long-synthetic-fut": {
+      "svg": "long-synthetic-fut.svg",
+      "type": "bullish"
+    },
+    "put-ratio-back-spread": {
+      "svg": "put-ratio-back-spread.svg",
+      "type": "bearish"
+    },
+    "put-ratio-spread": {
+      "svg": "put-ratio-spread.svg",
+      "type": "others"
+    },
+    "range-forward": {
+      "svg": "range-forward.svg",
+      "type": "bullish"
+    },
+    "reverse-jade-lizard": {
+      "svg": "reverse-jade-lizard.svg",
+      "type": "neutral"
+    },
+    "risk-reversal": {
+      "svg": "risk-reversal.svg",
+      "type": "bearish"
+    },
+    "sell-call": {
+      "svg": "sell-call.svg",
+      "type": "bearish"
+    },
+    "sell-futures": {
+      "svg": "sell-futures.svg",
+      "type": "bearish"
+    },
+    "sell-put": {
+      "svg": "sell-put.svg",
+      "type": "bullish"
+    },
+    "short-iron-condor": {
+      "svg": "short-iron-condor.svg",
+      "type": "neutral"
+    },
+    "short-straddle": {
+      "svg": "short-straddle.svg",
+      "type": "neutral"
+    },
+    "short-strangle": {
+      "svg": "short-strangle.svg",
+      "type": "neutral"
+    },
+    "short-synthetic-future": {
+      "svg": "short-synthetic-future.svg",
+      "type": "bearish"
+    },
+    "strap": {
+      "svg": "strap.svg",
+      "type": "others"
+    },
+    "strip": {
+      "svg": "strip.svg",
+      "type": "others"
+    }
+  }

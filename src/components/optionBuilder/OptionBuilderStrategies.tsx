@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import strategySVGData from '@/data/StrategySVGData.json';
 
 interface StrategyData {
   svg: string;
@@ -29,40 +29,15 @@ interface OptionBuilderStrategiesProps {
 
 const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesProps) => {
   const [filter, setFilter] = useState<'all' | 'bullish' | 'bearish' | 'neutral' | 'others'>('bullish');
-  const [strategies, setStrategies] = useState<Strategy[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchStrategies = async () => {
-      try {
-        const response = await fetch('https://runalgo.xyz/strategyBuilderWAutoPlay/StrategySVGData.json');
-        const data: Record<string, StrategyData> = await response.json();
-        
-        const strategyList: Strategy[] = Object.entries(data).map(([id, info]) => ({
-          id,
-          name: formatStrategyName(id),
-          category: info.type,
-          svgUrl: `https://runalgo.xyz/strategyBuilderWAutoPlay/${info.svg}`,
-        }));
-        
-        setStrategies(strategyList);
-      } catch (error) {
-        console.error('Error fetching strategies:', error);
-        // Fallback strategies if API fails
-        setStrategies([
-          { id: 'buy-call', name: 'Buy Call', category: 'bullish', svgUrl: '' },
-          { id: 'sell-put', name: 'Sell Put', category: 'bullish', svgUrl: '' },
-          { id: 'buy-put', name: 'Buy Put', category: 'bearish', svgUrl: '' },
-          { id: 'sell-call', name: 'Sell Call', category: 'bearish', svgUrl: '' },
-          { id: 'long-straddle', name: 'Long Straddle', category: 'neutral', svgUrl: '' },
-          { id: 'iron-condor', name: 'Iron Condor', category: 'neutral', svgUrl: '' },
-        ]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchStrategies();
+  const strategies: Strategy[] = useMemo(() => {
+    const data = strategySVGData as Record<string, StrategyData>;
+    return Object.entries(data).map(([id, info]) => ({
+      id,
+      name: formatStrategyName(id),
+      category: info.type,
+      svgUrl: `https://runalgo.xyz/strategyBuilderWAutoPlay/${info.svg}`,
+    }));
   }, []);
 
   const filteredStrategies = filter === 'all' 
@@ -100,18 +75,11 @@ const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesPr
             onClick={() => setFilter('others')}
           >
             Others
-          </Button>
+        </Button>
         </div>
 
-        {isLoading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {[...Array(8)].map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full" />
-            ))}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-            {filteredStrategies.map((strategy) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {filteredStrategies.map((strategy) => (
               <Card
                 key={strategy.id}
                 className="cursor-pointer hover:border-primary transition-colors"
@@ -136,8 +104,7 @@ const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesPr
                 </CardContent>
               </Card>
             ))}
-          </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
