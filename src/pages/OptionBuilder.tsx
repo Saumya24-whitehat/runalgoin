@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { Save, Download, RefreshCw, Plus, Copy, Settings } from 'lucide-react';
+import { Save, Download, RefreshCw, Plus, Copy, Settings, ChevronLeft, ChevronRight } from 'lucide-react';
 import OptionBuilderChart from '@/components/optionBuilder/OptionBuilderChart';
 import OptionBuilderPositions from '@/components/optionBuilder/OptionBuilderPositions';
 import OptionBuilderGreeks from '@/components/optionBuilder/OptionBuilderGreeks';
@@ -18,15 +18,21 @@ import OptionBuilderStrategies from '@/components/optionBuilder/OptionBuilderStr
 import OptionBuilderChain from '@/components/optionBuilder/OptionBuilderChain';
 import { 
   Position, 
+  OptionChainResponse,
+  ExpiryData,
   generatePLChartData, 
   findBreakevenPoints,
-  calculateTotalGreeks
+  calculateTotalGreeks,
+  fetchOptionChainData,
+  calculateMargin,
+  formatIndianNumber,
 } from '@/services/optionBuilderApi';
 
 const SYMBOLS = [
   { value: 'Nifty 50', label: 'NIFTY' },
   { value: 'Nifty Bank', label: 'BANKNIFTY' },
   { value: 'Nifty Fin Service', label: 'FINNIFTY' },
+  { value: 'Nifty Mid Select', label: 'MIDCPNIFTY' },
 ];
 
 const OptionBuilder = () => {
@@ -34,12 +40,15 @@ const OptionBuilder = () => {
   const navigate = useNavigate();
 
   const [symbol, setSymbol] = useState('Nifty 50');
+  const [optionChainData, setOptionChainData] = useState<OptionChainResponse | null>(null);
   const [expiries, setExpiries] = useState<string[]>([]);
   const [activeExpiry, setActiveExpiry] = useState<string>('');
   const [positions, setPositions] = useState<Position[]>([]);
-  const [currentPrice, setCurrentPrice] = useState(24000);
+  const [currentPrice, setCurrentPrice] = useState(0);
   const [lotSize, setLotSize] = useState(75);
   const [showStrategies, setShowStrategies] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [margin, setMargin] = useState<number>(0);
 
   // Handle authentication
   useEffect(() => {
@@ -48,12 +57,69 @@ const OptionBuilder = () => {
     }
   }, [user, loading, navigate]);
 
-  // Load mock expiry dates
+  // Fetch option chain data when symbol changes
   useEffect(() => {
-    const mockExpiries = ['02JAN25', '09JAN25', '16JAN25', '23JAN25', '30JAN25'];
-    setExpiries(mockExpiries);
-    setActiveExpiry(mockExpiries[0]);
+    const loadOptionChainData = async () => {
+      setIsLoading(true);
+      try {
+        const data = await fetchOptionChainData(symbol);
+        console.log('Option chain data:', data);
+        setOptionChainData(data);
+        
+        // Set lot size from API
+        setLotSize(data.lot || 75);
+        
+        // Set current price
+        setCurrentPrice(data.spotPrice || 24000);
+
+        // Extract expiry dates from expiryWise
+        if (data.expiryWise) {
+          const expiryKeys = Object.keys(data.expiryWise).sort();
+          setExpiries(expiryKeys);
+          if (expiryKeys.length > 0 && !activeExpiry) {
+            setActiveExpiry(expiryKeys[0]);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching option chain data:', error);
+        toast.error('Failed to load option chain data');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadOptionChainData();
   }, [symbol]);
+
+  // Calculate margin when positions change
+  useEffect(() => {
+    const loadMargin = async () => {
+      const enabledPositions = positions.filter(p => p.enabled && !p.exitPrice);
+      if (enabledPositions.length === 0) {
+        setMargin(0);
+        return;
+      }
+
+      const marginPositions = enabledPositions.map(p => ({
+        instrumentKey: p.instrumentToken || '',
+        side: p.action === 'Buy' ? 'B' : 'S',
+        quantity: p.lots * p.lotSize,
+        product: 'D',
+      }));
+
+      try {
+        const marginData = await calculateMargin(marginPositions);
+        setMargin(marginData.finalMargin || 0);
+      } catch (error) {
+        console.error('Error calculating margin:', error);
+      }
+    };
+
+    loadMargin();
+  }, [positions]);
+
+  // Get current expiry data
+  const currentExpiryData: ExpiryData | null = optionChainData?.expiryWise?.[activeExpiry] || null;
 
   // Calculate chart data
   const chartData = generatePLChartData(positions, currentPrice, 0.03);
@@ -65,16 +131,18 @@ const OptionBuilder = () => {
   let maxProfit: number | 'Unlimited' = -Infinity;
   let maxLoss: number | 'Unlimited' = Infinity;
   
-  chartData.expiry.forEach(([, pl]) => {
-    if (typeof maxProfit === 'number' && pl > maxProfit) maxProfit = pl;
-    if (typeof maxLoss === 'number' && pl < maxLoss) maxLoss = pl;
-  });
+  if (chartData.expiry.length > 0) {
+    chartData.expiry.forEach(([, pl]) => {
+      if (typeof maxProfit === 'number' && pl > maxProfit) maxProfit = pl;
+      if (typeof maxLoss === 'number' && pl < maxLoss) maxLoss = pl;
+    });
+  }
 
   // Check for unlimited profit/loss
-  const longCalls = enabledPositions.filter(p => p.action === 'Buy' && p.optType === 'CE').reduce((sum, p) => sum + p.lots, 0);
-  const shortCalls = enabledPositions.filter(p => p.action === 'Sell' && p.optType === 'CE').reduce((sum, p) => sum + p.lots, 0);
-  const longPuts = enabledPositions.filter(p => p.action === 'Buy' && p.optType === 'PE').reduce((sum, p) => sum + p.lots, 0);
-  const shortPuts = enabledPositions.filter(p => p.action === 'Sell' && p.optType === 'PE').reduce((sum, p) => sum + p.lots, 0);
+  const longCalls = enabledPositions.filter(p => p.action === 'Buy' && p.optType === 'CE' && !p.exitPrice).reduce((sum, p) => sum + p.lots, 0);
+  const shortCalls = enabledPositions.filter(p => p.action === 'Sell' && p.optType === 'CE' && !p.exitPrice).reduce((sum, p) => sum + p.lots, 0);
+  const longPuts = enabledPositions.filter(p => p.action === 'Buy' && p.optType === 'PE' && !p.exitPrice).reduce((sum, p) => sum + p.lots, 0);
+  const shortPuts = enabledPositions.filter(p => p.action === 'Sell' && p.optType === 'PE' && !p.exitPrice).reduce((sum, p) => sum + p.lots, 0);
 
   if (longCalls !== shortCalls || longPuts !== shortPuts) {
     if (longCalls > shortCalls || longPuts > shortPuts) {
@@ -130,7 +198,8 @@ const OptionBuilder = () => {
 
   const handleAddStrategy = useCallback((strategyType: string) => {
     const today = new Date().toISOString().split('T')[0];
-    const atm = Math.round(currentPrice / 50) * 50;
+    const strikeDiff = symbol.includes('Bank') ? 100 : 50;
+    const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
     switch (strategyType) {
       case 'buy-call':
@@ -179,7 +248,7 @@ const OptionBuilder = () => {
           lots: 1,
           date: today,
           expiry: activeExpiry,
-          strike: atm + 100,
+          strike: atm + strikeDiff * 2,
           optType: 'CE',
           entryPrice: 180,
           currentPrice: 180,
@@ -193,7 +262,7 @@ const OptionBuilder = () => {
           lots: 1,
           date: today,
           expiry: activeExpiry,
-          strike: atm - 100,
+          strike: atm - strikeDiff * 2,
           optType: 'PE',
           entryPrice: 150,
           currentPrice: 150,
@@ -205,7 +274,7 @@ const OptionBuilder = () => {
           lots: 1,
           date: today,
           expiry: activeExpiry,
-          strike: atm - 200,
+          strike: atm - strikeDiff * 4,
           optType: 'PE',
           entryPrice: 80,
           currentPrice: 80,
@@ -217,7 +286,7 @@ const OptionBuilder = () => {
           lots: 1,
           date: today,
           expiry: activeExpiry,
-          strike: atm + 100,
+          strike: atm + strikeDiff * 2,
           optType: 'CE',
           entryPrice: 150,
           currentPrice: 150,
@@ -229,7 +298,7 @@ const OptionBuilder = () => {
           lots: 1,
           date: today,
           expiry: activeExpiry,
-          strike: atm + 200,
+          strike: atm + strikeDiff * 4,
           optType: 'CE',
           entryPrice: 80,
           currentPrice: 80,
@@ -240,7 +309,30 @@ const OptionBuilder = () => {
       default:
         toast.info('Strategy coming soon');
     }
-  }, [activeExpiry, currentPrice, lotSize, addPosition]);
+  }, [activeExpiry, currentPrice, lotSize, addPosition, symbol]);
+
+  const handleRefresh = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchOptionChainData(symbol);
+      setOptionChainData(data);
+      setCurrentPrice(data.spotPrice || currentPrice);
+      toast.success('Data refreshed');
+    } catch (error) {
+      toast.error('Failed to refresh data');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [symbol, currentPrice]);
+
+  const navigateExpiry = (direction: 'prev' | 'next') => {
+    const currentIndex = expiries.indexOf(activeExpiry);
+    if (direction === 'prev' && currentIndex > 0) {
+      setActiveExpiry(expiries[currentIndex - 1]);
+    } else if (direction === 'next' && currentIndex < expiries.length - 1) {
+      setActiveExpiry(expiries[currentIndex + 1]);
+    }
+  };
 
   if (loading) {
     return (
@@ -281,8 +373,8 @@ const OptionBuilder = () => {
                 <Download className="h-4 w-4 mr-1" />
                 Load
               </Button>
-              <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-                <RefreshCw className="h-4 w-4" />
+              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isLoading}>
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
               </Button>
               <Button variant="outline" size="sm" onClick={clearAllPositions}>
                 <Plus className="h-4 w-4 mr-1" />
@@ -297,8 +389,17 @@ const OptionBuilder = () => {
             </div>
 
             <div className="flex items-center gap-4 text-sm">
-              <span className="text-muted-foreground">Spot: <span className="text-foreground font-medium">{currentPrice.toFixed(2)}</span></span>
-              <span className="text-muted-foreground">Lot Size: <span className="text-foreground font-medium">{lotSize}</span></span>
+              <span className="text-muted-foreground">
+                Spot: <span className="text-foreground font-medium">{currentPrice.toFixed(2)}</span>
+              </span>
+              <span className="text-muted-foreground">
+                Lot Size: <span className="text-foreground font-medium">{lotSize}</span>
+              </span>
+              {margin > 0 && (
+                <span className="text-muted-foreground">
+                  Margin: <span className="text-foreground font-medium">₹{formatIndianNumber(Math.round(margin))}</span>
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -308,6 +409,14 @@ const OptionBuilder = () => {
       <div className="border-b border-border overflow-x-auto">
         <div className="container mx-auto px-4">
           <div className="flex items-center">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigateExpiry('prev')}
+              disabled={expiries.indexOf(activeExpiry) === 0}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
             {expiries.map(exp => (
               <button
                 key={exp}
@@ -321,6 +430,14 @@ const OptionBuilder = () => {
                 {exp}
               </button>
             ))}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => navigateExpiry('next')}
+              disabled={expiries.indexOf(activeExpiry) === expiries.length - 1}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>
@@ -336,7 +453,7 @@ const OptionBuilder = () => {
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Option Chain</h3>
+                    <h3 className="text-lg font-semibold">Option Chain - {activeExpiry}</h3>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -350,6 +467,8 @@ const OptionBuilder = () => {
                     expiry={activeExpiry}
                     currentPrice={currentPrice}
                     lotSize={lotSize}
+                    expiryData={currentExpiryData}
+                    isLoading={isLoading}
                     onAddPosition={addPosition}
                   />
                 </CardContent>
@@ -369,6 +488,7 @@ const OptionBuilder = () => {
                 ? Math.abs(maxProfit / maxLoss)
                 : null
               }
+              margin={margin}
             />
 
             {/* Chart */}

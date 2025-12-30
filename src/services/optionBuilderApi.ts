@@ -1,50 +1,46 @@
 import { supabase } from "@/integrations/supabase/client";
 
-export interface OptionChainData {
-  TotalATMvalues?: number[];
-  strikeArray?: number[];
-  Id?: string;
-  Get_Tokens?: string[];
-  lot?: number;
-  multiplier?: number;
-  FutureToken?: string;
-  FutureNames?: string[];
-  FutureExpiry?: string[];
-  CE_Tokens?: string[];
-  PE_Tokens?: string[];
-  SpotToken_upstox?: string;
-  SpotToken?: string;
-  strike_diff?: number;
-  expiryWise?: Record<string, ExpiryData>;
+export interface OptionData {
+  instrument_key: string;
+  market_data: {
+    ltp: number;
+    oi: number;
+    volume: number;
+    prev_oi?: number;
+  };
+  option_greeks: {
+    iv: number;
+    delta: number;
+    gamma: number;
+    theta: number;
+    vega: number;
+  };
 }
 
 export interface ExpiryData {
   strikes: number[];
   ceToken: string[];
   peToken: string[];
-  data: OptionStrikeData[];
+  data: {
+    strike_price: number;
+    underlying_spot_price: number;
+    call_options: OptionData;
+    put_options: OptionData;
+  }[];
 }
 
-export interface OptionStrikeData {
-  strike_price: number;
-  ce_ltp?: number;
-  pe_ltp?: number;
-  ce_iv?: number;
-  pe_iv?: number;
-  ce_delta?: number;
-  pe_delta?: number;
-  ce_gamma?: number;
-  pe_gamma?: number;
-  ce_theta?: number;
-  pe_theta?: number;
-  ce_vega?: number;
-  pe_vega?: number;
-  ce_oi?: number;
-  pe_oi?: number;
-  ce_volume?: number;
-  pe_volume?: number;
-  ce_token?: string;
-  pe_token?: string;
+export interface OptionChainResponse {
+  strikeArray: number[];
+  strikeDiff: number;
+  lot: number;
+  spotPrice: number;
+  futureToken: string[];
+  futureNames: string[];
+  futureExpiry: string[];
+  ceTokens: string[];
+  peTokens: string[];
+  spotToken: string;
+  expiryWise: Record<string, ExpiryData>;
 }
 
 export interface Position {
@@ -74,7 +70,7 @@ export interface MarginData {
   exposureMargin?: number;
 }
 
-export const fetchOptionChainData = async (symbol: string): Promise<OptionChainData> => {
+export const fetchOptionChainData = async (symbol: string): Promise<OptionChainResponse> => {
   const { data, error } = await supabase.functions.invoke('option-builder-data', {
     body: { action: 'getOptionChain', symbol },
   });
@@ -87,19 +83,6 @@ export const fetchOptionChainData = async (symbol: string): Promise<OptionChainD
   return data;
 };
 
-export const fetchExpiryDates = async (symbol: string): Promise<string[]> => {
-  const { data, error } = await supabase.functions.invoke('option-builder-data', {
-    body: { action: 'getExpiryDates', symbol },
-  });
-
-  if (error) {
-    console.error('Error fetching expiry dates:', error);
-    throw error;
-  }
-
-  return data.expiry_dates || [];
-};
-
 export const calculateMargin = async (positions: { instrumentKey: string; side: string; quantity: number; product: string }[]): Promise<MarginData> => {
   const { data, error } = await supabase.functions.invoke('option-builder-data', {
     body: { action: 'getMargin', positions },
@@ -110,7 +93,7 @@ export const calculateMargin = async (positions: { instrumentKey: string; side: 
     throw error;
   }
 
-  return data?.data || { finalMargin: 0 };
+  return data?.response?.data || { finalMargin: 0 };
 };
 
 // Black-Scholes calculation for P&L projections
@@ -160,12 +143,12 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
   let totalPL = 0;
 
   positions.forEach(position => {
-    if (!position.enabled || position.exitPrice !== undefined) {
-      // If exited, use exit price
-      if (position.exitPrice !== undefined) {
-        const pl = (position.exitPrice - position.entryPrice) * position.lots * position.lotSize * (position.action === 'Buy' ? 1 : -1);
-        totalPL += pl;
-      }
+    if (!position.enabled) return;
+
+    // If position is exited, calculate based on exit price
+    if (position.exitPrice !== undefined) {
+      const pl = (position.exitPrice - position.entryPrice) * position.lots * position.lotSize * (position.action === 'Buy' ? 1 : -1);
+      totalPL += pl;
       return;
     }
 
@@ -193,27 +176,50 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
   return totalPL;
 };
 
+// Parse expiry string to date
+export const parseExpiryDate = (expiry: string): Date => {
+  // Format: "27MAR25" or "2025-03-27"
+  if (expiry.includes('-')) {
+    return new Date(expiry);
+  }
+  
+  const day = parseInt(expiry.substring(0, 2));
+  const monthStr = expiry.substring(2, 5);
+  const year = parseInt("20" + expiry.substring(5, 7));
+  
+  const months: Record<string, number> = {
+    "JAN": 0, "FEB": 1, "MAR": 2, "APR": 3, "MAY": 4, "JUN": 5,
+    "JUL": 6, "AUG": 7, "SEP": 8, "OCT": 9, "NOV": 10, "DEC": 11
+  };
+  
+  return new Date(year, months[monthStr] || 0, day);
+};
+
+// Calculate days until expiry
+export const getDaysUntilExpiry = (expiry: string): number => {
+  const expiryDate = parseExpiryDate(expiry);
+  const today = new Date();
+  const diffTime = expiryDate.getTime() - today.getTime();
+  return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+};
+
 // Calculate P&L for today using Black-Scholes
 export const calculatePLToday = (positions: Position[], spotPrice: number): number => {
   let totalPL = 0;
   const r = 0.05; // Risk-free rate
 
   positions.forEach(position => {
-    if (!position.enabled || position.exitPrice !== undefined) {
-      if (position.exitPrice !== undefined) {
-        const pl = (position.exitPrice - position.entryPrice) * position.lots * position.lotSize * (position.action === 'Buy' ? 1 : -1);
-        totalPL += pl;
-      }
+    if (!position.enabled) return;
+    
+    if (position.exitPrice !== undefined) {
+      const pl = (position.exitPrice - position.entryPrice) * position.lots * position.lotSize * (position.action === 'Buy' ? 1 : -1);
+      totalPL += pl;
       return;
     }
 
-    // Calculate days to expiry
-    const today = new Date();
-    const expiryDate = new Date(position.expiry);
-    const daysToExpiry = Math.max(1, Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+    const daysToExpiry = getDaysUntilExpiry(position.expiry);
     const T = daysToExpiry / 365;
-
-    const volatility = position.IV / 100;
+    const volatility = (position.IV || 15) / 100;
 
     let theoreticalPrice = 0;
     if (position.optType === 'CE') {
@@ -231,22 +237,43 @@ export const calculatePLToday = (positions: Position[], spotPrice: number): numb
   return totalPL;
 };
 
+// Calculate dynamic price range based on current price and days to expiry
+export const calculatePriceRange = (currentPrice: number, daysToExpiry: number = 30): { startPrice: number; endPrice: number; step: number } => {
+  const scaleFactor = Math.max(1, Math.sqrt(daysToExpiry));
+  const rangeWidth = Math.ceil(200 * scaleFactor);
+  
+  return {
+    startPrice: Math.floor(currentPrice - rangeWidth),
+    endPrice: Math.ceil(currentPrice + rangeWidth),
+    step: 1
+  };
+};
+
 // Generate P&L data for chart
 export const generatePLChartData = (
   positions: Position[],
   currentPrice: number,
   rangePercent: number = 0.05
 ): { expiry: [number, number][]; today: [number, number][] } => {
-  const startPrice = Math.floor(currentPrice * (1 - rangePercent));
-  const endPrice = Math.ceil(currentPrice * (1 + rangePercent));
-  const step = Math.max(1, Math.floor((endPrice - startPrice) / 200));
+  const enabledPositions = positions.filter(p => p.enabled);
+  
+  if (enabledPositions.length === 0) {
+    return { expiry: [], today: [] };
+  }
+
+  // Get days to expiry from first position
+  const daysToExpiry = enabledPositions.length > 0 
+    ? getDaysUntilExpiry(enabledPositions[0].expiry) 
+    : 30;
+
+  const { startPrice, endPrice, step } = calculatePriceRange(currentPrice, daysToExpiry);
 
   const expiryData: [number, number][] = [];
   const todayData: [number, number][] = [];
 
   for (let price = startPrice; price <= endPrice; price += step) {
-    expiryData.push([price, calculatePLAtExpiry(positions, price)]);
-    todayData.push([price, calculatePLToday(positions, price)]);
+    expiryData.push([price, calculatePLAtExpiry(enabledPositions, price)]);
+    todayData.push([price, calculatePLToday(enabledPositions, price)]);
   }
 
   return { expiry: expiryData, today: todayData };
@@ -296,4 +323,20 @@ export const findBreakevenPoints = (plData: [number, number][]): number[] => {
   }
 
   return breakevenPoints;
+};
+
+// Format number in Indian notation
+export const formatIndianNumber = (num: number): string => {
+  const x = num.toString().split(".");
+  let intPart = x[0];
+  const decPart = x.length > 1 ? "." + x[1] : "";
+
+  let lastThree = intPart.substring(intPart.length - 3);
+  const otherNumbers = intPart.substring(0, intPart.length - 3);
+
+  if (otherNumbers !== '') {
+    lastThree = ',' + lastThree;
+  }
+
+  return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + decPart;
 };

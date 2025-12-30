@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const BASE_URL = 'http://runalgo.in/data';
+const DATA_BASE_URL = 'http://runalgo.in/data';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -17,26 +17,50 @@ serve(async (req) => {
     const { action, symbol, expiry, positions } = await req.json();
     console.log(`Option Builder API - Action: ${action}, Symbol: ${symbol}`);
 
-    let url = '';
-    let method = 'GET';
-    let body = null;
-
     switch (action) {
-      case 'getOptionChain':
-        url = `${BASE_URL}/getAllStrikes_Comm_v2.php`;
-        method = 'POST';
-        body = new URLSearchParams({ optSymbol: symbol || 'Nifty 50' });
-        break;
+      case 'getOptionChain': {
+        // Fetch option chain data from runalgo API
+        const formData = new URLSearchParams();
+        formData.append('optSymbol', symbol || 'Nifty 50');
 
-      case 'getSymbols':
-        url = `${BASE_URL}/getSymbols2.php`;
-        break;
+        const response = await fetch(`${DATA_BASE_URL}/getAllStrikes_Comm_v2.php`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Referer': 'http://runalgo.in/',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+          },
+          body: formData.toString(),
+        });
 
-      case 'getExpiryDates':
-        url = `${BASE_URL}/getExpiryDates2.php?symbol=${encodeURIComponent(symbol || 'NIFTY')}`;
-        break;
+        if (!response.ok) {
+          throw new Error(`API responded with status: ${response.status}`);
+        }
 
-      case 'getMargin':
+        const data = await response.json();
+        console.log('Option chain data fetched successfully');
+
+        // Transform the data to a more usable format
+        const transformedData = {
+          strikeArray: data.TotalATMvalues || [],
+          strikeDiff: data.strike_diff || 50,
+          lot: parseInt(data.lot) || 75,
+          spotPrice: data.ltp || 0,
+          futureToken: data.FutureToken || [],
+          futureNames: data.FutureNames || [],
+          futureExpiry: data.FutureExpiry || [],
+          ceTokens: data.CE_Tokens || [],
+          peTokens: data.PE_Tokens || [],
+          spotToken: data.SpotToken_upstox || '',
+          expiryWise: data.expiryWise || {},
+        };
+
+        return new Response(JSON.stringify(transformedData), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'getMargin': {
         // Proxy to Upstox margin calculator
         const marginResponse = await fetch(
           'https://service.upstox.com/jspan-margin-calculator-pub/v1/open/calculate-margin-basket',
@@ -58,7 +82,14 @@ serve(async (req) => {
         );
 
         if (!marginResponse.ok) {
-          throw new Error(`Margin API error: ${marginResponse.status}`);
+          console.error('Margin API error:', marginResponse.status);
+          return new Response(JSON.stringify({ 
+            response: { 
+              data: { finalMargin: 0 } 
+            } 
+          }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
         }
 
         const marginData = await marginResponse.json();
@@ -67,37 +98,11 @@ serve(async (req) => {
         return new Response(JSON.stringify(marginData), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
+      }
 
       default:
         throw new Error(`Unknown action: ${action}`);
     }
-
-    // Make the API request
-    const fetchOptions: RequestInit = {
-      method,
-      headers: {
-        'Referer': 'http://runalgo.in/',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Content-Type': method === 'POST' ? 'application/x-www-form-urlencoded' : 'application/json',
-      },
-    };
-
-    if (body && method === 'POST') {
-      fetchOptions.body = body.toString();
-    }
-
-    const response = await fetch(url, fetchOptions);
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log(`Option Builder data fetched successfully for action: ${action}`);
-
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
   } catch (error: unknown) {
     console.error('Error in option-builder-data:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
