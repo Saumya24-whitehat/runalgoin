@@ -139,7 +139,6 @@ const normalCDF = (x: number): number => {
 
   return 0.5 * (1.0 + sign * y);
 };
-
 export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, targetExpiry?: string): number => {
   let totalPL = 0;
 
