@@ -266,7 +266,6 @@ export const getDaysUntilExpiry = (expiry: string): number => {
   const expiryDate = parseExpiryDate(expiry);
   const today = new Date();
   const diffTime = expiryDate.getTime() - today.getTime();
-  console.log(Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24))));
   return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 };
 
@@ -299,7 +298,6 @@ export const calculatePLToday = (positions: Position[], spotPrice: number): numb
     // Use position's IV or default to 15%
     const volatility = Math.max(position.IV / 100 || 15, 5) / 100;
 
-    console.log([spotPrice, position.strike, T, r, volatility]);
     let theoreticalPrice = 0;
 
     if (position.optType === "CE") {
