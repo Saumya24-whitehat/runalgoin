@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -7,24 +7,24 @@ import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { format } from "date-fns";
+import { format, addDays, subDays, parse, isValid } from "date-fns";
+import { cn } from "@/lib/utils";
 import {
   Save,
   Download,
   RefreshCw,
-  Plus,
   Copy,
   ChevronUp,
   ChevronDown,
   CalendarIcon,
-  Clock,
   Play,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import OptionBuilderChart from "@/components/optionBuilder/OptionBuilderChart";
 import OptionBuilderPositions from "@/components/optionBuilder/OptionBuilderPositions";
@@ -43,8 +43,8 @@ import {
 import {
   fetchSimulatorExpiryDates,
   fetchSimulatorStrikesData,
+  fetchTradingDays,
   SimulatorData,
-  getMarketTimeSlots,
   getLotSizeForSymbol,
 } from "@/services/optionSimulatorApi";
 
@@ -55,7 +55,6 @@ const SYMBOLS = [
   { value: "Nifty Mid Select", label: "MIDCPNIFTY" },
 ];
 
-const TIME_SLOTS = getMarketTimeSlots();
 const STORAGE_KEY_STRATEGIES = "optionSimulator_strategies";
 
 const OptionSimulator = () => {
@@ -65,12 +64,15 @@ const OptionSimulator = () => {
   // Simulator controls
   const [symbol, setSymbol] = useState("Nifty 50");
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedTime, setSelectedTime] = useState("0915");
+  const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedMinute, setSelectedMinute] = useState(15);
   const [expiries, setExpiries] = useState<string[]>([]);
   const [activeExpiry, setActiveExpiry] = useState<string>("");
   const [simulatorData, setSimulatorData] = useState<SimulatorData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingExpiries, setIsLoadingExpiries] = useState(false);
+  const [tradingDays, setTradingDays] = useState<string[]>([]);
+  const [autoPlay, setAutoPlay] = useState(false);
 
   // Positions and UI state
   const [positions, setPositions] = useState<Position[]>([]);
@@ -90,6 +92,54 @@ const OptionSimulator = () => {
       return [];
     }
   });
+
+  // Computed selected time as string
+  const selectedTime = useMemo(() => {
+    return selectedHour.toString().padStart(2, "0") + selectedMinute.toString().padStart(2, "0");
+  }, [selectedHour, selectedMinute]);
+
+  // Load trading days on mount
+  useEffect(() => {
+    const loadTradingDays = async () => {
+      try {
+        const days = await fetchTradingDays();
+        setTradingDays(days);
+      } catch (error) {
+        console.error("Error fetching trading days:", error);
+      }
+    };
+    loadTradingDays();
+  }, []);
+
+  // Check if a date is a trading day
+  const isTradingDay = useCallback(
+    (date: Date) => {
+      if (tradingDays.length === 0) return true; // Allow all if not loaded
+      const dateStr = format(date, "yyyy-MM-dd");
+      return tradingDays.includes(dateStr);
+    },
+    [tradingDays]
+  );
+
+  // Adjust time by minutes
+  const adjustTime = useCallback(
+    (minutes: number) => {
+      let totalMinutes = selectedHour * 60 + selectedMinute + minutes;
+      
+      // Clamp to market hours (9:15 = 555 to 15:30 = 930)
+      totalMinutes = Math.max(555, Math.min(930, totalMinutes));
+      
+      // Round to nearest 3-minute interval
+      totalMinutes = Math.round(totalMinutes / 3) * 3;
+      
+      const newHour = Math.floor(totalMinutes / 60);
+      const newMinute = totalMinutes % 60;
+      
+      setSelectedHour(newHour);
+      setSelectedMinute(newMinute);
+    },
+    [selectedHour, selectedMinute]
+  );
 
   // Handle authentication
   useEffect(() => {
@@ -449,7 +499,198 @@ const OptionSimulator = () => {
       <TickerRibbon />
 
       <main className="flex-1 container mx-auto px-2 py-3">
-        {/* Header */}
+        {/* Simulator Toolbar - matching reference image */}
+        <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">
+          {/* Day Navigation Buttons */}
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              // Go to previous trading day
+              let prevDate = subDays(selectedDate, 1);
+              while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
+                prevDate = subDays(prevDate, 1);
+              }
+              setSelectedDate(prevDate);
+            }}
+          >
+            <ChevronLeft className="h-3 w-3 mr-1" />
+            Day
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              // Go to start of day (09:15)
+              setSelectedHour(9);
+              setSelectedMinute(15);
+            }}
+          >
+            SOD
+          </Button>
+
+          {/* Time Adjustment Buttons */}
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(-120)}
+          >
+            -2h
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(-30)}
+          >
+            -30m
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(-15)}
+          >
+            -15m
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(-3)}
+          >
+            -3m
+          </Button>
+
+          {/* Date Picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="w-32 justify-start text-left font-normal text-sm h-8">
+                {format(selectedDate, "dd/MM/yyyy")}
+                <CalendarIcon className="ml-2 h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                disabled={(date) => !isTradingDay(date)}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Hour Selector */}
+          <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
+            <SelectTrigger className="w-16 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[9, 10, 11, 12, 13, 14, 15].map((h) => (
+                <SelectItem key={h} value={h.toString()}>
+                  {h}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Minute Selector (3-minute intervals) */}
+          <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
+            <SelectTrigger className="w-16 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
+                <SelectItem key={m} value={m.toString()}>
+                  {m.toString().padStart(2, "0")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Time Forward Buttons */}
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(3)}
+          >
+            3m+
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(15)}
+          >
+            15m+
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(30)}
+          >
+            30m+
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => adjustTime(120)}
+          >
+            2h+
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              // Go to end of day (15:30)
+              setSelectedHour(15);
+              setSelectedMinute(30);
+            }}
+          >
+            EOD
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            className="bg-primary hover:bg-primary/90"
+            onClick={() => {
+              // Go to next trading day
+              let nextDate = addDays(selectedDate, 1);
+              while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
+                nextDate = addDays(nextDate, 1);
+              }
+              setSelectedDate(nextDate);
+            }}
+          >
+            Day
+            <ChevronRight className="h-3 w-3 ml-1" />
+          </Button>
+
+          {/* Auto Play Button */}
+          <Button
+            variant={autoPlay ? "destructive" : "default"}
+            size="sm"
+            className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
+            onClick={() => setAutoPlay(!autoPlay)}
+          >
+            Auto
+            <Play className="h-3 w-3 ml-1" />
+          </Button>
+        </div>
+
+        {/* Second Row - Symbol, Expiry, Load Data */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
           <Select value={symbol} onValueChange={setSymbol}>
             <SelectTrigger className="w-40">
@@ -459,39 +700,6 @@ const OptionSimulator = () => {
               {SYMBOLS.map((s) => (
                 <SelectItem key={s.value} value={s.value}>
                   {s.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-40 justify-start text-left font-normal">
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {format(selectedDate, "dd MMM yyyy")}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-
-          {/* Time Picker */}
-          <Select value={selectedTime} onValueChange={setSelectedTime}>
-            <SelectTrigger className="w-28">
-              <Clock className="mr-2 h-4 w-4" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TIME_SLOTS.map((slot) => (
-                <SelectItem key={slot.value} value={slot.value}>
-                  {slot.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -537,7 +745,6 @@ const OptionSimulator = () => {
             <Copy className="h-4 w-4" />
           </Button>
         </div>
-
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left Side - Option Chain */}
