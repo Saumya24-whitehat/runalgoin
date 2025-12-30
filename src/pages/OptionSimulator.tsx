@@ -121,13 +121,52 @@ const OptionSimulator = () => {
     [tradingDays]
   );
 
-  // Adjust time by minutes
+  // Find next/previous trading day
+  const findNextTradingDay = useCallback(
+    (date: Date, direction: number = 1): Date => {
+      const d = new Date(date);
+      do {
+        d.setDate(d.getDate() + direction);
+      } while (!isTradingDay(d) && tradingDays.length > 0);
+      return d;
+    },
+    [isTradingDay, tradingDays]
+  );
+
+  // Adjust time by minutes - auto-fetches data after change
   const adjustTime = useCallback(
     (minutes: number) => {
+      // Handle day jump
+      if (Math.abs(minutes) >= 1440) {
+        const direction = minutes > 0 ? 1 : -1;
+        const newDate = findNextTradingDay(selectedDate, direction);
+        newDate.setHours(direction > 0 ? 9 : 15);
+        newDate.setMinutes(direction > 0 ? 15 : 30);
+        setSelectedDate(newDate);
+        setSelectedHour(direction > 0 ? 9 : 15);
+        setSelectedMinute(direction > 0 ? 15 : 30);
+        return;
+      }
+
       let totalMinutes = selectedHour * 60 + selectedMinute + minutes;
       
-      // Clamp to market hours (9:15 = 555 to 15:30 = 930)
-      totalMinutes = Math.max(555, Math.min(930, totalMinutes));
+      const startMinutes = 9 * 60 + 15; // 9:15
+      const endMinutes = 15 * 60 + 30; // 15:30
+
+      // Handle overflow to next/previous day
+      if (totalMinutes < startMinutes) {
+        const prevDay = findNextTradingDay(selectedDate, -1);
+        setSelectedDate(prevDay);
+        setSelectedHour(15);
+        setSelectedMinute(30);
+        return;
+      } else if (totalMinutes > endMinutes) {
+        const nextDay = findNextTradingDay(selectedDate, 1);
+        setSelectedDate(nextDay);
+        setSelectedHour(9);
+        setSelectedMinute(15);
+        return;
+      }
       
       // Round to nearest 3-minute interval
       totalMinutes = Math.round(totalMinutes / 3) * 3;
@@ -138,8 +177,15 @@ const OptionSimulator = () => {
       setSelectedHour(newHour);
       setSelectedMinute(newMinute);
     },
-    [selectedHour, selectedMinute]
+    [selectedHour, selectedMinute, selectedDate, findNextTradingDay]
   );
+
+  // Auto-fetch data when time changes (but not date - date changes trigger expiry reload)
+  useEffect(() => {
+    if (activeExpiry && simulatorData) {
+      loadStrikesData();
+    }
+  }, [selectedTime]);
 
   // Handle authentication
   useEffect(() => {
