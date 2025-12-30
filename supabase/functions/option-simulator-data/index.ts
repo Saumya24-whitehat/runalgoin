@@ -17,17 +17,18 @@ serve(async (req) => {
     if (action === "getTradingDays") {
       // Fetch trading days
       const url = "https://runalgo.xyz/strategyBuilderWAutoPlay/getTradingDays.php";
-      
+
       console.log("Fetching trading days from:", url);
-      
+
       const response = await fetch(url, {
         headers: {
-          "accept": "*/*",
+          accept: "*/*",
           "x-requested-with": "XMLHttpRequest",
-          "referer": "https://runalgo.xyz/strategyBuilderWAutoPlay/",
+          referer: "https://runalgo.xyz/strategyBuilderWAutoPlay/",
         },
       });
 
+      console.log(response);
       if (!response.ok) {
         throw new Error(`Failed to fetch trading days: ${response.status}`);
       }
@@ -42,14 +43,14 @@ serve(async (req) => {
       // Fetch expiry dates
       const encodedSymbol = encodeURIComponent(symbol);
       const url = `https://runalgo.xyz/data/getExpiryDates2.php?symbol=${encodedSymbol}&date=${date}`;
-      
+
       console.log("Fetching expiry dates from:", url);
-      
+
       const response = await fetch(url, {
         headers: {
-          "accept": "*/*",
+          accept: "*/*",
           "x-requested-with": "XMLHttpRequest",
-          "referer": "https://runalgo.xyz/strategyBuilderWAutoPlay/",
+          referer: "https://runalgo.xyz/strategyBuilderWAutoPlay/",
         },
       });
 
@@ -66,7 +67,7 @@ serve(async (req) => {
     if (action === "getStrikesData") {
       // Fetch strikes data
       const url = "https://runalgo.xyz/strategyBuilderWAutoPlay/getAllStrikes_Comm_v2.php";
-      
+
       const formData = new URLSearchParams();
       formData.append("optSymbol", symbol);
       formData.append("SymbType", "NSE");
@@ -79,11 +80,11 @@ serve(async (req) => {
       const response = await fetch(url, {
         method: "POST",
         headers: {
-          "accept": "*/*",
+          accept: "*/*",
           "content-type": "application/x-www-form-urlencoded; charset=UTF-8",
           "x-requested-with": "XMLHttpRequest",
-          "origin": "https://runalgo.xyz",
-          "referer": "https://runalgo.xyz/strategyBuilderWAutoPlay/",
+          origin: "https://runalgo.xyz",
+          referer: "https://runalgo.xyz/strategyBuilderWAutoPlay/",
         },
         body: formData.toString(),
       });
