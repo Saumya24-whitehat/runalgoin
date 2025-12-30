@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.option-builder-data]
 verify_jwt = false
+
+[functions.option-simulator-data]
+verify_jwt = false
+
+[functions.upstox-websocket]
+verify_jwt = false
