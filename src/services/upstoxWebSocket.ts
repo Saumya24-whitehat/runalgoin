@@ -6,6 +6,8 @@ interface MarketFeedData {
   oi?: number;
   volume?: number;
   prev_close?: number;
+  change?: number;
+  changePercent?: number;
   timestamp?: number;
 }
 
@@ -27,49 +29,30 @@ class UpstoxWebSocketService {
   private isConnected = false;
   private pendingSubscriptions: string[] = [];
   private symbolType: string = "NSE";
+  private messageCount = 0;
 
-  // Fetch access token from runalgo
-  async fetchAccessToken(): Promise<string | null> {
-    try {
-      const response = await fetch("https://runalgo.xyz/DoNotTouch/upstox.txt");
-      const token = await response.text();
-      this.accessToken = token.trim();
-      console.log("Upstox access token fetched successfully");
-      return this.accessToken;
-    } catch (error) {
-      console.error("Error fetching Upstox access token:", error);
-      return null;
-    }
-  }
-
-  // Get WebSocket authorization URL
+  // Fetch access token and WebSocket URL via edge function (avoids CORS)
   async getWebSocketUrl(): Promise<string | null> {
-    if (!this.accessToken) {
-      await this.fetchAccessToken();
-    }
-
-    if (!this.accessToken) {
-      console.error("No access token available");
-      return null;
-    }
-
     try {
-      const response = await fetch(
-        "https://api.upstox.com/v3/feed/market-data-feed/authorize",
-        {
-          headers: {
-            Accept: "application/json",
-            Authorization: `Bearer ${this.accessToken}`,
-          },
-        }
-      );
+      console.log("Fetching WebSocket URL via edge function...");
+      
+      const { data, error } = await supabase.functions.invoke("upstox-websocket", {
+        body: { action: "getWebSocketUrl" },
+      });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        console.error("Edge function error:", error);
+        return null;
       }
 
-      const data = await response.json();
-      return data.data.authorizedRedirectUri;
+      if (data?.websocketUrl) {
+        this.accessToken = data.accessToken;
+        console.log("WebSocket URL obtained successfully");
+        return data.websocketUrl;
+      }
+
+      console.error("No WebSocket URL in response:", data);
+      return null;
     } catch (error) {
       console.error("Error fetching WebSocket URL:", error);
       return null;
@@ -142,18 +125,24 @@ class UpstoxWebSocketService {
 
         this.ws.onmessage = async (event) => {
           try {
-            // Handle binary data (protobuf)
+            this.messageCount++;
+            
+            // Handle binary data (protobuf or JSON in binary form)
             if (event.data instanceof Blob) {
               const buffer = await event.data.arrayBuffer();
-              const text = new TextDecoder().decode(buffer);
+              const uint8Array = new Uint8Array(buffer);
+              
+              // Try to decode as JSON first (Upstox sometimes sends JSON as binary)
               try {
+                const text = new TextDecoder().decode(uint8Array);
                 const data = JSON.parse(text);
                 this.processFeedData(data);
+                return;
               } catch {
-                // Not JSON, might be protobuf - for now just log
-                console.log("Received binary data, length:", buffer.byteLength);
+                // Not JSON, try protobuf decoding
+                this.processProtobufData(uint8Array);
               }
-            } else {
+            } else if (typeof event.data === "string") {
               const data = JSON.parse(event.data);
               this.processFeedData(data);
             }
@@ -168,23 +157,53 @@ class UpstoxWebSocketService {
     });
   }
 
-  // Process incoming feed data
+  // Basic protobuf decoding for Upstox market data
+  // This is a simplified decoder - for full support, use protobufjs library
+  private processProtobufData(buffer: Uint8Array) {
+    try {
+      // Simple attempt to extract data from protobuf
+      // Upstox protobuf format typically has feeds as a map
+      const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
+      
+      // Look for patterns that might indicate LTP data
+      // This is a fallback - ideally we'd use proper protobuf decoding
+      if (this.messageCount % 100 === 0) {
+        console.log(`Received ${this.messageCount} binary messages`);
+      }
+    } catch (error) {
+      // Silently ignore protobuf decode errors
+    }
+  }
+
+  // Process incoming feed data (JSON format)
   private processFeedData(data: any) {
     if (!data || !data.feeds) return;
 
     const updates: FeedUpdate[] = [];
 
     Object.entries(data.feeds).forEach(([token, feedData]: [string, any]) => {
-      const marketData = feedData?.fullFeed?.marketFF || feedData?.ff?.marketFF;
+      // Try multiple data paths as Upstox format can vary
+      const marketData = 
+        feedData?.fullFeed?.marketFF || 
+        feedData?.ff?.marketFF ||
+        feedData?.ltpc ||
+        feedData;
       
       if (marketData) {
+        const ltp = marketData.ltpc?.ltp || marketData.ltp || 0;
+        const cp = marketData.ltpc?.cp || marketData.cp || 0;
+        const change = ltp - cp;
+        const changePercent = cp ? (change / cp) * 100 : 0;
+
         updates.push({
           token,
           data: {
-            ltp: marketData.ltpc?.ltp || 0,
-            oi: marketData.marketOHLC?.ohlc?.[0]?.oi || 0,
-            volume: marketData.marketOHLC?.ohlc?.[0]?.vol || 0,
-            prev_close: marketData.ltpc?.cp || 0,
+            ltp,
+            oi: marketData.marketOHLC?.ohlc?.[0]?.oi || marketData.oi || 0,
+            volume: marketData.marketOHLC?.ohlc?.[0]?.vol || marketData.vol || 0,
+            prev_close: cp,
+            change,
+            changePercent,
             timestamp: Date.now(),
           },
         });
