@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const DATA_BASE_URL = 'http://runalgo.in/data';
+const DATA_BASE_URL = 'https://runalgo.xyz/strategyBuilder';
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -22,13 +22,18 @@ serve(async (req) => {
         // Fetch option chain data from runalgo API
         const formData = new URLSearchParams();
         formData.append('optSymbol', symbol || 'Nifty 50');
+        formData.append('SymbType', 'NSE');
+
+        console.log('Fetching option chain data for symbol:', symbol);
 
         const response = await fetch(`${DATA_BASE_URL}/getAllStrikes_Comm_v2.php`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-            'Referer': 'http://runalgo.in/',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'Origin': 'https://runalgo.xyz',
+            'Referer': 'https://runalgo.xyz/strategyBuilder/',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+            'X-Requested-With': 'XMLHttpRequest',
           },
           body: formData.toString(),
         });
