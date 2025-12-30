@@ -19,7 +19,9 @@ serve(async (req) => {
       const url = "https://runalgo.xyz/strategyBuilderWAutoPlay/getTradingDays.php";
 
       console.log("Fetching trading days from:", url);
-
+      new Response("Done", {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
       const response = await fetch(url, {
         headers: {
           accept: "*/*",
