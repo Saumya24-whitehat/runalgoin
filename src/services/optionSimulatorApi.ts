@@ -117,73 +117,58 @@ export async function fetchSimulatorStrikesData(
 
   // Extract data from API response
   if (data) {
-    // Get spot price
-    if (data.spotPrice) {
-      spotPrice = parseFloat(data.spotPrice);
-    } else if (data.underlyingValue) {
-      spotPrice = parseFloat(data.underlyingValue);
-    }
-
-    // Get lot size
+    // Get lot size from response
     if (data.lot) {
       lotSize = parseInt(data.lot);
     }
 
-    // Parse strikes data
-    // The API typically returns CE and PE data in arrays
-    const ceData = data.CE || data.ce || [];
-    const peData = data.PE || data.pe || [];
-    const strikeArray = data.strikeArray || data.strikes || [];
+    // Parse expiryWise data format
+    // Format: { expiryWise: { "2025-12-30": { strikes: [...], data: [...] } } }
+    const expiryData = data.expiryWise?.[expiry];
+    
+    if (expiryData && Array.isArray(expiryData.data)) {
+      expiryData.data.forEach((item: any) => {
+        // Get spot price from first item
+        if (spotPrice === 0 && item.underlying_spot_price) {
+          spotPrice = parseFloat(item.underlying_spot_price);
+        }
 
-    // Try to match CE and PE data by strike
-    if (Array.isArray(strikeArray) && strikeArray.length > 0) {
-      const uniqueStrikes = [...new Set(strikeArray.map((s: any) => parseFloat(s)))].sort((a, b) => a - b);
-      
-      uniqueStrikes.forEach((strike) => {
-        const strikeNum = typeof strike === 'string' ? parseFloat(strike) : strike;
-        const strikeIdx = strikeArray.findIndex((s: any) => parseFloat(s) === strikeNum);
-        
+        const callOptions = item.call_options || {};
+        const putOptions = item.put_options || {};
+        const callMarket = callOptions.market_data || {};
+        const putMarket = putOptions.market_data || {};
+        const callGreeks = callOptions.option_greeks || {};
+        const putGreeks = putOptions.option_greeks || {};
+
         strikes.push({
-          strike: strikeNum,
-          cePrice: ceData[strikeIdx]?.ltp || ceData[strikeIdx]?.price || 0,
-          pePrice: peData[strikeIdx]?.ltp || peData[strikeIdx]?.price || 0,
-          ceIV: ceData[strikeIdx]?.iv || 0,
-          peIV: peData[strikeIdx]?.iv || 0,
-          ceOI: ceData[strikeIdx]?.oi || 0,
-          peOI: peData[strikeIdx]?.oi || 0,
-          ceVolume: ceData[strikeIdx]?.volume || 0,
-          peVolume: peData[strikeIdx]?.volume || 0,
-          ceDelta: ceData[strikeIdx]?.delta,
-          peDelta: peData[strikeIdx]?.delta,
-          ceGamma: ceData[strikeIdx]?.gamma,
-          peGamma: peData[strikeIdx]?.gamma,
-          ceTheta: ceData[strikeIdx]?.theta,
-          peTheta: peData[strikeIdx]?.theta,
-          ceVega: ceData[strikeIdx]?.vega,
-          peVega: peData[strikeIdx]?.vega,
+          strike: parseFloat(item.strike_price),
+          cePrice: parseFloat(callMarket.ltp) || 0,
+          pePrice: parseFloat(putMarket.ltp) || 0,
+          ceIV: parseFloat(callGreeks.iv) || 0,
+          peIV: parseFloat(putGreeks.iv) || 0,
+          ceOI: parseFloat(callMarket.oi) || 0,
+          peOI: parseFloat(putMarket.oi) || 0,
+          ceVolume: parseFloat(callMarket.volume) || 0,
+          peVolume: parseFloat(putMarket.volume) || 0,
+          ceDelta: parseFloat(callGreeks.delta) || undefined,
+          peDelta: parseFloat(putGreeks.delta) || undefined,
+          ceGamma: parseFloat(callGreeks.gamma) || undefined,
+          peGamma: parseFloat(putGreeks.gamma) || undefined,
+          ceTheta: parseFloat(callGreeks.theta) || undefined,
+          peTheta: parseFloat(putGreeks.theta) || undefined,
+          ceVega: parseFloat(callGreeks.vega) || undefined,
+          peVega: parseFloat(putGreeks.vega) || undefined,
         });
       });
     }
 
-    // Alternative parsing if data comes in a different format
-    if (strikes.length === 0 && data.data) {
-      const rawData = data.data;
-      Object.keys(rawData).forEach((key) => {
-        const strikeData = rawData[key];
-        if (strikeData && strikeData.strike) {
-          strikes.push({
-            strike: parseFloat(strikeData.strike),
-            cePrice: parseFloat(strikeData.ceLtp || 0),
-            pePrice: parseFloat(strikeData.peLtp || 0),
-            ceIV: parseFloat(strikeData.ceIv || 0),
-            peIV: parseFloat(strikeData.peIv || 0),
-            ceOI: parseFloat(strikeData.ceOi || 0),
-            peOI: parseFloat(strikeData.peOi || 0),
-            ceVolume: parseFloat(strikeData.ceVol || 0),
-            peVolume: parseFloat(strikeData.peVol || 0),
-          });
-        }
-      });
+    // Fallback: try TotalATMvalues if expiryWise is not available
+    if (strikes.length === 0 && data.TotalATMvalues) {
+      // Get spot price from first data item if available
+      const firstDataItem = data.expiryWise?.[Object.keys(data.expiryWise || {})[0]]?.data?.[0];
+      if (firstDataItem?.underlying_spot_price) {
+        spotPrice = parseFloat(firstDataItem.underlying_spot_price);
+      }
     }
   }
 
