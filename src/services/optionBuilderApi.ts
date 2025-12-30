@@ -244,7 +244,7 @@ export const calculatePLToday = (positions: Position[], spotPrice: number): numb
     const T = Math.max(daysToExpiry, 0.01) / 365; // Minimum 0.01 to avoid division by zero
 
     // Use position's IV or default to 15%
-    const volatility = Math.max(position.IV || 15, 5) / 100;
+    const volatility = Math.max(position.IV / 100 || 15, 5) / 100;
 
     console.log([spotPrice, position.strike, T, r, volatility]);
     let theoreticalPrice = 0;
