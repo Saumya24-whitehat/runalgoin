@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -20,6 +20,8 @@ import {
   ChevronRight,
   ChevronUp,
   ChevronDown,
+  Wifi,
+  WifiOff,
 } from "lucide-react";
 import OptionBuilderChart from "@/components/optionBuilder/OptionBuilderChart";
 import OptionBuilderPositions from "@/components/optionBuilder/OptionBuilderPositions";
@@ -27,6 +29,9 @@ import OptionBuilderGreeks from "@/components/optionBuilder/OptionBuilderGreeks"
 import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetrics";
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import OptionBuilderChain from "@/components/optionBuilder/OptionBuilderChain";
+import OptionBuilderSettings, { OptionBuilderSettingsConfig, DEFAULT_SETTINGS } from "@/components/optionBuilder/OptionBuilderSettings";
+import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
+import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
 import {
   Position,
   OptionChainResponse,
@@ -38,6 +43,7 @@ import {
   calculateMargin,
   formatIndianNumber,
 } from "@/services/optionBuilderApi";
+import { upstoxWebSocket } from "@/services/upstoxWebSocket";
 
 const SYMBOLS = [
   { value: "Nifty 50", label: "NIFTY" },
@@ -45,6 +51,9 @@ const SYMBOLS = [
   { value: "Nifty Fin Service", label: "FINNIFTY" },
   { value: "Nifty Mid Select", label: "MIDCPNIFTY" },
 ];
+
+const STORAGE_KEY_SETTINGS = "optionBuilder_settings";
+const STORAGE_KEY_STRATEGIES = "optionBuilder_strategies";
 
 const OptionBuilder = () => {
   const { user, loading } = useAuth();
@@ -62,12 +71,117 @@ const OptionBuilder = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [margin, setMargin] = useState<number>(0);
 
+  // Settings and dialogs
+  const [settings, setSettings] = useState<OptionBuilderSettingsConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
+      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [saveDialogOpen, setSaveDialogOpen] = useState(false);
+  const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_STRATEGIES);
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // WebSocket state
+  const [wsConnected, setWsConnected] = useState(false);
+  const wsInitialized = useRef(false);
+
   // Handle authentication
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Initialize WebSocket for live data
+  useEffect(() => {
+    if (!settings.liveFeedEnabled || wsInitialized.current) return;
+
+    const initWebSocket = async () => {
+      try {
+        wsInitialized.current = true;
+        
+        // Set up feed callback
+        upstoxWebSocket.setFeedCallback((updates) => {
+          // Update positions with live data
+          setPositions((prev) =>
+            prev.map((p) => {
+              const update = updates.find((u) => {
+                const token = u.token.split("|")[1] || u.token;
+                return p.instrumentToken === token || p.instrumentToken?.includes(token);
+              });
+              if (update && !p.exitPrice) {
+                return { ...p, currentPrice: update.data.ltp };
+              }
+              return p;
+            })
+          );
+
+          // Update option chain data with live prices
+          if (optionChainData) {
+            // We could update the expiryData here if needed
+          }
+        });
+
+        const connected = await upstoxWebSocket.connect();
+        setWsConnected(connected);
+        
+        if (connected) {
+          toast.success("Live feed connected");
+        }
+      } catch (error) {
+        console.error("WebSocket initialization error:", error);
+        setWsConnected(false);
+      }
+    };
+
+    initWebSocket();
+
+    return () => {
+      // Don't disconnect on unmount to keep connection persistent
+    };
+  }, [settings.liveFeedEnabled]);
+
+  // Subscribe to tokens when option chain data changes
+  useEffect(() => {
+    if (!wsConnected || !optionChainData) return;
+
+    // Collect all tokens from all expiries
+    const allTokens: string[] = [];
+    Object.values(optionChainData.expiryWise || {}).forEach((expiryData) => {
+      if (expiryData.ceToken) allTokens.push(...expiryData.ceToken);
+      if (expiryData.peToken) allTokens.push(...expiryData.peToken);
+    });
+
+    // Also add spot token if available
+    if (optionChainData.spotToken) {
+      allTokens.push(optionChainData.spotToken);
+    }
+
+    if (allTokens.length > 0) {
+      upstoxWebSocket.subscribe(allTokens);
+    }
+  }, [wsConnected, optionChainData]);
+
+  // Save settings to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+  }, [settings]);
+
+  // Save strategies to localStorage
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_STRATEGIES, JSON.stringify(savedStrategies));
+  }, [savedStrategies]);
 
   // Fetch option chain data when symbol changes
   useEffect(() => {
@@ -384,6 +498,50 @@ const OptionBuilder = () => {
     }
   }, [symbol, currentPrice]);
 
+  const handleSaveStrategy = useCallback((name: string, description: string, type: string) => {
+    const newStrategy: SavedStrategy = {
+      id: Math.random().toString(36).substr(2, 9),
+      name,
+      description,
+      type,
+      positions: [...positions],
+      symbol,
+      createdAt: new Date().toISOString(),
+    };
+    setSavedStrategies((prev) => [...prev, newStrategy]);
+    toast.success("Strategy saved");
+  }, [positions, symbol]);
+
+  const handleLoadStrategy = useCallback((strategy: SavedStrategy) => {
+    setPositions(strategy.positions.map((p) => ({
+      ...p,
+      id: Math.random().toString(36).substr(2, 9),
+    })));
+    setShowStrategies(false);
+    toast.success(`Loaded: ${strategy.name}`);
+  }, []);
+
+  const handleDeleteStrategy = useCallback((id: string) => {
+    setSavedStrategies((prev) => prev.filter((s) => s.id !== id));
+    toast.success("Strategy deleted");
+  }, []);
+
+  const handleCopyToClipboard = useCallback(() => {
+    const strategyData = {
+      symbol,
+      positions: positions.map((p) => ({
+        action: p.action,
+        strike: p.strike,
+        optType: p.optType,
+        lots: p.lots,
+        expiry: p.expiry,
+        entryPrice: p.entryPrice,
+      })),
+    };
+    navigator.clipboard.writeText(JSON.stringify(strategyData, null, 2));
+    toast.success("Strategy copied to clipboard");
+  }, [positions, symbol]);
+
   const navigateExpiry = (direction: "prev" | "next") => {
     const currentIndex = expiries.indexOf(activeExpiry);
     if (direction === "prev" && currentIndex > 0) {
@@ -425,14 +583,25 @@ const OptionBuilder = () => {
                   ))}
                 </SelectContent>
               </Select>
+              {/* WebSocket status indicator */}
+              <div className="flex items-center gap-1 text-xs">
+                {wsConnected ? (
+                  <Wifi className="h-3 w-3 text-emerald-500" />
+                ) : (
+                  <WifiOff className="h-3 w-3 text-muted-foreground" />
+                )}
+                <span className={wsConnected ? "text-emerald-500" : "text-muted-foreground"}>
+                  {wsConnected ? "Live" : "Offline"}
+                </span>
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={() => toast.info("Save feature coming soon")}>
+              <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} disabled={!hasPositions}>
                 <Save className="h-4 w-4 mr-1" />
                 Save
               </Button>
-              <Button variant="outline" size="sm" onClick={() => toast.info("Load feature coming soon")}>
+              <Button variant="outline" size="sm" onClick={() => setLoadDialogOpen(true)}>
                 <Download className="h-4 w-4 mr-1" />
                 Load
               </Button>
@@ -443,10 +612,10 @@ const OptionBuilder = () => {
                 <Plus className="h-4 w-4 mr-1" />
                 New
               </Button>
-              <Button variant="outline" size="sm" onClick={() => toast.info("Copy feature coming soon")}>
+              <Button variant="outline" size="sm" onClick={handleCopyToClipboard} disabled={!hasPositions}>
                 <Copy className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
