@@ -70,12 +70,17 @@ export async function fetchSimulatorExpiryDates(symbol: string, date: string): P
     throw error;
   }
 
-  // The API returns an array of expiry dates
+  // Handle response format: { symbol: "Nifty 50", latest_date: "...", expiry_dates: [...] }
+  if (data && data.expiry_dates && Array.isArray(data.expiry_dates)) {
+    return data.expiry_dates;
+  }
+
+  // Fallback: The API returns an array of expiry dates directly
   if (Array.isArray(data)) {
     return data;
   }
 
-  // Handle object response
+  // Handle other object response formats
   if (data && data.expiries) {
     return data.expiries;
   }
