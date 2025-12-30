@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ChevronDown, TrendingUp, Menu, X, LogOut, LogIn, BarChart3, LineChart, Layers, Crown, Bot, Star, Link2, Target, Flame, Filter, Wrench, Scale, BarChart2, Calculator, PieChart, Activity } from "lucide-react";
+import { ChevronDown, TrendingUp, Menu, X, LogOut, LogIn, BarChart3, LineChart, Layers, Crown, Bot, Star, Link2, Target, Flame, Filter, Wrench, Scale, BarChart2, Calculator, PieChart, Activity, Play } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,7 @@ const navItems: NavItem[] = [
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500", path: "/option-heatmap" },
           { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
           { icon: Wrench, label: "Option Builder", iconColor: "text-primary", path: "/option-builder" },
+          { icon: Play, label: "Option Simulator", iconColor: "text-yellow-500", path: "/option-simulator" },
         ],
       },
       {
