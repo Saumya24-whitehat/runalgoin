@@ -6,9 +6,10 @@ interface OptionBuilderMetricsProps {
   breakevens: number[];
   currentPL: number;
   riskReward: number | null;
+  margin?: number;
 }
 
-const OptionBuilderMetrics = ({ maxProfit, maxLoss, breakevens, currentPL, riskReward }: OptionBuilderMetricsProps) => {
+const OptionBuilderMetrics = ({ maxProfit, maxLoss, breakevens, currentPL, riskReward, margin }: OptionBuilderMetricsProps) => {
   const formatCurrency = (value: number | 'Unlimited') => {
     if (value === 'Unlimited') return 'Unlimited';
     if (Math.abs(value) >= 100000) {
@@ -21,7 +22,7 @@ const OptionBuilderMetrics = ({ maxProfit, maxLoss, breakevens, currentPL, riskR
     {
       title: 'Max Profit',
       value: formatCurrency(maxProfit),
-      className: typeof maxProfit === 'number' && maxProfit > 0 ? 'text-green-500' : '',
+      className: typeof maxProfit === 'number' && maxProfit > 0 ? 'text-emerald-500' : '',
     },
     {
       title: 'Max Loss',
@@ -41,8 +42,13 @@ const OptionBuilderMetrics = ({ maxProfit, maxLoss, breakevens, currentPL, riskR
     {
       title: 'Current P/L',
       value: formatCurrency(currentPL),
-      className: currentPL >= 0 ? 'text-green-500' : 'text-red-500',
+      className: currentPL >= 0 ? 'text-emerald-500' : 'text-red-500',
     },
+    ...(margin && margin > 0 ? [{
+      title: 'Margin Required',
+      value: formatCurrency(margin),
+      className: '',
+    }] : []),
   ];
 
   return (

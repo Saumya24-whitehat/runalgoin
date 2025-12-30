@@ -1,13 +1,16 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Position } from '@/services/optionBuilderApi';
+import { Position, ExpiryData, formatIndianNumber } from '@/services/optionBuilderApi';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface OptionBuilderChainProps {
   symbol: string;
   expiry: string;
   currentPrice: number;
   lotSize: number;
+  expiryData: ExpiryData | null;
+  isLoading: boolean;
   onAddPosition: (position: Omit<Position, 'id' | 'enabled'>) => void;
 }
 
@@ -16,50 +19,67 @@ interface StrikeData {
   callLTP: number;
   callIV: number;
   callDelta: number;
+  callTheta: number;
+  callGamma: number;
+  callVega: number;
   callOI: number;
+  callVolume: number;
+  callToken: string;
   putLTP: number;
   putIV: number;
   putDelta: number;
+  putTheta: number;
+  putGamma: number;
+  putVega: number;
   putOI: number;
+  putVolume: number;
+  putToken: string;
 }
 
-const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPosition }: OptionBuilderChainProps) => {
+const OptionBuilderChain = ({ 
+  symbol, 
+  expiry, 
+  currentPrice, 
+  lotSize, 
+  expiryData,
+  isLoading,
+  onAddPosition 
+}: OptionBuilderChainProps) => {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
-  // Generate mock strike data around current price
+  // Transform expiry data into strike data array
   const strikeData: StrikeData[] = useMemo(() => {
-    const strikeDiff = symbol.includes('Bank') ? 100 : 50;
-    const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
-    const strikes: StrikeData[] = [];
-
-    for (let i = -10; i <= 10; i++) {
-      const strike = atm + (i * strikeDiff);
-      const moneyness = (currentPrice - strike) / currentPrice;
-      
-      // Mock prices based on moneyness
-      const callIV = 15 + Math.random() * 5;
-      const putIV = 15 + Math.random() * 5;
-      
-      const callIntrinsic = Math.max(0, currentPrice - strike);
-      const putIntrinsic = Math.max(0, strike - currentPrice);
-      
-      const timeValue = Math.max(50, 200 - Math.abs(i) * 20) * (1 + Math.random() * 0.2);
-      
-      strikes.push({
-        strike,
-        callLTP: Math.round((callIntrinsic + (i < 0 ? timeValue : timeValue * 0.5)) * 100) / 100,
-        callIV: Math.round(callIV * 100) / 100,
-        callDelta: Math.min(1, Math.max(0, 0.5 - moneyness * 2)),
-        callOI: Math.round(100000 + Math.random() * 500000),
-        putLTP: Math.round((putIntrinsic + (i > 0 ? timeValue : timeValue * 0.5)) * 100) / 100,
-        putIV: Math.round(putIV * 100) / 100,
-        putDelta: Math.max(-1, Math.min(0, -0.5 - moneyness * 2)),
-        putOI: Math.round(100000 + Math.random() * 500000),
-      });
+    if (!expiryData || !expiryData.data || expiryData.data.length === 0) {
+      return [];
     }
 
-    return strikes;
-  }, [symbol, currentPrice]);
+    return expiryData.data.map((item, idx) => {
+      const callData = item.call_options;
+      const putData = item.put_options;
+
+      return {
+        strike: item.strike_price,
+        callLTP: callData?.market_data?.ltp || 0,
+        callIV: (callData?.option_greeks?.iv || 0) * 100,
+        callDelta: callData?.option_greeks?.delta || 0,
+        callTheta: callData?.option_greeks?.theta || 0,
+        callGamma: callData?.option_greeks?.gamma || 0,
+        callVega: callData?.option_greeks?.vega || 0,
+        callOI: callData?.market_data?.oi || 0,
+        callVolume: callData?.market_data?.volume || 0,
+        callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || '',
+        putLTP: putData?.market_data?.ltp || 0,
+        putIV: (putData?.option_greeks?.iv || 0) * 100,
+        putDelta: putData?.option_greeks?.delta || 0,
+        putTheta: putData?.option_greeks?.theta || 0,
+        putGamma: putData?.option_greeks?.gamma || 0,
+        putVega: putData?.option_greeks?.vega || 0,
+        putOI: putData?.market_data?.oi || 0,
+        putVolume: putData?.market_data?.volume || 0,
+        putToken: expiryData.peToken?.[idx] || putData?.instrument_key || '',
+      };
+    });
+  }, [expiryData]);
 
   const handleAddPosition = (strike: number, optType: 'CE' | 'PE', action: 'Buy' | 'Sell') => {
     const data = strikeData.find(s => s.strike === strike);
@@ -69,6 +89,10 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
     const price = optType === 'CE' ? data.callLTP : data.putLTP;
     const iv = optType === 'CE' ? data.callIV : data.putIV;
     const delta = optType === 'CE' ? data.callDelta : data.putDelta;
+    const theta = optType === 'CE' ? data.callTheta : data.putTheta;
+    const gamma = optType === 'CE' ? data.callGamma : data.putGamma;
+    const vega = optType === 'CE' ? data.callVega : data.putVega;
+    const token = optType === 'CE' ? data.callToken : data.putToken;
 
     onAddPosition({
       action,
@@ -82,13 +106,17 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
       IV: iv,
       lotSize,
       delta,
-      gamma: 0.001,
-      theta: -10,
-      vega: 5,
+      gamma,
+      theta,
+      vega,
+      instrumentToken: token,
     });
   };
 
   const formatNumber = (num: number) => {
+    if (num >= 10000000) {
+      return `${(num / 10000000).toFixed(1)}Cr`;
+    }
     if (num >= 100000) {
       return `${(num / 100000).toFixed(1)}L`;
     }
@@ -98,25 +126,46 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
     return num.toString();
   };
 
-  const atmStrike = Math.round(currentPrice / (symbol.includes('Bank') ? 100 : 50)) * (symbol.includes('Bank') ? 100 : 50);
+  const strikeDiff = symbol.includes('Bank') ? 100 : 50;
+  const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        {Array.from({ length: 10 }).map((_, i) => (
+          <Skeleton key={i} className="h-10 w-full" />
+        ))}
+      </div>
+    );
+  }
+
+  if (strikeData.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No option chain data available for {expiry}
+      </div>
+    );
+  }
 
   return (
     <div className="max-h-[400px] overflow-auto">
       <Table>
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
-            <TableHead className="text-center text-green-500">OI</TableHead>
-            <TableHead className="text-center text-green-500">IV</TableHead>
-            <TableHead className="text-center text-green-500">LTP</TableHead>
-            <TableHead className="text-center font-bold">Strike</TableHead>
-            <TableHead className="text-center text-red-500">LTP</TableHead>
-            <TableHead className="text-center text-red-500">IV</TableHead>
-            <TableHead className="text-center text-red-500">OI</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
+            <TableHead className="text-center font-bold text-xs">Strike</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {strikeData.map((row) => {
-            const isATM = row.strike === atmStrike;
+            const isATM = Math.abs(row.strike - atmStrike) < strikeDiff / 2;
             const isITMCall = row.strike < currentPrice;
             const isITMPut = row.strike > currentPrice;
             const isHovered = hoveredRow === row.strike;
@@ -133,21 +182,24 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 {/* Call Side */}
-                <TableCell className={`text-center text-sm ${isITMCall ? 'bg-green-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-emerald-500/10' : ''}`}>
                   {formatNumber(row.callOI)}
                 </TableCell>
-                <TableCell className={`text-center text-sm ${isITMCall ? 'bg-green-500/10' : ''}`}>
-                  {row.callIV.toFixed(1)}%
+                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-emerald-500/10' : ''}`}>
+                  {formatNumber(row.callVolume)}
+                </TableCell>
+                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-emerald-500/10' : ''}`}>
+                  {row.callIV.toFixed(1)}
                 </TableCell>
                 <TableCell 
-                  className={`text-center relative ${isITMCall ? 'bg-green-500/10' : ''}`}
+                  className={`text-center relative ${isITMCall ? 'bg-emerald-500/10' : ''}`}
                 >
-                  <span className="text-sm font-medium">{row.callLTP.toFixed(2)}</span>
+                  <span className="text-xs font-medium">{row.callLTP.toFixed(2)}</span>
                   {isHovered && (
                     <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                       <Button 
                         size="sm" 
-                        className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700"
+                        className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
                         onClick={() => handleAddPosition(row.strike, 'CE', 'Buy')}
                       >
                         B
@@ -165,7 +217,7 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
                 </TableCell>
 
                 {/* Strike */}
-                <TableCell className={`text-center font-bold ${isATM ? 'text-primary' : ''}`}>
+                <TableCell className={`text-center font-bold text-xs ${isATM ? 'text-primary bg-primary/20' : ''}`}>
                   {row.strike}
                 </TableCell>
 
@@ -173,12 +225,12 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
                 <TableCell 
                   className={`text-center relative ${isITMPut ? 'bg-red-500/10' : ''}`}
                 >
-                  <span className="text-sm font-medium">{row.putLTP.toFixed(2)}</span>
+                  <span className="text-xs font-medium">{row.putLTP.toFixed(2)}</span>
                   {isHovered && (
                     <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                       <Button 
                         size="sm" 
-                        className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700"
+                        className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
                         onClick={() => handleAddPosition(row.strike, 'PE', 'Buy')}
                       >
                         B
@@ -194,10 +246,13 @@ const OptionBuilderChain = ({ symbol, expiry, currentPrice, lotSize, onAddPositi
                     </div>
                   )}
                 </TableCell>
-                <TableCell className={`text-center text-sm ${isITMPut ? 'bg-red-500/10' : ''}`}>
-                  {row.putIV.toFixed(1)}%
+                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-red-500/10' : ''}`}>
+                  {row.putIV.toFixed(1)}
                 </TableCell>
-                <TableCell className={`text-center text-sm ${isITMPut ? 'bg-red-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-red-500/10' : ''}`}>
+                  {formatNumber(row.putVolume)}
+                </TableCell>
+                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-red-500/10' : ''}`}>
                   {formatNumber(row.putOI)}
                 </TableCell>
               </TableRow>
