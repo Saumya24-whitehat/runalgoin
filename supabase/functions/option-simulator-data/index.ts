@@ -14,6 +14,30 @@ serve(async (req) => {
   try {
     const { action, symbol, date, time, expiry } = await req.json();
 
+    if (action === "getTradingDays") {
+      // Fetch trading days
+      const url = "https://runalgo.xyz/strategyBuilderWAutoPlay/getTradingDays.php";
+      
+      console.log("Fetching trading days from:", url);
+      
+      const response = await fetch(url, {
+        headers: {
+          "accept": "*/*",
+          "x-requested-with": "XMLHttpRequest",
+          "referer": "https://runalgo.xyz/strategyBuilderWAutoPlay/",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch trading days: ${response.status}`);
+      }
+
+      const data = await response.json();
+      return new Response(JSON.stringify(data), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "getExpiryDates") {
       // Fetch expiry dates
       const encodedSymbol = encodeURIComponent(symbol);
