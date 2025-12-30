@@ -159,6 +159,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, ta
     }
   });
 
+  console.log(positions);
   if (!closestExpiry) return 0;
 
   const r = 0.05; // Risk-free rate
