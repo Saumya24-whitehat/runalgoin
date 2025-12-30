@@ -142,37 +142,128 @@ const normalCDF = (x: number): number => {
 
 // Calculate P&L at expiry for a given spot price
 // For calendar spreads, we calculate each position's P/L based on its own expiry
+// export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, targetExpiry?: string): number => {
+//   let totalPL = 0;
+
+//   positions.forEach((position) => {
+//     if (!position.enabled) return;
+
+//     // If position is exited, calculate based on exit price
+//     if (position.exitPrice !== undefined) {
+//       const pl =
+//         (position.exitPrice - position.entryPrice) *
+//         position.lots *
+//         position.lotSize *
+//         (position.action === "Buy" ? 1 : -1);
+//       totalPL += pl;
+//       return;
+//     }
+
+//     const multiplier = position.action === "Buy" ? 1 : -1;
+//     const quantity = position.lots * position.lotSize;
+//     let intrinsicValue = 0;
+
+//     if (position.optType === "CE") {
+//       intrinsicValue = Math.max(0, spotPrice - position.strike);
+//     } else if (position.optType === "PE") {
+//       intrinsicValue = Math.max(0, position.strike - spotPrice);
+//     } else if (position.optType === "FUTURE") {
+//       intrinsicValue = spotPrice;
+//     }
+
+//     // P/L = (Intrinsic Value at Expiry - Entry Price) * Quantity * Multiplier
+//     const positionPL = (intrinsicValue - position.entryPrice) * quantity * multiplier;
+//     totalPL += positionPL;
+//   });
+
+//   return totalPL;
+// };
+
 export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, targetExpiry?: string): number => {
   let totalPL = 0;
 
+  // -----------------------------
+  // 1) FIND CLOSEST EXPIRY FIRST
+  // -----------------------------
+  let closestExpiry: string | null = null;
+
+  positions.forEach((pos) => {
+    if (!pos.enabled || !pos.expiry) return;
+
+    if (!closestExpiry) {
+      closestExpiry = pos.expiry;
+    } else {
+      const d1 = new Date(pos.expiry).getTime();
+      const d2 = new Date(closestExpiry).getTime();
+      if (d1 < d2) closestExpiry = pos.expiry;
+    }
+  });
+
+  if (!closestExpiry) return 0;
+
+  const r = 0.05; // Risk-free rate
+
+  // ---------------------------------------------------
+  // 2) RUN P&L CALCULATION BASED ON EXPIRY MATCH
+  // ---------------------------------------------------
   positions.forEach((position) => {
     if (!position.enabled) return;
 
-    // If position is exited, calculate based on exit price
+    // ----- EXITED POSITION -----
     if (position.exitPrice !== undefined) {
       const pl =
         (position.exitPrice - position.entryPrice) *
         position.lots *
         position.lotSize *
         (position.action === "Buy" ? 1 : -1);
+
       totalPL += pl;
       return;
     }
 
     const multiplier = position.action === "Buy" ? 1 : -1;
     const quantity = position.lots * position.lotSize;
-    let intrinsicValue = 0;
 
-    if (position.optType === "CE") {
-      intrinsicValue = Math.max(0, spotPrice - position.strike);
-    } else if (position.optType === "PE") {
-      intrinsicValue = Math.max(0, position.strike - spotPrice);
-    } else if (position.optType === "FUTURE") {
-      intrinsicValue = spotPrice;
+    // ---------------------------------------------------
+    // CASE A — Expiry = Closest Expiry → Intrinsic P&L
+    // ---------------------------------------------------
+    if (position.expiry === closestExpiry) {
+      let intrinsic = 0;
+
+      if (position.optType === "CE") {
+        intrinsic = Math.max(0, spotPrice - position.strike);
+      } else if (position.optType === "PE") {
+        intrinsic = Math.max(0, position.strike - spotPrice);
+      } else if (position.optType === "FUTURE") {
+        intrinsic = spotPrice;
+      }
+
+      const pl = (intrinsic - position.entryPrice) * quantity * multiplier;
+      totalPL += pl;
+      return;
     }
 
-    // P/L = (Intrinsic Value at Expiry - Entry Price) * Quantity * Multiplier
-    const positionPL = (intrinsicValue - position.entryPrice) * quantity * multiplier;
+    // ---------------------------------------------------
+    // CASE B — Other Expiries → Black-Scholes P&L
+    // ---------------------------------------------------
+
+    const daysToExpiry = getDaysUntilExpiry(position.expiry);
+    const T = Math.max(daysToExpiry, 0.01) / 365; // Prevent divide by zero
+
+    // IV fallback — min 5%, fallback to 15% if missing
+    const volatility = Math.max(position.IV / 100 || 0.15, 0.05);
+
+    let theoreticalPrice = 0;
+
+    if (position.optType === "CE") {
+      theoreticalPrice = blackScholesCall(spotPrice, position.strike, T, r, volatility);
+    } else if (position.optType === "PE") {
+      theoreticalPrice = blackScholesPut(spotPrice, position.strike, T, r, volatility);
+    } else if (position.optType === "FUTURE") {
+      theoreticalPrice = spotPrice * Math.exp(r * T);
+    }
+
+    const positionPL = (theoreticalPrice - position.entryPrice) * quantity * multiplier;
     totalPL += positionPL;
   });
 
