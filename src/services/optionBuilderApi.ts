@@ -139,35 +139,65 @@ const normalCDF = (x: number): number => {
 };
 
 // Calculate P&L at expiry for a given spot price
-// For calendar spreads, we calculate each position's P/L based on its own expiry
-export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, targetExpiry?: string): number => {
-  let totalPL = 0;
+// For calendar spreads, calculate each position's P/L based on its own expiry
+// At earliest expiry: options at that expiry expire at intrinsic, other positions valued via Black-Scholes
+export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): number => {
+  const enabledPositions = positions.filter(p => p.enabled && !p.exitPrice);
+  const exitedPositions = positions.filter(p => p.exitPrice !== undefined);
+  
+  // Calculate exited P/L first
+  let totalPL = exitedPositions.reduce((sum, pos) => {
+    return sum + (pos.exitPrice! - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === 'Buy' ? 1 : -1);
+  }, 0);
 
-  positions.forEach(position => {
-    if (!position.enabled) return;
+  if (enabledPositions.length === 0) return totalPL;
 
-    // If position is exited, calculate based on exit price
-    if (position.exitPrice !== undefined) {
-      const pl = (position.exitPrice - position.entryPrice) * position.lots * position.lotSize * (position.action === 'Buy' ? 1 : -1);
-      totalPL += pl;
-      return;
-    }
+  // Get sorted unique expiries
+  const sortedExpiries = [...new Set(enabledPositions.map(p => p.expiry))]
+    .sort((a, b) => getDaysUntilExpiry(a) - getDaysUntilExpiry(b));
+  
+  const earliestExpiry = sortedExpiries.length > 0 ? sortedExpiries[0] : null;
+  const r = 0.05; // Risk-free rate
 
+  enabledPositions.forEach(position => {
     const multiplier = position.action === 'Buy' ? 1 : -1;
     const quantity = position.lots * position.lotSize;
-    let intrinsicValue = 0;
+    let positionPL = 0;
 
-    if (position.optType === 'CE') {
-      intrinsicValue = Math.max(0, spotPrice - position.strike);
-    } else if (position.optType === 'PE') {
-      intrinsicValue = Math.max(0, position.strike - spotPrice);
-    } else if (position.optType === 'FUTURE') {
-      intrinsicValue = spotPrice;
+    // For positions expiring at the earliest date, calculate expiry (intrinsic) value
+    if (earliestExpiry && position.expiry === earliestExpiry) {
+      if (position.optType === 'CE') {
+        const intrinsic = Math.max(0, spotPrice - position.strike);
+        positionPL = (intrinsic - position.entryPrice) * quantity;
+      } else if (position.optType === 'PE') {
+        const intrinsic = Math.max(0, position.strike - spotPrice);
+        positionPL = (intrinsic - position.entryPrice) * quantity;
+      } else if (position.optType === 'FUTURE') {
+        positionPL = (spotPrice - position.entryPrice) * quantity;
+      }
+    } else {
+      // For later expiries, calculate theoretical value using Black-Scholes
+      // Days from earliest expiry to this position's expiry
+      const earliestDate = parseExpiryDate(earliestExpiry!);
+      const positionDate = parseExpiryDate(position.expiry);
+      const daysToExpiry = Math.max(1, Math.ceil((positionDate.getTime() - earliestDate.getTime()) / (1000 * 60 * 60 * 24)));
+      
+      const T = daysToExpiry / 365;
+      const volatility = Math.max((position.IV || 15), 5) / 100;
+
+      let optionValue = 0;
+      if (position.optType === 'CE') {
+        optionValue = blackScholesCall(spotPrice, position.strike, T, r, volatility);
+      } else if (position.optType === 'PE') {
+        optionValue = blackScholesPut(spotPrice, position.strike, T, r, volatility);
+      } else if (position.optType === 'FUTURE') {
+        optionValue = spotPrice;
+      }
+
+      positionPL = (optionValue - position.entryPrice) * quantity;
     }
 
-    // P/L = (Intrinsic Value at Expiry - Entry Price) * Quantity * Multiplier
-    const positionPL = (intrinsicValue - position.entryPrice) * quantity * multiplier;
-    totalPL += positionPL;
+    totalPL += positionPL * multiplier;
   });
 
   return totalPL;
@@ -200,29 +230,29 @@ export const getDaysUntilExpiry = (expiry: string): number => {
   return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 };
 
-// Calculate P&L for today using Black-Scholes
-// Handles positions with different expiries (calendar spreads)
+// Calculate P&L for today using Black-Scholes (matching script.js generatePLDataToday)
+// Uses each position's own expiry date relative to today
 export const calculatePLToday = (positions: Position[], spotPrice: number): number => {
-  let totalPL = 0;
-  const r = 0.06; // Risk-free rate (6% for Indian markets)
+  const enabledPositions = positions.filter(p => p.enabled && !p.exitPrice);
+  const exitedPositions = positions.filter(p => p.exitPrice !== undefined);
+  
+  // Calculate exited P/L first
+  let totalPL = exitedPositions.reduce((sum, pos) => {
+    return sum + (pos.exitPrice! - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === 'Buy' ? 1 : -1);
+  }, 0);
 
-  positions.forEach(position => {
-    if (!position.enabled) return;
-    
-    if (position.exitPrice !== undefined) {
-      const pl = (position.exitPrice - position.entryPrice) * position.lots * position.lotSize * (position.action === 'Buy' ? 1 : -1);
-      totalPL += pl;
-      return;
-    }
+  const r = 0.05; // Risk-free rate
 
+  enabledPositions.forEach(position => {
     const multiplier = position.action === 'Buy' ? 1 : -1;
     const quantity = position.lots * position.lotSize;
     
-    // Get days to expiry for this specific position
-    const daysToExpiry = getDaysUntilExpiry(position.expiry);
-    const T = Math.max(daysToExpiry, 0.01) / 365; // Minimum 0.01 to avoid division by zero
+    // Calculate days to expiry from today to this position's expiry
+    const today = new Date();
+    const expiryDate = parseExpiryDate(position.expiry);
+    const daysToExpiry = Math.max(1, Math.ceil((expiryDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
     
-    // Use position's IV or default to 15%
+    const T = daysToExpiry / 365;
     const volatility = Math.max((position.IV || 15), 5) / 100;
 
     let theoreticalPrice = 0;
@@ -232,8 +262,7 @@ export const calculatePLToday = (positions: Position[], spotPrice: number): numb
     } else if (position.optType === 'PE') {
       theoreticalPrice = blackScholesPut(spotPrice, position.strike, T, r, volatility);
     } else if (position.optType === 'FUTURE') {
-      // For futures, approximate with forward price
-      theoreticalPrice = spotPrice * Math.exp(r * T);
+      theoreticalPrice = spotPrice;
     }
 
     // P/L = (Theoretical Price - Entry Price) * Quantity * Multiplier

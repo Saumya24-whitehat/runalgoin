@@ -3,16 +3,27 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Trash2, LogOut, Edit } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, LogOut, RotateCcw } from 'lucide-react';
 
 interface OptionBuilderPositionsProps {
   positions: Position[];
   onToggle: (id: string) => void;
   onExit: (id: string, exitPrice: number) => void;
   onRemove: (id: string) => void;
+  onUpdatePosition?: (id: string, updates: Partial<Position>) => void;
+  onReEntry?: (id: string) => void;
 }
 
-const OptionBuilderPositions = ({ positions, onToggle, onExit, onRemove }: OptionBuilderPositionsProps) => {
+const OptionBuilderPositions = ({ 
+  positions, 
+  onToggle, 
+  onExit, 
+  onRemove, 
+  onUpdatePosition,
+  onReEntry 
+}: OptionBuilderPositionsProps) => {
   const formatCurrency = (value: number) => `₹${value.toFixed(2)}`;
 
   if (positions.length === 0) {
@@ -22,6 +33,32 @@ const OptionBuilderPositions = ({ positions, onToggle, onExit, onRemove }: Optio
       </div>
     );
   }
+
+  const handleActionChange = (id: string, action: 'Buy' | 'Sell') => {
+    onUpdatePosition?.(id, { action });
+  };
+
+  const handleLotsChange = (id: string, lots: number) => {
+    if (lots > 0) {
+      onUpdatePosition?.(id, { lots });
+    }
+  };
+
+  const handleOptTypeChange = (id: string, optType: 'CE' | 'PE' | 'FUTURE') => {
+    onUpdatePosition?.(id, { optType });
+  };
+
+  const handleEntryPriceChange = (id: string, entryPrice: number) => {
+    if (entryPrice >= 0) {
+      onUpdatePosition?.(id, { entryPrice });
+    }
+  };
+
+  const handleExitPriceChange = (id: string, exitPrice: number) => {
+    if (exitPrice >= 0) {
+      onUpdatePosition?.(id, { exitPrice });
+    }
+  };
 
   return (
     <div className="overflow-x-auto">
@@ -55,7 +92,7 @@ const OptionBuilderPositions = ({ positions, onToggle, onExit, onRemove }: Optio
             return (
               <TableRow 
                 key={position.id} 
-                className={!position.enabled ? 'opacity-50' : ''}
+                className={`${!position.enabled ? 'opacity-50' : ''} ${isExited ? 'bg-muted/30' : ''}`}
               >
                 <TableCell>
                   <Checkbox 
@@ -64,41 +101,107 @@ const OptionBuilderPositions = ({ positions, onToggle, onExit, onRemove }: Optio
                   />
                 </TableCell>
                 <TableCell>
-                  <Badge variant={position.action === 'Buy' ? 'default' : 'destructive'}>
-                    {position.action.toUpperCase()}
-                  </Badge>
+                  <Select 
+                    value={position.action} 
+                    onValueChange={(value: 'Buy' | 'Sell') => position.id && handleActionChange(position.id, value)}
+                    disabled={isExited}
+                  >
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Buy">
+                        <span className="text-green-500 font-medium">BUY</span>
+                      </SelectItem>
+                      <SelectItem value="Sell">
+                        <span className="text-red-500 font-medium">SELL</span>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
-                <TableCell>{position.lots}</TableCell>
-                <TableCell>{position.date}</TableCell>
-                <TableCell>{position.expiry}</TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={position.lots}
+                    onChange={(e) => position.id && handleLotsChange(position.id, parseInt(e.target.value) || 1)}
+                    className="w-16 h-8"
+                    disabled={isExited}
+                  />
+                </TableCell>
+                <TableCell className="text-sm">{position.date}</TableCell>
+                <TableCell className="text-sm">{position.expiry}</TableCell>
                 <TableCell className="font-medium">{position.strike}</TableCell>
                 <TableCell>
-                  <Badge variant="outline" className={position.optType === 'CE' ? 'text-green-500' : 'text-red-500'}>
-                    {position.optType}
-                  </Badge>
+                  <Select 
+                    value={position.optType} 
+                    onValueChange={(value: 'CE' | 'PE' | 'FUTURE') => position.id && handleOptTypeChange(position.id, value)}
+                    disabled={isExited}
+                  >
+                    <SelectTrigger className="w-20 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CE">
+                        <span className="text-green-500">CE</span>
+                      </SelectItem>
+                      <SelectItem value="PE">
+                        <span className="text-red-500">PE</span>
+                      </SelectItem>
+                      <SelectItem value="FUTURE">FUT</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </TableCell>
-                <TableCell>{formatCurrency(position.entryPrice)}</TableCell>
+                <TableCell>
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.05"
+                    value={position.entryPrice.toFixed(2)}
+                    onChange={(e) => position.id && handleEntryPriceChange(position.id, parseFloat(e.target.value) || 0)}
+                    className="w-20 h-8"
+                    disabled={isExited}
+                  />
+                </TableCell>
                 <TableCell>
                   {isExited ? (
-                    <span className="text-muted-foreground">{formatCurrency(position.exitPrice!)}</span>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="0.05"
+                      value={position.exitPrice!.toFixed(2)}
+                      onChange={(e) => position.id && handleExitPriceChange(position.id, parseFloat(e.target.value) || 0)}
+                      className="w-20 h-8"
+                    />
                   ) : (
-                    formatCurrency(position.currentPrice)
+                    <span className="text-muted-foreground">{formatCurrency(position.currentPrice)}</span>
                   )}
                 </TableCell>
-                <TableCell className={isProfit ? 'text-green-500' : 'text-red-500'}>
+                <TableCell className={isProfit ? 'text-green-500 font-medium' : 'text-red-500 font-medium'}>
                   {isProfit ? '+' : ''}{formatCurrency(pnl)}
                 </TableCell>
                 <TableCell>{position.IV.toFixed(1)}%</TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
-                    {!isExited && (
+                    {!isExited ? (
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => position.id && onExit(position.id, position.currentPrice)}
                         className="h-8 w-8 p-0"
+                        title="Exit position"
                       >
                         <LogOut className="h-4 w-4" />
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => position.id && onReEntry?.(position.id)}
+                        className="h-8 w-8 p-0 text-primary"
+                        title="Re-enter position"
+                      >
+                        <RotateCcw className="h-4 w-4" />
                       </Button>
                     )}
                     <Button
@@ -106,6 +209,7 @@ const OptionBuilderPositions = ({ positions, onToggle, onExit, onRemove }: Optio
                       size="sm"
                       onClick={() => position.id && onRemove(position.id)}
                       className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      title="Remove position"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
