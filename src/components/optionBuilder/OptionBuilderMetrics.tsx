@@ -52,14 +52,14 @@ const OptionBuilderMetrics = ({ maxProfit, maxLoss, breakevens, currentPL, riskR
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
       {metrics.map((metric) => (
-        <Card key={metric.title} className="border-l-4 border-l-primary">
-          <CardContent className="p-3">
-            <div className="text-xs text-muted-foreground uppercase tracking-wide">
+        <Card key={metric.title} className="border-l-2 border-l-primary">
+          <CardContent className="p-2">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">
               {metric.title}
             </div>
-            <div className={`text-lg font-semibold mt-1 ${metric.className}`}>
+            <div className={`text-sm font-semibold mt-0.5 ${metric.className}`}>
               {metric.value}
             </div>
           </CardContent>

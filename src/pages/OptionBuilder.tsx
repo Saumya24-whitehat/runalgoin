@@ -206,6 +206,37 @@ const OptionBuilder = () => {
     toast.success("Position exited");
   }, []);
 
+  const partialExitPosition = useCallback((id: string, lotsToExit: number, exitPrice: number) => {
+    setPositions((prev) => {
+      const newPositions: Position[] = [];
+      prev.forEach((p) => {
+        if (p.id === id) {
+          // Create exited position with the lots that are exited
+          const exitedPosition: Position = {
+            ...p,
+            id: Math.random().toString(36).substr(2, 9),
+            lots: lotsToExit,
+            exitPrice,
+          };
+          newPositions.push(exitedPosition);
+          
+          // Keep remaining lots if any
+          const remainingLots = p.lots - lotsToExit;
+          if (remainingLots > 0) {
+            newPositions.push({
+              ...p,
+              lots: remainingLots,
+            });
+          }
+        } else {
+          newPositions.push(p);
+        }
+      });
+      return newPositions;
+    });
+    toast.success(`Exited ${lotsToExit} lot${lotsToExit > 1 ? 's' : ''}`);
+  }, []);
+
   const updatePosition = useCallback((id: string, updates: Partial<Position>) => {
     setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
   }, []);
@@ -575,6 +606,7 @@ const OptionBuilder = () => {
                     onRemove={removePosition}
                     onUpdatePosition={updatePosition}
                     onReEntry={reEntryPosition}
+                    onPartialExit={partialExitPosition}
                   />
                 </TabsContent>
                 <TabsContent value="greeks" className="mt-4">
