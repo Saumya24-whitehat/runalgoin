@@ -25,6 +25,7 @@ import {
   Play,
   ChevronLeft,
   ChevronRight,
+  Settings,
 } from "lucide-react";
 import OptionBuilderChart from "@/components/optionBuilder/OptionBuilderChart";
 import OptionBuilderPositions from "@/components/optionBuilder/OptionBuilderPositions";
@@ -33,6 +34,7 @@ import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetric
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
 import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
+import AdjustmentModal, { AdjustmentRule, TriggerCondition, ExitAction } from "@/components/optionBuilder/AdjustmentModal";
 import {
   Position,
   generatePLChartData,
@@ -84,6 +86,8 @@ const OptionSimulator = () => {
   // Dialogs
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
+  const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
+  const [adjustmentRules, setAdjustmentRules] = useState<AdjustmentRule[]>([]);
   const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_STRATEGIES);
@@ -288,6 +292,145 @@ const OptionSimulator = () => {
 
     return () => clearInterval(interval);
   }, [autoPlay, adjustTime]);
+
+  // Check and execute adjustment rules when data changes
+  useEffect(() => {
+    if (!simulatorData || adjustmentRules.length === 0) return;
+
+    const checkTriggerCondition = (pos: Position, trigger: TriggerCondition): boolean => {
+      const profitPercent =
+        ((pos.currentPrice - pos.entryPrice) * (pos.action === "Buy" ? 1 : -1) / pos.entryPrice) * 100;
+      const profitAmount =
+        (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
+
+      switch (trigger.trigger) {
+        case "profitPercent":
+          return profitPercent >= trigger.value;
+        case "profitAmount":
+          return profitAmount >= trigger.value;
+        case "lossPercent":
+          return -profitPercent >= trigger.value;
+        case "lossAmount":
+          return -profitAmount >= trigger.value;
+        case "priceLevel":
+          return pos.action === "Buy"
+            ? pos.currentPrice >= trigger.value
+            : pos.currentPrice <= trigger.value;
+        default:
+          return false;
+      }
+    };
+
+    const executeAdjustmentAction = (
+      mainIndex: number,
+      linkedIndices: number[],
+      action: ExitAction
+    ) => {
+      const allIndices = [mainIndex, ...linkedIndices];
+
+      setPositions((prev) => {
+        const newPositions: Position[] = [];
+
+        prev.forEach((pos, idx) => {
+          if (!allIndices.includes(idx)) {
+            newPositions.push(pos);
+            return;
+          }
+
+          switch (action.type) {
+            case "exitAll":
+              newPositions.push({ ...pos, exitPrice: pos.currentPrice });
+              break;
+            case "exitPartial":
+              const lotsToExit = Math.min(action.lotsToExit || 1, pos.lots);
+              if (lotsToExit >= pos.lots) {
+                newPositions.push({ ...pos, exitPrice: pos.currentPrice });
+              } else {
+                // Exited portion
+                newPositions.push({
+                  ...pos,
+                  id: Math.random().toString(36).substr(2, 9),
+                  lots: lotsToExit,
+                  exitPrice: pos.currentPrice,
+                });
+                // Remaining portion
+                newPositions.push({
+                  ...pos,
+                  lots: pos.lots - lotsToExit,
+                });
+              }
+              break;
+            case "exitAndReenter":
+              // Exit current
+              newPositions.push({ ...pos, exitPrice: pos.currentPrice });
+              // Reenter at new strike
+              const strikeDiff = symbol.includes("Bank") ? 100 : 50;
+              const newStrike = pos.strike + (action.strikeDiff || strikeDiff);
+              const strikeData = simulatorData?.strikes.find((s) => s.strike === newStrike);
+              if (strikeData) {
+                const newPrice = pos.optType === "CE" ? strikeData.cePrice : strikeData.pePrice;
+                const newIV = pos.optType === "CE" ? strikeData.ceIV : strikeData.peIV;
+                newPositions.push({
+                  ...pos,
+                  id: Math.random().toString(36).substr(2, 9),
+                  strike: newStrike,
+                  entryPrice: newPrice,
+                  currentPrice: newPrice,
+                  IV: newIV,
+                  exitPrice: undefined,
+                });
+              }
+              break;
+            case "sizeUp":
+              // Keep existing position
+              newPositions.push(pos);
+              // Add new position with additional lots
+              newPositions.push({
+                ...pos,
+                id: Math.random().toString(36).substr(2, 9),
+                lots: action.additionalLots || 1,
+                entryPrice: pos.currentPrice,
+              });
+              break;
+            default:
+              newPositions.push(pos);
+          }
+        });
+
+        return newPositions;
+      });
+    };
+
+    setAdjustmentRules((prevRules) => {
+      const updatedRules = prevRules.map((rule) => {
+        if (!rule.isActive) return rule;
+
+        const mainPos = positions[rule.mainPositionIndex];
+        if (!mainPos || mainPos.exitPrice !== undefined) {
+          return { ...rule, isActive: false };
+        }
+
+        // Check if any trigger condition is met
+        const triggered = rule.triggers.some((trigger) => checkTriggerCondition(mainPos, trigger));
+
+        if (triggered) {
+          executeAdjustmentAction(
+            rule.mainPositionIndex,
+            rule.linkedPositionIndices,
+            rule.exitAction
+          );
+          toast.success(
+            `Adjustment triggered: ${rule.exitAction.type} on ${mainPos.action} ${mainPos.strike}${mainPos.optType}`
+          );
+          return { ...rule, isActive: false };
+        }
+
+        return rule;
+      });
+
+      return updatedRules;
+    });
+  }, [simulatorData, positions, symbol]);
 
   // Calculate chart data
   const chartData = generatePLChartData(positions, currentPrice, 0.03);
@@ -818,6 +961,21 @@ const OptionSimulator = () => {
           )}
 
           {/* Action Buttons */}
+          <Button
+            variant={adjustmentRules.filter(r => r.isActive).length > 0 ? "default" : "outline"}
+            size="icon"
+            onClick={() => setAdjustmentDialogOpen(true)}
+            disabled={positions.length === 0}
+            title={`Position Adjustments${adjustmentRules.filter(r => r.isActive).length > 0 ? ` (${adjustmentRules.filter(r => r.isActive).length} active)` : ''}`}
+            className={adjustmentRules.filter(r => r.isActive).length > 0 ? "bg-amber-500 hover:bg-amber-600 relative" : ""}
+          >
+            <Settings className="h-4 w-4" />
+            {adjustmentRules.filter(r => r.isActive).length > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
+                {adjustmentRules.filter(r => r.isActive).length}
+              </span>
+            )}
+          </Button>
           <Button variant="outline" size="icon" onClick={() => setLoadDialogOpen(true)}>
             <Download className="h-4 w-4" />
           </Button>
@@ -1074,6 +1232,14 @@ const OptionSimulator = () => {
         strategies={savedStrategies}
         onLoad={handleLoadStrategy}
         onDelete={handleDeleteStrategy}
+      />
+
+      <AdjustmentModal
+        open={adjustmentDialogOpen}
+        onOpenChange={setAdjustmentDialogOpen}
+        positions={positions}
+        adjustmentRules={adjustmentRules}
+        onSaveRules={setAdjustmentRules}
       />
     </div>
   );
