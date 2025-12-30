@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.pcr-all-strikes]
 verify_jwt = false
+
+[functions.option-builder-data]
+verify_jwt = false
