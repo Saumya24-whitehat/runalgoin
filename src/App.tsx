@@ -20,6 +20,7 @@ import MaxPain from "./pages/MaxPain";
 import OTR from "./pages/OTR";
 import Algo from "./pages/Algo";
 import OptionBuilder from "./pages/OptionBuilder";
+import OptionSimulator from "./pages/OptionSimulator";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -48,6 +49,7 @@ const App = () => (
               <Route path="/otr" element={<OTR />} />
               <Route path="/algo" element={<Algo />} />
               <Route path="/option-builder" element={<OptionBuilder />} />
+              <Route path="/option-simulator" element={<OptionSimulator />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
