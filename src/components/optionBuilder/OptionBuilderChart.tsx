@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart, Line } from 'recharts';
 
 interface OptionBuilderChartProps {
   expiryData: [number, number][];
@@ -13,6 +13,9 @@ const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuild
       price,
       expiryPL,
       todayPL: todayData[index]?.[1] ?? 0,
+      // Split profit and loss areas for different coloring
+      profitArea: expiryPL > 0 ? expiryPL : null,
+      lossArea: expiryPL < 0 ? expiryPL : null,
     }));
   }, [expiryData, todayData]);
 
@@ -39,72 +42,95 @@ const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuild
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
           <defs>
+            {/* Green gradient for profit area */}
             <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+              <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#22c55e" stopOpacity={0.1} />
             </linearGradient>
+            {/* Red gradient for loss area */}
             <linearGradient id="lossGradient" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
-              <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+              <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
+              <stop offset="100%" stopColor="#ef4444" stopOpacity={0.1} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
           <XAxis 
             dataKey="price" 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(value) => value.toFixed(0)}
-            fontSize={12}
+            fontSize={11}
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
           />
           <YAxis 
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={formatValue}
-            fontSize={12}
+            fontSize={11}
+            tick={{ fill: 'hsl(var(--muted-foreground))' }}
           />
           <Tooltip
             contentStyle={{
               backgroundColor: 'hsl(var(--card))',
               border: '1px solid hsl(var(--border))',
               borderRadius: '8px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
             }}
-            labelStyle={{ color: 'hsl(var(--foreground))' }}
+            labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
             formatter={(value: number, name: string) => [
               formatValue(value),
               name === 'expiryPL' ? 'P/L at Expiry' : 'P/L Today'
             ]}
-            labelFormatter={(value) => `Spot: ${value}`}
+            labelFormatter={(value) => `Spot: ₹${value}`}
           />
-          <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={1} />
+          {/* Zero reference line */}
+          <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeOpacity={0.7} />
+          {/* Current price reference line - orange dashed */}
           <ReferenceLine 
             x={currentPrice} 
-            stroke="hsl(var(--primary))" 
+            stroke="#f97316"
             strokeWidth={2}
             strokeDasharray="5 5"
             label={{ 
-              value: `LTP: ${currentPrice}`, 
+              value: `Spot LTP: ${currentPrice}`, 
               position: 'top',
-              fill: 'hsl(var(--primary))',
-              fontSize: 12
+              fill: '#f97316',
+              fontSize: 11,
+              fontWeight: 600
             }}
           />
+          {/* Profit area fill (green) */}
           <Area
             type="monotone"
-            dataKey="expiryPL"
+            dataKey="profitArea"
             stroke="none"
             fill="url(#profitGradient)"
             fillOpacity={1}
+            connectNulls={false}
+            baseLine={0}
           />
+          {/* Loss area fill (red) */}
+          <Area
+            type="monotone"
+            dataKey="lossArea"
+            stroke="none"
+            fill="url(#lossGradient)"
+            fillOpacity={1}
+            connectNulls={false}
+            baseLine={0}
+          />
+          {/* P/L at Expiry line - solid green */}
           <Line
             type="monotone"
             dataKey="expiryPL"
-            stroke="hsl(var(--chart-2))"
+            stroke="#22c55e"
             strokeWidth={2}
             dot={false}
             name="expiryPL"
           />
+          {/* P/L Today line - dashed gray */}
           <Line
             type="monotone"
             dataKey="todayPL"
-            stroke="hsl(var(--chart-4))"
+            stroke="#9ca3af"
             strokeWidth={2}
             strokeDasharray="5 5"
             dot={false}
