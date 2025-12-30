@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format, addDays, subDays, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import {
@@ -26,6 +27,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Settings,
+  FileDown,
+  FileJson,
+  FileSpreadsheet,
 } from "lucide-react";
 import OptionBuilderChart from "@/components/optionBuilder/OptionBuilderChart";
 import OptionBuilderPositions from "@/components/optionBuilder/OptionBuilderPositions";
@@ -35,6 +39,7 @@ import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStr
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
 import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
 import AdjustmentModal, { AdjustmentRule, TriggerCondition, ExitAction } from "@/components/optionBuilder/AdjustmentModal";
+import PLHistoryChart from "@/components/optionBuilder/PLHistoryChart";
 import {
   Position,
   generatePLChartData,
@@ -49,6 +54,13 @@ import {
   SimulatorData,
   getLotSizeForSymbol,
 } from "@/services/optionSimulatorApi";
+
+interface PLHistoryPoint {
+  time: string;
+  pnl: number;
+  spotPrice: number;
+  date: string;
+}
 
 const SYMBOLS = [
   { value: "Nifty 50", label: "NIFTY" },
@@ -82,6 +94,8 @@ const OptionSimulator = () => {
   const [lotSize, setLotSize] = useState(75);
   const [showStrategies, setShowStrategies] = useState(true);
   const [showChain, setShowChain] = useState(true);
+  const [plHistory, setPlHistory] = useState<PLHistoryPoint[]>([]);
+  const lastRecordedTime = useRef<string>("");
 
   // Dialogs
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
@@ -480,6 +494,35 @@ const OptionSimulator = () => {
     return total + (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
   }, 0);
 
+  // Track P&L history when time changes and we have positions
+  useEffect(() => {
+    const timeKey = `${format(selectedDate, "yyyy-MM-dd")}_${selectedTime}`;
+    if (
+      positions.length > 0 &&
+      currentPrice > 0 &&
+      timeKey !== lastRecordedTime.current
+    ) {
+      lastRecordedTime.current = timeKey;
+      setPlHistory((prev) => {
+        // Avoid duplicate entries
+        const existing = prev.find(
+          (p) => p.date === format(selectedDate, "yyyy-MM-dd") && p.time === selectedTime
+        );
+        if (existing) return prev;
+
+        return [
+          ...prev,
+          {
+            time: selectedTime,
+            pnl: currentPL,
+            spotPrice: currentPrice,
+            date: format(selectedDate, "yyyy-MM-dd"),
+          },
+        ];
+      });
+    }
+  }, [selectedTime, selectedDate, currentPL, currentPrice, positions.length]);
+
   const addPosition = useCallback((newPosition: Omit<Position, "id" | "enabled">) => {
     const position: Position = {
       ...newPosition,
@@ -702,6 +745,125 @@ const OptionSimulator = () => {
     };
     navigator.clipboard.writeText(JSON.stringify(strategyData, null, 2));
     toast.success("Strategy copied to clipboard");
+  };
+
+  // Export functions
+  const exportToJSON = () => {
+    const exportData = {
+      metadata: {
+        symbol,
+        date: format(selectedDate, "yyyy-MM-dd"),
+        time: selectedTime,
+        expiry: activeExpiry,
+        spotPrice: currentPrice,
+        exportedAt: new Date().toISOString(),
+      },
+      positions: positions.map((pos) => ({
+        action: pos.action,
+        strike: pos.strike,
+        optType: pos.optType,
+        lots: pos.lots,
+        lotSize: pos.lotSize,
+        entryPrice: pos.entryPrice,
+        currentPrice: pos.currentPrice,
+        exitPrice: pos.exitPrice,
+        pnl:
+          (pos.exitPrice !== undefined ? pos.exitPrice : pos.currentPrice - pos.entryPrice) *
+          pos.lots *
+          pos.lotSize *
+          (pos.action === "Buy" ? 1 : -1),
+        IV: pos.IV,
+        expiry: pos.expiry,
+        date: pos.date,
+      })),
+      plHistory: plHistory,
+      summary: {
+        totalPnL: currentPL,
+        positionCount: positions.length,
+        activePositions: positions.filter((p) => p.exitPrice === undefined).length,
+        exitedPositions: positions.filter((p) => p.exitPrice !== undefined).length,
+      },
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `simulation_${symbol.replace(/\s+/g, "_")}_${format(selectedDate, "yyyy-MM-dd")}_${selectedTime}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Exported to JSON");
+  };
+
+  const exportToCSV = () => {
+    // Positions CSV
+    const positionsHeader = [
+      "Action",
+      "Strike",
+      "Type",
+      "Lots",
+      "Lot Size",
+      "Entry Price",
+      "Current Price",
+      "Exit Price",
+      "P&L",
+      "IV",
+      "Expiry",
+      "Entry Date",
+    ].join(",");
+
+    const positionsRows = positions.map((pos) => {
+      const pnl =
+        ((pos.exitPrice !== undefined ? pos.exitPrice : pos.currentPrice) - pos.entryPrice) *
+        pos.lots *
+        pos.lotSize *
+        (pos.action === "Buy" ? 1 : -1);
+      return [
+        pos.action,
+        pos.strike,
+        pos.optType,
+        pos.lots,
+        pos.lotSize,
+        pos.entryPrice.toFixed(2),
+        pos.currentPrice.toFixed(2),
+        pos.exitPrice?.toFixed(2) || "",
+        pnl.toFixed(2),
+        pos.IV.toFixed(2),
+        pos.expiry,
+        pos.date,
+      ].join(",");
+    });
+
+    const positionsCSV = [positionsHeader, ...positionsRows].join("\n");
+
+    // P&L History CSV
+    const historyHeader = ["Date", "Time", "P&L", "Spot Price"].join(",");
+    const historyRows = plHistory.map((h) =>
+      [h.date, h.time.replace(/^(\d{2})(\d{2})$/, "$1:$2"), h.pnl.toFixed(2), h.spotPrice.toFixed(2)].join(",")
+    );
+    const historyCSV = [historyHeader, ...historyRows].join("\n");
+
+    // Combine both
+    const fullCSV = `POSITIONS\n${positionsCSV}\n\nP&L HISTORY\n${historyCSV}\n\nSUMMARY\nSymbol,${symbol}\nDate,${format(selectedDate, "yyyy-MM-dd")}\nTime,${selectedTime}\nExpiry,${activeExpiry}\nSpot Price,${currentPrice}\nTotal P&L,${currentPL.toFixed(2)}`;
+
+    const blob = new Blob([fullCSV], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `simulation_${symbol.replace(/\s+/g, "_")}_${format(selectedDate, "yyyy-MM-dd")}_${selectedTime}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success("Exported to CSV");
+  };
+
+  const clearPlHistory = () => {
+    setPlHistory([]);
+    lastRecordedTime.current = "";
+    toast.success("P&L history cleared");
   };
 
   const formatNumber = (num: number): string => {
@@ -985,6 +1147,35 @@ const OptionSimulator = () => {
           <Button variant="outline" size="icon" onClick={handleCopyStrategy} disabled={positions.length === 0}>
             <Copy className="h-4 w-4" />
           </Button>
+          
+          {/* Export Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                disabled={positions.length === 0}
+                title="Export Results"
+              >
+                <FileDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={exportToJSON}>
+                <FileJson className="h-4 w-4 mr-2" />
+                Export as JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={exportToCSV}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Export as CSV
+              </DropdownMenuItem>
+              {plHistory.length > 0 && (
+                <DropdownMenuItem onClick={clearPlHistory} className="text-destructive">
+                  Clear P&L History
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -1177,6 +1368,9 @@ const OptionSimulator = () => {
                     />
                   </CardContent>
                 </Card>
+                
+                {/* P&L History Chart */}
+                <PLHistoryChart history={plHistory} />
               </>
             )}
 
