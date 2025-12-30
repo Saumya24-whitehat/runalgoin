@@ -140,8 +140,6 @@ const normalCDF = (x: number): number => {
   return 0.5 * (1.0 + sign * y);
 };
 
-// Calculate P&L at expiry for a given spot price
-
 export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, targetExpiry?: string): number => {
   let totalPL = 0;
 
