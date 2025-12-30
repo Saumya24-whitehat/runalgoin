@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Slider } from '@/components/ui/slider';
 
 interface PartialExitDialogProps {
   isOpen: boolean;
@@ -29,13 +30,13 @@ const PartialExitDialog = ({ isOpen, onClose, onConfirm, position }: PartialExit
   const [lotsToExit, setLotsToExit] = useState(1);
   const [exitPrice, setExitPrice] = useState(0);
 
-  // Reset values when position changes
-  useState(() => {
-    if (position) {
+  // Reset values when position changes - using useEffect properly
+  useEffect(() => {
+    if (position && isOpen) {
       setLotsToExit(position.lots);
       setExitPrice(position.currentPrice);
     }
-  });
+  }, [position, isOpen]);
 
   if (!position) return null;
 
@@ -52,6 +53,10 @@ const PartialExitDialog = ({ isOpen, onClose, onConfirm, position }: PartialExit
     }
   };
 
+  const handleLotsSliderChange = (value: number[]) => {
+    setLotsToExit(value[0]);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
@@ -62,18 +67,25 @@ const PartialExitDialog = ({ isOpen, onClose, onConfirm, position }: PartialExit
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="lots">Lots to Exit</Label>
-              <Input
-                id="lots"
-                type="number"
+              <div className="flex items-center justify-between">
+                <Label htmlFor="lots">Lots to Exit</Label>
+                <span className="text-sm font-medium">{lotsToExit} / {position.lots}</span>
+              </div>
+              <Slider
+                id="lots-slider"
                 min={1}
                 max={position.lots}
-                value={lotsToExit}
-                onChange={(e) => setLotsToExit(Math.min(Math.max(1, parseInt(e.target.value) || 1), position.lots))}
+                step={1}
+                value={[lotsToExit]}
+                onValueChange={handleLotsSliderChange}
+                className="py-2"
               />
-              <p className="text-xs text-muted-foreground">Max: {position.lots}</p>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>1 lot</span>
+                <span>{position.lots} lots (all)</span>
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor="exitPrice">Exit Price</Label>
