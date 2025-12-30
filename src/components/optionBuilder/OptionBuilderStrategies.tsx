@@ -1,31 +1,27 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface StrategyData {
+  svg: string;
+  type: 'bullish' | 'bearish' | 'neutral' | 'others';
+}
 
 interface Strategy {
   id: string;
   name: string;
   category: 'bullish' | 'bearish' | 'neutral' | 'others';
-  chartPath: string;
+  svgUrl: string;
 }
 
-const strategies: Strategy[] = [
-  { id: 'buy-call', name: 'Buy Call', category: 'bullish', chartPath: 'M10,50 L30,40 L50,25 L70,15 L90,5' },
-  { id: 'sell-put', name: 'Sell Put', category: 'bullish', chartPath: 'M10,50 L30,45 L50,40 L70,40 L90,40' },
-  { id: 'bull-call-spread', name: 'Bull Call Spread', category: 'bullish', chartPath: 'M10,50 L30,35 L50,25 L70,25 L90,25' },
-  { id: 'bull-put-spread', name: 'Bull Put Spread', category: 'bullish', chartPath: 'M10,40 L30,35 L50,30 L70,30 L90,30' },
-  { id: 'buy-put', name: 'Buy Put', category: 'bearish', chartPath: 'M10,5 L30,15 L50,25 L70,40 L90,50' },
-  { id: 'sell-call', name: 'Sell Call', category: 'bearish', chartPath: 'M10,40 L30,40 L50,40 L70,45 L90,50' },
-  { id: 'bear-call-spread', name: 'Bear Call Spread', category: 'bearish', chartPath: 'M10,25 L30,25 L50,35 L70,45 L90,50' },
-  { id: 'bear-put-spread', name: 'Bear Put Spread', category: 'bearish', chartPath: 'M10,30 L30,30 L50,35 L70,45 L90,50' },
-  { id: 'long-straddle', name: 'Long Straddle', category: 'neutral', chartPath: 'M10,15 L30,30 L50,45 L70,30 L90,15' },
-  { id: 'long-strangle', name: 'Long Strangle', category: 'neutral', chartPath: 'M10,15 L30,35 L50,45 L70,35 L90,15' },
-  { id: 'iron-condor', name: 'Iron Condor', category: 'neutral', chartPath: 'M10,50 L20,35 L40,30 L60,30 L80,35 L90,50' },
-  { id: 'butterfly', name: 'Butterfly Spread', category: 'neutral', chartPath: 'M10,50 L30,35 L50,15 L70,35 L90,50' },
-  { id: 'collar', name: 'Collar', category: 'others', chartPath: 'M10,35 L30,35 L50,25 L70,20 L90,20' },
-  { id: 'covered-call', name: 'Covered Call', category: 'others', chartPath: 'M10,50 L30,40 L50,30 L70,30 L90,30' },
-  { id: 'protective-put', name: 'Protective Put', category: 'others', chartPath: 'M10,35 L30,35 L50,25 L70,15 L90,5' },
-  { id: 'ratio-spread', name: 'Ratio Spread', category: 'others', chartPath: 'M10,50 L30,35 L50,25 L70,30 L90,45' },
-];
+const formatStrategyName = (id: string): string => {
+  return id
+    .replace(/-[A-Za-z0-9]{8}$/, '') // Remove hash suffixes like -BuaBwyDA
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 interface OptionBuilderStrategiesProps {
   onSelectStrategy: (strategyId: string) => void;
@@ -33,6 +29,41 @@ interface OptionBuilderStrategiesProps {
 
 const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesProps) => {
   const [filter, setFilter] = useState<'all' | 'bullish' | 'bearish' | 'neutral' | 'others'>('bullish');
+  const [strategies, setStrategies] = useState<Strategy[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStrategies = async () => {
+      try {
+        const response = await fetch('https://runalgo.xyz/strategyBuilderWAutoPlay/StrategySVGData.json');
+        const data: Record<string, StrategyData> = await response.json();
+        
+        const strategyList: Strategy[] = Object.entries(data).map(([id, info]) => ({
+          id,
+          name: formatStrategyName(id),
+          category: info.type,
+          svgUrl: `https://runalgo.xyz/strategyBuilderWAutoPlay/${info.svg}`,
+        }));
+        
+        setStrategies(strategyList);
+      } catch (error) {
+        console.error('Error fetching strategies:', error);
+        // Fallback strategies if API fails
+        setStrategies([
+          { id: 'buy-call', name: 'Buy Call', category: 'bullish', svgUrl: '' },
+          { id: 'sell-put', name: 'Sell Put', category: 'bullish', svgUrl: '' },
+          { id: 'buy-put', name: 'Buy Put', category: 'bearish', svgUrl: '' },
+          { id: 'sell-call', name: 'Sell Call', category: 'bearish', svgUrl: '' },
+          { id: 'long-straddle', name: 'Long Straddle', category: 'neutral', svgUrl: '' },
+          { id: 'iron-condor', name: 'Iron Condor', category: 'neutral', svgUrl: '' },
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStrategies();
+  }, []);
 
   const filteredStrategies = filter === 'all' 
     ? strategies 
@@ -41,7 +72,7 @@ const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesPr
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 flex-wrap">
           <Button
             variant={filter === 'bullish' ? 'default' : 'outline'}
             size="sm"
@@ -72,42 +103,44 @@ const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesPr
           </Button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {filteredStrategies.map((strategy) => (
-            <Card
-              key={strategy.id}
-              className="cursor-pointer hover:border-primary transition-colors"
-              onClick={() => onSelectStrategy(strategy.id)}
-            >
-              <CardContent className="p-3 text-center">
-                <svg 
-                  viewBox="0 0 100 60" 
-                  className="w-full h-12 mb-2"
-                >
-                  <polyline 
-                    points={strategy.chartPath} 
-                    stroke="hsl(var(--primary))" 
-                    strokeWidth="2" 
-                    fill="none"
-                  />
-                  <polyline 
-                    points="10,50 30,50 50,50 70,50 90,50" 
-                    stroke="hsl(var(--muted-foreground))" 
-                    strokeWidth="1" 
-                    strokeDasharray="3,3"
-                    fill="none"
-                  />
-                </svg>
-                <div className="text-xs font-medium">{strategy.name}</div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {[...Array(8)].map((_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {filteredStrategies.map((strategy) => (
+              <Card
+                key={strategy.id}
+                className="cursor-pointer hover:border-primary transition-colors"
+                onClick={() => onSelectStrategy(strategy.id)}
+              >
+                <CardContent className="p-3 text-center">
+                  {strategy.svgUrl ? (
+                    <img 
+                      src={strategy.svgUrl} 
+                      alt={strategy.name}
+                      className="w-full h-12 mb-2 object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-12 mb-2 bg-muted rounded flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground">No preview</span>
+                    </div>
+                  )}
+                  <div className="text-xs font-medium truncate">{strategy.name}</div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 };
-
-import { useState } from 'react';
 
 export default OptionBuilderStrategies;
