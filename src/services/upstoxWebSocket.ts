@@ -1,5 +1,6 @@
 // Upstox WebSocket Service for live option chain data
 import { supabase } from "@/integrations/supabase/client";
+import { initProtobuf, decodeProtobuf, DecodedFeedData } from "./upstoxProtobuf";
 
 interface MarketFeedData {
   ltp: number;
@@ -8,6 +9,11 @@ interface MarketFeedData {
   prev_close?: number;
   change?: number;
   changePercent?: number;
+  iv?: number;
+  delta?: number;
+  theta?: number;
+  gamma?: number;
+  vega?: number;
   timestamp?: number;
 }
 
@@ -30,6 +36,7 @@ class UpstoxWebSocketService {
   private pendingSubscriptions: string[] = [];
   private symbolType: string = "NSE";
   private messageCount = 0;
+  private protobufInitialized = false;
 
   // Fetch access token and WebSocket URL via edge function (avoids CORS)
   async getWebSocketUrl(): Promise<string | null> {
@@ -85,6 +92,14 @@ class UpstoxWebSocketService {
 
   // Connect to WebSocket
   async connect(): Promise<boolean> {
+    // Initialize protobuf first
+    if (!this.protobufInitialized) {
+      this.protobufInitialized = await initProtobuf();
+      if (!this.protobufInitialized) {
+        console.warn("Protobuf initialization failed, will try JSON decoding only");
+      }
+    }
+
     const url = await this.getWebSocketUrl();
     
     if (!url) {
@@ -94,16 +109,17 @@ class UpstoxWebSocketService {
 
     return new Promise((resolve) => {
       try {
-        console.log("Connecting to Upstox WebSocket...");
+        console.log("Connecting to Upstox WebSocket:", url.substring(0, 50) + "...");
         this.ws = new WebSocket(url);
 
         this.ws.onopen = () => {
-          console.log("Upstox WebSocket connected");
+          console.log("Upstox WebSocket connected successfully!");
           this.isConnected = true;
           this.reconnectAttempts = 0;
 
           // Subscribe to pending tokens
           if (this.pendingSubscriptions.length > 0) {
+            console.log(`Subscribing to ${this.pendingSubscriptions.length} pending tokens`);
             this.subscribe(this.pendingSubscriptions);
             this.pendingSubscriptions = [];
           }
@@ -117,8 +133,8 @@ class UpstoxWebSocketService {
           resolve(false);
         };
 
-        this.ws.onclose = () => {
-          console.log("WebSocket closed");
+        this.ws.onclose = (event) => {
+          console.log(`WebSocket closed: code=${event.code}, reason=${event.reason}`);
           this.isConnected = false;
           this.handleReconnect();
         };
@@ -127,20 +143,28 @@ class UpstoxWebSocketService {
           try {
             this.messageCount++;
             
-            // Handle binary data (protobuf or JSON in binary form)
+            // Handle binary data (protobuf)
             if (event.data instanceof Blob) {
               const buffer = await event.data.arrayBuffer();
               const uint8Array = new Uint8Array(buffer);
               
-              // Try to decode as JSON first (Upstox sometimes sends JSON as binary)
+              // Try protobuf decoding first (this is the expected format from Upstox)
+              const decoded = decodeProtobuf(uint8Array);
+              if (decoded && decoded.feeds) {
+                this.processDecodedFeed(decoded);
+                return;
+              }
+              
+              // Fallback: try to decode as JSON
               try {
                 const text = new TextDecoder().decode(uint8Array);
                 const data = JSON.parse(text);
                 this.processFeedData(data);
-                return;
               } catch {
-                // Not JSON, try protobuf decoding
-                this.processProtobufData(uint8Array);
+                // Silent fail for unparseable messages
+                if (this.messageCount % 100 === 0) {
+                  console.log(`Received ${this.messageCount} messages`);
+                }
               }
             } else if (typeof event.data === "string") {
               const data = JSON.parse(event.data);
@@ -157,23 +181,59 @@ class UpstoxWebSocketService {
     });
   }
 
-  // Basic protobuf decoding for Upstox market data
-  // This is a simplified decoder - for full support, use protobufjs library
-  private processProtobufData(buffer: Uint8Array) {
-    try {
-      // Simple attempt to extract data from protobuf
-      // Upstox protobuf format typically has feeds as a map
-      const text = new TextDecoder("utf-8", { fatal: false }).decode(buffer);
+  // Process decoded protobuf feed data
+  private processDecodedFeed(decoded: DecodedFeedData) {
+    if (!decoded.feeds) return;
+
+    const updates: FeedUpdate[] = [];
+
+    Object.entries(decoded.feeds).forEach(([token, feed]: [string, any]) => {
+      // Handle different feed types from protobuf
+      const fullFeed = feed?.fullFeed;
+      const marketFF = fullFeed?.marketFF;
+      const indexFF = fullFeed?.indexFF;
+      const ltpcDirect = feed?.ltpc;
+
+      // Get LTPC data from various paths
+      const ltpc = marketFF?.ltpc || indexFF?.ltpc || ltpcDirect;
       
-      // Look for patterns that might indicate LTP data
-      // This is a fallback - ideally we'd use proper protobuf decoding
-      if (this.messageCount % 100 === 0) {
-        console.log(`Received ${this.messageCount} binary messages`);
+      if (ltpc && ltpc.ltp) {
+        const optionGreeks = marketFF?.optionGreeks;
+        const cp = ltpc.cp || 0;
+        const ltp = ltpc.ltp;
+        const change = ltp - cp;
+        const changePercent = cp ? (change / cp) * 100 : 0;
+
+        updates.push({
+          token,
+          data: {
+            ltp,
+            oi: marketFF?.oi || 0,
+            volume: marketFF?.vtt || 0,
+            prev_close: cp,
+            change,
+            changePercent,
+            iv: marketFF?.iv || 0,
+            delta: optionGreeks?.delta,
+            theta: optionGreeks?.theta,
+            gamma: optionGreeks?.gamma,
+            vega: optionGreeks?.vega,
+            timestamp: Date.now(),
+          },
+        });
       }
-    } catch (error) {
-      // Silently ignore protobuf decode errors
+    });
+
+    if (updates.length > 0) {
+      if (this.messageCount % 50 === 0) {
+        console.log(`Live feed: ${updates.length} updates, sample LTP: ${updates[0]?.data.ltp}`);
+      }
+      if (this.feedCallback) {
+        this.feedCallback(updates);
+      }
     }
   }
+
 
   // Process incoming feed data (JSON format)
   private processFeedData(data: any) {
