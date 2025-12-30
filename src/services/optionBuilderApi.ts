@@ -139,7 +139,8 @@ const normalCDF = (x: number): number => {
 
   return 0.5 * (1.0 + sign * y);
 };
-export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, targetExpiry?: string): number => {
+
+export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): number => {
   let totalPL = 0;
 
   // -----------------------------
@@ -159,7 +160,6 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, ta
     }
   });
 
-  console.log(positions);
   if (!closestExpiry) return 0;
 
   const r = 0.05; // Risk-free rate
@@ -170,7 +170,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, ta
   positions.forEach((position) => {
     if (!position.enabled) return;
 
-    // ----- EXITED POSITION -----
+    // EXITED POSITION
     if (position.exitPrice !== undefined) {
       const pl =
         (position.exitPrice - position.entryPrice) *
@@ -186,7 +186,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, ta
     const quantity = position.lots * position.lotSize;
 
     // ---------------------------------------------------
-    // CASE A — Expiry = Closest Expiry → Intrinsic P&L
+    // CASE A — Intrinsic P&L (closest expiry)
     // ---------------------------------------------------
     if (position.expiry === closestExpiry) {
       let intrinsic = 0;
@@ -205,14 +205,15 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number, ta
     }
 
     // ---------------------------------------------------
-    // CASE B — Other Expiries → Black-Scholes P&L
+    // CASE B — Black-Scholes P&L (other expiries)
     // ---------------------------------------------------
 
     const daysToExpiry = getDaysUntilExpiry(position.expiry);
-    const T = Math.max(daysToExpiry, 0.01) / 365; // Prevent divide by zero
+    const T = Math.max(daysToExpiry, 0.01) / 365;
 
-    // IV fallback — min 5%, fallback to 15% if missing
-    const volatility = Math.max(position.IV / 100 || 0.15, 0.05);
+    // FIXED IV SCALING
+    const ivPercent = position.IV ? position.IV / 10000 : 0.15;
+    const volatility = Math.max(ivPercent, 0.05);
 
     let theoreticalPrice = 0;
 
