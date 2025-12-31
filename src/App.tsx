@@ -23,6 +23,7 @@ import Algo from "./pages/Algo";
 import OptionBuilder from "./pages/OptionBuilder";
 import OptionSimulator from "./pages/OptionSimulator";
 import FutureBuildup from "./pages/FutureBuildup";
+import FutureOpenHighLow from "./pages/FutureOpenHighLow";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/option-builder" element={<OptionBuilder />} />
               <Route path="/option-simulator" element={<OptionSimulator />} />
               <Route path="/future-buildup" element={<FutureBuildup />} />
+              <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
