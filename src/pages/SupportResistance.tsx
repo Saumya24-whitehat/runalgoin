@@ -519,7 +519,7 @@ const SupportResistance = () => {
               </TableRow>
 
               {/* Header Row 2 - Column headers */}
-              <TableRow className="bg-muted/50 text-[10px] md:text-xs">
+              <TableRow className="bg-muted text-[10px] md:text-xs">
                 <TableHead className="text-center p-1 md:p-2">DELTA IV</TableHead>
                 <TableHead className="text-center p-1 md:p-2">COI</TableHead>
                 <TableHead className="text-center p-1 md:p-2">OI</TableHead>
