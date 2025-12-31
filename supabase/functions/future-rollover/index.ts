@@ -23,10 +23,10 @@ serve(async (req) => {
     const { symbol, expiry } = await req.json();
 
     if (!symbol || !expiry) {
-      return new Response(
-        JSON.stringify({ error: "Symbol and expiry are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return new Response(JSON.stringify({ error: "Symbol and expiry are required" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const encodedSymbol = encodeURIComponent(symbol);
@@ -37,11 +37,12 @@ serve(async (req) => {
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        "accept": "*/*",
+        accept: "*/*",
         "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
-        "referer": "https://runalgo.xyz/OIBUILDUP/",
+        referer: "https://runalgo.xyz/OIBUILDUP/",
         "x-requested-with": "XMLHttpRequest",
-        "user-agent": "Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36",
+        "user-agent":
+          "Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Mobile Safari/537.36",
       },
     });
 
@@ -61,7 +62,7 @@ serve(async (req) => {
       const lastPrice = parseFloat(item.last_price) || 0;
       const openPrice = item.ohlc?.open || lastPrice;
       const oi = parseInt(item.oi) || 0;
-      const nextOi = parseInt(item.next_oi) || 0;
+      const nextOi = parseInt(item.NextOI) || 0;
 
       // Calculate price change percentage
       const priceChange = openPrice > 0 ? ((lastPrice - openPrice) / openPrice) * 100 : 0;
@@ -93,13 +94,13 @@ serve(async (req) => {
         data: rolloverItems,
         lastUpdated: new Date().toISOString(),
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (error) {
     console.error("Error fetching future rollover data:", error);
-    return new Response(
-      JSON.stringify({ error: error.message || "Failed to fetch data" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ error: error.message || "Failed to fetch data" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
