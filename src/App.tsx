@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SessionManager } from "@/components/SessionManager";
+import { useTableStyles } from "@/components/admin/TableStyleSettings";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -25,12 +26,19 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+// Component to apply saved table styles
+function TableStyleApplier() {
+  useTableStyles();
+  return null;
+}
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
       <ThemeProvider defaultTheme="dark" storageKey="runalgo-theme">
         <AuthProvider>
           <SessionManager />
+          <TableStyleApplier />
           <TooltipProvider>
             <Toaster />
             <Sonner />

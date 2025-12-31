@@ -24,8 +24,8 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
   };
 
   const getColorClass = (value: number) => {
-    if (value > 0) return "text-success";
-    if (value < 0) return "text-destructive";
+    if (value > 0) return "text-oc-positive";
+    if (value < 0) return "text-oc-negative";
     return "";
   };
 
@@ -55,16 +55,16 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
           const callITM = isCallITM(row.Strike);
           const putITM = isPutITM(row.Strike);
           return (
-            <tr key={row.Strike} className={cn(isATM && "bg-atm-highlight/20")}>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30", getColorClass(row["CE_COI%"]))}>{formatPercent(row["CE_COI%"])}</td>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30")}>{formatNumber(row.CE_COI, 0)}</td>
-              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-red-950/30")}>{formatNumber(row.CE_OI, 0)}</td>
-              <td className={cn("border-r border-border font-medium py-1 px-2 text-center", isATM && "text-atm-highlight font-bold")}>
+            <tr key={row.Strike} className={cn(isATM && "bg-oc-atm")}>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm", getColorClass(row["CE_COI%"]))}>{formatPercent(row["CE_COI%"])}</td>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatNumber(row.CE_COI, 0)}</td>
+              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatNumber(row.CE_OI, 0)}</td>
+              <td className={cn("border-r border-border font-medium py-1 px-2 text-center bg-oc-strike-col", isATM && "text-oc-atm-text font-bold")}>
                 {row.Strike}
               </td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{formatNumber(row.PE_OI, 0)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{formatNumber(row.PE_COI, 0)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30", getColorClass(row["PE_COI%"]))}>{formatPercent(row["PE_COI%"])}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatNumber(row.PE_OI, 0)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatNumber(row.PE_COI, 0)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm", getColorClass(row["PE_COI%"]))}>{formatPercent(row["PE_COI%"])}</td>
             </tr>
           );
         })}
@@ -87,10 +87,10 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
           const callITM = isCallITM(row.Strike);
           const putITM = isPutITM(row.Strike);
           return (
-            <tr key={row.Strike} className={cn(isATM && "bg-atm-highlight/20")}>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30")}>{row.CE_IV.toFixed(2)}</td>
-              <td className={cn("font-medium py-1 px-2 text-center", isATM && "text-atm-highlight font-bold")}>{row.Strike}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{row.PE_IV.toFixed(2)}</td>
+            <tr key={row.Strike} className={cn(isATM && "bg-oc-atm")}>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{row.CE_IV.toFixed(2)}</td>
+              <td className={cn("font-medium py-1 px-2 text-center bg-oc-strike-col", isATM && "text-oc-atm-text font-bold")}>{row.Strike}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{row.PE_IV.toFixed(2)}</td>
             </tr>
           );
         })}
@@ -121,16 +121,16 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
           const callITM = isCallITM(row.Strike);
           const putITM = isPutITM(row.Strike);
           return (
-            <tr key={row.Strike} className={cn(isATM && "bg-atm-highlight/20")}>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30", getColorClass(row["CE_LTP_CHG%"]))}>{formatPercent(row["CE_LTP_CHG%"])}</td>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30", getColorClass(row.CE_LTP_CHG))}>{formatNumber(row.CE_LTP_CHG)}</td>
-              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-red-950/30")}>{formatNumber(row.CE_LTP)}</td>
-              <td className={cn("border-r border-border font-medium py-1 px-2 text-center", isATM && "text-atm-highlight font-bold")}>
+            <tr key={row.Strike} className={cn(isATM && "bg-oc-atm")}>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm", getColorClass(row["CE_LTP_CHG%"]))}>{formatPercent(row["CE_LTP_CHG%"])}</td>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm", getColorClass(row.CE_LTP_CHG))}>{formatNumber(row.CE_LTP_CHG)}</td>
+              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatNumber(row.CE_LTP)}</td>
+              <td className={cn("border-r border-border font-medium py-1 px-2 text-center bg-oc-strike-col", isATM && "text-oc-atm-text font-bold")}>
                 {row.Strike}
               </td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{formatNumber(row.PE_LTP)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30", getColorClass(row.PE_LTP_CHG))}>{formatNumber(row.PE_LTP_CHG)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30", getColorClass(row["PE_LTP_CHG%"]))}>{formatPercent(row["PE_LTP_CHG%"])}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatNumber(row.PE_LTP)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm", getColorClass(row.PE_LTP_CHG))}>{formatNumber(row.PE_LTP_CHG)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm", getColorClass(row["PE_LTP_CHG%"]))}>{formatPercent(row["PE_LTP_CHG%"])}</td>
             </tr>
           );
         })}

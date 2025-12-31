@@ -48,8 +48,8 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-secondary/30">
-                    <TableHead className="text-xs font-semibold">Strike</TableHead>
+                <TableRow className="bg-oc-header">
+                  <TableHead className="text-xs font-semibold">Strike</TableHead>
                     <TableHead className="text-xs font-semibold text-right">CE LTP</TableHead>
                     <TableHead className="text-xs font-semibold text-right">CE OI</TableHead>
                     <TableHead className="text-xs font-semibold text-right">CE COI</TableHead>
@@ -62,18 +62,18 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
                     return (
                       <TableRow
                         key={row.Strike}
-                        className={`text-xs ${isAtm ? 'bg-atm-highlight' : itm ? 'bg-red-950/30' : ''}`}
+                        className={`text-xs ${isAtm ? 'bg-oc-atm' : itm ? 'bg-oc-call-itm' : ''}`}
                       >
                         <TableCell className="font-medium text-primary">{row.Strike}</TableCell>
                         <TableCell className="text-right text-call">{row["CE LTP"].toFixed(2)}</TableCell>
                         <TableCell className="text-right">{formatNumber(row["CE OI"])}</TableCell>
-                        <TableCell className={`text-right ${row["CE COI"] >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <TableCell className={`text-right ${row["CE COI"] >= 0 ? 'text-oc-positive' : 'text-oc-negative'}`}>
                           {formatNumber(row["CE COI"])}
                         </TableCell>
                       </TableRow>
                     );
                   })}
-                  <TableRow className="bg-secondary/50 font-semibold">
+                  <TableRow className="bg-oc-totals-row font-semibold">
                     <TableCell>Total</TableCell>
                     <TableCell className="text-right">-</TableCell>
                     <TableCell className="text-right">{formatNumber(totalCEOI)}</TableCell>
@@ -93,8 +93,8 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
             <div className="overflow-x-auto rounded-lg border border-border/50">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-secondary/30">
-                    <TableHead className="text-xs font-semibold">Strike</TableHead>
+                <TableRow className="bg-oc-header">
+                  <TableHead className="text-xs font-semibold">Strike</TableHead>
                     <TableHead className="text-xs font-semibold text-right">PE LTP</TableHead>
                     <TableHead className="text-xs font-semibold text-right">PE OI</TableHead>
                     <TableHead className="text-xs font-semibold text-right">PE COI</TableHead>
@@ -107,18 +107,18 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
                     return (
                       <TableRow
                         key={row.Strike}
-                        className={`text-xs ${isAtm ? 'bg-atm-highlight' : itm ? 'bg-emerald-950/30' : ''}`}
+                        className={`text-xs ${isAtm ? 'bg-oc-atm' : itm ? 'bg-oc-put-itm' : ''}`}
                       >
                         <TableCell className="font-medium text-primary">{row.Strike}</TableCell>
                         <TableCell className="text-right text-put">{row["PE LTP"].toFixed(2)}</TableCell>
                         <TableCell className="text-right">{formatNumber(row["PE OI"])}</TableCell>
-                        <TableCell className={`text-right ${row["PE COI"] >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <TableCell className={`text-right ${row["PE COI"] >= 0 ? 'text-oc-positive' : 'text-oc-negative'}`}>
                           {formatNumber(row["PE COI"])}
                         </TableCell>
                       </TableRow>
                     );
                   })}
-                  <TableRow className="bg-secondary/50 font-semibold">
+                  <TableRow className="bg-oc-totals-row font-semibold">
                     <TableCell>Total</TableCell>
                     <TableCell className="text-right">-</TableCell>
                     <TableCell className="text-right">{formatNumber(totalPEOI)}</TableCell>
