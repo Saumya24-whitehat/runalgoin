@@ -6,44 +6,44 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
-import { 
-  groupedIndices, 
-  fetchMarketBreadthData, 
+import {
+  groupedIndices,
+  fetchMarketBreadthData,
   fetchAdvanceDeclineData,
   calculateAdvanceDecline,
   StockData,
-  AdvanceDeclineData
+  AdvanceDeclineData,
 } from "@/services/marketBreadthApi";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-type SortOption = 'name';
-type SortDirection = 'asc' | 'desc';
-type ChangeFilter = '+5' | '+3' | '+1' | '0' | '-1' | '-3' | '-5' | null;
+type SortOption = "name";
+type SortDirection = "asc" | "desc";
+type ChangeFilter = "+5" | "+3" | "+1" | "0" | "-1" | "-3" | "-5" | null;
 
 // Map index symbols to advance-decline API keys
 const indexToAdvDeclineKey: Record<string, string> = {
-  'SYML:NSE;NIFTY': 'SYML:NSE;NIFTY',
-  'SYML:NSE;BANKNIFTY': 'SYML:NSE;BANKNIFTY',
-  'SYML:NSE;CNX100': 'SYML:NSE;CNX100',
-  'SYML:NSE;CNX200': 'SYML:NSE;CNX200',
-  'SYML:NSE;CNX500': 'SYML:NSE;CNX500',
-  'SYML:NSE;NIFTYJR': 'SYML:NSE;NIFTYJR',
-  'SYML:NSE;CNXSMALLCAP': 'SYML:NSE;CNXSMALLCAP',
-  'SYML:NSE;CNXMIDCAP': 'SYML:NSE;CNXMIDCAP',
-  'SYML:NSE;NIFTYMIDCAP50': 'SYML:NSE;NIFTYMIDCAP50',
+  "SYML:NSE;NIFTY": "SYML:NSE;NIFTY",
+  "SYML:NSE;BANKNIFTY": "SYML:NSE;BANKNIFTY",
+  "SYML:NSE;CNX100": "SYML:NSE;CNX100",
+  "SYML:NSE;CNX200": "SYML:NSE;CNX200",
+  "SYML:NSE;CNX500": "SYML:NSE;CNX500",
+  "SYML:NSE;NIFTYJR": "SYML:NSE;NIFTYJR",
+  "SYML:NSE;CNXSMALLCAP": "SYML:NSE;CNXSMALLCAP",
+  "SYML:NSE;CNXMIDCAP": "SYML:NSE;CNXMIDCAP",
+  "SYML:NSE;NIFTYMIDCAP50": "SYML:NSE;NIFTYMIDCAP50",
 };
 
 export default function MarketBreadth() {
-  const [selectedIndex, setSelectedIndex] = useState<string>('SYML:NSE;NIFTY');
-  const [selectedExchange, setSelectedExchange] = useState<'NSE' | 'BSE'>('NSE');
+  const [selectedIndex, setSelectedIndex] = useState<string>("SYML:NSE;NIFTY");
+  const [selectedExchange, setSelectedExchange] = useState<"NSE" | "BSE">("NSE");
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>('');
+  const [lastUpdated, setLastUpdated] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [changeFilter, setChangeFilter] = useState<ChangeFilter>(null);
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Major Market Indices']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Major Market Indices"]));
 
   // Fetch advance/decline data on mount
   useEffect(() => {
@@ -65,7 +65,7 @@ export default function MarketBreadth() {
         setLastUpdated(data.date);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error("Error fetching data:", error);
     } finally {
       setIsLoading(false);
     }
@@ -79,61 +79,57 @@ export default function MarketBreadth() {
   const filteredAndSortedStocks = useMemo(() => {
     // First apply change filter
     let filtered = [...stocks];
-    
+
     if (changeFilter !== null) {
       switch (changeFilter) {
-        case '+5':
-          filtered = stocks.filter(s => s.changePct >= 5);
+        case "+5":
+          filtered = stocks.filter((s) => s.changePct >= 5);
           break;
-        case '+3':
-          filtered = stocks.filter(s => s.changePct >= 3 && s.changePct < 5);
+        case "+3":
+          filtered = stocks.filter((s) => s.changePct >= 3 && s.changePct < 5);
           break;
-        case '+1':
-          filtered = stocks.filter(s => s.changePct >= 1 && s.changePct < 3);
+        case "+1":
+          filtered = stocks.filter((s) => s.changePct >= 1 && s.changePct < 3);
           break;
-        case '0':
-          filtered = stocks.filter(s => s.changePct > -1 && s.changePct < 1);
+        case "0":
+          filtered = stocks.filter((s) => s.changePct > -1 && s.changePct < 1);
           break;
-        case '-1':
-          filtered = stocks.filter(s => s.changePct <= -1 && s.changePct > -3);
+        case "-1":
+          filtered = stocks.filter((s) => s.changePct <= -1 && s.changePct > -3);
           break;
-        case '-3':
-          filtered = stocks.filter(s => s.changePct <= -3 && s.changePct > -5);
+        case "-3":
+          filtered = stocks.filter((s) => s.changePct <= -3 && s.changePct > -5);
           break;
-        case '-5':
-          filtered = stocks.filter(s => s.changePct <= -5);
+        case "-5":
+          filtered = stocks.filter((s) => s.changePct <= -5);
           break;
       }
     }
-    
+
     // Then apply name sorting if selected
-    if (sortBy === 'name') {
-      filtered.sort((a, b) => 
-        sortDirection === 'asc' 
-          ? a.name.localeCompare(b.name) 
-          : b.name.localeCompare(a.name)
-      );
+    if (sortBy === "name") {
+      filtered.sort((a, b) => (sortDirection === "asc" ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)));
     } else {
       // Default: sort by change descending
       filtered.sort((a, b) => b.changePct - a.changePct);
     }
-    
+
     return filtered;
   }, [stocks, changeFilter, sortBy, sortDirection]);
 
-  // Get color based on change percentage - returns inline style
-  const getStockBgColor = (changePct: number): string => {
-    if (changePct >= 5) return '#13c14c';
-    if (changePct >= 3) return '#46d67a';
-    if (changePct >= 1) return '#84f0ac';
-    if (changePct > -1) return '#cbcbcb';
-    if (changePct > -3) return '#fdc5ca';
-    if (changePct > -5) return '#e69ba2';
-    return '#e3515c';
+  // Get color based on change percentage
+  const getChangeColor = (changePct: number): string => {
+    if (changePct >= 3) return "bg-emerald-600";
+    if (changePct >= 1) return "bg-emerald-500";
+    if (changePct > 0) return "bg-emerald-400";
+    if (changePct === 0) return "bg-muted";
+    if (changePct > -1) return "bg-red-400";
+    if (changePct > -3) return "bg-red-500";
+    return "bg-red-600";
   };
 
   const toggleGroup = (groupName: string) => {
-    setExpandedGroups(prev => {
+    setExpandedGroups((prev) => {
       const next = new Set(prev);
       if (next.has(groupName)) {
         next.delete(groupName);
@@ -150,7 +146,7 @@ export default function MarketBreadth() {
   }, [stocks]);
 
   const selectedIndexInfo = useMemo(() => {
-    return groupedIndices.flatMap(g => g.indices).find(i => i.symbol === selectedIndex);
+    return groupedIndices.flatMap((g) => g.indices).find((i) => i.symbol === selectedIndex);
   }, [selectedIndex]);
 
   // Get advance/decline for a specific index from API
@@ -161,24 +157,28 @@ export default function MarketBreadth() {
     return {
       advance: data.advance,
       decline: data.decline,
-      total: data.advance + data.decline
+      total: data.advance + data.decline,
     };
   };
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <TickerRibbon />
-      
+      <Navbar />
+
       <div className="flex">
         {/* Sidebar */}
         <div className="w-80 border-r border-border bg-card min-h-[calc(100vh-8rem)]">
           {/* Exchange Tabs */}
           <div className="border-b border-border p-2">
-            <Tabs value={selectedExchange} onValueChange={(v) => setSelectedExchange(v as 'NSE' | 'BSE')}>
+            <Tabs value={selectedExchange} onValueChange={(v) => setSelectedExchange(v as "NSE" | "BSE")}>
               <TabsList className="w-full">
-                <TabsTrigger value="NSE" className="flex-1">NSE</TabsTrigger>
-                <TabsTrigger value="BSE" className="flex-1">BSE</TabsTrigger>
+                <TabsTrigger value="NSE" className="flex-1">
+                  NSE
+                </TabsTrigger>
+                <TabsTrigger value="BSE" className="flex-1">
+                  BSE
+                </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -194,40 +194,42 @@ export default function MarketBreadth() {
                   >
                     {group.name}
                   </button>
-                  
+
                   {expandedGroups.has(group.name) && (
                     <div className="space-y-1">
                       {group.indices
-                        .filter(idx => selectedExchange === 'NSE' ? idx.symbol.includes('NSE') : idx.symbol.includes('BSE'))
+                        .filter((idx) =>
+                          selectedExchange === "NSE" ? idx.symbol.includes("NSE") : idx.symbol.includes("BSE"),
+                        )
                         .map((index) => {
                           const isSelected = selectedIndex === index.symbol;
                           const advDecStats = getAdvDecForIndex(index.symbol);
-                          
+
                           return (
                             <button
                               key={index.symbol}
                               onClick={() => setSelectedIndex(index.symbol)}
                               className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
-                                isSelected 
-                                  ? 'bg-primary/10 border border-primary/30' 
-                                  : 'hover:bg-muted/50'
+                                isSelected ? "bg-primary/10 border border-primary/30" : "hover:bg-muted/50"
                               }`}
                             >
                               <div className="flex items-center justify-between mb-1">
-                                <span className={`text-sm font-medium ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                <span
+                                  className={`text-sm font-medium ${isSelected ? "text-primary" : "text-foreground"}`}
+                                >
                                   {index.displayName}
                                 </span>
                               </div>
-                              
+
                               {/* Advance/Decline Bar from API */}
                               {advDecStats && advDecStats.total > 0 && (
                                 <div className="flex items-center gap-2">
                                   <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden flex">
-                                    <div 
+                                    <div
                                       className="h-full bg-success transition-all"
                                       style={{ width: `${(advDecStats.advance / advDecStats.total) * 100}%` }}
                                     />
-                                    <div 
+                                    <div
                                       className="h-full bg-destructive transition-all"
                                       style={{ width: `${(advDecStats.decline / advDecStats.total) * 100}%` }}
                                     />
@@ -256,7 +258,7 @@ export default function MarketBreadth() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <h1 className="text-2xl font-bold text-foreground">
-                {selectedIndexInfo?.displayName || 'Market Breadth'}
+                {selectedIndexInfo?.displayName || "Market Breadth"}
               </h1>
               {!isLoading && stocks.length > 0 && (
                 <div className="flex items-center gap-2">
@@ -271,20 +273,11 @@ export default function MarketBreadth() {
                 </div>
               )}
             </div>
-            
+
             <div className="flex items-center gap-2">
-              {lastUpdated && (
-                <span className="text-xs text-muted-foreground">
-                  Last updated: {lastUpdated}
-                </span>
-              )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={fetchData}
-                disabled={isLoading}
-              >
-                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? 'animate-spin' : ''}`} />
+              {lastUpdated && <span className="text-xs text-muted-foreground">Last updated: {lastUpdated}</span>}
+              <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
+                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
                 Refresh
               </Button>
               <AdminPaletteButton />
@@ -294,28 +287,28 @@ export default function MarketBreadth() {
           {/* Filter Options */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-sm text-muted-foreground">Filter:</span>
-            {(['+5', '+3', '+1', '0', '-1', '-3', '-5'] as ChangeFilter[]).map((val) => {
+            {(["+5", "+3", "+1", "0", "-1", "-3", "-5"] as ChangeFilter[]).map((val) => {
               const isActive = changeFilter === val;
-              const isPositive = val && val.startsWith('+');
-              const isNegative = val && val.startsWith('-');
-              
+              const isPositive = val && val.startsWith("+");
+              const isNegative = val && val.startsWith("-");
+
               return (
                 <Button
                   key={val}
                   variant="outline"
                   size="sm"
                   className={`min-w-10 h-8 ${
-                    isActive 
-                      ? isPositive 
-                        ? 'bg-success text-success-foreground border-success' 
-                        : isNegative 
-                          ? 'bg-destructive text-destructive-foreground border-destructive'
-                          : 'bg-primary text-primary-foreground'
-                      : isPositive 
-                        ? 'bg-success/20 hover:bg-success/30 text-success border-success/30' 
-                        : isNegative 
-                          ? 'bg-destructive/20 hover:bg-destructive/30 text-destructive border-destructive/30' 
-                          : ''
+                    isActive
+                      ? isPositive
+                        ? "bg-success text-success-foreground border-success"
+                        : isNegative
+                          ? "bg-destructive text-destructive-foreground border-destructive"
+                          : "bg-primary text-primary-foreground"
+                      : isPositive
+                        ? "bg-success/20 hover:bg-success/30 text-success border-success/30"
+                        : isNegative
+                          ? "bg-destructive/20 hover:bg-destructive/30 text-destructive border-destructive/30"
+                          : ""
                   }`}
                   onClick={() => setChangeFilter(changeFilter === val ? null : val)}
                 >
@@ -324,21 +317,21 @@ export default function MarketBreadth() {
               );
             })}
             <Button
-              variant={sortBy === 'name' && sortDirection === 'asc' ? 'default' : 'outline'}
+              variant={sortBy === "name" && sortDirection === "asc" ? "default" : "outline"}
               size="sm"
               onClick={() => {
-                setSortBy(sortBy === 'name' && sortDirection === 'asc' ? null : 'name');
-                setSortDirection('asc');
+                setSortBy(sortBy === "name" && sortDirection === "asc" ? null : "name");
+                setSortDirection("asc");
               }}
             >
               A-Z
             </Button>
             <Button
-              variant={sortBy === 'name' && sortDirection === 'desc' ? 'default' : 'outline'}
+              variant={sortBy === "name" && sortDirection === "desc" ? "default" : "outline"}
               size="sm"
               onClick={() => {
-                setSortBy(sortBy === 'name' && sortDirection === 'desc' ? null : 'name');
-                setSortDirection('desc');
+                setSortBy(sortBy === "name" && sortDirection === "desc" ? null : "name");
+                setSortDirection("desc");
               }}
             >
               Z-A
@@ -355,18 +348,18 @@ export default function MarketBreadth() {
               No data available for this index
             </div>
           ) : (
-            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-0.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1">
               {filteredAndSortedStocks.map((stock, idx) => (
                 <Tooltip key={`${stock.name}-${idx}`}>
-                    <TooltipTrigger asChild>
-                      <div
-                        style={{ backgroundColor: getStockBgColor(stock.changePct) }}
-                        className="text-black p-1 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[50px] flex flex-col justify-center items-center text-center"
-                      >
-                      <span className="font-bold text-[10px] truncate w-full">{stock.name}</span>
-                      <span className="text-[9px]">₹{stock.close.toLocaleString('en-IN')}</span>
-                      <span className="text-[9px] font-semibold">
-                        {stock.changePct >= 0 ? '+' : ''}{stock.changePct.toFixed(2)}%
+                  <TooltipTrigger asChild>
+                    <div
+                      className={`${getChangeColor(stock.changePct)} text-white p-2 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[80px] flex flex-col justify-center items-center text-center`}
+                    >
+                      <span className="font-bold text-sm truncate w-full">{stock.name}</span>
+                      <span className="text-xs opacity-90">₹{stock.close.toLocaleString("en-IN")}</span>
+                      <span className="text-xs font-semibold">
+                        {stock.changePct >= 0 ? "+" : ""}
+                        {stock.changePct.toFixed(2)}%
                       </span>
                     </div>
                   </TooltipTrigger>
@@ -377,21 +370,24 @@ export default function MarketBreadth() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-muted-foreground">Close:</span>
-                          <span className="ml-1 font-medium">₹{stock.close.toLocaleString('en-IN')}</span>
+                          <span className="ml-1 font-medium">₹{stock.close.toLocaleString("en-IN")}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Change:</span>
-                          <span className={`ml-1 font-medium ${stock.changePct >= 0 ? 'text-success' : 'text-destructive'}`}>
-                            {stock.changePct >= 0 ? '+' : ''}{stock.changePct.toFixed(2)}%
+                          <span
+                            className={`ml-1 font-medium ${stock.changePct >= 0 ? "text-success" : "text-destructive"}`}
+                          >
+                            {stock.changePct >= 0 ? "+" : ""}
+                            {stock.changePct.toFixed(2)}%
                           </span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">High:</span>
-                          <span className="ml-1 font-medium">₹{stock.high.toLocaleString('en-IN')}</span>
+                          <span className="ml-1 font-medium">₹{stock.high.toLocaleString("en-IN")}</span>
                         </div>
                         <div>
                           <span className="text-muted-foreground">Low:</span>
-                          <span className="ml-1 font-medium">₹{stock.low.toLocaleString('en-IN')}</span>
+                          <span className="ml-1 font-medium">₹{stock.low.toLocaleString("en-IN")}</span>
                         </div>
                       </div>
                     </div>
