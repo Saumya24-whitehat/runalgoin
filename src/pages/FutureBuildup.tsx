@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, Pause, Play } from "lucide-react";
+import { Search, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, Pause, Info } from "lucide-react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { fetchFutureBuildup, fetchFutureExpiryDates, BuildupItem } from "@/services/futureBuilupApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -470,6 +471,56 @@ export default function FutureBuildup() {
           <div className="text-sm text-muted-foreground">
             Last Updated: {buildupData?.lastUpdated ? new Date(buildupData.lastUpdated).toLocaleString() : "-"}
           </div>
+
+          {/* Info Button */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="icon" className="h-9 w-9">
+                <Info className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-3">
+                <h4 className="font-semibold text-sm">Future Buildup Analysis</h4>
+                <p className="text-xs text-muted-foreground">
+                  This page analyzes futures data to identify market sentiment based on price and open interest changes.
+                </p>
+                <div className="space-y-2 text-xs">
+                  <div className="flex items-start gap-2">
+                    <div className="w-3 h-3 rounded bg-emerald-600 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="font-medium">Long Buildup:</span>
+                      <span className="text-muted-foreground"> Price ↑ + OI ↑ (Bullish - New long positions)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-3 h-3 rounded bg-red-600 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="font-medium">Short Buildup:</span>
+                      <span className="text-muted-foreground"> Price ↓ + OI ↑ (Bearish - New short positions)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-3 h-3 rounded bg-blue-600 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="font-medium">Short Covering:</span>
+                      <span className="text-muted-foreground"> Price ↑ + OI ↓ (Shorts closing positions)</span>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <div className="w-3 h-3 rounded bg-orange-500 mt-0.5 shrink-0" />
+                    <div>
+                      <span className="font-medium">Long Unwinding:</span>
+                      <span className="text-muted-foreground"> Price ↓ + OI ↓ (Longs closing positions)</span>
+                    </div>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground border-t pt-2">
+                  <strong>Tip:</strong> Click column headers to sort. Use the filter to search symbols across all tables.
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <Button variant="outline" onClick={handleExportCSV} className="gap-2">
             <Download className="h-4 w-4" />
