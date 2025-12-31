@@ -318,13 +318,13 @@ export default function FutureRollover() {
         </div>
 
         {/* Data Table */}
-        <div className="rounded-lg overflow-hidden border border-border">
-          <div className="bg-primary px-4 py-3">
+        <div className="rounded-lg overflow-auto border border-border max-h-[450px]">
+          <div className="bg-primary px-4 py-3 sticky top-0">
             <h3 className="font-semibold text-primary-foreground">Future Rollover Data</h3>
           </div>
           <Table>
-            <TableHeader>
-              <TableRow className="bg-muted/50">
+            <TableHeader className=" sticky top-[44px]">
+              <TableRow className="bg-muted">
                 <SortableHeader label="Symbol" sortKey="symbol" align="center" />
                 <SortableHeader label="LTP" sortKey="lastPrice" />
                 <SortableHeader label="Change %" sortKey="priceChange" />
