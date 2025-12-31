@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Position, ExpiryData, formatIndianNumber } from '@/services/optionBuilderApi';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useMemo, useEffect } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Position, ExpiryData, formatIndianNumber } from "@/services/optionBuilderApi";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface OptionBuilderChainProps {
   symbol: string;
@@ -11,7 +11,7 @@ interface OptionBuilderChainProps {
   lotSize: number;
   expiryData: ExpiryData | null;
   isLoading: boolean;
-  onAddPosition: (position: Omit<Position, 'id' | 'enabled'>) => void;
+  onAddPosition: (position: Omit<Position, "id" | "enabled">) => void;
 }
 
 interface StrikeData {
@@ -36,14 +36,14 @@ interface StrikeData {
   putToken: string;
 }
 
-const OptionBuilderChain = ({ 
-  symbol, 
-  expiry, 
-  currentPrice, 
-  lotSize, 
+const OptionBuilderChain = ({
+  symbol,
+  expiry,
+  currentPrice,
+  lotSize,
   expiryData,
   isLoading,
-  onAddPosition 
+  onAddPosition,
 }: OptionBuilderChainProps) => {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
 
@@ -67,7 +67,7 @@ const OptionBuilderChain = ({
         callVega: callData?.option_greeks?.vega || 0,
         callOI: callData?.market_data?.oi || 0,
         callVolume: callData?.market_data?.volume || 0,
-        callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || '',
+        callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || "",
         putLTP: putData?.market_data?.ltp || 0,
         putIV: (putData?.option_greeks?.iv || 0) * 100,
         putDelta: putData?.option_greeks?.delta || 0,
@@ -76,23 +76,23 @@ const OptionBuilderChain = ({
         putVega: putData?.option_greeks?.vega || 0,
         putOI: putData?.market_data?.oi || 0,
         putVolume: putData?.market_data?.volume || 0,
-        putToken: expiryData.peToken?.[idx] || putData?.instrument_key || '',
+        putToken: expiryData.peToken?.[idx] || putData?.instrument_key || "",
       };
     });
   }, [expiryData]);
 
-  const handleAddPosition = (strike: number, optType: 'CE' | 'PE', action: 'Buy' | 'Sell') => {
-    const data = strikeData.find(s => s.strike === strike);
+  const handleAddPosition = (strike: number, optType: "CE" | "PE", action: "Buy" | "Sell") => {
+    const data = strikeData.find((s) => s.strike === strike);
     if (!data) return;
 
-    const today = new Date().toISOString().split('T')[0];
-    const price = optType === 'CE' ? data.callLTP : data.putLTP;
-    const iv = optType === 'CE' ? data.callIV : data.putIV;
-    const delta = optType === 'CE' ? data.callDelta : data.putDelta;
-    const theta = optType === 'CE' ? data.callTheta : data.putTheta;
-    const gamma = optType === 'CE' ? data.callGamma : data.putGamma;
-    const vega = optType === 'CE' ? data.callVega : data.putVega;
-    const token = optType === 'CE' ? data.callToken : data.putToken;
+    const today = new Date().toISOString().split("T")[0];
+    const price = optType === "CE" ? data.callLTP : data.putLTP;
+    const iv = optType === "CE" ? data.callIV : data.putIV;
+    const delta = optType === "CE" ? data.callDelta : data.putDelta;
+    const theta = optType === "CE" ? data.callTheta : data.putTheta;
+    const gamma = optType === "CE" ? data.callGamma : data.putGamma;
+    const vega = optType === "CE" ? data.callVega : data.putVega;
+    const token = optType === "CE" ? data.callToken : data.putToken;
 
     onAddPosition({
       action,
@@ -126,7 +126,7 @@ const OptionBuilderChain = ({
     return num.toString();
   };
 
-  const strikeDiff = symbol.includes('Bank') ? 100 : 50;
+  const strikeDiff = symbol.includes("Bank") ? 100 : 50;
   const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
   if (isLoading) {
@@ -140,11 +140,7 @@ const OptionBuilderChain = ({
   }
 
   if (strikeData.length === 0) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No option chain data available for {expiry}
-      </div>
-    );
+    return <div className="text-center py-8 text-muted-foreground">No option chain data available for {expiry}</div>;
   }
 
   return (
@@ -152,15 +148,15 @@ const OptionBuilderChain = ({
       <Table>
         <TableHeader className="sticky top-0 bg-background z-10">
           <TableRow>
-            <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
-            <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
-            <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
-            <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
-            <TableHead className="text-center font-bold text-xs">Strike</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
+            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">OI</TableHead>
+            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">Vol</TableHead>
+            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">IV</TableHead>
+            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">LTP</TableHead>
+            <TableHead className="text-center sticky top-0 font-bold text-xs">Strike</TableHead>
+            <TableHead className="text-center sticky top-0 text-red-500 text-xs">LTP</TableHead>
+            <TableHead className="text-center sticky top-0 text-red-500 text-xs">IV</TableHead>
+            <TableHead className="text-center sticky top-0 text-red-500 text-xs">Vol</TableHead>
+            <TableHead className="text-center sticky top-0 text-red-500 text-xs">OI</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -171,44 +167,42 @@ const OptionBuilderChain = ({
             const isHovered = hoveredRow === row.strike;
 
             return (
-              <TableRow 
+              <TableRow
                 key={row.strike}
                 className={`
                   relative cursor-pointer transition-colors
-                  ${isATM ? 'bg-oc-atm font-medium' : ''}
-                  ${isHovered ? 'bg-muted' : ''}
+                  ${isATM ? "bg-oc-atm font-medium" : ""}
+                  ${isHovered ? "bg-muted" : ""}
                 `}
                 onMouseEnter={() => setHoveredRow(row.strike)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 {/* Call Side */}
-                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-oc-call-itm' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
                   {formatNumber(row.callOI)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-oc-call-itm' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
                   {formatNumber(row.callVolume)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-oc-call-itm' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
                   {row.callIV.toFixed(1)}
                 </TableCell>
-                <TableCell 
-                  className={`text-center relative ${isITMCall ? 'bg-oc-call-itm' : ''}`}
-                >
+                <TableCell className={`text-center relative ${isITMCall ? "bg-oc-call-itm" : ""}`}>
                   <span className="text-xs font-medium">{row.callLTP.toFixed(2)}</span>
                   {isHovered && (
                     <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() => handleAddPosition(row.strike, 'CE', 'Buy')}
+                        onClick={() => handleAddPosition(row.strike, "CE", "Buy")}
                       >
                         B
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="destructive"
                         className="h-6 px-2 text-xs"
-                        onClick={() => handleAddPosition(row.strike, 'CE', 'Sell')}
+                        onClick={() => handleAddPosition(row.strike, "CE", "Sell")}
                       >
                         S
                       </Button>
@@ -217,42 +211,40 @@ const OptionBuilderChain = ({
                 </TableCell>
 
                 {/* Strike */}
-                <TableCell className={`text-center font-bold text-xs ${isATM ? 'text-oc-atm-text bg-oc-atm' : ''}`}>
+                <TableCell className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}>
                   {row.strike}
                 </TableCell>
 
                 {/* Put Side */}
-                <TableCell 
-                  className={`text-center relative ${isITMPut ? 'bg-oc-put-itm' : ''}`}
-                >
+                <TableCell className={`text-center relative ${isITMPut ? "bg-oc-put-itm" : ""}`}>
                   <span className="text-xs font-medium">{row.putLTP.toFixed(2)}</span>
                   {isHovered && (
                     <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() => handleAddPosition(row.strike, 'PE', 'Buy')}
+                        onClick={() => handleAddPosition(row.strike, "PE", "Buy")}
                       >
                         B
                       </Button>
-                      <Button 
-                        size="sm" 
+                      <Button
+                        size="sm"
                         variant="destructive"
                         className="h-6 px-2 text-xs"
-                        onClick={() => handleAddPosition(row.strike, 'PE', 'Sell')}
+                        onClick={() => handleAddPosition(row.strike, "PE", "Sell")}
                       >
                         S
                       </Button>
                     </div>
                   )}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-oc-put-itm' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
                   {row.putIV.toFixed(1)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-oc-put-itm' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
                   {formatNumber(row.putVolume)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-oc-put-itm' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
                   {formatNumber(row.putOI)}
                 </TableCell>
               </TableRow>
