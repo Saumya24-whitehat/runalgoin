@@ -121,15 +121,15 @@ export default function MarketBreadth() {
     return filtered;
   }, [stocks, changeFilter, sortBy, sortDirection]);
 
-  // Get color based on change percentage
-  const getChangeColor = (changePct: number): string => {
-    if (changePct >= 3) return 'bg-emerald-600';
-    if (changePct >= 1) return 'bg-emerald-500';
-    if (changePct > 0) return 'bg-emerald-400';
-    if (changePct === 0) return 'bg-muted';
-    if (changePct > -1) return 'bg-red-400';
-    if (changePct > -3) return 'bg-red-500';
-    return 'bg-red-600';
+  // Get color based on change percentage - returns inline style
+  const getStockBgColor = (changePct: number): string => {
+    if (changePct >= 5) return '#13c14c';
+    if (changePct >= 3) return '#46d67a';
+    if (changePct >= 1) return '#84f0ac';
+    if (changePct > -1) return '#cbcbcb';
+    if (changePct > -3) return '#fdc5ca';
+    if (changePct > -5) return '#e69ba2';
+    return '#e3515c';
   };
 
   const toggleGroup = (groupName: string) => {
@@ -358,10 +358,11 @@ export default function MarketBreadth() {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1">
               {filteredAndSortedStocks.map((stock, idx) => (
                 <Tooltip key={`${stock.name}-${idx}`}>
-                  <TooltipTrigger asChild>
-                    <div
-                      className={`${getChangeColor(stock.changePct)} text-white p-2 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[80px] flex flex-col justify-center items-center text-center`}
-                    >
+                    <TooltipTrigger asChild>
+                      <div
+                        style={{ backgroundColor: getStockBgColor(stock.changePct) }}
+                        className="text-white p-2 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[80px] flex flex-col justify-center items-center text-center"
+                      >
                       <span className="font-bold text-sm truncate w-full">{stock.name}</span>
                       <span className="text-xs opacity-90">₹{stock.close.toLocaleString('en-IN')}</span>
                       <span className="text-xs font-semibold">
