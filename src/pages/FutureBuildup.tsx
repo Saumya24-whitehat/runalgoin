@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, RefreshCw, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown } from "lucide-react";
+import { Search, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,11 +13,15 @@ import { supabase } from "@/integrations/supabase/client";
 
 const INDEX_SYMBOLS = ["Nifty 50", "Nifty Bank", "Nifty Fin Service", "Nifty Mid Select"];
 
+type SortKey = "symbol" | "price" | "priceChange" | "oi" | "oiChange";
+type SortDirection = "asc" | "desc" | null;
+
 interface BuildupTableProps {
   title: string;
   items: BuildupItem[];
   isLoading: boolean;
   variant: "long" | "short" | "covering" | "unwinding";
+  searchFilter: string;
 }
 
 // Format number with L (Lakh), CR (Crore), K (Thousand) notation
@@ -25,19 +30,19 @@ function formatIndianNumber(num: number): string {
   const sign = num < 0 ? "-" : "";
   
   if (absNum >= 10000000) {
-    // Crore (1 CR = 10,000,000)
     return sign + (absNum / 10000000).toFixed(2) + " CR";
   } else if (absNum >= 100000) {
-    // Lakh (1 L = 100,000)
     return sign + (absNum / 100000).toFixed(2) + " L";
   } else if (absNum >= 1000) {
-    // Thousand (1 K = 1,000)
     return sign + (absNum / 1000).toFixed(2) + " K";
   }
   return sign + absNum.toLocaleString("en-IN");
 }
 
-function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
+function BuildupTable({ title, items, isLoading, variant, searchFilter }: BuildupTableProps) {
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+
   const headerColors = {
     long: "bg-emerald-600",
     short: "bg-red-600",
@@ -52,20 +57,95 @@ function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
     unwinding: <TrendingDown className="h-4 w-4" />,
   };
 
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortKey(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection("asc");
+      }
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  };
+
+  const getSortIcon = (key: SortKey) => {
+    if (sortKey !== key) {
+      return <ChevronsUpDown className="h-3 w-3 opacity-50" />;
+    }
+    if (sortDirection === "asc") {
+      return <ChevronUp className="h-3 w-3" />;
+    }
+    return <ChevronDown className="h-3 w-3" />;
+  };
+
+  const filteredAndSortedItems = useMemo(() => {
+    let result = [...items];
+
+    // Apply search filter
+    if (searchFilter) {
+      const lowerFilter = searchFilter.toLowerCase();
+      result = result.filter((item) =>
+        item.symbol.toLowerCase().includes(lowerFilter)
+      );
+    }
+
+    // Apply sorting
+    if (sortKey && sortDirection) {
+      result.sort((a, b) => {
+        let aVal: string | number = a[sortKey];
+        let bVal: string | number = b[sortKey];
+
+        if (typeof aVal === "string") {
+          aVal = aVal.toLowerCase();
+          bVal = (bVal as string).toLowerCase();
+          return sortDirection === "asc"
+            ? aVal.localeCompare(bVal as string)
+            : (bVal as string).localeCompare(aVal);
+        }
+
+        return sortDirection === "asc" ? aVal - (bVal as number) : (bVal as number) - aVal;
+      });
+    }
+
+    return result;
+  }, [items, searchFilter, sortKey, sortDirection]);
+
+  const SortableHeader = ({ label, sortKeyName, align = "right" }: { label: string; sortKeyName: SortKey; align?: "left" | "right" | "center" }) => (
+    <TableHead
+      className={`text-${align} cursor-pointer hover:bg-muted/70 select-none`}
+      onClick={() => handleSort(sortKeyName)}
+    >
+      <div className={`flex items-center gap-1 ${align === "right" ? "justify-end" : align === "center" ? "justify-center" : ""}`}>
+        <span>{label}</span>
+        {getSortIcon(sortKeyName)}
+      </div>
+    </TableHead>
+  );
+
   return (
     <div className="rounded-lg overflow-hidden border border-border">
       <div className={`${headerColors[variant]} px-4 py-3 flex items-center gap-2`}>
         {icons[variant]}
         <h3 className="font-semibold text-white">{title}</h3>
+        {searchFilter && (
+          <span className="ml-auto text-xs text-white/80">
+            {filteredAndSortedItems.length} / {items.length}
+          </span>
+        )}
       </div>
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="text-center">Symbol</TableHead>
-            <TableHead className="text-right">Price</TableHead>
-            <TableHead className="text-right">Price Chg (%)</TableHead>
-            <TableHead className="text-right">OI</TableHead>
-            <TableHead className="text-right">OI Chg</TableHead>
+            <SortableHeader label="Symbol" sortKeyName="symbol" align="center" />
+            <SortableHeader label="Price" sortKeyName="price" />
+            <SortableHeader label="Price Chg (%)" sortKeyName="priceChange" />
+            <SortableHeader label="OI" sortKeyName="oi" />
+            <SortableHeader label="OI Chg" sortKeyName="oiChange" />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -79,14 +159,14 @@ function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
                 <TableCell><Skeleton className="h-4 w-14 ml-auto" /></TableCell>
               </TableRow>
             ))
-          ) : items.length === 0 ? (
+          ) : filteredAndSortedItems.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                No data available
+                {searchFilter ? "No matching symbols" : "No data available"}
               </TableCell>
             </TableRow>
           ) : (
-            items.map((item, idx) => (
+            filteredAndSortedItems.map((item, idx) => (
               <TableRow key={idx} className="hover:bg-muted/30">
                 <TableCell className="text-center font-medium">{item.symbol}</TableCell>
                 <TableCell className="text-right">{item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
@@ -110,6 +190,7 @@ export default function FutureBuildup() {
   const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [allSymbols, setAllSymbols] = useState<string[]>([]);
+  const [searchFilter, setSearchFilter] = useState("");
 
   // Fetch available symbols
   useEffect(() => {
@@ -161,7 +242,7 @@ export default function FutureBuildup() {
     ];
 
     const csv = [
-      ["Type", "Symbol", "Price", "Price Chg (%)", "OI", "OI Chg (%)"].join(","),
+      ["Type", "Symbol", "Price", "Price Chg (%)", "OI", "OI Chg"].join(","),
       ...allItems.map((i) =>
         [i.type, i.symbol, i.price, i.priceChange, i.oi, i.oiChange].join(",")
       ),
@@ -221,6 +302,17 @@ export default function FutureBuildup() {
             Search
           </Button>
 
+          {/* Symbol Search Filter */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Filter symbols..."
+              value={searchFilter}
+              onChange={(e) => setSearchFilter(e.target.value)}
+              className="pl-9 w-[180px]"
+            />
+          </div>
+
           {/* Count Badges */}
           <div className="flex items-center gap-2 ml-auto">
             <div className="flex flex-col items-center px-3 py-1 rounded bg-emerald-600 text-white text-xs">
@@ -258,24 +350,28 @@ export default function FutureBuildup() {
             items={buildupData?.longBuildup || []}
             isLoading={isLoading}
             variant="long"
+            searchFilter={searchFilter}
           />
           <BuildupTable
             title="Short Buildup"
             items={buildupData?.shortBuildup || []}
             isLoading={isLoading}
             variant="short"
+            searchFilter={searchFilter}
           />
           <BuildupTable
             title="Short Covering"
             items={buildupData?.shortCovering || []}
             isLoading={isLoading}
             variant="covering"
+            searchFilter={searchFilter}
           />
           <BuildupTable
             title="Long Unwinding"
             items={buildupData?.longUnwinding || []}
             isLoading={isLoading}
             variant="unwinding"
+            searchFilter={searchFilter}
           />
         </div>
       </div>
