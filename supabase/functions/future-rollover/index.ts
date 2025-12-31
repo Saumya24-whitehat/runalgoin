@@ -55,13 +55,6 @@ serve(async (req) => {
 
     const rolloverItems: RolloverItem[] = [];
 
-    return new Response(
-      JSON.stringify({
-        data: rawData,
-        lastUpdated: new Date().toISOString(),
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
     for (const [symbolKey, data] of Object.entries(rawData)) {
       if (!data || typeof data !== "object") continue;
 
