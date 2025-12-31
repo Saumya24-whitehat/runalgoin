@@ -1,17 +1,27 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown, ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
+import { Search, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, Pause, Play } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { fetchFutureBuildup, fetchFutureExpiryDates, BuildupItem } from "@/services/futureBuilupApi";
 import { supabase } from "@/integrations/supabase/client";
 
 const INDEX_SYMBOLS = ["Nifty 50", "Nifty Bank", "Nifty Fin Service", "Nifty Mid Select"];
+
+const REFRESH_INTERVALS = [
+  { label: "30s", value: 30000 },
+  { label: "1m", value: 60000 },
+  { label: "5m", value: 300000 },
+];
 
 type SortKey = "symbol" | "price" | "priceChange" | "oi" | "oiChange";
 type SortDirection = "asc" | "desc" | null;
@@ -37,6 +47,97 @@ function formatIndianNumber(num: number): string {
     return sign + (absNum / 1000).toFixed(2) + " K";
   }
   return sign + absNum.toLocaleString("en-IN");
+}
+
+const CHART_COLORS = {
+  long: "#16a34a",
+  short: "#dc2626",
+  covering: "#2563eb",
+  unwinding: "#f97316",
+};
+
+function BuildupDistributionChart({ counts }: { counts: { lb: number; sb: number; sc: number; lu: number } }) {
+  const pieData = [
+    { name: "Long Buildup", value: counts.lb, color: CHART_COLORS.long },
+    { name: "Short Buildup", value: counts.sb, color: CHART_COLORS.short },
+    { name: "Short Covering", value: counts.sc, color: CHART_COLORS.covering },
+    { name: "Long Unwinding", value: counts.lu, color: CHART_COLORS.unwinding },
+  ];
+
+  const barData = [
+    { name: "LB", count: counts.lb, fill: CHART_COLORS.long },
+    { name: "SB", count: counts.sb, fill: CHART_COLORS.short },
+    { name: "SC", count: counts.sc, fill: CHART_COLORS.covering },
+    { name: "LU", count: counts.lu, fill: CHART_COLORS.unwinding },
+  ];
+
+  const total = counts.lb + counts.sb + counts.sc + counts.lu;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Distribution (Pie)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={200}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                cx="50%"
+                cy="50%"
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={2}
+                dataKey="value"
+                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                labelLine={false}
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} />
+                ))}
+              </Pie>
+              <Tooltip
+                formatter={(value: number, name: string) => [
+                  `${value} (${((value / total) * 100).toFixed(1)}%)`,
+                  name,
+                ]}
+              />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm font-medium">Distribution (Bar)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={barData}>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                formatter={(value: number) => [value, "Count"]}
+                contentStyle={{
+                  backgroundColor: "hsl(var(--background))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "8px",
+                }}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                {barData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 function BuildupTable({ title, items, isLoading, variant, searchFilter }: BuildupTableProps) {
@@ -86,7 +187,6 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
   const filteredAndSortedItems = useMemo(() => {
     let result = [...items];
 
-    // Apply search filter
     if (searchFilter) {
       const lowerFilter = searchFilter.toLowerCase();
       result = result.filter((item) =>
@@ -94,7 +194,6 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
       );
     }
 
-    // Apply sorting
     if (sortKey && sortDirection) {
       result.sort((a, b) => {
         let aVal: string | number = a[sortKey];
@@ -191,6 +290,8 @@ export default function FutureBuildup() {
   const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [allSymbols, setAllSymbols] = useState<string[]>([]);
   const [searchFilter, setSearchFilter] = useState("");
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(60000);
 
   // Fetch available symbols
   useEffect(() => {
@@ -223,12 +324,12 @@ export default function FutureBuildup() {
     }
   }, [expiryDates, selectedExpiry]);
 
-  // Fetch buildup data
-  const { data: buildupData, isLoading, refetch } = useQuery({
+  // Fetch buildup data with configurable auto-refresh
+  const { data: buildupData, isLoading, refetch, isFetching } = useQuery({
     queryKey: ["future-buildup", selectedSymbol, selectedExpiry],
     queryFn: () => fetchFutureBuildup(selectedSymbol, selectedExpiry),
     enabled: !!selectedExpiry,
-    refetchInterval: 60000,
+    refetchInterval: autoRefresh ? refreshInterval : false,
   });
 
   const handleExportCSV = () => {
@@ -297,8 +398,8 @@ export default function FutureBuildup() {
             </SelectContent>
           </Select>
 
-          <Button onClick={() => refetch()} variant="default" className="gap-2">
-            <Search className="h-4 w-4" />
+          <Button onClick={() => refetch()} variant="default" className="gap-2" disabled={isFetching}>
+            <Search className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
             Search
           </Button>
 
@@ -311,6 +412,39 @@ export default function FutureBuildup() {
               onChange={(e) => setSearchFilter(e.target.value)}
               className="pl-9 w-[180px]"
             />
+          </div>
+
+          {/* Auto-refresh controls */}
+          <div className="flex items-center gap-3 border rounded-lg px-3 py-2 bg-muted/30">
+            <div className="flex items-center gap-2">
+              {autoRefresh ? (
+                <RefreshCw className={`h-4 w-4 text-emerald-500 ${isFetching ? "animate-spin" : ""}`} />
+              ) : (
+                <Pause className="h-4 w-4 text-muted-foreground" />
+              )}
+              <Label htmlFor="auto-refresh" className="text-sm cursor-pointer">
+                Auto
+              </Label>
+              <Switch
+                id="auto-refresh"
+                checked={autoRefresh}
+                onCheckedChange={setAutoRefresh}
+              />
+            </div>
+            {autoRefresh && (
+              <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
+                <SelectTrigger className="w-[70px] h-7 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {REFRESH_INTERVALS.map((interval) => (
+                    <SelectItem key={interval.value} value={String(interval.value)}>
+                      {interval.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           {/* Count Badges */}
@@ -342,6 +476,9 @@ export default function FutureBuildup() {
             CSV
           </Button>
         </div>
+
+        {/* Distribution Charts */}
+        <BuildupDistributionChart counts={counts} />
 
         {/* Tables Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
