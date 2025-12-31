@@ -1,4 +1,5 @@
 import { Navbar } from "@/components/Navbar";
+import { TickerRibbon } from "@/components/TickerRibbon";
 
 const Algo = () => {
   return (
