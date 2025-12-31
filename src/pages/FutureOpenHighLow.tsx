@@ -14,6 +14,8 @@ import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { fetchFutureOpenHighLow, fetchFutureExpiryDates, OpenHighLowItem } from "@/services/futureOpenHighLowApi";
 import { supabase } from "@/integrations/supabase/client";
 
+const INDEX_SYMBOLS = ["Nifty 50", "Nifty Bank", "Nifty Fin Service", "Nifty Mid Select"];
+
 type SortDirection = "asc" | "desc" | null;
 type SortColumn = "symbol" | "open" | "high" | "low" | "lastPrice" | "priceChange" | "openHighDiff" | "openLowDiff";
 
@@ -70,8 +72,9 @@ function SortableHeader({
 }
 
 export default function FutureOpenHighLow() {
-  const [selectedSymbol, setSelectedSymbol] = useState("ALL");
+  const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState("");
+  const [allSymbols, setAllSymbols] = useState<string[]>([]);
   const [searchFilter, setSearchFilter] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<number>(60000);
@@ -80,18 +83,34 @@ export default function FutureOpenHighLow() {
   const [openHighSort, setOpenHighSort] = useState<SortState>({ column: null, direction: null });
   const [openLowSort, setOpenLowSort] = useState<SortState>({ column: null, direction: null });
 
-  const symbols = ["ALL", "NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "SENSEX", "BANKEX"];
+  // Fetch available symbols
+  useEffect(() => {
+    async function loadSymbols() {
+      try {
+        const { data } = await supabase.functions.invoke("option-chain", {
+          body: { action: "getSymbols" },
+        });
+        if (data?.symbols) {
+          setAllSymbols([...INDEX_SYMBOLS, ...data.symbols.filter((s: string) => !INDEX_SYMBOLS.includes(s))]);
+        }
+      } catch (error) {
+        console.error("Failed to load symbols:", error);
+        setAllSymbols(INDEX_SYMBOLS);
+      }
+    }
+    loadSymbols();
+  }, []);
 
-  // Fetch expiry dates
-  const { data: expiryDates } = useQuery({
-    queryKey: ["futureExpiryDates", selectedSymbol],
-    queryFn: () => fetchFutureExpiryDates(selectedSymbol === "ALL" ? "NIFTY" : selectedSymbol),
+  // Fetch expiry dates for selected symbol
+  const { data: expiryDates = [] } = useQuery({
+    queryKey: ["future-expiry-dates", selectedSymbol],
+    queryFn: () => fetchFutureExpiryDates(selectedSymbol),
     staleTime: 1000 * 60 * 60,
   });
 
   // Set default expiry when data loads
   useEffect(() => {
-    if (expiryDates && expiryDates.length > 0 && !selectedExpiry) {
+    if (expiryDates.length > 0 && !selectedExpiry) {
       setSelectedExpiry(expiryDates[0]);
     }
   }, [expiryDates, selectedExpiry]);
@@ -413,11 +432,11 @@ export default function FutureOpenHighLow() {
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3">
           <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select Symbol" />
             </SelectTrigger>
-            <SelectContent>
-              {symbols.map((sym) => (
+            <SelectContent className="max-h-[300px]">
+              {allSymbols.map((sym) => (
                 <SelectItem key={sym} value={sym}>
                   {sym}
                 </SelectItem>
@@ -426,11 +445,11 @@ export default function FutureOpenHighLow() {
           </Select>
 
           <Select value={selectedExpiry} onValueChange={setSelectedExpiry}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Select Expiry" />
             </SelectTrigger>
             <SelectContent>
-              {expiryDates?.map((exp) => (
+              {expiryDates.map((exp) => (
                 <SelectItem key={exp} value={exp}>
                   {exp}
                 </SelectItem>
