@@ -269,7 +269,7 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
       </div>
       <Table>
         <TableHeader className="sticky top-[44px] bg-background z-20">
-          <TableRow className="bg-muted/50">
+          <TableRow className="bg-muted">
             <SortableHeader label="Symbol" sortKeyName="symbol" align="center" />
             <SortableHeader label="Price" sortKeyName="price" />
             <SortableHeader label="Price Chg (%)" sortKeyName="priceChange" />
