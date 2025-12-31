@@ -146,19 +146,20 @@ const OptionBuilderChain = ({
   return (
     <div className="max-h-[400px] overflow-auto">
       <Table>
-        <TableHeader className=" bg-background z-10">
+        <TableHeader className="sticky top-0 bg-background z-20">
           <TableRow>
-            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">OI</TableHead>
-            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">Vol</TableHead>
-            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">IV</TableHead>
-            <TableHead className="text-center sticky top-0 text-emerald-500 text-xs">LTP</TableHead>
-            <TableHead className="text-center sticky top-0 font-bold text-xs">Strike</TableHead>
-            <TableHead className="text-center sticky top-0 text-red-500 text-xs">LTP</TableHead>
-            <TableHead className="text-center sticky top-0 text-red-500 text-xs">IV</TableHead>
-            <TableHead className="text-center sticky top-0 text-red-500 text-xs">Vol</TableHead>
-            <TableHead className="text-center sticky top-0 text-red-500 text-xs">OI</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
+            <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
+            <TableHead className="text-center font-bold text-xs">Strike</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
+            <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {strikeData.map((row) => {
             const isATM = Math.abs(row.strike - atmStrike) < strikeDiff / 2;
