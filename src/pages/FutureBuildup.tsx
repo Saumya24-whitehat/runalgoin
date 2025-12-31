@@ -257,7 +257,7 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
   );
 
   return (
-    <div className="rounded-lg overflow-hidden border border-border overflow-auto max-h-[400px]">
+    <div className="rounded-lg border border-border overflow-auto max-h-[400px]">
       <div className={`${headerColors[variant]} px-4 py-3 flex items-center gap-2 sticky top-0`}>
         {icons[variant]}
         <h3 className="font-semibold text-white">{title}</h3>
