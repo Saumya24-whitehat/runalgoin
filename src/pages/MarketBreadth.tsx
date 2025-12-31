@@ -16,8 +16,9 @@ import {
 } from "@/services/marketBreadthApi";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
-type SortOption = 'change' | 'name';
+type SortOption = 'name';
 type SortDirection = 'asc' | 'desc';
+type ChangeFilter = '+5' | '+3' | '+1' | '0' | '-1' | '-3' | '-5' | null;
 
 // Map index symbols to advance-decline API keys
 const indexToAdvDeclineKey: Record<string, string> = {
@@ -38,8 +39,9 @@ export default function MarketBreadth() {
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>('');
-  const [sortBy, setSortBy] = useState<SortOption>('change');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [sortBy, setSortBy] = useState<SortOption | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [changeFilter, setChangeFilter] = useState<ChangeFilter>(null);
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['Major Market Indices']));
 
@@ -73,18 +75,51 @@ export default function MarketBreadth() {
     fetchData();
   }, [selectedIndex]);
 
-  // Sort stocks
-  const sortedStocks = useMemo(() => {
-    const sorted = [...stocks].sort((a, b) => {
-      if (sortBy === 'change') {
-        return sortDirection === 'desc' ? b.changePct - a.changePct : a.changePct - b.changePct;
+  // Filter and sort stocks
+  const filteredAndSortedStocks = useMemo(() => {
+    // First apply change filter
+    let filtered = [...stocks];
+    
+    if (changeFilter !== null) {
+      switch (changeFilter) {
+        case '+5':
+          filtered = stocks.filter(s => s.changePct >= 5);
+          break;
+        case '+3':
+          filtered = stocks.filter(s => s.changePct >= 3 && s.changePct < 5);
+          break;
+        case '+1':
+          filtered = stocks.filter(s => s.changePct >= 1 && s.changePct < 3);
+          break;
+        case '0':
+          filtered = stocks.filter(s => s.changePct > -1 && s.changePct < 1);
+          break;
+        case '-1':
+          filtered = stocks.filter(s => s.changePct <= -1 && s.changePct > -3);
+          break;
+        case '-3':
+          filtered = stocks.filter(s => s.changePct <= -3 && s.changePct > -5);
+          break;
+        case '-5':
+          filtered = stocks.filter(s => s.changePct <= -5);
+          break;
       }
-      return sortDirection === 'desc' 
-        ? b.name.localeCompare(a.name) 
-        : a.name.localeCompare(b.name);
-    });
-    return sorted;
-  }, [stocks, sortBy, sortDirection]);
+    }
+    
+    // Then apply name sorting if selected
+    if (sortBy === 'name') {
+      filtered.sort((a, b) => 
+        sortDirection === 'asc' 
+          ? a.name.localeCompare(b.name) 
+          : b.name.localeCompare(a.name)
+      );
+    } else {
+      // Default: sort by change descending
+      filtered.sort((a, b) => b.changePct - a.changePct);
+    }
+    
+    return filtered;
+  }, [stocks, changeFilter, sortBy, sortDirection]);
 
   // Get color based on change percentage
   const getChangeColor = (changePct: number): string => {
@@ -256,42 +291,53 @@ export default function MarketBreadth() {
             </div>
           </div>
 
-          {/* Sort Options */}
+          {/* Filter Options */}
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-muted-foreground">Sort by:</span>
-            {[5, 3, 1, 0, -1, -3, -5].map((val) => (
-              <Button
-                key={val}
-                variant="outline"
-                size="sm"
-                className={`min-w-8 h-8 ${
-                  val > 0 ? 'bg-success/20 hover:bg-success/30 text-success border-success/30' :
-                  val < 0 ? 'bg-destructive/20 hover:bg-destructive/30 text-destructive border-destructive/30' :
-                  ''
-                }`}
-                onClick={() => {
-                  setSortBy('change');
-                  setSortDirection(val >= 0 ? 'desc' : 'asc');
-                }}
-              >
-                {val > 0 ? `+${val}` : val}
-              </Button>
-            ))}
+            <span className="text-sm text-muted-foreground">Filter:</span>
+            {(['+5', '+3', '+1', '0', '-1', '-3', '-5'] as ChangeFilter[]).map((val) => {
+              const isActive = changeFilter === val;
+              const isPositive = val && val.startsWith('+');
+              const isNegative = val && val.startsWith('-');
+              
+              return (
+                <Button
+                  key={val}
+                  variant="outline"
+                  size="sm"
+                  className={`min-w-10 h-8 ${
+                    isActive 
+                      ? isPositive 
+                        ? 'bg-success text-success-foreground border-success' 
+                        : isNegative 
+                          ? 'bg-destructive text-destructive-foreground border-destructive'
+                          : 'bg-primary text-primary-foreground'
+                      : isPositive 
+                        ? 'bg-success/20 hover:bg-success/30 text-success border-success/30' 
+                        : isNegative 
+                          ? 'bg-destructive/20 hover:bg-destructive/30 text-destructive border-destructive/30' 
+                          : ''
+                  }`}
+                  onClick={() => setChangeFilter(changeFilter === val ? null : val)}
+                >
+                  {val}
+                </Button>
+              );
+            })}
             <Button
-              variant={sortDirection === 'asc' && sortBy === 'name' ? 'default' : 'outline'}
+              variant={sortBy === 'name' && sortDirection === 'asc' ? 'default' : 'outline'}
               size="sm"
               onClick={() => {
-                setSortBy('name');
+                setSortBy(sortBy === 'name' && sortDirection === 'asc' ? null : 'name');
                 setSortDirection('asc');
               }}
             >
               A-Z
             </Button>
             <Button
-              variant={sortDirection === 'desc' && sortBy === 'name' ? 'default' : 'outline'}
+              variant={sortBy === 'name' && sortDirection === 'desc' ? 'default' : 'outline'}
               size="sm"
               onClick={() => {
-                setSortBy('name');
+                setSortBy(sortBy === 'name' && sortDirection === 'desc' ? null : 'name');
                 setSortDirection('desc');
               }}
             >
@@ -310,7 +356,7 @@ export default function MarketBreadth() {
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1">
-              {sortedStocks.map((stock, idx) => (
+              {filteredAndSortedStocks.map((stock, idx) => (
                 <Tooltip key={`${stock.name}-${idx}`}>
                   <TooltipTrigger asChild>
                     <div
