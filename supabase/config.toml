@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.future-rollover]
 verify_jwt = false
+
+[functions.market-breadth]
+verify_jwt = false
