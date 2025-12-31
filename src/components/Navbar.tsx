@@ -87,7 +87,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: Layers, label: "OI Buildup", iconColor: "text-red-500", path: "/future-buildup" },
           { icon: TrendingUp, label: "Future Open - High & Low", iconColor: "text-yellow-500", path: "/future-open-high-low" },
-          { icon: Activity, label: "Future Rollover", iconColor: "text-emerald-500" },
+          { icon: Activity, label: "Future Rollover", iconColor: "text-emerald-500", path: "/future-rollover" },
         ],
       },
     ],
