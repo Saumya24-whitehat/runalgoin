@@ -257,8 +257,8 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
   );
 
   return (
-    <div className="rounded-lg overflow-hidden border border-border">
-      <div className={`${headerColors[variant]} px-4 py-3 flex items-center gap-2`}>
+    <div className="rounded-lg overflow-hidden border border-border overflow-auto max-h-[400px]">
+      <div className={`${headerColors[variant]} px-4 py-3 flex items-center gap-2 sticky top-0`}>
         {icons[variant]}
         <h3 className="font-semibold text-white">{title}</h3>
         {searchFilter && (
@@ -268,7 +268,7 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
         )}
       </div>
       <Table>
-        <TableHeader>
+        <TableHeader className="sticky top-0">
           <TableRow className="bg-muted/50">
             <SortableHeader label="Symbol" sortKeyName="symbol" align="center" />
             <SortableHeader label="Price" sortKeyName="price" />
