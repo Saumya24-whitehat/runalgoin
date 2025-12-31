@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Save,
   Download,
@@ -45,12 +46,10 @@ import {
 } from "@/services/optionBuilderApi";
 import { upstoxWebSocket } from "@/services/upstoxWebSocket";
 
-const SYMBOLS = [
-  { value: "Nifty 50", label: "NIFTY" },
-  { value: "Nifty Bank", label: "BANKNIFTY" },
-  { value: "Nifty Fin Service", label: "FINNIFTY" },
-  { value: "Nifty Mid Select", label: "MIDCPNIFTY" },
-];
+interface SymbolsData {
+  indexSymbols: string[];
+  stockSymbols: string[];
+}
 
 const STORAGE_KEY_SETTINGS = "optionBuilder_settings";
 const STORAGE_KEY_STRATEGIES = "optionBuilder_strategies";
@@ -70,6 +69,10 @@ const OptionBuilder = () => {
   const [showOptionChain, setShowOptionChain] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [margin, setMargin] = useState<number>(0);
+  
+  // Symbols from API
+  const [symbols, setSymbols] = useState<SymbolsData>({ indexSymbols: [], stockSymbols: [] });
+  const [loadingSymbols, setLoadingSymbols] = useState(false);
 
   // Settings and dialogs
   const [settings, setSettings] = useState<OptionBuilderSettingsConfig>(() => {
@@ -102,6 +105,29 @@ const OptionBuilder = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Fetch symbols on mount
+  useEffect(() => {
+    const fetchSymbols = async () => {
+      setLoadingSymbols(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("option-chain", {
+          body: { action: "getSymbols" },
+        });
+
+        if (error) throw error;
+
+        const idxSymbols = data?.["index symbols"] || data?.index_symbols || [];
+        const stkSymbols = data?.symbols || [];
+        setSymbols({ indexSymbols: idxSymbols, stockSymbols: stkSymbols });
+      } catch (error) {
+        console.error("Error fetching symbols:", error);
+      } finally {
+        setLoadingSymbols(false);
+      }
+    };
+    fetchSymbols();
+  }, []);
 
   // Initialize WebSocket for live data
   useEffect(() => {
@@ -571,16 +597,43 @@ const OptionBuilder = () => {
         <div className="container mx-auto px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <Select value={symbol} onValueChange={setSymbol}>
+              <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
                 <SelectTrigger className="w-[160px]">
-                  <SelectValue />
+                  <SelectValue placeholder={loadingSymbols ? "Loading..." : "Select Symbol"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {SYMBOLS.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
+                  {symbols.indexSymbols.length > 0 && (
+                    <>
+                      <SelectItem value="__index_header" disabled className="font-semibold text-xs text-muted-foreground">
+                        INDEX
+                      </SelectItem>
+                      {symbols.indexSymbols.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {symbols.stockSymbols.length > 0 && (
+                    <>
+                      <SelectItem value="__stock_header" disabled className="font-semibold text-xs text-muted-foreground mt-2">
+                        STOCKS
+                      </SelectItem>
+                      {symbols.stockSymbols.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {symbols.indexSymbols.length === 0 && symbols.stockSymbols.length === 0 && (
+                    <>
+                      <SelectItem value="Nifty 50">NIFTY</SelectItem>
+                      <SelectItem value="Nifty Bank">BANKNIFTY</SelectItem>
+                      <SelectItem value="Nifty Fin Service">FINNIFTY</SelectItem>
+                      <SelectItem value="Nifty Mid Select">MIDCPNIFTY</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
               {/* WebSocket status indicator */}
