@@ -268,7 +268,7 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
         )}
       </div>
       <Table>
-        <TableHeader className="sticky" style={{ top: "44px" }}>
+        <TableHeader className="sticky top-[44px] bg-background z-20">
           <TableRow className="bg-muted/50">
             <SortableHeader label="Symbol" sortKeyName="symbol" align="center" />
             <SortableHeader label="Price" sortKeyName="price" />
