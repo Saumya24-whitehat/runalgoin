@@ -13,6 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { fetchFutureRollover, fetchFutureExpiryDates, RolloverItem } from "@/services/futureRolloverApi";
 import { supabase } from "@/integrations/supabase/client";
+import { TickerRibbon } from "@/components/TickerRibbon";
 
 const INDEX_SYMBOLS = ["Nifty 50", "Nifty Bank", "Nifty Fin Service", "Nifty Mid Select"];
 

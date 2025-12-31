@@ -14,6 +14,8 @@ import {
   Pause,
   Info,
 } from "lucide-react";
+import { TickerRibbon } from "@/components/TickerRibbon";
+
 import {
   PieChart,
   Pie,

@@ -11,6 +11,8 @@ import {
   RefreshCw,
   Info,
 } from "lucide-react";
+import { TickerRibbon } from "@/components/TickerRibbon";
+
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
