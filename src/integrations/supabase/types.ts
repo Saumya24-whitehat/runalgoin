@@ -41,6 +41,36 @@ export type Database = {
         }
         Relationships: []
       }
+      table_styles: {
+        Row: {
+          created_at: string
+          dark_config: Json
+          id: string
+          light_config: Json
+          style_key: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          dark_config: Json
+          id?: string
+          light_config: Json
+          style_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          dark_config?: Json
+          id?: string
+          light_config?: Json
+          style_key?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string

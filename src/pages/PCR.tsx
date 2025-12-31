@@ -23,6 +23,7 @@ import { fetchKundaliData, extractSupportResistance, SupportResistanceData } fro
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer, ChevronLeft, ChevronRight } from "lucide-react";
+import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -453,17 +454,20 @@ const PCR = () => {
               {/* GO Button */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground invisible">Action</label>
-                <Button
-                  onClick={handleGo}
-                  disabled={loadingData || !selectedSymbol || !selectedExpiry}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  {loadingData ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    "GO"
-                  )}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleGo}
+                    disabled={loadingData || !selectedSymbol || !selectedExpiry}
+                    className="flex-1 bg-primary hover:bg-primary/90"
+                  >
+                    {loadingData ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "GO"
+                    )}
+                  </Button>
+                  <AdminPaletteButton />
+                </div>
               </div>
               
             </div>

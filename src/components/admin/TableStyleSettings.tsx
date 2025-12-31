@@ -9,7 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Palette, RotateCcw, Save, Eye } from "lucide-react";
+import { Palette, RotateCcw, Save, Eye, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 export interface TableStyleConfig {
   callItmBg: string;
@@ -71,15 +74,12 @@ const DEFAULT_DARK_CONFIG: TableStyleConfig = {
   totalsRowBg: "220 20% 15%",
 };
 
-const STORAGE_KEY = "oc-table-style-config";
-
 interface TableStyleSettingsProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
 function hslToHex(hsl: string): string {
-  // Parse HSL with optional alpha
   const parts = hsl.split(/[\s/]+/).filter(Boolean);
   if (parts.length < 3) return "#888888";
   
@@ -167,35 +167,47 @@ const STYLE_FIELDS: { key: keyof TableStyleConfig; label: string; description: s
 ];
 
 export function TableStyleSettings({ isOpen, onClose }: TableStyleSettingsProps) {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [lightConfig, setLightConfig] = useState<TableStyleConfig>(DEFAULT_LIGHT_CONFIG);
   const [darkConfig, setDarkConfig] = useState<TableStyleConfig>(DEFAULT_DARK_CONFIG);
   const [activeTab, setActiveTab] = useState<'dark' | 'light'>('dark');
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // Load styles from database
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    const loadStyles = async () => {
       try {
-        const parsed = JSON.parse(saved);
-        if (parsed.light) setLightConfig(parsed.light);
-        if (parsed.dark) setDarkConfig(parsed.dark);
-      } catch (e) {
-        console.error('Failed to load table style config:', e);
+        const { data, error } = await supabase
+          .from('table_styles')
+          .select('light_config, dark_config')
+          .eq('style_key', 'global')
+          .maybeSingle();
+        
+        if (error) {
+          console.error('Error loading styles:', error);
+        } else if (data) {
+          if (data.light_config) setLightConfig(data.light_config as unknown as TableStyleConfig);
+          if (data.dark_config) setDarkConfig(data.dark_config as unknown as TableStyleConfig);
+        }
+      } catch (err) {
+        console.error('Error loading styles:', err);
+      } finally {
+        setLoading(false);
       }
-    }
-  }, []);
-
-  const applyStyles = (config: TableStyleConfig, isDark: boolean) => {
-    const root = document.documentElement;
-    const prefix = isDark ? '' : '';
+    };
     
-    // Apply to CSS variables
+    if (isOpen) {
+      loadStyles();
+    }
+  }, [isOpen]);
+
+  const applyStyles = (config: TableStyleConfig) => {
+    const root = document.documentElement;
+    
     const setCSSVar = (name: string, value: string) => {
-      if (isDark) {
-        // We need to apply to :root.dark or .dark class
-        root.style.setProperty(`--oc-${name}`, value);
-      } else {
-        root.style.setProperty(`--oc-${name}`, value);
-      }
+      root.style.setProperty(`--oc-${name}`, value);
     };
 
     setCSSVar('call-itm-bg', config.callItmBg);
@@ -217,15 +229,71 @@ export function TableStyleSettings({ isOpen, onClose }: TableStyleSettingsProps)
     setCSSVar('totals-row-bg', config.totalsRowBg);
   };
 
-  const handleSave = () => {
-    const configToSave = { light: lightConfig, dark: darkConfig };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(configToSave));
-    
-    // Apply current theme's styles
-    const isDark = document.documentElement.classList.contains('dark');
-    applyStyles(isDark ? darkConfig : lightConfig, isDark);
-    
-    onClose();
+  const handleSave = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save styles",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Check if record exists
+      const { data: existing } = await supabase
+        .from('table_styles')
+        .select('id')
+        .eq('style_key', 'global')
+        .maybeSingle();
+
+      if (existing) {
+        // Update existing record
+        const { error } = await supabase
+          .from('table_styles')
+          .update({
+            light_config: JSON.parse(JSON.stringify(lightConfig)),
+            dark_config: JSON.parse(JSON.stringify(darkConfig)),
+            updated_by: user.id,
+          })
+          .eq('style_key', 'global');
+
+        if (error) throw error;
+      } else {
+        // Insert new record
+        const { error } = await supabase
+          .from('table_styles')
+          .insert([{
+            style_key: 'global',
+            light_config: JSON.parse(JSON.stringify(lightConfig)),
+            dark_config: JSON.parse(JSON.stringify(darkConfig)),
+            updated_by: user.id,
+          }]);
+
+        if (error) throw error;
+      }
+
+      // Apply current theme's styles
+      const isDark = document.documentElement.classList.contains('dark');
+      applyStyles(isDark ? darkConfig : lightConfig);
+      
+      toast({
+        title: "Success",
+        description: "Table styles saved successfully",
+      });
+      
+      onClose();
+    } catch (err) {
+      console.error('Error saving styles:', err);
+      toast({
+        title: "Error",
+        description: "Failed to save table styles",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleReset = () => {
@@ -235,7 +303,7 @@ export function TableStyleSettings({ isOpen, onClose }: TableStyleSettingsProps)
 
   const handlePreview = () => {
     const isDark = document.documentElement.classList.contains('dark');
-    applyStyles(isDark ? darkConfig : lightConfig, isDark);
+    applyStyles(isDark ? darkConfig : lightConfig);
   };
 
   const currentConfig = activeTab === 'dark' ? darkConfig : lightConfig;
@@ -259,117 +327,153 @@ export function TableStyleSettings({ isOpen, onClose }: TableStyleSettingsProps)
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-primary">
             <Palette className="h-5 w-5" />
-            Option Chain Table Style Settings
+            Option Chain Table Style Settings (Admin)
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'dark' | 'light')} className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="dark">Dark Mode</TabsTrigger>
-            <TabsTrigger value="light">Light Mode</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={activeTab} className="max-h-[60vh] overflow-y-auto pr-2">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {STYLE_FIELDS.map(field => {
-                const value = currentConfig[field.key];
-                const hexValue = hslToHex(value);
-                const alpha = getAlphaFromHsl(value);
-                
-                return (
-                  <div key={field.key} className="p-3 bg-muted/30 rounded-lg border border-border/50">
-                    <div className="flex items-center justify-between mb-2">
-                      <Label className="text-sm font-medium">{field.label}</Label>
-                      <div 
-                        className="w-8 h-8 rounded border border-border shadow-sm"
-                        style={{ backgroundColor: `hsl(${value})` }}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground mb-2">{field.description}</p>
-                    <div className="flex gap-2 items-center">
-                      <Input
-                        type="color"
-                        value={hexValue}
-                        onChange={(e) => {
-                          const newHsl = hexToHsl(e.target.value, field.hasAlpha ? alpha || '0.3' : undefined);
-                          updateField(field.key, newHsl);
-                        }}
-                        className="w-12 h-8 p-0.5 cursor-pointer"
-                      />
-                      <Input
-                        type="text"
-                        value={value}
-                        onChange={(e) => updateField(field.key, e.target.value)}
-                        className="flex-1 text-xs font-mono bg-background"
-                        placeholder="H S% L% / A"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </TabsContent>
-        </Tabs>
-
-        <div className="flex justify-between mt-4 pt-4 border-t border-border">
-          <Button variant="outline" onClick={handleReset} className="gap-2">
-            <RotateCcw className="h-4 w-4" />
-            Reset to Defaults
-          </Button>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={handlePreview} className="gap-2">
-              <Eye className="h-4 w-4" />
-              Preview
-            </Button>
-            <Button onClick={handleSave} className="gap-2 bg-primary hover:bg-primary/90">
-              <Save className="h-4 w-4" />
-              Save Changes
-            </Button>
+        {loading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
           </div>
-        </div>
+        ) : (
+          <>
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'dark' | 'light')} className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="dark">Dark Mode</TabsTrigger>
+                <TabsTrigger value="light">Light Mode</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value={activeTab} className="max-h-[60vh] overflow-y-auto pr-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {STYLE_FIELDS.map(field => {
+                    const value = currentConfig[field.key];
+                    const hexValue = hslToHex(value);
+                    const alpha = getAlphaFromHsl(value);
+                    
+                    return (
+                      <div key={field.key} className="p-3 bg-muted/30 rounded-lg border border-border/50">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-sm font-medium">{field.label}</Label>
+                          <div 
+                            className="w-8 h-8 rounded border border-border shadow-sm"
+                            style={{ backgroundColor: `hsl(${value})` }}
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground mb-2">{field.description}</p>
+                        <div className="flex gap-2 items-center">
+                          <Input
+                            type="color"
+                            value={hexValue}
+                            onChange={(e) => {
+                              const newHsl = hexToHsl(e.target.value, field.hasAlpha ? alpha || '0.3' : undefined);
+                              updateField(field.key, newHsl);
+                            }}
+                            className="w-12 h-8 p-0.5 cursor-pointer"
+                          />
+                          <Input
+                            type="text"
+                            value={value}
+                            onChange={(e) => updateField(field.key, e.target.value)}
+                            className="flex-1 text-xs font-mono bg-background"
+                            placeholder="H S% L% / A"
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <div className="flex justify-between mt-4 pt-4 border-t border-border">
+              <Button variant="outline" onClick={handleReset} className="gap-2">
+                <RotateCcw className="h-4 w-4" />
+                Reset to Defaults
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={handlePreview} className="gap-2">
+                  <Eye className="h-4 w-4" />
+                  Preview
+                </Button>
+                <Button onClick={handleSave} disabled={saving} className="gap-2 bg-primary hover:bg-primary/90">
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );
 }
 
-// Hook to load and apply saved styles on app initialization
+// Hook to load and apply saved styles on app initialization (for all users)
 export function useTableStyles() {
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
+    const loadAndApplyStyles = async () => {
       try {
-        const parsed = JSON.parse(saved);
-        const isDark = document.documentElement.classList.contains('dark');
-        const config = isDark ? parsed.dark : parsed.light;
+        const { data, error } = await supabase
+          .from('table_styles')
+          .select('light_config, dark_config')
+          .eq('style_key', 'global')
+          .maybeSingle();
         
-        if (config) {
-          const root = document.documentElement;
-          Object.entries({
-            'call-itm-bg': config.callItmBg,
-            'put-itm-bg': config.putItmBg,
-            'atm-bg': config.atmBg,
-            'atm-text': config.atmText,
-            'call-header-bg': config.callHeaderBg,
-            'put-header-bg': config.putHeaderBg,
-            'positive': config.positive,
-            'negative': config.negative,
-            'max-oi-call': config.maxOiCall,
-            'max-oi-put': config.maxOiPut,
-            'highlight-1-call': config.highlight1Call,
-            'highlight-1-put': config.highlight1Put,
-            'highlight-2': config.highlight2,
-            'highlight-3': config.highlight3,
-            'highlight-4': config.highlight4,
-            'strike-col-bg': config.strikeColBg,
-            'totals-row-bg': config.totalsRowBg,
-          }).forEach(([key, value]) => {
-            if (value) root.style.setProperty(`--oc-${key}`, value as string);
-          });
+        if (error) {
+          console.error('Error loading table styles:', error);
+          return;
         }
-      } catch (e) {
-        console.error('Failed to apply saved table styles:', e);
+        
+        if (data) {
+          const isDark = document.documentElement.classList.contains('dark');
+          const config = isDark ? data.dark_config : data.light_config;
+          
+          if (config) {
+            const root = document.documentElement;
+            const styleConfig = config as unknown as TableStyleConfig;
+            
+            Object.entries({
+              'call-itm-bg': styleConfig.callItmBg,
+              'put-itm-bg': styleConfig.putItmBg,
+              'atm-bg': styleConfig.atmBg,
+              'atm-text': styleConfig.atmText,
+              'call-header-bg': styleConfig.callHeaderBg,
+              'put-header-bg': styleConfig.putHeaderBg,
+              'positive': styleConfig.positive,
+              'negative': styleConfig.negative,
+              'max-oi-call': styleConfig.maxOiCall,
+              'max-oi-put': styleConfig.maxOiPut,
+              'highlight-1-call': styleConfig.highlight1Call,
+              'highlight-1-put': styleConfig.highlight1Put,
+              'highlight-2': styleConfig.highlight2,
+              'highlight-3': styleConfig.highlight3,
+              'highlight-4': styleConfig.highlight4,
+              'strike-col-bg': styleConfig.strikeColBg,
+              'totals-row-bg': styleConfig.totalsRowBg,
+            }).forEach(([key, value]) => {
+              if (value) root.style.setProperty(`--oc-${key}`, value as string);
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Failed to apply saved table styles:', err);
       }
-    }
+    };
+
+    loadAndApplyStyles();
+
+    // Also listen for theme changes to reapply correct styles
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          loadAndApplyStyles();
+        }
+      });
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    return () => observer.disconnect();
   }, []);
 }
 

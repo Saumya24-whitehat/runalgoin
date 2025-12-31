@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { TickerRibbon } from '@/components/TickerRibbon';
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import { AdminPaletteButton } from '@/components/admin/AdminPaletteButton';
 
 interface OptionData {
   strike_price: number;
@@ -485,6 +486,9 @@ const OptionChain = () => {
                 {loadingChain ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
                 Refresh
               </Button>
+              
+              {/* Admin Palette Button */}
+              <AdminPaletteButton />
             </div>
 
             {/* View Mode Tabs */}
