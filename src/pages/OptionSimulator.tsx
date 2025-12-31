@@ -15,6 +15,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { format, addDays, subDays, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Save,
   Download,
@@ -24,6 +26,7 @@ import {
   ChevronDown,
   CalendarIcon,
   Play,
+  Pause,
   ChevronLeft,
   ChevronRight,
   Settings,
@@ -62,11 +65,23 @@ interface PLHistoryPoint {
   date: string;
 }
 
-const SYMBOLS = [
-  { value: "Nifty 50", label: "NIFTY" },
-  { value: "Nifty Bank", label: "BANKNIFTY" },
-  { value: "Nifty Fin Service", label: "FINNIFTY" },
-  { value: "Nifty Mid Select", label: "MIDCPNIFTY" },
+interface SymbolsData {
+  indexSymbols: string[];
+  stockSymbols: string[];
+}
+
+const PLAYBACK_SPEEDS = [
+  { value: 1000, label: "1s" },
+  { value: 2000, label: "2s" },
+  { value: 3000, label: "3s" },
+  { value: 5000, label: "5s" },
+];
+
+const SKIP_INTERVALS = [
+  { value: 3, label: "3m" },
+  { value: 15, label: "15m" },
+  { value: 30, label: "30m" },
+  { value: 60, label: "1h" },
 ];
 
 const STORAGE_KEY_STRATEGIES = "optionSimulator_strategies";
@@ -74,6 +89,7 @@ const STORAGE_KEY_STRATEGIES = "optionSimulator_strategies";
 const OptionSimulator = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   // Simulator controls
   const [symbol, setSymbol] = useState("Nifty 50");
@@ -87,6 +103,12 @@ const OptionSimulator = () => {
   const [isLoadingExpiries, setIsLoadingExpiries] = useState(false);
   const [tradingDays, setTradingDays] = useState<string[]>([]);
   const [autoPlay, setAutoPlay] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(2000); // milliseconds
+  const [skipInterval, setSkipInterval] = useState(3); // minutes
+  
+  // Symbols from API
+  const [symbols, setSymbols] = useState<SymbolsData>({ indexSymbols: [], stockSymbols: [] });
+  const [loadingSymbols, setLoadingSymbols] = useState(false);
 
   // Positions and UI state
   const [positions, setPositions] = useState<Position[]>([]);
@@ -116,7 +138,7 @@ const OptionSimulator = () => {
     return selectedHour.toString().padStart(2, "0") + selectedMinute.toString().padStart(2, "0");
   }, [selectedHour, selectedMinute]);
 
-  // Load trading days on mount
+  // Load trading days and symbols on mount
   useEffect(() => {
     const loadTradingDays = async () => {
       try {
@@ -127,6 +149,29 @@ const OptionSimulator = () => {
       }
     };
     loadTradingDays();
+  }, []);
+
+  // Fetch symbols on mount
+  useEffect(() => {
+    const fetchSymbols = async () => {
+      setLoadingSymbols(true);
+      try {
+        const { data, error } = await supabase.functions.invoke("option-chain", {
+          body: { action: "getSymbols" },
+        });
+
+        if (error) throw error;
+
+        const idxSymbols = data?.["index symbols"] || data?.index_symbols || [];
+        const stkSymbols = data?.symbols || [];
+        setSymbols({ indexSymbols: idxSymbols, stockSymbols: stkSymbols });
+      } catch (error) {
+        console.error("Error fetching symbols:", error);
+      } finally {
+        setLoadingSymbols(false);
+      }
+    };
+    fetchSymbols();
   }, []);
 
   // Check if a date is a trading day
@@ -296,16 +341,16 @@ const OptionSimulator = () => {
     );
   }, [simulatorData]);
 
-  // Auto-play interval
+  // Auto-play interval with configurable speed and skip interval
   useEffect(() => {
     if (!autoPlay) return;
 
     const interval = setInterval(() => {
-      adjustTime(3); // Move forward by 3 minutes
-    }, 2000); // Every 2 seconds
+      adjustTime(skipInterval);
+    }, playbackSpeed);
 
     return () => clearInterval(interval);
-  }, [autoPlay, adjustTime]);
+  }, [autoPlay, adjustTime, playbackSpeed, skipInterval]);
 
   // Check and execute adjustment rules when data changes
   useEffect(() => {
@@ -887,209 +932,379 @@ const OptionSimulator = () => {
       <TickerRibbon />
 
       <main className="flex-1 container mx-auto px-2 py-3">
-        {/* Simulator Toolbar - matching reference image */}
+        {/* Simulator Toolbar - Responsive */}
         <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">
-          {/* Day Navigation Buttons */}
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => {
-              // Go to previous trading day
-              let prevDate = subDays(selectedDate, 1);
-              while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
-                prevDate = subDays(prevDate, 1);
-              }
-              setSelectedDate(prevDate);
-            }}
-          >
-            <ChevronLeft className="h-3 w-3 mr-1" />
-            Day
-          </Button>
-
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => {
-              // Go to start of day (09:15)
-              setSelectedHour(9);
-              setSelectedMinute(15);
-            }}
-          >
-            SOD
-          </Button>
-
-          {/* Time Adjustment Buttons */}
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(-120)}
-          >
-            -2h
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(-30)}
-          >
-            -30m
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(-15)}
-          >
-            -15m
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(-3)}
-          >
-            -3m
-          </Button>
-
-          {/* Date Picker */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="w-32 justify-start text-left font-normal text-sm h-8">
-                {format(selectedDate, "dd/MM/yyyy")}
-                <CalendarIcon className="ml-2 h-4 w-4" />
+          {/* Mobile: Simplified controls */}
+          {isMobile ? (
+            <>
+              {/* Day Navigation */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  let prevDate = subDays(selectedDate, 1);
+                  while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
+                    prevDate = subDays(prevDate, 1);
+                  }
+                  setSelectedDate(prevDate);
+                }}
+              >
+                <ChevronLeft className="h-3 w-3" />
+                Day
               </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
-                disabled={(date) => !isTradingDay(date)}
-                initialFocus
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
 
-          {/* Hour Selector */}
-          <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
-            <SelectTrigger className="w-16 h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {[9, 10, 11, 12, 13, 14, 15].map((h) => (
-                <SelectItem key={h} value={h.toString()}>
-                  {h}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              {/* -3m */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(-skipInterval)}
+              >
+                -{skipInterval}m
+              </Button>
 
-          {/* Minute Selector (3-minute intervals) */}
-          <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
-            <SelectTrigger className="w-16 h-8">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
-                <SelectItem key={m} value={m.toString()}>
-                  {m.toString().padStart(2, "0")}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+              {/* Date & Time Display */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="flex-1 justify-center text-xs h-8">
+                    {format(selectedDate, "dd/MM")} {selectedHour.toString().padStart(2, "0")}:{selectedMinute.toString().padStart(2, "0")}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="center">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    disabled={(date) => !isTradingDay(date)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                  <div className="flex gap-2 p-3 border-t">
+                    <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
+                      <SelectTrigger className="w-16 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[9, 10, 11, 12, 13, 14, 15].map((h) => (
+                          <SelectItem key={h} value={h.toString()}>
+                            {h}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
+                      <SelectTrigger className="w-16 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
+                          <SelectItem key={m} value={m.toString()}>
+                            {m.toString().padStart(2, "0")}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-          {/* Time Forward Buttons */}
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(3)}
-          >
-            3m+
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(15)}
-          >
-            15m+
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(30)}
-          >
-            30m+
-          </Button>
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => adjustTime(120)}
-          >
-            2h+
-          </Button>
+              {/* +3m */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(skipInterval)}
+              >
+                +{skipInterval}m
+              </Button>
 
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => {
-              // Go to end of day (15:30)
-              setSelectedHour(15);
-              setSelectedMinute(30);
-            }}
-          >
-            EOD
-          </Button>
+              {/* Day Navigation */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  let nextDate = addDays(selectedDate, 1);
+                  while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
+                    nextDate = addDays(nextDate, 1);
+                  }
+                  setSelectedDate(nextDate);
+                }}
+              >
+                Day
+                <ChevronRight className="h-3 w-3" />
+              </Button>
 
-          <Button
-            variant="default"
-            size="sm"
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => {
-              // Go to next trading day
-              let nextDate = addDays(selectedDate, 1);
-              while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
-                nextDate = addDays(nextDate, 1);
-              }
-              setSelectedDate(nextDate);
-            }}
-          >
-            Day
-            <ChevronRight className="h-3 w-3 ml-1" />
-          </Button>
+              {/* Auto Play */}
+              <Button
+                variant={autoPlay ? "destructive" : "default"}
+                size="sm"
+                className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
+                onClick={() => setAutoPlay(!autoPlay)}
+              >
+                {autoPlay ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+              </Button>
+            </>
+          ) : (
+            <>
+              {/* Desktop: Full controls */}
+              {/* Day Navigation Buttons */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  let prevDate = subDays(selectedDate, 1);
+                  while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
+                    prevDate = subDays(prevDate, 1);
+                  }
+                  setSelectedDate(prevDate);
+                }}
+              >
+                <ChevronLeft className="h-3 w-3 mr-1" />
+                Day
+              </Button>
 
-          {/* Auto Play Button */}
-          <Button
-            variant={autoPlay ? "destructive" : "default"}
-            size="sm"
-            className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
-            onClick={() => setAutoPlay(!autoPlay)}
-          >
-            Auto
-            <Play className="h-3 w-3 ml-1" />
-          </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  setSelectedHour(9);
+                  setSelectedMinute(15);
+                }}
+              >
+                SOD
+              </Button>
+
+              {/* Time Adjustment Buttons */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(-120)}
+              >
+                -2h
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(-30)}
+              >
+                -30m
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(-15)}
+              >
+                -15m
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(-3)}
+              >
+                -3m
+              </Button>
+
+              {/* Date Picker */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-32 justify-start text-left font-normal text-sm h-8">
+                    {format(selectedDate, "dd/MM/yyyy")}
+                    <CalendarIcon className="ml-2 h-4 w-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={(date) => date && setSelectedDate(date)}
+                    disabled={(date) => !isTradingDay(date)}
+                    initialFocus
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              {/* Hour Selector */}
+              <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
+                <SelectTrigger className="w-16 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[9, 10, 11, 12, 13, 14, 15].map((h) => (
+                    <SelectItem key={h} value={h.toString()}>
+                      {h}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Minute Selector */}
+              <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
+                <SelectTrigger className="w-16 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
+                    <SelectItem key={m} value={m.toString()}>
+                      {m.toString().padStart(2, "0")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Time Forward Buttons */}
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(3)}
+              >
+                3m+
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(15)}
+              >
+                15m+
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(30)}
+              >
+                30m+
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => adjustTime(120)}
+              >
+                2h+
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  setSelectedHour(15);
+                  setSelectedMinute(30);
+                }}
+              >
+                EOD
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  let nextDate = addDays(selectedDate, 1);
+                  while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
+                    nextDate = addDays(nextDate, 1);
+                  }
+                  setSelectedDate(nextDate);
+                }}
+              >
+                Day
+                <ChevronRight className="h-3 w-3 ml-1" />
+              </Button>
+
+              <div className="h-6 w-px bg-border mx-1" />
+
+              {/* Auto Play Controls */}
+              <Button
+                variant={autoPlay ? "destructive" : "default"}
+                size="sm"
+                className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
+                onClick={() => setAutoPlay(!autoPlay)}
+              >
+                {autoPlay ? <Pause className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
+                Auto
+              </Button>
+
+              {/* Playback Speed Selector */}
+              <Select value={playbackSpeed.toString()} onValueChange={(v) => setPlaybackSpeed(parseInt(v))}>
+                <SelectTrigger className="w-16 h-8" title="Playback Speed">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PLAYBACK_SPEEDS.map((speed) => (
+                    <SelectItem key={speed.value} value={speed.value.toString()}>
+                      {speed.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {/* Skip Interval Selector */}
+              <Select value={skipInterval.toString()} onValueChange={(v) => setSkipInterval(parseInt(v))}>
+                <SelectTrigger className="w-16 h-8" title="Skip Interval">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SKIP_INTERVALS.map((interval) => (
+                    <SelectItem key={interval.value} value={interval.value.toString()}>
+                      {interval.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
+          )}
         </div>
 
         {/* Second Row - Symbol, Expiry, Load Data */}
         <div className="flex flex-wrap items-center gap-3 mb-4">
-          <Select value={symbol} onValueChange={setSymbol}>
+          <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
             <SelectTrigger className="w-40">
-              <SelectValue />
+              <SelectValue placeholder={loadingSymbols ? "Loading..." : "Select Symbol"} />
             </SelectTrigger>
             <SelectContent>
-              {SYMBOLS.map((s) => (
-                <SelectItem key={s.value} value={s.value}>
-                  {s.label}
-                </SelectItem>
-              ))}
+              {symbols.indexSymbols.length > 0 && (
+                <>
+                  <SelectItem value="__index_header" disabled className="font-semibold text-xs text-muted-foreground">
+                    INDEX
+                  </SelectItem>
+                  {symbols.indexSymbols.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </>
+              )}
+              {symbols.stockSymbols.length > 0 && (
+                <>
+                  <SelectItem value="__stock_header" disabled className="font-semibold text-xs text-muted-foreground mt-2">
+                    STOCKS
+                  </SelectItem>
+                  {symbols.stockSymbols.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </>
+              )}
+              {symbols.indexSymbols.length === 0 && symbols.stockSymbols.length === 0 && (
+                <>
+                  <SelectItem value="Nifty 50">NIFTY</SelectItem>
+                  <SelectItem value="Nifty Bank">BANKNIFTY</SelectItem>
+                  <SelectItem value="Nifty Fin Service">FINNIFTY</SelectItem>
+                  <SelectItem value="Nifty Mid Select">MIDCPNIFTY</SelectItem>
+                </>
+              )}
             </SelectContent>
           </Select>
 
