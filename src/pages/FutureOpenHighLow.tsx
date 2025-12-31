@@ -1,6 +1,16 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Download, ArrowUp, ArrowDown, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, Info } from "lucide-react";
+import {
+  Search,
+  Download,
+  ArrowUp,
+  ArrowDown,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  RefreshCw,
+  Info,
+} from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -139,9 +149,7 @@ export default function FutureOpenHighLow() {
       let bVal: number | string = b[sortState.column!];
 
       if (typeof aVal === "string" && typeof bVal === "string") {
-        return sortState.direction === "asc"
-          ? aVal.localeCompare(bVal)
-          : bVal.localeCompare(aVal);
+        return sortState.direction === "asc" ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
       }
 
       aVal = Number(aVal);
@@ -154,7 +162,7 @@ export default function FutureOpenHighLow() {
   const handleSort = (
     column: SortColumn,
     currentSort: SortState,
-    setSort: React.Dispatch<React.SetStateAction<SortState>>
+    setSort: React.Dispatch<React.SetStateAction<SortState>>,
   ) => {
     if (currentSort.column === column) {
       if (currentSort.direction === "asc") {
@@ -235,16 +243,12 @@ export default function FutureOpenHighLow() {
     sortState: SortState,
     setSortState: React.Dispatch<React.SetStateAction<SortState>>,
     colorClass: string,
-    bgClass: string
+    bgClass: string,
   ) => (
     <Card className={`${bgClass} border-2`}>
       <CardHeader className="pb-3">
         <CardTitle className={`text-lg font-semibold flex items-center gap-2 ${colorClass}`}>
-          {title === "Open = High" ? (
-            <ArrowDown className="h-5 w-5" />
-          ) : (
-            <ArrowUp className="h-5 w-5" />
-          )}
+          {title === "Open = High" ? <ArrowDown className="h-5 w-5" /> : <ArrowUp className="h-5 w-5" />}
           {title}
           <span className="text-sm font-normal text-muted-foreground">({data.length})</span>
         </CardTitle>
@@ -309,11 +313,7 @@ export default function FutureOpenHighLow() {
                       <TableCell>{formatNumber(item.low)}</TableCell>
                       <TableCell>{formatNumber(item.lastPrice)}</TableCell>
                       <TableCell>
-                        <span
-                          className={`font-medium ${
-                            item.priceChange >= 0 ? "text-emerald-500" : "text-red-500"
-                          }`}
-                        >
+                        <span className={`font-medium ${item.priceChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                           {formatPercent(item.priceChange)}
                         </span>
                       </TableCell>
@@ -330,8 +330,8 @@ export default function FutureOpenHighLow() {
 
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <TickerRibbon />
       <Navbar />
-      <AdminPaletteButton />
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header */}
@@ -346,11 +346,7 @@ export default function FutureOpenHighLow() {
           <div className="flex flex-wrap items-center gap-3">
             {/* Auto Refresh Toggle */}
             <div className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-muted/30">
-              <Switch
-                id="auto-refresh"
-                checked={autoRefresh}
-                onCheckedChange={setAutoRefresh}
-              />
+              <Switch id="auto-refresh" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
               <Label htmlFor="auto-refresh" className="text-sm cursor-pointer">
                 Auto
               </Label>
@@ -371,13 +367,7 @@ export default function FutureOpenHighLow() {
             </div>
 
             {/* Manual Refresh */}
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => refetch()}
-              disabled={isFetching}
-              className="h-9 w-9"
-            >
+            <Button variant="outline" size="icon" onClick={() => refetch()} disabled={isFetching} className="h-9 w-9">
               <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
             </Button>
 
@@ -404,14 +394,20 @@ export default function FutureOpenHighLow() {
                       <div className="w-3 h-3 rounded bg-red-600 mt-0.5 shrink-0" />
                       <div>
                         <span className="font-medium">Open = High (Bearish):</span>
-                        <span className="text-muted-foreground"> Stock opened at its highest point. Suggests selling pressure from open.</span>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          Stock opened at its highest point. Suggests selling pressure from open.
+                        </span>
                       </div>
                     </div>
                     <div className="flex items-start gap-2">
                       <div className="w-3 h-3 rounded bg-emerald-600 mt-0.5 shrink-0" />
                       <div>
                         <span className="font-medium">Open = Low (Bullish):</span>
-                        <span className="text-muted-foreground"> Stock opened at its lowest point. Suggests buying interest from open.</span>
+                        <span className="text-muted-foreground">
+                          {" "}
+                          Stock opened at its lowest point. Suggests buying interest from open.
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -469,14 +465,8 @@ export default function FutureOpenHighLow() {
         </div>
 
         {/* Loading / Error States */}
-        {isLoading && (
-          <div className="text-center py-12 text-muted-foreground">Loading data...</div>
-        )}
-        {error && (
-          <div className="text-center py-12 text-destructive">
-            Error loading data. Please try again.
-          </div>
-        )}
+        {isLoading && <div className="text-center py-12 text-muted-foreground">Loading data...</div>}
+        {error && <div className="text-center py-12 text-destructive">Error loading data. Please try again.</div>}
 
         {/* Tables Grid */}
         {!isLoading && !error && (
@@ -487,7 +477,7 @@ export default function FutureOpenHighLow() {
               openHighSort,
               setOpenHighSort,
               "text-red-500",
-              "border-red-500/30 bg-red-500/5"
+              "border-red-500/30 bg-red-500/5",
             )}
             {renderTable(
               "Open = Low",
@@ -495,7 +485,7 @@ export default function FutureOpenHighLow() {
               openLowSort,
               setOpenLowSort,
               "text-emerald-500",
-              "border-emerald-500/30 bg-emerald-500/5"
+              "border-emerald-500/30 bg-emerald-500/5",
             )}
           </div>
         )}

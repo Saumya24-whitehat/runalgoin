@@ -13,7 +13,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { format, addDays, subDays, parse, isValid } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -42,7 +47,11 @@ import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetric
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
 import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
-import AdjustmentModal, { AdjustmentRule, TriggerCondition, ExitAction } from "@/components/optionBuilder/AdjustmentModal";
+import AdjustmentModal, {
+  AdjustmentRule,
+  TriggerCondition,
+  ExitAction,
+} from "@/components/optionBuilder/AdjustmentModal";
 import PLHistoryChart from "@/components/optionBuilder/PLHistoryChart";
 import {
   Position,
@@ -106,7 +115,7 @@ const OptionSimulator = () => {
   const [autoPlay, setAutoPlay] = useState(false);
   const [playbackSpeed, setPlaybackSpeed] = useState(2000); // milliseconds
   const [skipInterval, setSkipInterval] = useState(3); // minutes
-  
+
   // Symbols from API
   const [symbols, setSymbols] = useState<SymbolsData>({ indexSymbols: [], stockSymbols: [] });
   const [loadingSymbols, setLoadingSymbols] = useState(false);
@@ -182,7 +191,7 @@ const OptionSimulator = () => {
       const dateStr = format(date, "yyyy-MM-dd");
       return tradingDays.includes(dateStr);
     },
-    [tradingDays]
+    [tradingDays],
   );
 
   // Find next/previous trading day
@@ -194,7 +203,7 @@ const OptionSimulator = () => {
       } while (!isTradingDay(d) && tradingDays.length > 0);
       return d;
     },
-    [isTradingDay, tradingDays]
+    [isTradingDay, tradingDays],
   );
 
   // Adjust time by minutes - auto-fetches data after change
@@ -213,7 +222,7 @@ const OptionSimulator = () => {
       }
 
       let totalMinutes = selectedHour * 60 + selectedMinute + minutes;
-      
+
       const startMinutes = 9 * 60 + 15; // 9:15
       const endMinutes = 15 * 60 + 30; // 15:30
 
@@ -231,17 +240,17 @@ const OptionSimulator = () => {
         setSelectedMinute(15);
         return;
       }
-      
+
       // Round to nearest 3-minute interval
       totalMinutes = Math.round(totalMinutes / 3) * 3;
-      
+
       const newHour = Math.floor(totalMinutes / 60);
       const newMinute = totalMinutes % 60;
-      
+
       setSelectedHour(newHour);
       setSelectedMinute(newMinute);
     },
-    [selectedHour, selectedMinute, selectedDate, findNextTradingDay]
+    [selectedHour, selectedMinute, selectedDate, findNextTradingDay],
   );
 
   // Auto-fetch data when time changes (but not date - date changes trigger expiry reload)
@@ -338,7 +347,7 @@ const OptionSimulator = () => {
           currentPrice: newCurrentPrice,
           IV: newIV,
         };
-      })
+      }),
     );
   }, [simulatorData]);
 
@@ -359,7 +368,7 @@ const OptionSimulator = () => {
 
     const checkTriggerCondition = (pos: Position, trigger: TriggerCondition): boolean => {
       const profitPercent =
-        ((pos.currentPrice - pos.entryPrice) * (pos.action === "Buy" ? 1 : -1) / pos.entryPrice) * 100;
+        (((pos.currentPrice - pos.entryPrice) * (pos.action === "Buy" ? 1 : -1)) / pos.entryPrice) * 100;
       const profitAmount =
         (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
 
@@ -373,19 +382,13 @@ const OptionSimulator = () => {
         case "lossAmount":
           return -profitAmount >= trigger.value;
         case "priceLevel":
-          return pos.action === "Buy"
-            ? pos.currentPrice >= trigger.value
-            : pos.currentPrice <= trigger.value;
+          return pos.action === "Buy" ? pos.currentPrice >= trigger.value : pos.currentPrice <= trigger.value;
         default:
           return false;
       }
     };
 
-    const executeAdjustmentAction = (
-      mainIndex: number,
-      linkedIndices: number[],
-      action: ExitAction
-    ) => {
+    const executeAdjustmentAction = (mainIndex: number, linkedIndices: number[], action: ExitAction) => {
       const allIndices = [mainIndex, ...linkedIndices];
 
       setPositions((prev) => {
@@ -474,13 +477,9 @@ const OptionSimulator = () => {
         const triggered = rule.triggers.some((trigger) => checkTriggerCondition(mainPos, trigger));
 
         if (triggered) {
-          executeAdjustmentAction(
-            rule.mainPositionIndex,
-            rule.linkedPositionIndices,
-            rule.exitAction
-          );
+          executeAdjustmentAction(rule.mainPositionIndex, rule.linkedPositionIndices, rule.exitAction);
           toast.success(
-            `Adjustment triggered: ${rule.exitAction.type} on ${mainPos.action} ${mainPos.strike}${mainPos.optType}`
+            `Adjustment triggered: ${rule.exitAction.type} on ${mainPos.action} ${mainPos.strike}${mainPos.optType}`,
           );
           return { ...rule, isActive: false };
         }
@@ -543,17 +542,11 @@ const OptionSimulator = () => {
   // Track P&L history when time changes and we have positions
   useEffect(() => {
     const timeKey = `${format(selectedDate, "yyyy-MM-dd")}_${selectedTime}`;
-    if (
-      positions.length > 0 &&
-      currentPrice > 0 &&
-      timeKey !== lastRecordedTime.current
-    ) {
+    if (positions.length > 0 && currentPrice > 0 && timeKey !== lastRecordedTime.current) {
       lastRecordedTime.current = timeKey;
       setPlHistory((prev) => {
         // Avoid duplicate entries
-        const existing = prev.find(
-          (p) => p.date === format(selectedDate, "yyyy-MM-dd") && p.time === selectedTime
-        );
+        const existing = prev.find((p) => p.date === format(selectedDate, "yyyy-MM-dd") && p.time === selectedTime);
         if (existing) return prev;
 
         return [
@@ -606,7 +599,7 @@ const OptionSimulator = () => {
             exitPrice,
           };
           newPositions.push(exitedPosition);
-          
+
           const remainingLots = p.lots - lotsToExit;
           if (remainingLots > 0) {
             newPositions.push({
@@ -887,7 +880,7 @@ const OptionSimulator = () => {
     // P&L History CSV
     const historyHeader = ["Date", "Time", "P&L", "Spot Price"].join(",");
     const historyRows = plHistory.map((h) =>
-      [h.date, h.time.replace(/^(\d{2})(\d{2})$/, "$1:$2"), h.pnl.toFixed(2), h.spotPrice.toFixed(2)].join(",")
+      [h.date, h.time.replace(/^(\d{2})(\d{2})$/, "$1:$2"), h.pnl.toFixed(2), h.spotPrice.toFixed(2)].join(","),
     );
     const historyCSV = [historyHeader, ...historyRows].join("\n");
 
@@ -929,8 +922,8 @@ const OptionSimulator = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
       <TickerRibbon />
+      <Navbar />
 
       <main className="flex-1 container mx-auto px-2 py-3">
         {/* Simulator Toolbar - Responsive */}
@@ -969,7 +962,8 @@ const OptionSimulator = () => {
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="flex-1 justify-center text-xs h-8">
-                    {format(selectedDate, "dd/MM")} {selectedHour.toString().padStart(2, "0")}:{selectedMinute.toString().padStart(2, "0")}
+                    {format(selectedDate, "dd/MM")} {selectedHour.toString().padStart(2, "0")}:
+                    {selectedMinute.toString().padStart(2, "0")}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="center">
@@ -1288,7 +1282,11 @@ const OptionSimulator = () => {
               )}
               {symbols.stockSymbols.length > 0 && (
                 <>
-                  <SelectItem value="__stock_header" disabled className="font-semibold text-xs text-muted-foreground mt-2">
+                  <SelectItem
+                    value="__stock_header"
+                    disabled
+                    className="font-semibold text-xs text-muted-foreground mt-2"
+                  >
                     STOCKS
                   </SelectItem>
                   {symbols.stockSymbols.map((s) => (
@@ -1340,39 +1338,41 @@ const OptionSimulator = () => {
 
           {/* Action Buttons */}
           <Button
-            variant={adjustmentRules.filter(r => r.isActive).length > 0 ? "default" : "outline"}
+            variant={adjustmentRules.filter((r) => r.isActive).length > 0 ? "default" : "outline"}
             size="icon"
             onClick={() => setAdjustmentDialogOpen(true)}
             disabled={positions.length === 0}
-            title={`Position Adjustments${adjustmentRules.filter(r => r.isActive).length > 0 ? ` (${adjustmentRules.filter(r => r.isActive).length} active)` : ''}`}
-            className={adjustmentRules.filter(r => r.isActive).length > 0 ? "bg-amber-500 hover:bg-amber-600 relative" : ""}
+            title={`Position Adjustments${adjustmentRules.filter((r) => r.isActive).length > 0 ? ` (${adjustmentRules.filter((r) => r.isActive).length} active)` : ""}`}
+            className={
+              adjustmentRules.filter((r) => r.isActive).length > 0 ? "bg-amber-500 hover:bg-amber-600 relative" : ""
+            }
           >
             <Settings className="h-4 w-4" />
-            {adjustmentRules.filter(r => r.isActive).length > 0 && (
+            {adjustmentRules.filter((r) => r.isActive).length > 0 && (
               <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
-                {adjustmentRules.filter(r => r.isActive).length}
+                {adjustmentRules.filter((r) => r.isActive).length}
               </span>
             )}
           </Button>
           <Button variant="outline" size="icon" onClick={() => setLoadDialogOpen(true)}>
             <Download className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" onClick={() => setSaveDialogOpen(true)} disabled={positions.length === 0}>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setSaveDialogOpen(true)}
+            disabled={positions.length === 0}
+          >
             <Save className="h-4 w-4" />
           </Button>
           <Button variant="outline" size="icon" onClick={handleCopyStrategy} disabled={positions.length === 0}>
             <Copy className="h-4 w-4" />
           </Button>
-          
+
           {/* Export Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                disabled={positions.length === 0}
-                title="Export Results"
-              >
+              <Button variant="outline" size="icon" disabled={positions.length === 0} title="Export Results">
                 <FileDown className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -1428,12 +1428,12 @@ const OptionSimulator = () => {
                       </TableHeader>
                       <TableBody>
                         {simulatorData.strikes.map((strike) => {
-                          const strikeDiff = symbol.includes('Bank') ? 100 : 50;
+                          const strikeDiff = symbol.includes("Bank") ? 100 : 50;
                           const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
                           const isATM = Math.abs(strike.strike - atmStrike) < strikeDiff / 2;
                           const isITMCall = strike.strike < currentPrice;
                           const isITMPut = strike.strike > currentPrice;
-                          
+
                           return (
                             <TableRow
                               key={strike.strike}
@@ -1497,7 +1497,9 @@ const OptionSimulator = () => {
                               </TableCell>
 
                               {/* Strike */}
-                              <TableCell className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}>
+                              <TableCell
+                                className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}
+                              >
                                 {strike.strike}
                               </TableCell>
 
@@ -1599,7 +1601,7 @@ const OptionSimulator = () => {
                     />
                   </CardContent>
                 </Card>
-                
+
                 {/* P&L History Chart */}
                 <PLHistoryChart history={plHistory} />
               </>
@@ -1612,8 +1614,12 @@ const OptionSimulator = () => {
                   <Tabs defaultValue="legs">
                     <div className="flex items-center justify-between mb-2">
                       <TabsList className="h-8">
-                        <TabsTrigger value="legs" className="text-xs">Legs</TabsTrigger>
-                        <TabsTrigger value="greeks" className="text-xs">Greeks</TabsTrigger>
+                        <TabsTrigger value="legs" className="text-xs">
+                          Legs
+                        </TabsTrigger>
+                        <TabsTrigger value="greeks" className="text-xs">
+                          Greeks
+                        </TabsTrigger>
                       </TabsList>
                       <Button variant="ghost" size="sm" onClick={clearAllPositions}>
                         Clear All

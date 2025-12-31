@@ -3,6 +3,7 @@ import { Navbar } from "@/components/Navbar";
 const Algo = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <TickerRibbon />
       <Navbar />
       <div className="flex-1">
         <iframe

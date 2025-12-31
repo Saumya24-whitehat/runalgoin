@@ -87,7 +87,12 @@ export default function FutureRollover() {
   }, [expiryDates, selectedExpiry]);
 
   // Fetch rollover data
-  const { data: rolloverData, isLoading, refetch, isFetching } = useQuery({
+  const {
+    data: rolloverData,
+    isLoading,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["future-rollover", selectedSymbol, selectedExpiry],
     queryFn: () => fetchFutureRollover(selectedSymbol, selectedExpiry),
     enabled: !!selectedExpiry,
@@ -130,7 +135,9 @@ export default function FutureRollover() {
             : (bVal as string).localeCompare(aVal);
         }
 
-        return sortState.direction === "asc" ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+        return sortState.direction === "asc"
+          ? (aVal as number) - (bVal as number)
+          : (bVal as number) - (aVal as number);
       });
     }
 
@@ -143,7 +150,7 @@ export default function FutureRollover() {
     const csv = [
       ["Symbol", "LTP", "Change %", "OI", "Next OI", "Rollover %"].join(","),
       ...filteredAndSortedData.map((i) =>
-        [i.symbol, i.lastPrice, i.priceChange.toFixed(2), i.oi, i.nextOi, i.rollover.toFixed(2)].join(",")
+        [i.symbol, i.lastPrice, i.priceChange.toFixed(2), i.oi, i.nextOi, i.rollover.toFixed(2)].join(","),
       ),
     ].join("\n");
 
@@ -155,12 +162,22 @@ export default function FutureRollover() {
     a.click();
   };
 
-  const SortableHeader = ({ label, sortKey, align = "right" }: { label: string; sortKey: SortKey; align?: "left" | "right" | "center" }) => (
+  const SortableHeader = ({
+    label,
+    sortKey,
+    align = "right",
+  }: {
+    label: string;
+    sortKey: SortKey;
+    align?: "left" | "right" | "center";
+  }) => (
     <TableHead
       className={`text-${align} cursor-pointer hover:bg-muted/70 select-none`}
       onClick={() => handleSort(sortKey)}
     >
-      <div className={`flex items-center gap-1 ${align === "right" ? "justify-end" : align === "center" ? "justify-center" : ""}`}>
+      <div
+        className={`flex items-center gap-1 ${align === "right" ? "justify-end" : align === "center" ? "justify-center" : ""}`}
+      >
         <span>{label}</span>
         {getSortIcon(sortKey)}
       </div>
@@ -177,8 +194,8 @@ export default function FutureRollover() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TickerRibbon />
       <Navbar />
-      <AdminPaletteButton />
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header Controls */}
@@ -236,11 +253,7 @@ export default function FutureRollover() {
               <Label htmlFor="auto-refresh" className="text-sm cursor-pointer">
                 Auto
               </Label>
-              <Switch
-                id="auto-refresh"
-                checked={autoRefresh}
-                onCheckedChange={setAutoRefresh}
-              />
+              <Switch id="auto-refresh" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
             </div>
             {autoRefresh && (
               <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
@@ -278,8 +291,12 @@ export default function FutureRollover() {
                   </code>
                 </div>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• <strong>High Rollover (&gt;50%):</strong> Bullish sentiment, positions carried forward</li>
-                  <li>• <strong>Low Rollover (&lt;30%):</strong> Bearish sentiment, positions being squared off</li>
+                  <li>
+                    • <strong>High Rollover (&gt;50%):</strong> Bullish sentiment, positions carried forward
+                  </li>
+                  <li>
+                    • <strong>Low Rollover (&lt;30%):</strong> Bearish sentiment, positions being squared off
+                  </li>
                 </ul>
               </div>
             </PopoverContent>
@@ -291,9 +308,7 @@ export default function FutureRollover() {
               <span className="text-xs opacity-80">Avg Rollover</span>
               <span className="font-bold">{avgRollover.toFixed(2)}%</span>
             </div>
-            <span className="text-xs text-muted-foreground">
-              {filteredAndSortedData.length} symbols
-            </span>
+            <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} symbols</span>
           </div>
 
           <Button onClick={handleExportCSV} variant="outline" className="gap-2">
@@ -322,12 +337,24 @@ export default function FutureRollover() {
               {isLoading ? (
                 Array.from({ length: 10 }).map((_, i) => (
                   <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-20 mx-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-14 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20 mx-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16 ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-14 ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20 ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20 ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-16 ml-auto" />
+                    </TableCell>
                   </TableRow>
                 ))
               ) : filteredAndSortedData.length === 0 ? (
@@ -344,12 +371,15 @@ export default function FutureRollover() {
                       {item.lastPrice.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </TableCell>
                     <TableCell className={`text-right ${item.priceChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                      {item.priceChange >= 0 ? "+" : ""}{item.priceChange.toFixed(2)}%
+                      {item.priceChange >= 0 ? "+" : ""}
+                      {item.priceChange.toFixed(2)}%
                     </TableCell>
                     <TableCell className="text-right">{formatIndianNumber(item.oi)}</TableCell>
                     <TableCell className="text-right">{formatIndianNumber(item.nextOi)}</TableCell>
                     <TableCell className="text-right">
-                      <span className={`font-medium ${item.rollover >= 50 ? "text-emerald-500" : item.rollover < 30 ? "text-red-500" : "text-amber-500"}`}>
+                      <span
+                        className={`font-medium ${item.rollover >= 50 ? "text-emerald-500" : item.rollover < 30 ? "text-red-500" : "text-amber-500"}`}
+                      >
                         {item.rollover.toFixed(2)}%
                       </span>
                     </TableCell>

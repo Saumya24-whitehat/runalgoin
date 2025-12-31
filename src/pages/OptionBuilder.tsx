@@ -30,7 +30,10 @@ import OptionBuilderGreeks from "@/components/optionBuilder/OptionBuilderGreeks"
 import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetrics";
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import OptionBuilderChain from "@/components/optionBuilder/OptionBuilderChain";
-import OptionBuilderSettings, { OptionBuilderSettingsConfig, DEFAULT_SETTINGS } from "@/components/optionBuilder/OptionBuilderSettings";
+import OptionBuilderSettings, {
+  OptionBuilderSettingsConfig,
+  DEFAULT_SETTINGS,
+} from "@/components/optionBuilder/OptionBuilderSettings";
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
 import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
 import {
@@ -69,7 +72,7 @@ const OptionBuilder = () => {
   const [showOptionChain, setShowOptionChain] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [margin, setMargin] = useState<number>(0);
-  
+
   // Symbols from API
   const [symbols, setSymbols] = useState<SymbolsData>({ indexSymbols: [], stockSymbols: [] });
   const [loadingSymbols, setLoadingSymbols] = useState(false);
@@ -136,7 +139,7 @@ const OptionBuilder = () => {
     const initWebSocket = async () => {
       try {
         wsInitialized.current = true;
-        
+
         // Set up feed callback
         upstoxWebSocket.setFeedCallback((updates) => {
           // Update positions with live data
@@ -150,7 +153,7 @@ const OptionBuilder = () => {
                 return { ...p, currentPrice: update.data.ltp };
               }
               return p;
-            })
+            }),
           );
 
           // Update option chain data with live prices
@@ -161,7 +164,7 @@ const OptionBuilder = () => {
 
         const connected = await upstoxWebSocket.connect();
         setWsConnected(connected);
-        
+
         if (connected) {
           toast.success("Live feed connected");
         }
@@ -359,7 +362,7 @@ const OptionBuilder = () => {
             exitPrice,
           };
           newPositions.push(exitedPosition);
-          
+
           // Keep remaining lots if any
           const remainingLots = p.lots - lotsToExit;
           if (remainingLots > 0) {
@@ -374,7 +377,7 @@ const OptionBuilder = () => {
       });
       return newPositions;
     });
-    toast.success(`Exited ${lotsToExit} lot${lotsToExit > 1 ? 's' : ''}`);
+    toast.success(`Exited ${lotsToExit} lot${lotsToExit > 1 ? "s" : ""}`);
   }, []);
 
   const updatePosition = useCallback((id: string, updates: Partial<Position>) => {
@@ -524,25 +527,30 @@ const OptionBuilder = () => {
     }
   }, [symbol, currentPrice]);
 
-  const handleSaveStrategy = useCallback((name: string, description: string, type: string) => {
-    const newStrategy: SavedStrategy = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      description,
-      type,
-      positions: [...positions],
-      symbol,
-      createdAt: new Date().toISOString(),
-    };
-    setSavedStrategies((prev) => [...prev, newStrategy]);
-    toast.success("Strategy saved");
-  }, [positions, symbol]);
+  const handleSaveStrategy = useCallback(
+    (name: string, description: string, type: string) => {
+      const newStrategy: SavedStrategy = {
+        id: Math.random().toString(36).substr(2, 9),
+        name,
+        description,
+        type,
+        positions: [...positions],
+        symbol,
+        createdAt: new Date().toISOString(),
+      };
+      setSavedStrategies((prev) => [...prev, newStrategy]);
+      toast.success("Strategy saved");
+    },
+    [positions, symbol],
+  );
 
   const handleLoadStrategy = useCallback((strategy: SavedStrategy) => {
-    setPositions(strategy.positions.map((p) => ({
-      ...p,
-      id: Math.random().toString(36).substr(2, 9),
-    })));
+    setPositions(
+      strategy.positions.map((p) => ({
+        ...p,
+        id: Math.random().toString(36).substr(2, 9),
+      })),
+    );
     setShowStrategies(false);
     toast.success(`Loaded: ${strategy.name}`);
   }, []);
@@ -589,8 +597,8 @@ const OptionBuilder = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <TickerRibbon />
+      <Navbar />
 
       {/* Header */}
       <div className="border-b border-border">
@@ -604,7 +612,11 @@ const OptionBuilder = () => {
                 <SelectContent>
                   {symbols.indexSymbols.length > 0 && (
                     <>
-                      <SelectItem value="__index_header" disabled className="font-semibold text-xs text-muted-foreground">
+                      <SelectItem
+                        value="__index_header"
+                        disabled
+                        className="font-semibold text-xs text-muted-foreground"
+                      >
                         INDEX
                       </SelectItem>
                       {symbols.indexSymbols.map((s) => (
@@ -616,7 +628,11 @@ const OptionBuilder = () => {
                   )}
                   {symbols.stockSymbols.length > 0 && (
                     <>
-                      <SelectItem value="__stock_header" disabled className="font-semibold text-xs text-muted-foreground mt-2">
+                      <SelectItem
+                        value="__stock_header"
+                        disabled
+                        className="font-semibold text-xs text-muted-foreground mt-2"
+                      >
                         STOCKS
                       </SelectItem>
                       {symbols.stockSymbols.map((s) => (

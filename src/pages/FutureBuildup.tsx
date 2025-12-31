@@ -1,7 +1,32 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Download, ArrowUp, ArrowDown, TrendingUp, TrendingDown, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, Pause, Info } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
+import {
+  Search,
+  Download,
+  ArrowUp,
+  ArrowDown,
+  TrendingUp,
+  TrendingDown,
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  RefreshCw,
+  Pause,
+  Info,
+} from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Legend,
+  Tooltip,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+} from "recharts";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,7 +64,7 @@ interface BuildupTableProps {
 function formatIndianNumber(num: number): string {
   const absNum = Math.abs(num);
   const sign = num < 0 ? "-" : "";
-  
+
   if (absNum >= 10000000) {
     return sign + (absNum / 10000000).toFixed(2) + " CR";
   } else if (absNum >= 100000) {
@@ -99,10 +124,7 @@ function BuildupDistributionChart({ counts }: { counts: { lb: number; sb: number
                 ))}
               </Pie>
               <Tooltip
-                formatter={(value: number, name: string) => [
-                  `${value} (${((value / total) * 100).toFixed(1)}%)`,
-                  name,
-                ]}
+                formatter={(value: number, name: string) => [`${value} (${((value / total) * 100).toFixed(1)}%)`, name]}
               />
               <Legend />
             </PieChart>
@@ -190,9 +212,7 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
 
     if (searchFilter) {
       const lowerFilter = searchFilter.toLowerCase();
-      result = result.filter((item) =>
-        item.symbol.toLowerCase().includes(lowerFilter)
-      );
+      result = result.filter((item) => item.symbol.toLowerCase().includes(lowerFilter));
     }
 
     if (sortKey && sortDirection) {
@@ -203,9 +223,7 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
         if (typeof aVal === "string") {
           aVal = aVal.toLowerCase();
           bVal = (bVal as string).toLowerCase();
-          return sortDirection === "asc"
-            ? aVal.localeCompare(bVal as string)
-            : (bVal as string).localeCompare(aVal);
+          return sortDirection === "asc" ? aVal.localeCompare(bVal as string) : (bVal as string).localeCompare(aVal);
         }
 
         return sortDirection === "asc" ? aVal - (bVal as number) : (bVal as number) - aVal;
@@ -215,12 +233,22 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
     return result;
   }, [items, searchFilter, sortKey, sortDirection]);
 
-  const SortableHeader = ({ label, sortKeyName, align = "right" }: { label: string; sortKeyName: SortKey; align?: "left" | "right" | "center" }) => (
+  const SortableHeader = ({
+    label,
+    sortKeyName,
+    align = "right",
+  }: {
+    label: string;
+    sortKeyName: SortKey;
+    align?: "left" | "right" | "center";
+  }) => (
     <TableHead
       className={`text-${align} cursor-pointer hover:bg-muted/70 select-none`}
       onClick={() => handleSort(sortKeyName)}
     >
-      <div className={`flex items-center gap-1 ${align === "right" ? "justify-end" : align === "center" ? "justify-center" : ""}`}>
+      <div
+        className={`flex items-center gap-1 ${align === "right" ? "justify-end" : align === "center" ? "justify-center" : ""}`}
+      >
         <span>{label}</span>
         {getSortIcon(sortKeyName)}
       </div>
@@ -252,11 +280,21 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => (
               <TableRow key={i}>
-                <TableCell><Skeleton className="h-4 w-20 mx-auto" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-14 ml-auto" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-14 ml-auto" /></TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20 mx-auto" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16 ml-auto" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-14 ml-auto" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20 ml-auto" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-14 ml-auto" />
+                </TableCell>
               </TableRow>
             ))
           ) : filteredAndSortedItems.length === 0 ? (
@@ -269,13 +307,17 @@ function BuildupTable({ title, items, isLoading, variant, searchFilter }: Buildu
             filteredAndSortedItems.map((item, idx) => (
               <TableRow key={idx} className="hover:bg-muted/30">
                 <TableCell className="text-center font-medium">{item.symbol}</TableCell>
-                <TableCell className="text-right">{item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</TableCell>
+                <TableCell className="text-right">
+                  {item.price.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </TableCell>
                 <TableCell className={`text-right ${item.priceChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                  {item.priceChange >= 0 ? "+" : ""}{item.priceChange.toFixed(2)}%
+                  {item.priceChange >= 0 ? "+" : ""}
+                  {item.priceChange.toFixed(2)}%
                 </TableCell>
                 <TableCell className="text-right">{formatIndianNumber(item.oi)}</TableCell>
                 <TableCell className={`text-right ${item.oiChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                  {item.oiChange >= 0 ? "+" : ""}{formatIndianNumber(item.oiChange)}
+                  {item.oiChange >= 0 ? "+" : ""}
+                  {formatIndianNumber(item.oiChange)}
                 </TableCell>
               </TableRow>
             ))
@@ -326,7 +368,12 @@ export default function FutureBuildup() {
   }, [expiryDates, selectedExpiry]);
 
   // Fetch buildup data with configurable auto-refresh
-  const { data: buildupData, isLoading, refetch, isFetching } = useQuery({
+  const {
+    data: buildupData,
+    isLoading,
+    refetch,
+    isFetching,
+  } = useQuery({
     queryKey: ["future-buildup", selectedSymbol, selectedExpiry],
     queryFn: () => fetchFutureBuildup(selectedSymbol, selectedExpiry),
     enabled: !!selectedExpiry,
@@ -345,9 +392,7 @@ export default function FutureBuildup() {
 
     const csv = [
       ["Type", "Symbol", "Price", "Price Chg (%)", "OI", "OI Chg"].join(","),
-      ...allItems.map((i) =>
-        [i.type, i.symbol, i.price, i.priceChange, i.oi, i.oiChange].join(",")
-      ),
+      ...allItems.map((i) => [i.type, i.symbol, i.price, i.priceChange, i.oi, i.oiChange].join(",")),
     ].join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -367,8 +412,8 @@ export default function FutureBuildup() {
 
   return (
     <div className="min-h-screen bg-background">
+      <TickerRibbon />
       <Navbar />
-      <AdminPaletteButton />
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Header Controls */}
@@ -426,11 +471,7 @@ export default function FutureBuildup() {
               <Label htmlFor="auto-refresh" className="text-sm cursor-pointer">
                 Auto
               </Label>
-              <Switch
-                id="auto-refresh"
-                checked={autoRefresh}
-                onCheckedChange={setAutoRefresh}
-              />
+              <Switch id="auto-refresh" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
             </div>
             {autoRefresh && (
               <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
@@ -516,7 +557,8 @@ export default function FutureBuildup() {
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground border-t pt-2">
-                  <strong>Tip:</strong> Click column headers to sort. Use the filter to search symbols across all tables.
+                  <strong>Tip:</strong> Click column headers to sort. Use the filter to search symbols across all
+                  tables.
                 </p>
               </div>
             </PopoverContent>
