@@ -13,6 +13,7 @@ export interface StockData {
   description: string;
   close: number;
   change: number;
+  changePct: number; // Calculated percentage
   high: number;
   low: number;
   exchange: string;
@@ -21,6 +22,12 @@ export interface StockData {
 export interface MarketBreadthResponse {
   date: string;
   content: StockData[];
+}
+
+export interface AdvanceDeclineData {
+  time: string;
+  advance: number;
+  decline: number;
 }
 
 // Grouped Indian Stock Market Indices
@@ -103,6 +110,31 @@ export const groupedIndices: IndexGroup[] = [
   }
 ];
 
+// Fetch advance/decline data for all indices
+export async function fetchAdvanceDeclineData(): Promise<Record<string, AdvanceDeclineData> | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke('advance-decline');
+    
+    if (error) {
+      console.error('Error fetching advance/decline data:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Error in fetchAdvanceDeclineData:', error);
+    return null;
+  }
+}
+
+// Calculate change percentage from change in Rs
+// Formula: chgPCT = chg / (LTP - chg) * 100
+function calculateChangePct(close: number, change: number): number {
+  const previousClose = close - change;
+  if (previousClose === 0) return 0;
+  return (change / previousClose) * 100;
+}
+
 export async function fetchMarketBreadthData(indexSymbol: string): Promise<MarketBreadthResponse | null> {
   try {
     // Construct the full function URL with query parameter
@@ -126,9 +158,32 @@ export async function fetchMarketBreadthData(indexSymbol: string): Promise<Marke
     // The API returns an array with date entries, get the latest
     if (Array.isArray(data) && data.length > 0) {
       const latestEntry = data[0];
+      const rawContent = latestEntry.content || [];
+      
+      // Process stocks and calculate change percentage
+      const processedContent: StockData[] = rawContent.map((stock: any) => {
+        const close = stock.close || 0;
+        // The API 'change' field is a decimal ratio (e.g., 0.066 means 6.6%)
+        // So we multiply by 100 to get percentage
+        // But looking at sample, change = 0.066077972 for 6.6% change
+        // So changePct = change * 100
+        const changePct = (stock.change || 0) * 100;
+        
+        return {
+          name: stock.name || '',
+          description: stock.description || '',
+          close: close,
+          change: stock.change || 0,
+          changePct: changePct,
+          high: stock.high || 0,
+          low: stock.low || 0,
+          exchange: stock.exchange || 'NSE'
+        };
+      });
+
       return {
         date: latestEntry.date,
-        content: latestEntry.content || []
+        content: processedContent
       };
     }
 
@@ -146,9 +201,9 @@ export function calculateAdvanceDecline(stocks: StockData[]): { advances: number
   let unchanged = 0;
 
   stocks.forEach(stock => {
-    if (stock.change > 0) {
+    if (stock.changePct > 0) {
       advances++;
-    } else if (stock.change < 0) {
+    } else if (stock.changePct < 0) {
       declines++;
     } else {
       unchanged++;
