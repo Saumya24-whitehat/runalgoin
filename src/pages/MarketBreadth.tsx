@@ -355,17 +355,17 @@ export default function MarketBreadth() {
               No data available for this index
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-1">
+            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-0.5">
               {filteredAndSortedStocks.map((stock, idx) => (
                 <Tooltip key={`${stock.name}-${idx}`}>
                     <TooltipTrigger asChild>
                       <div
                         style={{ backgroundColor: getStockBgColor(stock.changePct) }}
-                        className="text-white p-2 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[80px] flex flex-col justify-center items-center text-center"
+                        className="text-black p-1 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[50px] flex flex-col justify-center items-center text-center"
                       >
-                      <span className="font-bold text-sm truncate w-full">{stock.name}</span>
-                      <span className="text-xs opacity-90">₹{stock.close.toLocaleString('en-IN')}</span>
-                      <span className="text-xs font-semibold">
+                      <span className="font-bold text-[10px] truncate w-full">{stock.name}</span>
+                      <span className="text-[9px]">₹{stock.close.toLocaleString('en-IN')}</span>
+                      <span className="text-[9px] font-semibold">
                         {stock.changePct >= 0 ? '+' : ''}{stock.changePct.toFixed(2)}%
                       </span>
                     </div>
