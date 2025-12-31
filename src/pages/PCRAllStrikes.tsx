@@ -1224,9 +1224,9 @@ export default function PCRAllStrikes() {
               <CardContent className="p-0">
                 <div className="w-full overflow-auto max-h-[450px]">
                   <Table className="w-max min-w-max">
-                    <TableHeader className="sticky top-0">
-                      <TableRow className="border-border" style={{ backgroundColor: "hsl(var(--muted));" }}>
-                        <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
+                    <TableHeader className="sticky top-0 z-10">
+                      <TableRow className="border-border bg-muted">
+                        <TableHead className="sticky left-0 whitespace-nowrap">Time</TableHead>
                         <TableHead className="whitespace-nowrap">Index</TableHead>
                         <TableHead className="whitespace-nowrap">MMA</TableHead>
                         {visibleStrikes.map((strike) => (
