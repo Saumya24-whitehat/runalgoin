@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.upstox-websocket]
 verify_jwt = false
+
+[functions.future-buildup]
+verify_jwt = false
