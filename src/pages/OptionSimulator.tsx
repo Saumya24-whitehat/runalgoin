@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -1411,43 +1412,49 @@ const OptionSimulator = () => {
                       <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                   ) : simulatorData && simulatorData.strikes.length > 0 ? (
-                    <table className="w-full text-xs">
-                      <thead className="sticky top-0 bg-background">
-                        <tr className="border-b">
-                          <th colSpan={4} className="text-center py-2 text-emerald-500 border-r">CALL</th>
-                          <th className="py-2">Strike</th>
-                          <th colSpan={4} className="text-center py-2 text-red-500 border-l">PUT</th>
-                        </tr>
-                        <tr className="border-b text-muted-foreground">
-                          <th className="py-1 px-1">OI</th>
-                          <th className="py-1 px-1">Vol</th>
-                          <th className="py-1 px-1">IV</th>
-                          <th className="py-1 px-1 border-r">LTP</th>
-                          <th className="py-1 px-1"></th>
-                          <th className="py-1 px-1 border-l">LTP</th>
-                          <th className="py-1 px-1">IV</th>
-                          <th className="py-1 px-1">Vol</th>
-                          <th className="py-1 px-1">OI</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table>
+                      <TableHeader className="sticky top-0 bg-background z-10">
+                        <TableRow>
+                          <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
+                          <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
+                          <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
+                          <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
+                          <TableHead className="text-center font-bold text-xs">Strike</TableHead>
+                          <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
+                          <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
+                          <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
+                          <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {simulatorData.strikes.map((strike) => {
-                          const isATM = Math.abs(strike.strike - currentPrice) < 50;
+                          const strikeDiff = symbol.includes('Bank') ? 100 : 50;
+                          const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
+                          const isATM = Math.abs(strike.strike - atmStrike) < strikeDiff / 2;
+                          const isITMCall = strike.strike < currentPrice;
+                          const isITMPut = strike.strike > currentPrice;
+                          
                           return (
-                            <tr
+                            <TableRow
                               key={strike.strike}
-                              className={`border-b hover:bg-muted/50 group ${isATM ? "bg-primary/10" : ""}`}
+                              className={`relative cursor-pointer transition-colors group ${isATM ? "bg-oc-atm font-medium" : ""}`}
                             >
-                              <td className="py-1 px-1 text-right">{formatNumber(strike.ceOI)}</td>
-                              <td className="py-1 px-1 text-right">{formatNumber(strike.ceVolume)}</td>
-                              <td className="py-1 px-1 text-right">{strike.ceIV.toFixed(1)}</td>
-                              <td className="py-1 px-1 text-right border-r relative">
-                                {strike.cePrice.toFixed(2)}
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 bg-background/90">
+                              {/* Call Side */}
+                              <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                {formatNumber(strike.ceOI)}
+                              </TableCell>
+                              <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                {formatNumber(strike.ceVolume)}
+                              </TableCell>
+                              <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                {strike.ceIV.toFixed(1)}
+                              </TableCell>
+                              <TableCell className={`text-center relative ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                <span className="text-xs font-medium">{strike.cePrice.toFixed(2)}</span>
+                                <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Button
                                     size="sm"
-                                    variant="ghost"
-                                    className="h-5 px-2 text-[10px] text-emerald-500 hover:text-emerald-600"
+                                    className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
                                     onClick={() =>
                                       addPosition({
                                         action: "Buy",
@@ -1467,8 +1474,8 @@ const OptionSimulator = () => {
                                   </Button>
                                   <Button
                                     size="sm"
-                                    variant="ghost"
-                                    className="h-5 px-2 text-[10px] text-red-500 hover:text-red-600"
+                                    variant="destructive"
+                                    className="h-6 px-2 text-xs"
                                     onClick={() =>
                                       addPosition({
                                         action: "Sell",
@@ -1487,17 +1494,20 @@ const OptionSimulator = () => {
                                     S
                                   </Button>
                                 </div>
-                              </td>
-                              <td className={`py-1 px-1 text-center font-medium ${isATM ? "text-primary" : ""}`}>
+                              </TableCell>
+
+                              {/* Strike */}
+                              <TableCell className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}>
                                 {strike.strike}
-                              </td>
-                              <td className="py-1 px-1 text-left border-l relative">
-                                {strike.pePrice.toFixed(2)}
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-1 bg-background/90">
+                              </TableCell>
+
+                              {/* Put Side */}
+                              <TableCell className={`text-center relative ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                <span className="text-xs font-medium">{strike.pePrice.toFixed(2)}</span>
+                                <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
                                   <Button
                                     size="sm"
-                                    variant="ghost"
-                                    className="h-5 px-2 text-[10px] text-emerald-500 hover:text-emerald-600"
+                                    className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
                                     onClick={() =>
                                       addPosition({
                                         action: "Buy",
@@ -1517,8 +1527,8 @@ const OptionSimulator = () => {
                                   </Button>
                                   <Button
                                     size="sm"
-                                    variant="ghost"
-                                    className="h-5 px-2 text-[10px] text-red-500 hover:text-red-600"
+                                    variant="destructive"
+                                    className="h-6 px-2 text-xs"
                                     onClick={() =>
                                       addPosition({
                                         action: "Sell",
@@ -1537,15 +1547,21 @@ const OptionSimulator = () => {
                                     S
                                   </Button>
                                 </div>
-                              </td>
-                              <td className="py-1 px-1 text-left">{strike.peIV.toFixed(1)}</td>
-                              <td className="py-1 px-1 text-left">{formatNumber(strike.peVolume)}</td>
-                              <td className="py-1 px-1 text-left">{formatNumber(strike.peOI)}</td>
-                            </tr>
+                              </TableCell>
+                              <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                {strike.peIV.toFixed(1)}
+                              </TableCell>
+                              <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                {formatNumber(strike.peVolume)}
+                              </TableCell>
+                              <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                {formatNumber(strike.peOI)}
+                              </TableCell>
+                            </TableRow>
                           );
                         })}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   ) : (
                     <div className="text-center text-muted-foreground py-10">
                       Select date, time, and expiry, then click "Load Data"
