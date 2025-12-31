@@ -175,24 +175,24 @@ const OptionBuilderChain = ({
                 key={row.strike}
                 className={`
                   relative cursor-pointer transition-colors
-                  ${isATM ? 'bg-primary/10 font-medium' : ''}
+                  ${isATM ? 'bg-oc-atm font-medium' : ''}
                   ${isHovered ? 'bg-muted' : ''}
                 `}
                 onMouseEnter={() => setHoveredRow(row.strike)}
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 {/* Call Side */}
-                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-emerald-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-oc-call-itm' : ''}`}>
                   {formatNumber(row.callOI)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-emerald-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-oc-call-itm' : ''}`}>
                   {formatNumber(row.callVolume)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-emerald-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMCall ? 'bg-oc-call-itm' : ''}`}>
                   {row.callIV.toFixed(1)}
                 </TableCell>
                 <TableCell 
-                  className={`text-center relative ${isITMCall ? 'bg-emerald-500/10' : ''}`}
+                  className={`text-center relative ${isITMCall ? 'bg-oc-call-itm' : ''}`}
                 >
                   <span className="text-xs font-medium">{row.callLTP.toFixed(2)}</span>
                   {isHovered && (
@@ -217,13 +217,13 @@ const OptionBuilderChain = ({
                 </TableCell>
 
                 {/* Strike */}
-                <TableCell className={`text-center font-bold text-xs ${isATM ? 'text-primary bg-primary/20' : ''}`}>
+                <TableCell className={`text-center font-bold text-xs ${isATM ? 'text-oc-atm-text bg-oc-atm' : ''}`}>
                   {row.strike}
                 </TableCell>
 
                 {/* Put Side */}
                 <TableCell 
-                  className={`text-center relative ${isITMPut ? 'bg-red-500/10' : ''}`}
+                  className={`text-center relative ${isITMPut ? 'bg-oc-put-itm' : ''}`}
                 >
                   <span className="text-xs font-medium">{row.putLTP.toFixed(2)}</span>
                   {isHovered && (
@@ -246,13 +246,13 @@ const OptionBuilderChain = ({
                     </div>
                   )}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-red-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-oc-put-itm' : ''}`}>
                   {row.putIV.toFixed(1)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-red-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-oc-put-itm' : ''}`}>
                   {formatNumber(row.putVolume)}
                 </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-red-500/10' : ''}`}>
+                <TableCell className={`text-center text-xs ${isITMPut ? 'bg-oc-put-itm' : ''}`}>
                   {formatNumber(row.putOI)}
                 </TableCell>
               </TableRow>
