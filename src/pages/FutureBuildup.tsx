@@ -19,6 +19,24 @@ interface BuildupTableProps {
   variant: "long" | "short" | "covering" | "unwinding";
 }
 
+// Format number with L (Lakh), CR (Crore), K (Thousand) notation
+function formatIndianNumber(num: number): string {
+  const absNum = Math.abs(num);
+  const sign = num < 0 ? "-" : "";
+  
+  if (absNum >= 10000000) {
+    // Crore (1 CR = 10,000,000)
+    return sign + (absNum / 10000000).toFixed(2) + " CR";
+  } else if (absNum >= 100000) {
+    // Lakh (1 L = 100,000)
+    return sign + (absNum / 100000).toFixed(2) + " L";
+  } else if (absNum >= 1000) {
+    // Thousand (1 K = 1,000)
+    return sign + (absNum / 1000).toFixed(2) + " K";
+  }
+  return sign + absNum.toLocaleString("en-IN");
+}
+
 function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
   const headerColors = {
     long: "bg-emerald-600",
@@ -47,7 +65,7 @@ function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
             <TableHead className="text-right">Price</TableHead>
             <TableHead className="text-right">Price Chg (%)</TableHead>
             <TableHead className="text-right">OI</TableHead>
-            <TableHead className="text-right">OI Chg (%)</TableHead>
+            <TableHead className="text-right">OI Chg</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -75,9 +93,9 @@ function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
                 <TableCell className={`text-right ${item.priceChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
                   {item.priceChange >= 0 ? "+" : ""}{item.priceChange.toFixed(2)}%
                 </TableCell>
-                <TableCell className="text-right">{item.oi.toLocaleString("en-IN")}</TableCell>
-                <TableCell className={`text-right ${item.oiChangePercent >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                  {item.oiChangePercent >= 0 ? "+" : ""}{item.oiChangePercent.toFixed(2)}%
+                <TableCell className="text-right">{formatIndianNumber(item.oi)}</TableCell>
+                <TableCell className={`text-right ${item.oiChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                  {item.oiChange >= 0 ? "+" : ""}{formatIndianNumber(item.oiChange)}
                 </TableCell>
               </TableRow>
             ))
