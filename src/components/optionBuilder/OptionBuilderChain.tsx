@@ -144,8 +144,8 @@ const OptionBuilderChain = ({
   }
 
   return (
-    <div>
-      <Table className="max-h-[400px] overflow-auto">
+    <div className="max-h-[400px] overflow-auto">
+      <Table>
         <TableHeader className="sticky top-0 bg-background z-20">
           <TableRow>
             <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
