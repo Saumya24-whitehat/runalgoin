@@ -76,8 +76,8 @@ function BuildupTable({ title, items, isLoading, variant }: BuildupTableProps) {
                   {item.priceChange >= 0 ? "+" : ""}{item.priceChange.toFixed(2)}%
                 </TableCell>
                 <TableCell className="text-right">{item.oi.toLocaleString("en-IN")}</TableCell>
-                <TableCell className={`text-right ${item.oiChange >= 0 ? "text-emerald-500" : "text-red-500"}`}>
-                  {item.oiChange >= 0 ? "+" : ""}{item.oiChange.toFixed(2)}%
+                <TableCell className={`text-right ${item.oiChangePercent >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                  {item.oiChangePercent >= 0 ? "+" : ""}{item.oiChangePercent.toFixed(2)}%
                 </TableCell>
               </TableRow>
             ))
