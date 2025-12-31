@@ -13,7 +13,8 @@ import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { TickerRibbon } from '@/components/TickerRibbon';
 import LTPCalculatorModal from '@/components/LTPCalculatorModal';
-import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from 'lucide-react';
+import { TableStyleSettings } from '@/components/admin/TableStyleSettings';
+import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info, Palette } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface OptionData {
@@ -127,6 +128,7 @@ const SupportResistance = () => {
   // LTP Calculator modal
   const [ltpModalOpen, setLtpModalOpen] = useState(false);
   const [selectedStrikeData, setSelectedStrikeData] = useState<OptionData | null>(null);
+  const [tableStyleSettingsOpen, setTableStyleSettingsOpen] = useState(false);
 
   const handleStrikeClick = (row: OptionData) => {
     setSelectedStrikeData(row);
@@ -451,6 +453,11 @@ const SupportResistance = () => {
               {/* Settings */}
               <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
                 <Settings className="h-3 w-3" />
+              </Button>
+
+              {/* Table Style Settings (Admin) */}
+              <Button variant="outline" size="sm" onClick={() => setTableStyleSettingsOpen(true)} className="text-primary border-primary/50 hover:bg-primary/10">
+                <Palette className="h-3 w-3" />
               </Button>
 
               {/* Info/Guide */}
@@ -1021,6 +1028,12 @@ const SupportResistance = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Table Style Settings Modal */}
+      <TableStyleSettings 
+        isOpen={tableStyleSettingsOpen} 
+        onClose={() => setTableStyleSettingsOpen(false)} 
+      />
     </div>
   );
 };
