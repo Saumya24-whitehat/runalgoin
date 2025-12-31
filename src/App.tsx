@@ -25,6 +25,7 @@ import OptionSimulator from "./pages/OptionSimulator";
 import FutureBuildup from "./pages/FutureBuildup";
 import FutureOpenHighLow from "./pages/FutureOpenHighLow";
 import FutureRollover from "./pages/FutureRollover";
+import MarketBreadth from "./pages/MarketBreadth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -64,6 +65,7 @@ const App = () => (
               <Route path="/future-buildup" element={<FutureBuildup />} />
               <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
               <Route path="/future-rollover" element={<FutureRollover />} />
+              <Route path="/market-breadth" element={<MarketBreadth />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>

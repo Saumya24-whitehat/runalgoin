@@ -94,8 +94,9 @@ const navItems: NavItem[] = [
   },
   {
     label: "Market Breath",
-    icon: BarChart3,
+    icon: Activity,
     hasDropdown: false,
+    path: "/market-breadth",
   },
   {
     label: "Stocks",
