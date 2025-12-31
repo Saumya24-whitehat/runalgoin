@@ -198,9 +198,13 @@ export default function PCRAllStrikes() {
 
         let strikesList: string[] = [];
         if (data?.strikes && Array.isArray(data.strikes)) {
-          strikesList = data.strikes.map((s: number | string) => String(s)).sort((a: string, b: string) => Number(a) - Number(b));
+          strikesList = data.strikes
+            .map((s: number | string) => String(s))
+            .sort((a: string, b: string) => Number(a) - Number(b));
         } else if (Array.isArray(data)) {
-          strikesList = data.map((s: number | string) => String(s)).sort((a: string, b: string) => Number(a) - Number(b));
+          strikesList = data
+            .map((s: number | string) => String(s))
+            .sort((a: string, b: string) => Number(a) - Number(b));
         }
 
         setAvailableStrikes(strikesList);
@@ -553,7 +557,6 @@ export default function PCRAllStrikes() {
       }
     }
 
-
     const refEntry = bestEntry ?? pcrData[0];
     return getATMStrike(refEntry.Spot_Price);
   }, [pcrData, strikes]);
@@ -613,9 +616,10 @@ export default function PCRAllStrikes() {
     const sideCount = 7;
 
     // If custom strike is selected, use it as center; otherwise use 09:15 ATM
-    const windowCenterStrike = useCustomStrike && selectedCustomStrike 
-      ? selectedCustomStrike 
-      : (fixedATMStrike || getATMStrike(latest.Spot_Price));
+    const windowCenterStrike =
+      useCustomStrike && selectedCustomStrike
+        ? selectedCustomStrike
+        : fixedATMStrike || getATMStrike(latest.Spot_Price);
     const windowCenterIndex = strikes.indexOf(windowCenterStrike);
 
     const startIndex = Math.max(0, windowCenterIndex - sideCount);
@@ -1218,9 +1222,9 @@ export default function PCRAllStrikes() {
           {pcrData.length > 0 && (
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-0">
-                <div className="w-full overflow-x-auto">
+                <div className="w-full overflow-auto max-h-[450px]">
                   <Table className="w-max min-w-max">
-                    <TableHeader>
+                    <TableHeader className="sticky top-0">
                       <TableRow className="border-border">
                         <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
                         <TableHead className="whitespace-nowrap">Index</TableHead>
@@ -1243,7 +1247,9 @@ export default function PCRAllStrikes() {
                             <TableCell className="sticky left-0 bg-card z-10 font-mono text-xs whitespace-nowrap">
                               {row.Time}
                             </TableCell>
-                            <TableCell className="font-mono whitespace-nowrap">{formatFixed(row.Spot_Price, 2)}</TableCell>
+                            <TableCell className="font-mono whitespace-nowrap">
+                              {formatFixed(row.Spot_Price, 2)}
+                            </TableCell>
                             <TableCell className="font-mono text-xs whitespace-nowrap">
                               {formatFixed(row.MMA_Data?.NP, 2)}
                             </TableCell>
