@@ -1,21 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Navbar } from '@/components/Navbar';
-import { TickerRibbon } from '@/components/TickerRibbon';
-import LTPCalculatorModal from '@/components/LTPCalculatorModal';
-import { AdminPaletteButton } from '@/components/admin/AdminPaletteButton';
-import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState, useEffect, useCallback } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
+import { TickerRibbon } from "@/components/TickerRibbon";
+import LTPCalculatorModal from "@/components/LTPCalculatorModal";
+import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface OptionData {
   strike_price: number;
@@ -58,8 +58,8 @@ interface ShiftingEntry {
 
 // Format number in Indian notation (Lakhs)
 const formatIndianNumber = (num: number | undefined | null): string => {
-  if (num === undefined || num === null || isNaN(num)) return '';
-  return Number(num).toLocaleString('en-IN');
+  if (num === undefined || num === null || isNaN(num)) return "";
+  return Number(num).toLocaleString("en-IN");
 };
 
 // Time slots from 9:15 AM to 3:30 PM in 3-minute intervals
@@ -72,8 +72,8 @@ const generateTimeSlots = () => {
   for (let total = startTotalMinutes; total <= endTotalMinutes; total += stepMinutes) {
     const h = Math.floor(total / 60);
     const m = total % 60;
-    const hour = h.toString().padStart(2, '0');
-    const min = m.toString().padStart(2, '0');
+    const hour = h.toString().padStart(2, "0");
+    const min = m.toString().padStart(2, "0");
     slots.push(`${hour}${min}`);
   }
   return slots;
@@ -82,29 +82,29 @@ const generateTimeSlots = () => {
 const TIME_SLOTS = generateTimeSlots();
 
 const formatTimeDisplay = (time: string) => {
-  if (!time || time.length < 4) return '';
+  if (!time || time.length < 4) return "";
   const hour = parseInt(time.slice(0, 2));
   const min = time.slice(2, 4);
-  const period = hour >= 12 ? 'PM' : 'AM';
+  const period = hour >= 12 ? "PM" : "AM";
   const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-  return `${displayHour.toString().padStart(2, '0')}:${min} ${period}`;
+  return `${displayHour.toString().padStart(2, "0")}:${min} ${period}`;
 };
 
 const SupportResistance = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  
+
   const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
   const [stockSymbols, setStockSymbols] = useState<string[]>([]);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('Nifty 50');
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("Nifty 50");
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
-  const [selectedExpiry, setSelectedExpiry] = useState<string>('');
+  const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [optionData, setOptionData] = useState<OptionData[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
   const [loading, setLoading] = useState(false);
   const [isLive, setIsLive] = useState(true);
-  const [historicalTime, setHistoricalTime] = useState<string>('');
-  
+  const [historicalTime, setHistoricalTime] = useState<string>("");
+
   // Settings
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [strikeCount, setStrikeCount] = useState(10);
@@ -112,14 +112,14 @@ const SupportResistance = () => {
   const [lotSize, setLotSize] = useState(75);
   const [highlightCount, setHighlightCount] = useState(2);
   const [highlightPercentage, setHighlightPercentage] = useState(74.99);
-  
+
   // Shifting modal
   const [shiftingOpen, setShiftingOpen] = useState(false);
   const [shiftingData] = useState<ShiftingEntry[]>([
-    { time: '09:32:11 AM', callShift: 'SFT : 26200 -> 26100', putShift: '-' },
-    { time: '09:28:38 AM', callShift: '-', putShift: 'SFT : 26000 -> 26100' },
-    { time: '09:28:18 AM', callShift: '-', putShift: 'SFT : 26100 -> 26000' },
-    { time: '09:28:06 AM', callShift: '-', putShift: 'SFT : 26000 -> 26100' },
+    { time: "09:32:11 AM", callShift: "SFT : 26200 -> 26100", putShift: "-" },
+    { time: "09:28:38 AM", callShift: "-", putShift: "SFT : 26000 -> 26100" },
+    { time: "09:28:18 AM", callShift: "-", putShift: "SFT : 26100 -> 26000" },
+    { time: "09:28:06 AM", callShift: "-", putShift: "SFT : 26000 -> 26100" },
   ]);
 
   // Info/Guide modal
@@ -128,7 +128,6 @@ const SupportResistance = () => {
   // LTP Calculator modal
   const [ltpModalOpen, setLtpModalOpen] = useState(false);
   const [selectedStrikeData, setSelectedStrikeData] = useState<OptionData | null>(null);
-  
 
   const handleStrikeClick = (row: OptionData) => {
     setSelectedStrikeData(row);
@@ -138,11 +137,13 @@ const SupportResistance = () => {
   // Calculate support and resistance levels
   const calculateLevels = useCallback(() => {
     if (optionData.length === 0) return { resistance: 0, support: 0 };
-    
-    let maxCallOI = 0, maxPutOI = 0;
-    let resistanceStrike = 0, supportStrike = 0;
-    
-    optionData.forEach(row => {
+
+    let maxCallOI = 0,
+      maxPutOI = 0;
+    let resistanceStrike = 0,
+      supportStrike = 0;
+
+    optionData.forEach((row) => {
       if (row.call_options.market_data.oi > maxCallOI) {
         maxCallOI = row.call_options.market_data.oi;
         resistanceStrike = row.strike_price;
@@ -152,7 +153,7 @@ const SupportResistance = () => {
         supportStrike = row.strike_price;
       }
     });
-    
+
     return { resistance: resistanceStrike, support: supportStrike };
   }, [optionData]);
 
@@ -162,26 +163,26 @@ const SupportResistance = () => {
   useEffect(() => {
     const fetchSymbols = async () => {
       try {
-        const { data, error } = await supabase.functions.invoke('option-chain', {
-          body: { action: 'getSymbols' }
+        const { data, error } = await supabase.functions.invoke("option-chain", {
+          body: { action: "getSymbols" },
         });
         if (error) throw error;
-        console.log('Symbols response:', data);
-        
+        console.log("Symbols response:", data);
+
         // API returns "index symbols" (with space) not "index_symbols"
-        const idxSymbols = data?.['index symbols'] || data?.index_symbols || [];
+        const idxSymbols = data?.["index symbols"] || data?.index_symbols || [];
         const stkSymbols = data?.symbols || [];
-        console.log('Index symbols:', idxSymbols);
-        console.log('Stock symbols:', stkSymbols);
+        console.log("Index symbols:", idxSymbols);
+        console.log("Stock symbols:", stkSymbols);
         setIndexSymbols(idxSymbols);
         setStockSymbols(stkSymbols);
-        
+
         // Auto-select first index symbol if available
         if (idxSymbols.length > 0 && !idxSymbols.includes(selectedSymbol) && !stkSymbols.includes(selectedSymbol)) {
           setSelectedSymbol(idxSymbols[0]);
         }
       } catch (err) {
-        console.error('Error fetching symbols:', err);
+        console.error("Error fetching symbols:", err);
       }
     };
     fetchSymbols();
@@ -192,11 +193,11 @@ const SupportResistance = () => {
     const fetchExpiryDates = async () => {
       if (!selectedSymbol) return;
       try {
-        const { data, error } = await supabase.functions.invoke('option-chain', {
-          body: { action: 'getExpiryDates', symbol: selectedSymbol }
+        const { data, error } = await supabase.functions.invoke("option-chain", {
+          body: { action: "getExpiryDates", symbol: selectedSymbol },
         });
         if (error) throw error;
-        console.log('Expiry dates response:', data);
+        console.log("Expiry dates response:", data);
         // Handle response format: { expiry_dates: [...] }
         let expiryList: string[] = [];
         if (data?.expiry_dates && Array.isArray(data.expiry_dates)) {
@@ -209,7 +210,7 @@ const SupportResistance = () => {
           setSelectedExpiry(expiryList[0]);
         }
       } catch (err) {
-        console.error('Error fetching expiry dates:', err);
+        console.error("Error fetching expiry dates:", err);
       }
     };
     fetchExpiryDates();
@@ -221,20 +222,20 @@ const SupportResistance = () => {
     setLoading(true);
     try {
       const body: Record<string, string> = {
-        action: 'getOptionChain',
+        action: "getOptionChain",
         symbol: selectedSymbol,
-        expiry_date: selectedExpiry
+        expiry_date: selectedExpiry,
       };
-      
+
       if (!isLive && historicalTime) {
         body.time = historicalTime;
       }
-      
-      const { data, error } = await supabase.functions.invoke('option-chain', { body });
+
+      const { data, error } = await supabase.functions.invoke("option-chain", { body });
       if (error) throw error;
-      
-      console.log('Option chain response:', data);
-      
+
+      console.log("Option chain response:", data);
+
       // API returns: { option_chain: { status, data: [...] } } OR { data: [...] }
       let chainData: OptionData[] = [];
       if (data?.option_chain?.data && Array.isArray(data.option_chain.data)) {
@@ -242,14 +243,14 @@ const SupportResistance = () => {
       } else if (data?.data && Array.isArray(data.data)) {
         chainData = data.data;
       }
-      
+
       if (chainData.length > 0) {
         setOptionData(chainData);
         setSpotPrice(chainData[0].underlying_spot_price);
-        console.log('Option data set:', chainData.length, 'rows, spot:', chainData[0].underlying_spot_price);
+        console.log("Option data set:", chainData.length, "rows, spot:", chainData[0].underlying_spot_price);
       }
     } catch (err) {
-      console.error('Error fetching option chain:', err);
+      console.error("Error fetching option chain:", err);
     } finally {
       setLoading(false);
     }
@@ -264,21 +265,21 @@ const SupportResistance = () => {
   // Auth redirect
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
   // Handle time navigation
-  const handleTimeChange = (direction: 'prev' | 'next') => {
+  const handleTimeChange = (direction: "prev" | "next") => {
     const currentIndex = TIME_SLOTS.indexOf(historicalTime);
     let newIndex = currentIndex;
-    
-    if (direction === 'prev') {
+
+    if (direction === "prev") {
       newIndex = currentIndex > 0 ? currentIndex - 1 : 0;
     } else {
       newIndex = currentIndex < TIME_SLOTS.length - 1 ? currentIndex + 1 : TIME_SLOTS.length - 1;
     }
-    
+
     if (newIndex !== currentIndex) {
       setHistoricalTime(TIME_SLOTS[newIndex]);
     }
@@ -291,7 +292,7 @@ const SupportResistance = () => {
       setHistoricalTime(TIME_SLOTS[defaultTimeIndex]);
     } else {
       setIsLive(true);
-      setHistoricalTime('');
+      setHistoricalTime("");
     }
   };
 
@@ -308,12 +309,12 @@ const SupportResistance = () => {
   // Calculate filtered data based on strike count
   const getFilteredData = () => {
     if (optionData.length === 0) return [];
-    
+
     const sorted = [...optionData].sort((a, b) => a.strike_price - b.strike_price);
-    const spotPriceIndex = sorted.findIndex(row => row.strike_price > spotPrice);
+    const spotPriceIndex = sorted.findIndex((row) => row.strike_price > spotPrice);
     const startIndex = Math.max(0, spotPriceIndex - strikeCount);
     const endIndex = Math.min(sorted.length, spotPriceIndex + strikeCount);
-    
+
     return sorted.slice(startIndex, endIndex);
   };
 
@@ -321,37 +322,55 @@ const SupportResistance = () => {
 
   // Calculate top N values for highlighting
   const getTopNValues = (data: OptionData[], keyFn: (row: OptionData) => number, n: number) => {
-    return data.map(row => keyFn(row)).sort((a, b) => b - a).slice(0, n);
+    return data
+      .map((row) => keyFn(row))
+      .sort((a, b) => b - a)
+      .slice(0, n);
   };
 
-  const topCallVolumes = getTopNValues(optionData, row => row.call_options.market_data.volume, highlightCount);
-  const topPutVolumes = getTopNValues(optionData, row => row.put_options.market_data.volume, highlightCount);
-  const topCallOIs = getTopNValues(optionData, row => row.call_options.market_data.oi, highlightCount);
-  const topPutOIs = getTopNValues(optionData, row => row.put_options.market_data.oi, highlightCount);
-  const topCallCOIs = getTopNValues(optionData, row => row.call_options.market_data.oi - row.call_options.market_data.prev_oi, highlightCount);
-  const topPutCOIs = getTopNValues(optionData, row => row.put_options.market_data.oi - row.put_options.market_data.prev_oi, highlightCount);
+  const topCallVolumes = getTopNValues(optionData, (row) => row.call_options.market_data.volume, highlightCount);
+  const topPutVolumes = getTopNValues(optionData, (row) => row.put_options.market_data.volume, highlightCount);
+  const topCallOIs = getTopNValues(optionData, (row) => row.call_options.market_data.oi, highlightCount);
+  const topPutOIs = getTopNValues(optionData, (row) => row.put_options.market_data.oi, highlightCount);
+  const topCallCOIs = getTopNValues(
+    optionData,
+    (row) => row.call_options.market_data.oi - row.call_options.market_data.prev_oi,
+    highlightCount,
+  );
+  const topPutCOIs = getTopNValues(
+    optionData,
+    (row) => row.put_options.market_data.oi - row.put_options.market_data.prev_oi,
+    highlightCount,
+  );
 
   // Calculate totals
-  const totals = optionData.reduce((acc, row) => ({
-    callOI: acc.callOI + row.call_options.market_data.oi,
-    callCOI: acc.callCOI + (row.call_options.market_data.oi - row.call_options.market_data.prev_oi),
-    callVolume: acc.callVolume + row.call_options.market_data.volume,
-    putOI: acc.putOI + row.put_options.market_data.oi,
-    putCOI: acc.putCOI + (row.put_options.market_data.oi - row.put_options.market_data.prev_oi),
-    putVolume: acc.putVolume + row.put_options.market_data.volume,
-  }), { callOI: 0, callCOI: 0, callVolume: 0, putOI: 0, putCOI: 0, putVolume: 0 });
+  const totals = optionData.reduce(
+    (acc, row) => ({
+      callOI: acc.callOI + row.call_options.market_data.oi,
+      callCOI: acc.callCOI + (row.call_options.market_data.oi - row.call_options.market_data.prev_oi),
+      callVolume: acc.callVolume + row.call_options.market_data.volume,
+      putOI: acc.putOI + row.put_options.market_data.oi,
+      putCOI: acc.putCOI + (row.put_options.market_data.oi - row.put_options.market_data.prev_oi),
+      putVolume: acc.putVolume + row.put_options.market_data.volume,
+    }),
+    { callOI: 0, callCOI: 0, callVolume: 0, putOI: 0, putCOI: 0, putVolume: 0 },
+  );
 
   // Get highlight class for a value
   const getHighlightClass = (value: number, topValues: number[], isPut: boolean) => {
     const index = topValues.indexOf(value);
-    if (index === -1) return { bg: '', isHighlighted: false };
-    if (index === 0) return { bg: isPut ? 'bg-green-700 border border-white/50 rounded' : 'bg-red-700 border border-white/50 rounded', isHighlighted: true };
+    if (index === -1) return { bg: "", isHighlighted: false };
+    if (index === 0)
+      return {
+        bg: isPut ? "bg-green-700 border border-white/50 rounded" : "bg-red-700 border border-white/50 rounded",
+        isHighlighted: true,
+      };
     if (value >= topValues[0] * (highlightPercentage / 100)) {
-      if (index === 1) return { bg: 'bg-amber-600 border border-white/50 rounded', isHighlighted: true };
-      if (index === 2) return { bg: 'bg-pink-600 border border-white/50 rounded', isHighlighted: true };
-      if (index === 3) return { bg: 'bg-gray-500 border border-white/50 rounded', isHighlighted: true };
+      if (index === 1) return { bg: "bg-amber-600 border border-white/50 rounded", isHighlighted: true };
+      if (index === 2) return { bg: "bg-pink-600 border border-white/50 rounded", isHighlighted: true };
+      if (index === 3) return { bg: "bg-gray-500 border border-white/50 rounded", isHighlighted: true };
     }
-    return { bg: '', isHighlighted: false };
+    return { bg: "", isHighlighted: false };
   };
 
   // Format values based on lots/quantity setting
@@ -363,19 +382,23 @@ const SupportResistance = () => {
   };
 
   // PCR calculations
-  const pcrOI = totals.callOI > 0 ? (totals.putOI / totals.callOI).toFixed(2) : '-';
-  const pcrCOI = totals.callCOI > 0 ? (totals.putCOI / totals.callCOI).toFixed(2) : '-';
-  const pcrVol = totals.callVolume > 0 ? (totals.putVolume / totals.callVolume).toFixed(2) : '-';
+  const pcrOI = totals.callOI > 0 ? (totals.putOI / totals.callOI).toFixed(2) : "-";
+  const pcrCOI = totals.callCOI > 0 ? (totals.putCOI / totals.callCOI).toFixed(2) : "-";
+  const pcrVol = totals.callVolume > 0 ? (totals.putVolume / totals.callVolume).toFixed(2) : "-";
 
   if (authLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center"><Skeleton className="h-12 w-48" /></div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Skeleton className="h-12 w-48" />
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <TickerRibbon />
       <Navbar />
-      
+
       <main className="flex-1 p-2 md:p-4">
         {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">
@@ -390,16 +413,20 @@ const SupportResistance = () => {
                   {indexSymbols.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
-                      {indexSymbols.map(sym => (
-                        <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                      {indexSymbols.map((sym) => (
+                        <SelectItem key={sym} value={sym}>
+                          {sym}
+                        </SelectItem>
                       ))}
                     </>
                   )}
                   {stockSymbols.length > 0 && (
                     <>
                       <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
-                      {stockSymbols.map(sym => (
-                        <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                      {stockSymbols.map((sym) => (
+                        <SelectItem key={sym} value={sym}>
+                          {sym}
+                        </SelectItem>
                       ))}
                     </>
                   )}
@@ -412,33 +439,30 @@ const SupportResistance = () => {
                   <SelectValue placeholder="Expiry" />
                 </SelectTrigger>
                 <SelectContent>
-                  {expiryDates.map(date => (
-                    <SelectItem key={date} value={date}>{date}</SelectItem>
+                  {expiryDates.map((date) => (
+                    <SelectItem key={date} value={date}>
+                      {date}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
 
               {/* Live/Historical Toggle */}
-              <Button
-                variant={isLive ? "default" : "outline"}
-                size="sm"
-                onClick={toggleLiveMode}
-                className="text-xs"
-              >
+              <Button variant={isLive ? "default" : "outline"} size="sm" onClick={toggleLiveMode} className="text-xs">
                 <Clock className="h-3 w-3 mr-1" />
-                {isLive ? 'Live' : 'Historical'}
+                {isLive ? "Live" : "Historical"}
               </Button>
 
               {/* Historical Time Controls */}
               {!isLive && (
                 <div className="flex items-center gap-1">
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleTimeChange('prev')}>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleTimeChange("prev")}>
                     <ChevronLeft className="h-3 w-3" />
                   </Button>
                   <span className="text-xs font-medium px-2 bg-muted rounded py-1 min-w-[70px] text-center">
                     {formatTimeDisplay(historicalTime)}
                   </span>
-                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleTimeChange('next')}>
+                  <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleTimeChange("next")}>
                     <ChevronRight className="h-3 w-3" />
                   </Button>
                 </div>
@@ -446,7 +470,7 @@ const SupportResistance = () => {
 
               {/* Refresh */}
               <Button variant="outline" size="sm" onClick={fetchOptionChain} disabled={loading}>
-                <RefreshCw className={`h-3 w-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-3 w-3 mr-1 ${loading ? "animate-spin" : ""}`} />
                 <span className="hidden md:inline">Refresh</span>
               </Button>
 
@@ -459,7 +483,12 @@ const SupportResistance = () => {
               <AdminPaletteButton />
 
               {/* Info/Guide */}
-              <Button variant="outline" size="sm" onClick={() => setInfoOpen(true)} className="text-amber-500 border-amber-500/50 hover:bg-amber-500/10">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setInfoOpen(true)}
+                className="text-amber-500 border-amber-500/50 hover:bg-amber-500/10"
+              >
                 <Info className="h-3 w-3" />
               </Button>
             </div>
@@ -467,28 +496,28 @@ const SupportResistance = () => {
         </Card>
 
         {/* Main Table */}
-        <div className="overflow-x-auto bg-card rounded-lg border border-border">
+        <div className="overflow-auto max-h-[450px] bg-card rounded-lg border border-border">
           <Table className="w-full text-xs">
-            <TableHeader>
+            <TableHeader className="sticky top-0">
               {/* Header Row 1 - CALL | IDV | PUT */}
               <TableRow className="border-b border-border">
-                <TableHead 
-                  colSpan={6} 
+                <TableHead
+                  colSpan={6}
                   className="bg-red-800 text-white text-center cursor-pointer hover:bg-red-700 transition-colors"
                   onClick={() => setShiftingOpen(true)}
                 >
                   CALL | Resistance: {levels.resistance}
                 </TableHead>
                 <TableHead className="bg-indigo-900 text-white text-center">IDV: -</TableHead>
-                <TableHead 
-                  colSpan={6} 
+                <TableHead
+                  colSpan={6}
                   className="bg-green-800 text-white text-center cursor-pointer hover:bg-green-700 transition-colors"
                   onClick={() => setShiftingOpen(true)}
                 >
                   PUT | Support: {levels.support}
                 </TableHead>
               </TableRow>
-              
+
               {/* Header Row 2 - Column headers */}
               <TableRow className="bg-muted/50 text-[10px] md:text-xs">
                 <TableHead className="text-center p-1 md:p-2">DELTA IV</TableHead>
@@ -506,119 +535,202 @@ const SupportResistance = () => {
                 <TableHead className="text-center p-1 md:p-2">DELTA IV</TableHead>
               </TableRow>
             </TableHeader>
-            
+
             <TableBody>
-              {loading ? (
-                Array.from({ length: 10 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 13 }).map((_, j) => (
-                      <TableCell key={j} className="p-1"><Skeleton className="h-4 w-full" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                filteredData.map((row, idx) => {
-                  const isCallITM = row.strike_price < spotPrice;
-                  const isPutITM = row.strike_price > spotPrice;
-                  const isSpotRow = idx > 0 && filteredData[idx - 1]?.strike_price < spotPrice && row.strike_price > spotPrice;
-                  
-                  const callCOI = row.call_options.market_data.oi - row.call_options.market_data.prev_oi;
-                  const putCOI = row.put_options.market_data.oi - row.put_options.market_data.prev_oi;
-                  const pcrOfCoi = callCOI !== 0 ? (putCOI / callCOI).toFixed(2) : '-';
+              {loading
+                ? Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 13 }).map((_, j) => (
+                        <TableCell key={j} className="p-1">
+                          <Skeleton className="h-4 w-full" />
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                : filteredData.map((row, idx) => {
+                    const isCallITM = row.strike_price < spotPrice;
+                    const isPutITM = row.strike_price > spotPrice;
+                    const isSpotRow =
+                      idx > 0 && filteredData[idx - 1]?.strike_price < spotPrice && row.strike_price > spotPrice;
 
-                  const callOIPercent = topCallOIs[0] > 0 ? ((row.call_options.market_data.oi / topCallOIs[0]) * 100).toFixed(1) : '0';
-                  const putOIPercent = topPutOIs[0] > 0 ? ((row.put_options.market_data.oi / topPutOIs[0]) * 100).toFixed(1) : '0';
-                  const callVolPercent = topCallVolumes[0] > 0 ? ((row.call_options.market_data.volume / topCallVolumes[0]) * 100).toFixed(1) : '0';
-                  const putVolPercent = topPutVolumes[0] > 0 ? ((row.put_options.market_data.volume / topPutVolumes[0]) * 100).toFixed(1) : '0';
-                  const callCOIPercent = topCallCOIs[0] > 0 ? ((callCOI / topCallCOIs[0]) * 100).toFixed(1) : '0';
-                  const putCOIPercent = topPutCOIs[0] > 0 ? ((putCOI / topPutCOIs[0]) * 100).toFixed(1) : '0';
+                    const callCOI = row.call_options.market_data.oi - row.call_options.market_data.prev_oi;
+                    const putCOI = row.put_options.market_data.oi - row.put_options.market_data.prev_oi;
+                    const pcrOfCoi = callCOI !== 0 ? (putCOI / callCOI).toFixed(2) : "-";
 
-                  return (
-                    <>
-                      {isSpotRow && (
-                        <TableRow key={`spot-${idx}`} className="border-y-2 border-red-500">
-                          <TableCell colSpan={13} className="p-0">
-                            <div className="flex justify-between items-center bg-card/80 px-4 py-2">
-                              <span className="text-xs text-muted-foreground">OI: {((totals.putOI / (totals.callOI + totals.putOI)) * 100).toFixed(1)}%</span>
-                              <span className="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
-                                SPOT: {spotPrice.toFixed(2)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">OI: {((totals.callOI / (totals.callOI + totals.putOI)) * 100).toFixed(1)}%</span>
+                    const callOIPercent =
+                      topCallOIs[0] > 0 ? ((row.call_options.market_data.oi / topCallOIs[0]) * 100).toFixed(1) : "0";
+                    const putOIPercent =
+                      topPutOIs[0] > 0 ? ((row.put_options.market_data.oi / topPutOIs[0]) * 100).toFixed(1) : "0";
+                    const callVolPercent =
+                      topCallVolumes[0] > 0
+                        ? ((row.call_options.market_data.volume / topCallVolumes[0]) * 100).toFixed(1)
+                        : "0";
+                    const putVolPercent =
+                      topPutVolumes[0] > 0
+                        ? ((row.put_options.market_data.volume / topPutVolumes[0]) * 100).toFixed(1)
+                        : "0";
+                    const callCOIPercent = topCallCOIs[0] > 0 ? ((callCOI / topCallCOIs[0]) * 100).toFixed(1) : "0";
+                    const putCOIPercent = topPutCOIs[0] > 0 ? ((putCOI / topPutCOIs[0]) * 100).toFixed(1) : "0";
+
+                    return (
+                      <>
+                        {isSpotRow && (
+                          <TableRow key={`spot-${idx}`} className="border-y-2 border-red-500">
+                            <TableCell colSpan={13} className="p-0">
+                              <div className="flex justify-between items-center bg-card/80 px-4 py-2">
+                                <span className="text-xs text-muted-foreground">
+                                  OI: {((totals.putOI / (totals.callOI + totals.putOI)) * 100).toFixed(1)}%
+                                </span>
+                                <span className="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
+                                  SPOT: {spotPrice.toFixed(2)}
+                                </span>
+                                <span className="text-xs text-muted-foreground">
+                                  OI: {((totals.callOI / (totals.callOI + totals.putOI)) * 100).toFixed(1)}%
+                                </span>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+
+                        <TableRow key={row.strike_price} className="hover:bg-muted/20">
+                          {/* CALL Side */}
+                          <TableCell className={`p-1 text-center ${isCallITM ? "bg-red-950/30" : ""}`}>
+                            <div className="font-semibold">{row.call_options.option_greeks.delta}</div>
+                            <div className="text-muted-foreground text-[9px]">
+                              {row.call_options.option_greeks.iv?.toFixed(2)}
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isCallITM ? "bg-red-950/30" : ""} ${getHighlightClass(callCOI, topCallCOIs, false).bg}`}
+                          >
+                            <div
+                              className={`font-medium ${getHighlightClass(callCOI, topCallCOIs, false).isHighlighted ? "text-white" : callCOI < 0 ? "text-red-400" : ""}`}
+                            >
+                              {formatValue(callCOI)}
+                            </div>
+                            <div
+                              className={`text-[9px] ${getHighlightClass(callCOI, topCallCOIs, false).isHighlighted ? "text-white/80" : "text-muted-foreground"}`}
+                            >
+                              {callCOIPercent}%
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isCallITM ? "bg-red-950/30" : ""} ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).bg}`}
+                          >
+                            <div
+                              className={`font-medium ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).isHighlighted ? "text-white" : ""}`}
+                            >
+                              {formatValue(row.call_options.market_data.oi)}
+                            </div>
+                            <div
+                              className={`text-[9px] ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).isHighlighted ? "text-white/80" : "text-muted-foreground"}`}
+                            >
+                              {callOIPercent}%
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isCallITM ? "bg-red-950/30" : ""} ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).bg}`}
+                          >
+                            <div
+                              className={`font-medium ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).isHighlighted ? "text-white" : ""}`}
+                            >
+                              {formatValue(row.call_options.market_data.volume)}
+                            </div>
+                            <div
+                              className={`text-[9px] ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).isHighlighted ? "text-white/80" : "text-muted-foreground"}`}
+                            >
+                              {callVolPercent}%
+                            </div>
+                          </TableCell>
+                          <TableCell className={`p-1 text-center ${isCallITM ? "bg-red-950/30" : ""}`}>
+                            {row.call_options.market_data.ltp}
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isCallITM ? "bg-red-950/30 text-red-400" : "text-muted-foreground"}`}
+                          >
+                            -
+                          </TableCell>
+
+                          {/* Strike Price Center - Clickable */}
+                          <TableCell
+                            className="p-1 text-center bg-indigo-900/30 font-bold cursor-pointer hover:bg-indigo-800/50 transition-colors"
+                            onClick={() => handleStrikeClick(row)}
+                          >
+                            <div className="hover:text-amber-400 transition-colors">{row.strike_price}</div>
+                            <div className="text-[9px] text-muted-foreground">
+                              {row.pcr?.toFixed(2)} ({pcrOfCoi})
+                            </div>
+                          </TableCell>
+
+                          {/* PUT Side */}
+                          <TableCell
+                            className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30 text-green-400" : "text-muted-foreground"}`}
+                          >
+                            -
+                          </TableCell>
+                          <TableCell className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30" : ""}`}>
+                            {row.put_options.market_data.ltp}
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30" : ""} ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).bg}`}
+                          >
+                            <div
+                              className={`font-medium ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).isHighlighted ? "text-white" : ""}`}
+                            >
+                              {formatValue(row.put_options.market_data.volume)}
+                            </div>
+                            <div
+                              className={`text-[9px] ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).isHighlighted ? "text-white/80" : "text-muted-foreground"}`}
+                            >
+                              {putVolPercent}%
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30" : ""} ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).bg}`}
+                          >
+                            <div
+                              className={`font-medium ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).isHighlighted ? "text-white" : ""}`}
+                            >
+                              {formatValue(row.put_options.market_data.oi)}
+                            </div>
+                            <div
+                              className={`text-[9px] ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).isHighlighted ? "text-white/80" : "text-muted-foreground"}`}
+                            >
+                              {putOIPercent}%
+                            </div>
+                          </TableCell>
+                          <TableCell
+                            className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30" : ""} ${getHighlightClass(putCOI, topPutCOIs, true).bg}`}
+                          >
+                            <div
+                              className={`font-medium ${getHighlightClass(putCOI, topPutCOIs, true).isHighlighted ? "text-white" : putCOI < 0 ? "text-red-400" : ""}`}
+                            >
+                              {formatValue(putCOI)}
+                            </div>
+                            <div
+                              className={`text-[9px] ${getHighlightClass(putCOI, topPutCOIs, true).isHighlighted ? "text-white/80" : "text-muted-foreground"}`}
+                            >
+                              {putCOIPercent}%
+                            </div>
+                          </TableCell>
+                          <TableCell className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30" : ""}`}>
+                            <div className="font-semibold">{row.put_options.option_greeks.delta}</div>
+                            <div className="text-muted-foreground text-[9px]">
+                              {row.put_options.option_greeks.iv?.toFixed(2)}
                             </div>
                           </TableCell>
                         </TableRow>
-                      )}
-                      
-                      <TableRow key={row.strike_price} className="hover:bg-muted/20">
-                        {/* CALL Side */}
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''}`}>
-                          <div className="font-semibold">{row.call_options.option_greeks.delta}</div>
-                          <div className="text-muted-foreground text-[9px]">{row.call_options.option_greeks.iv?.toFixed(2)}</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(callCOI, topCallCOIs, false).bg}`}>
-                          <div className={`font-medium ${getHighlightClass(callCOI, topCallCOIs, false).isHighlighted ? 'text-white' : callCOI < 0 ? 'text-red-400' : ''}`}>{formatValue(callCOI)}</div>
-                          <div className={`text-[9px] ${getHighlightClass(callCOI, topCallCOIs, false).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{callCOIPercent}%</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).bg}`}>
-                          <div className={`font-medium ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.call_options.market_data.oi)}</div>
-                          <div className={`text-[9px] ${getHighlightClass(row.call_options.market_data.oi, topCallOIs, false).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{callOIPercent}%</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''} ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).bg}`}>
-                          <div className={`font-medium ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.call_options.market_data.volume)}</div>
-                          <div className={`text-[9px] ${getHighlightClass(row.call_options.market_data.volume, topCallVolumes, false).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{callVolPercent}%</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30' : ''}`}>
-                          {row.call_options.market_data.ltp}
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isCallITM ? 'bg-red-950/30 text-red-400' : 'text-muted-foreground'}`}>
-                          -
-                        </TableCell>
-                        
-                        {/* Strike Price Center - Clickable */}
-                        <TableCell 
-                          className="p-1 text-center bg-indigo-900/30 font-bold cursor-pointer hover:bg-indigo-800/50 transition-colors"
-                          onClick={() => handleStrikeClick(row)}
-                        >
-                          <div className="hover:text-amber-400 transition-colors">{row.strike_price}</div>
-                          <div className="text-[9px] text-muted-foreground">
-                            {row.pcr?.toFixed(2)} ({pcrOfCoi})
-                          </div>
-                        </TableCell>
-                        
-                        {/* PUT Side */}
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30 text-green-400' : 'text-muted-foreground'}`}>
-                          -
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''}`}>
-                          {row.put_options.market_data.ltp}
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).bg}`}>
-                          <div className={`font-medium ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.put_options.market_data.volume)}</div>
-                          <div className={`text-[9px] ${getHighlightClass(row.put_options.market_data.volume, topPutVolumes, true).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{putVolPercent}%</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).bg}`}>
-                          <div className={`font-medium ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).isHighlighted ? 'text-white' : ''}`}>{formatValue(row.put_options.market_data.oi)}</div>
-                          <div className={`text-[9px] ${getHighlightClass(row.put_options.market_data.oi, topPutOIs, true).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{putOIPercent}%</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''} ${getHighlightClass(putCOI, topPutCOIs, true).bg}`}>
-                          <div className={`font-medium ${getHighlightClass(putCOI, topPutCOIs, true).isHighlighted ? 'text-white' : putCOI < 0 ? 'text-red-400' : ''}`}>{formatValue(putCOI)}</div>
-                          <div className={`text-[9px] ${getHighlightClass(putCOI, topPutCOIs, true).isHighlighted ? 'text-white/80' : 'text-muted-foreground'}`}>{putCOIPercent}%</div>
-                        </TableCell>
-                        <TableCell className={`p-1 text-center ${isPutITM ? 'bg-emerald-950/30' : ''}`}>
-                          <div className="font-semibold">{row.put_options.option_greeks.delta}</div>
-                          <div className="text-muted-foreground text-[9px]">{row.put_options.option_greeks.iv?.toFixed(2)}</div>
-                        </TableCell>
-                      </TableRow>
-                    </>
-                  );
-                })
-              )}
-              
+                      </>
+                    );
+                  })}
+
               {/* Footer Totals */}
               {!loading && filteredData.length > 0 && (
                 <TableRow className="bg-muted/30 font-bold">
                   <TableCell className="p-1 text-center"></TableCell>
-                  <TableCell className="p-1 text-center bg-red-900/50 text-red-400">{formatValue(totals.callCOI)}</TableCell>
+                  <TableCell className="p-1 text-center bg-red-900/50 text-red-400">
+                    {formatValue(totals.callCOI)}
+                  </TableCell>
                   <TableCell className="p-1 text-center bg-red-900/50">{formatValue(totals.callOI)}</TableCell>
                   <TableCell className="p-1 text-center bg-red-900/50">{formatValue(totals.callVolume)}</TableCell>
                   <TableCell className="p-1 text-center"></TableCell>
@@ -639,15 +751,15 @@ const SupportResistance = () => {
         {/* Summary Bar */}
         <div className="mt-4 flex flex-wrap gap-2 p-3 bg-amber-950/50 border border-amber-800 rounded-lg">
           {[
-            { label: 'T.V CE', value: '98.52%' },
-            { label: 'T.V PE', value: '1.48%' },
-            { label: 'LTP CE', value: '78.03%' },
-            { label: 'LTP PE', value: '21.97%' },
-            { label: 'PCR Vol', value: pcrVol },
-            { label: 'PCR OI', value: pcrOI },
-            { label: 'PCR COI', value: pcrCOI },
-            { label: 'Lot Size', value: lotSize.toString() },
-            { label: 'Max Pain', value: levels.resistance.toString() },
+            { label: "T.V CE", value: "98.52%" },
+            { label: "T.V PE", value: "1.48%" },
+            { label: "LTP CE", value: "78.03%" },
+            { label: "LTP PE", value: "21.97%" },
+            { label: "PCR Vol", value: pcrVol },
+            { label: "PCR OI", value: pcrOI },
+            { label: "PCR COI", value: pcrCOI },
+            { label: "Lot Size", value: lotSize.toString() },
+            { label: "Max Pain", value: levels.resistance.toString() },
           ].map((item, i) => (
             <div key={i} className="flex-1 min-w-[80px] text-center border-r border-amber-800 last:border-r-0 px-2">
               <div className="text-xs text-muted-foreground">{item.label}</div>
@@ -813,9 +925,10 @@ const SupportResistance = () => {
               <div className="p-4 bg-gradient-to-r from-amber-950/50 to-transparent border-l-4 border-amber-500 rounded">
                 <h3 className="font-bold text-amber-400 mb-2">📊 Data from an Option Writer's Perspective</h3>
                 <p className="text-muted-foreground">
-                  On this page, we view option chain data from an option writer's perspective. If the Call side OI, COI and Volume are higher than the Put side, 
-                  we consider this as <span className="text-red-400 font-semibold">Bearish Sentiment</span> because if there are more Call Writers, 
-                  they won't let the market go up.
+                  On this page, we view option chain data from an option writer's perspective. If the Call side OI, COI
+                  and Volume are higher than the Put side, we consider this as{" "}
+                  <span className="text-red-400 font-semibold">Bearish Sentiment</span> because if there are more Call
+                  Writers, they won't let the market go up.
                 </p>
               </div>
 
@@ -823,17 +936,31 @@ const SupportResistance = () => {
               <div className="p-4 bg-muted/30 rounded-lg border border-border">
                 <h3 className="font-bold text-primary mb-3">🎯 Highlighting Logic</h3>
                 <ul className="space-y-2 text-muted-foreground">
-                  <li>• We highlight the strike with <span className="text-white">Highest OI/COI/Volume</span> (Support/Resistance 1)</li>
-                  <li>• We also highlight the <span className="text-amber-400">Second Highest</span> if it's 75%+ of the first (Support/Resistance 2)</li>
+                  <li>
+                    • We highlight the strike with <span className="text-white">Highest OI/COI/Volume</span>{" "}
+                    (Support/Resistance 1)
+                  </li>
+                  <li>
+                    • We also highlight the <span className="text-amber-400">Second Highest</span> if it's 75%+ of the
+                    first (Support/Resistance 2)
+                  </li>
                   <li>• You can highlight more than 2 by changing settings</li>
-                  <li>• <span className="bg-red-700 px-2 py-0.5 rounded text-white text-xs">Red</span> = Call side (Resistance)</li>
-                  <li>• <span className="bg-green-700 px-2 py-0.5 rounded text-white text-xs">Green</span> = Put side (Support)</li>
+                  <li>
+                    • <span className="bg-red-700 px-2 py-0.5 rounded text-white text-xs">Red</span> = Call side
+                    (Resistance)
+                  </li>
+                  <li>
+                    • <span className="bg-green-700 px-2 py-0.5 rounded text-white text-xs">Green</span> = Put side
+                    (Support)
+                  </li>
                 </ul>
               </div>
 
               {/* First 10 Seconds */}
               <div className="p-4 bg-blue-950/30 rounded-lg border border-blue-800/50">
-                <h3 className="font-bold text-blue-400 mb-3">1️⃣ What to Look at When Opening the Page (First 10 Seconds)</h3>
+                <h3 className="font-bold text-blue-400 mb-3">
+                  1️⃣ What to Look at When Opening the Page (First 10 Seconds)
+                </h3>
                 <ul className="space-y-1 text-muted-foreground">
                   <li>• Index / Symbol (NIFTY / BANKNIFTY)</li>
                   <li>• ATM Strike (the middle strike)</li>
@@ -870,9 +997,17 @@ const SupportResistance = () => {
                   <div className="p-2 bg-amber-900/30 rounded">RESISTANCE WTT / WTB</div>
                 </div>
                 <div className="mt-3 text-xs text-muted-foreground space-y-1">
-                  <p><span className="text-green-400 font-semibold">STRONG</span> → Pressure is holding</p>
-                  <p><span className="text-amber-400 font-semibold">WTB</span> (Weak Towards Bottom) → Ready to break down</p>
-                  <p><span className="text-amber-400 font-semibold">WTT</span> (Weak Towards Top) → Pressure from above is reducing</p>
+                  <p>
+                    <span className="text-green-400 font-semibold">STRONG</span> → Pressure is holding
+                  </p>
+                  <p>
+                    <span className="text-amber-400 font-semibold">WTB</span> (Weak Towards Bottom) → Ready to break
+                    down
+                  </p>
+                  <p>
+                    <span className="text-amber-400 font-semibold">WTT</span> (Weak Towards Top) → Pressure from above
+                    is reducing
+                  </p>
                 </div>
               </div>
 
@@ -884,7 +1019,8 @@ const SupportResistance = () => {
                   <p className="text-muted-foreground">Confusion always occurs on the WEAK side</p>
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  <span className="text-yellow-400">How to identify:</span> One side STRONG, other side WTT/WTB → State of Confusion is ACTIVE on that weak side
+                  <span className="text-yellow-400">How to identify:</span> One side STRONG, other side WTT/WTB → State
+                  of Confusion is ACTIVE on that weak side
                 </p>
                 <p className="text-red-400 text-xs mt-2">⚠️ Assuming confusion on the Strong side is a mistake</p>
               </div>
@@ -913,11 +1049,17 @@ const SupportResistance = () => {
                 <div className="space-y-3 text-xs">
                   <div className="p-3 bg-muted/30 rounded">
                     <p className="font-semibold text-amber-400 mb-1">If Confusion is on Resistance Side:</p>
-                    <p className="text-muted-foreground">Market will first fall → It will come to PUT extension (like 24150/24140) → <span className="text-green-400 font-semibold">BUY CALL</span> from there</p>
+                    <p className="text-muted-foreground">
+                      Market will first fall → It will come to PUT extension (like 24150/24140) →{" "}
+                      <span className="text-green-400 font-semibold">BUY CALL</span> from there
+                    </p>
                   </div>
                   <div className="p-3 bg-muted/30 rounded">
                     <p className="font-semibold text-amber-400 mb-1">If Confusion is on Support Side:</p>
-                    <p className="text-muted-foreground">Market will first go up → It will touch CALL extension (like 24300+) → <span className="text-red-400 font-semibold">BUY PUT</span> from there</p>
+                    <p className="text-muted-foreground">
+                      Market will first go up → It will touch CALL extension (like 24300+) →{" "}
+                      <span className="text-red-400 font-semibold">BUY PUT</span> from there
+                    </p>
                   </div>
                 </div>
               </div>
@@ -930,7 +1072,11 @@ const SupportResistance = () => {
                   <p className="text-green-400 ml-4">• Support STRONG</p>
                   <p className="text-red-400 ml-4">• Resistance WTB (94 mins)</p>
                   <p className="text-white mt-2">This means confusion is on the CALL side.</p>
-                  <p className="text-muted-foreground mt-2">I won't take a trade now.<br/>I will wait for the market to come to 24150 extension.<br/>I will buy CALL from there."</p>
+                  <p className="text-muted-foreground mt-2">
+                    I won't take a trade now.
+                    <br />I will wait for the market to come to 24150 extension.
+                    <br />I will buy CALL from there."
+                  </p>
                 </div>
               </div>
 
@@ -1007,7 +1153,9 @@ const SupportResistance = () => {
               {/* Philosophy */}
               <div className="p-6 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent rounded-lg border border-amber-500/30 text-center">
                 <p className="text-amber-400 font-bold text-lg mb-2">RunAlgo Core Philosophy</p>
-                <p className="text-muted-foreground italic">"RunAlgo is not an indicator — It's an X-ray of the market"</p>
+                <p className="text-muted-foreground italic">
+                  "RunAlgo is not an indicator — It's an X-ray of the market"
+                </p>
                 <p className="text-xs text-muted-foreground mt-3">Take a trade when the market gives you room</p>
               </div>
 
@@ -1026,7 +1174,6 @@ const SupportResistance = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
