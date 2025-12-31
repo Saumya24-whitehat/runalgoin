@@ -1,6 +1,30 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ChevronDown, TrendingUp, Menu, X, LogOut, LogIn, BarChart3, LineChart, Layers, Crown, Bot, Star, Link2, Target, Flame, Filter, Wrench, Scale, BarChart2, Calculator, PieChart, Activity, Play } from "lucide-react";
+import {
+  ChevronDown,
+  TrendingUp,
+  Menu,
+  X,
+  LogOut,
+  LogIn,
+  BarChart3,
+  LineChart,
+  Layers,
+  Crown,
+  Bot,
+  Star,
+  Link2,
+  Target,
+  Flame,
+  Filter,
+  Wrench,
+  Scale,
+  BarChart2,
+  Calculator,
+  PieChart,
+  Activity,
+  Play,
+} from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -49,7 +73,12 @@ const navItems: NavItem[] = [
         title: "OPTION CHAIN",
         items: [
           { icon: Link2, label: "Option Chain", iconColor: "text-primary", path: "/option-chain" },
-          { icon: Target, label: "Open Chain Support-Resistance", iconColor: "text-emerald-500", path: "/support-resistance" },
+          {
+            icon: Target,
+            label: "Open Chain Support-Resistance",
+            iconColor: "text-emerald-500",
+            path: "/support-resistance",
+          },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500", path: "/option-heatmap" },
           { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
           { icon: Wrench, label: "Option Builder", iconColor: "text-primary", path: "/option-builder" },
@@ -86,7 +115,12 @@ const navItems: NavItem[] = [
         title: "ANALYSIS",
         items: [
           { icon: Layers, label: "OI Buildup", iconColor: "text-red-500", path: "/future-buildup" },
-          { icon: TrendingUp, label: "Future Open - High & Low", iconColor: "text-yellow-500", path: "/future-open-high-low" },
+          {
+            icon: TrendingUp,
+            label: "Future Open - High & Low",
+            iconColor: "text-yellow-500",
+            path: "/future-open-high-low",
+          },
           { icon: Activity, label: "Future Rollover", iconColor: "text-emerald-500", path: "/future-rollover" },
         ],
       },
@@ -105,9 +139,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         title: "ANALYSIS",
-        items: [
-          { icon: BarChart3, label: "Screeners", iconColor: "text-primary" },
-        ],
+        items: [{ icon: BarChart3, label: "Screeners", iconColor: "text-primary" }],
       },
       {
         title: "JACKPOT SECTION",
@@ -138,17 +170,23 @@ const navItems: NavItem[] = [
   },
 ];
 
-function NavDropdown({ sections, isOpen, onItemClick }: { sections: NavDropdownSection[]; isOpen: boolean; onItemClick?: () => void }) {
+function NavDropdown({
+  sections,
+  isOpen,
+  onItemClick,
+}: {
+  sections: NavDropdownSection[];
+  isOpen: boolean;
+  onItemClick?: () => void;
+}) {
   if (!isOpen) return null;
 
   return (
-    <div className="absolute top-full left-0 mt-1 bg-dropdown-bg border border-dropdown-border rounded-lg shadow-xl p-4 min-w-max animate-slide-down z-50">
+    <div className="absolute top-full left-0 bg-dropdown-bg border border-dropdown-border rounded-lg shadow-xl p-4 min-w-max animate-slide-down z-50">
       <div className="flex gap-8">
         {sections.map((section, idx) => (
           <div key={idx} className="min-w-[180px]">
-            <h4 className="text-xs font-semibold text-muted-foreground mb-3 tracking-wide">
-              {section.title}
-            </h4>
+            <h4 className="text-xs font-semibold text-muted-foreground mb-3 tracking-wide">{section.title}</h4>
             <ul className="space-y-1">
               {section.items.map((item, itemIdx) => (
                 <li key={itemIdx}>
@@ -223,18 +261,14 @@ export function Navbar() {
                 ) : (
                   <button
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-secondary ${
-                      activeDropdown === item.label
-                        ? "bg-secondary text-primary"
-                        : "text-foreground"
+                      activeDropdown === item.label ? "bg-secondary text-primary" : "text-foreground"
                     }`}
                   >
                     {item.icon && <item.icon className="h-4 w-4 text-primary" />}
                     <span>{item.label}</span>
                     {item.hasDropdown && (
                       <ChevronDown
-                        className={`h-4 w-4 transition-transform ${
-                          activeDropdown === item.label ? "rotate-180" : ""
-                        }`}
+                        className={`h-4 w-4 transition-transform ${activeDropdown === item.label ? "rotate-180" : ""}`}
                       />
                     )}
                   </button>
@@ -254,20 +288,12 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             {user ? (
-              <Button
-                variant="ghost"
-                onClick={handleLogout}
-                className="hidden sm:flex items-center gap-2"
-              >
+              <Button variant="ghost" onClick={handleLogout} className="hidden sm:flex items-center gap-2">
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
               </Button>
             ) : (
-              <Button
-                variant="default"
-                onClick={() => navigate("/auth")}
-                className="hidden sm:flex items-center gap-2"
-              >
+              <Button variant="default" onClick={() => navigate("/auth")} className="hidden sm:flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
               </Button>
@@ -302,10 +328,10 @@ export function Navbar() {
                     >
                       {item.icon && <item.icon className="h-5 w-5 text-primary" />}
                       <span className="font-medium">{item.label}</span>
-                      <ChevronDown 
+                      <ChevronDown
                         className={`h-4 w-4 ml-auto transition-transform duration-200 ${
                           expandedMobileItem === item.label ? "rotate-180" : ""
-                        }`} 
+                        }`}
                       />
                     </button>
                     {expandedMobileItem === item.label && item.sections && (
