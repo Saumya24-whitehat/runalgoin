@@ -373,7 +373,12 @@ const OptionsChart = () => {
             </div>
           )}
 
-          <div ref={containerRef} id="tv_chart_container" className="w-full h-full min-h-[600px]" />
+          <div
+            ref={containerRef}
+            id="tv_chart_container"
+            className="w-full  min-h-[600px]"
+            style={{ height: "100vh" }}
+          />
         </div>
       </div>
     </div>
