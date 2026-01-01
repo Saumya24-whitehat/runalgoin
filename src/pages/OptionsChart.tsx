@@ -28,7 +28,7 @@ const OptionsChart = () => {
         const mainScript = document.createElement("script");
         mainScript.src = "https://runalgo.xyz/top/chart/charting_library/charting_library.standalone.js";
         mainScript.async = true;
-        
+
         await new Promise<void>((resolve, reject) => {
           mainScript.onload = () => resolve();
           mainScript.onerror = () => reject(new Error("Failed to load TradingView library"));
@@ -39,7 +39,7 @@ const OptionsChart = () => {
         const datafeedScript = document.createElement("script");
         datafeedScript.src = "https://runalgo.xyz/top/chart/datafeeds/tv-datafeed.js";
         datafeedScript.async = true;
-        
+
         await new Promise<void>((resolve, reject) => {
           datafeedScript.onload = () => resolve();
           datafeedScript.onerror = () => reject(new Error("Failed to load datafeed"));
@@ -49,7 +49,7 @@ const OptionsChart = () => {
         // Wait for TradingView to be available
         let attempts = 0;
         while (!window.TradingView && attempts < 50) {
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           attempts++;
         }
 
@@ -59,7 +59,6 @@ const OptionsChart = () => {
 
         // Initialize the widget
         initializeWidget();
-        
       } catch (err) {
         console.error("Error loading TradingView:", err);
         setError(err instanceof Error ? err.message : "Failed to load chart");
@@ -85,34 +84,43 @@ const OptionsChart = () => {
     if (!containerRef.current || !window.TradingView) return;
 
     const isDark = document.documentElement.classList.contains("dark");
-    
+
     // Create datafeed with basic configuration
     const datafeed = {
       onReady: (callback: Function) => {
-        setTimeout(() => callback({
-          supports_marks: false,
-          supports_timescale_marks: true,
-          supported_resolutions: ['1', '3', '5', '15', '30', '45', '60', '120', '180', '240', '1D', '1W', '1M'],
-          exchanges: [
-            {value: '', name: 'All Exchanges', desc: ''},
-            {value: 'NSE', name: 'NSE', desc: 'National Stock Exchange'},
-            {value: 'NFO', name: 'NFO', desc: 'NSE F&O'},
-            {value: 'BSE', name: 'BSE', desc: 'Bombay Stock Exchange'},
-            {value: 'MCX', name: 'MCX', desc: 'Multi Commodity Exchange'},
-          ],
-          symbols_types: [
-            {name: 'All types', value: ''},
-            {name: 'Stock', value: 'stock'},
-            {name: 'Index', value: 'index'},
-            {name: 'Futures', value: 'futures'},
-            {name: 'Options', value: 'option'},
-          ]
-        }), 0);
+        setTimeout(
+          () =>
+            callback({
+              supports_marks: false,
+              supports_timescale_marks: true,
+              supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
+              exchanges: [
+                { value: "", name: "All Exchanges", desc: "" },
+                { value: "NSE", name: "NSE", desc: "National Stock Exchange" },
+                { value: "NFO", name: "NFO", desc: "NSE F&O" },
+                { value: "BSE", name: "BSE", desc: "Bombay Stock Exchange" },
+                { value: "MCX", name: "MCX", desc: "Multi Commodity Exchange" },
+              ],
+              symbols_types: [
+                { name: "All types", value: "" },
+                { name: "Stock", value: "stock" },
+                { name: "Index", value: "index" },
+                { name: "Futures", value: "futures" },
+                { name: "Options", value: "option" },
+              ],
+            }),
+          0,
+        );
       },
-      searchSymbols: async (userInput: string, exchange: string, symbolType: string, onResultReadyCallback: Function) => {
+      searchSymbols: async (
+        userInput: string,
+        exchange: string,
+        symbolType: string,
+        onResultReadyCallback: Function,
+      ) => {
         try {
           const response = await fetch(
-            `https://runalgo.xyz/top/chart/upstox_symbol_search.php?query=${encodeURIComponent(userInput)}&limit=50&symbolType=${symbolType}`
+            `https://runalgo.xyz/top/chart/upstox_symbol_search.php?query=${encodeURIComponent(userInput)}&limit=50&symbolType=${symbolType}`,
           );
           if (response.ok) {
             const data = await response.json();
@@ -130,7 +138,7 @@ const OptionsChart = () => {
           const parts = symbolName.split("|");
           const ticker = parts.length > 1 ? parts[1] : symbolName;
           const exchange = symbolName.includes("NSE") ? "NSE" : "NFO";
-          
+
           onSymbolResolvedCallback({
             symbol: symbolName,
             full_name: symbolName,
@@ -146,7 +154,7 @@ const OptionsChart = () => {
             has_intraday: true,
             has_no_volume: false,
             has_weekly_and_monthly: true,
-            supported_resolutions: ['1', '3', '5', '15', '30', '45', '60', '120', '180', '240', '1D', '1W', '1M'],
+            supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
             volume_precision: 0,
             data_status: "streaming",
             instrument_key: symbolName,
@@ -158,61 +166,64 @@ const OptionsChart = () => {
         resolution: string,
         periodParams: any,
         onHistoryCallback: Function,
-        onErrorCallback: Function
+        onErrorCallback: Function,
       ) => {
         try {
           const { from, to } = periodParams;
-          
+
           // Map TradingView resolution to API interval
           const intervalMap: Record<string, string> = {
-            '1': '1minute',
-            '3': '3minute',
-            '5': '5minute',
-            '10': '10minute',
-            '15': '15minute',
-            '30': '30minute',
-            '45': '30minute',
-            '60': '1hour',
-            '120': '1hour',
-            '180': '1hour',
-            '240': '1hour',
-            '1D': '1day',
-            'D': '1day',
-            '1W': '1week',
-            'W': '1week',
-            '1M': '1month',
-            'M': '1month'
+            "1": "1minute",
+            "3": "3minute",
+            "5": "5minute",
+            "10": "10minute",
+            "15": "15minute",
+            "30": "30minute",
+            "45": "30minute",
+            "60": "1hour",
+            "120": "1hour",
+            "180": "1hour",
+            "240": "1hour",
+            "1D": "1day",
+            D: "1day",
+            "1W": "1week",
+            W: "1week",
+            "1M": "1month",
+            M: "1month",
           };
-          
-          const interval = intervalMap[resolution] || '5minute';
-          const fromDate = new Date(from * 1000).toISOString().split('T')[0];
-          const toDate = new Date(to * 1000).toISOString().split('T')[0];
-          
+
+          const interval = intervalMap[resolution] || "5minute";
+          const fromDate = new Date(from * 1000).toISOString().split("T")[0];
+          const toDate = new Date(to * 1000).toISOString().split("T")[0];
+
           // Use full_name which contains the proper symbol format (e.g., NSE_INDEX|Nifty 50)
-          const apiSymbol = symbolInfo.full_name || symbolInfo.symbol || 'NSE_INDEX|Nifty 50';
-          
+          const apiSymbol = symbolInfo.full_name || symbolInfo.symbol || "NSE_INDEX|Nifty 50";
+
+          console.log(apiSymbol);
           const url = `https://runalgo.xyz/top/chart/upstox_data_fetcher.php?symbol=${encodeURIComponent(apiSymbol)}&interval=${interval}&from=${fromDate}&to=${toDate}`;
-          
+
           const response = await fetch(url, {
             headers: {
-              'Accept': '*/*',
-              'Referer': 'https://runalgo.xyz/top/chart/'
-            }
+              Accept: "*/*",
+              Referer: "https://runalgo.xyz/top/chart/",
+            },
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             if (data && data.candles && data.candles.length > 0) {
               // API returns candles in format: [timestamp, open, high, low, close, volume, oi]
-              const bars = data.candles.map((candle: any[]) => ({
-                time: new Date(candle[0]).getTime(),
-                open: candle[1],
-                high: candle[2],
-                low: candle[3],
-                close: candle[4],
-                volume: candle[5] || 0
-              })).sort((a: any, b: any) => a.time - b.time);
-              
+              const bars = data.candles
+                .map((candle: any[]) => ({
+                  time: new Date(candle[0]).getTime(),
+                  open: candle[1],
+                  high: candle[2],
+                  low: candle[3],
+                  close: candle[4],
+                  volume: candle[5] || 0,
+                }))
+                .sort((a: any, b: any) => a.time - b.time);
+
               onHistoryCallback(bars, { noData: false });
             } else {
               onHistoryCallback([], { noData: true });
@@ -231,7 +242,7 @@ const OptionsChart = () => {
       },
       unsubscribeBars: (subscriberUID: string) => {
         console.log("Unsubscribe bars:", subscriberUID);
-      }
+      },
     };
 
     try {
@@ -246,10 +257,7 @@ const OptionsChart = () => {
         library_path: "https://runalgo.xyz/top/chart/charting_library/",
         locale: "en",
         theme: isDark ? "dark" : "light",
-        disabled_features: [
-          "use_localstorage_for_settings",
-          "header_saveload",
-        ],
+        disabled_features: ["use_localstorage_for_settings", "header_saveload"],
         enabled_features: [
           "study_templates",
           "show_symbol_logos",
@@ -297,7 +305,7 @@ const OptionsChart = () => {
 
   const toggleFullscreen = () => {
     if (!containerRef.current?.parentElement) return;
-    
+
     if (!isFullscreen) {
       containerRef.current.parentElement.requestFullscreen?.();
     } else {
@@ -318,21 +326,14 @@ const OptionsChart = () => {
     <div className="min-h-screen bg-background flex flex-col">
       <TickerRibbon />
       <Navbar />
-      
+
       <div className="flex-1 flex flex-col p-4">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Options Chart</h1>
-            <p className="text-sm text-muted-foreground">
-              Advanced TradingView charting with NSE/NFO data
-            </p>
+            <p className="text-sm text-muted-foreground">Advanced TradingView charting with NSE/NFO data</p>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={toggleFullscreen}
-            className="gap-2"
-          >
+          <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-2">
             {isFullscreen ? (
               <>
                 <Minimize2 className="h-4 w-4" />
@@ -356,7 +357,7 @@ const OptionsChart = () => {
               </div>
             </div>
           )}
-          
+
           {error && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
               <div className="flex flex-col items-center gap-3 text-center p-4">
@@ -371,11 +372,7 @@ const OptionsChart = () => {
             </div>
           )}
 
-          <div
-            ref={containerRef}
-            id="tv_chart_container"
-            className="w-full h-full min-h-[600px]"
-          />
+          <div ref={containerRef} id="tv_chart_container" className="w-full h-full min-h-[600px]" />
         </div>
       </div>
     </div>
