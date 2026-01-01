@@ -213,16 +213,28 @@ const OptionsChart = () => {
             const data = await response.json();
             if (data && data.bars && data.bars.length > 0) {
               // API returns candles in format: [timestamp, open, high, low, close, volume, oi]
+              // Convert bars to TradingView format and filter by time range with limits
               const bars = data.bars
-                .map((candle: any[]) => ({
-                  time: new Date(candle[0]).getTime(),
-                  open: candle[1],
-                  high: candle[2],
-                  low: candle[3],
-                  close: candle[4],
-                  volume: candle[5] || 0,
-                }))
-                .sort((a: any, b: any) => a.time - b.time);
+                .filter((bar) => {
+                  const barTime = bar.time / 1000; // Convert to seconds
+
+                  // Apply timeframe-based limits
+                  if (dataLimit.hasLimit) {
+                    return barTime >= dataLimit.fromTime && barTime <= periodParams.to;
+                  } else {
+                    // No limit - use all available data up to 'to' date
+                    return barTime <= periodParams.to;
+                  }
+                })
+                .map((bar) => ({
+                  time: bar.time,
+                  open: bar.open,
+                  high: bar.high,
+                  low: bar.low,
+                  close: bar.close,
+                  volume: bar.volume,
+                  oi: bar.oi,
+                }));
 
               onHistoryCallback(bars, { noData: false });
             } else {
