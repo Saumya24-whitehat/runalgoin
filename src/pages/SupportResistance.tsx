@@ -203,7 +203,6 @@ const SupportResistance = () => {
   const [shiftingOpen, setShiftingOpen] = useState(false);
   const [shiftingData, setShiftingData] = useState<ShiftingEntry[]>([]);
   const [shiftingLoading, setShiftingLoading] = useState(false);
-  const [kundaliRawData, setKundaliRawData] = useState<KundaliTimeData[]>([]);
 
   // Info/Guide modal
   const [infoOpen, setInfoOpen] = useState(false);
@@ -345,14 +344,13 @@ const SupportResistance = () => {
     }
   }, [selectedExpiry, fetchOptionChain]);
 
-  // Fetch kundali data for shifts and support/resistance
+  // Fetch kundali data for shifts
   const fetchKundaliShifts = useCallback(async () => {
     if (!selectedSymbol || !selectedExpiry) return;
     setShiftingLoading(true);
     try {
       const result = await fetchKundaliData(selectedSymbol, selectedExpiry, 100);
       if (result.dataWhole && result.dataWhole.length > 0) {
-        setKundaliRawData(result.dataWhole);
         const shifts = calculateShiftsFromKundali(result.dataWhole);
         setShiftingData(shifts);
         console.log("Kundali shifts calculated:", shifts.length);
@@ -1053,41 +1051,6 @@ const SupportResistance = () => {
           putDelta={selectedStrikeData.put_options.option_greeks.delta}
           atr={strikeDiff}
           expiry={selectedExpiry}
-          kundaliData={kundaliRawData.length > 0 ? (() => {
-            const firstKundali = kundaliRawData[0];
-            
-            // Find the matching time entry for historical mode, or use latest for live
-            let currentKundali = kundaliRawData[kundaliRawData.length - 1];
-            if (!isLive && historicalTime) {
-              // Convert historicalTime (e.g., "0930") to match kundali time format
-              const formattedTime = `${historicalTime.slice(0, 2)}:${historicalTime.slice(2, 4)}`;
-              // Find the closest entry that's <= the selected time
-              const matchingEntry = kundaliRawData.filter(d => d.time <= formattedTime).pop();
-              if (matchingEntry) {
-                currentKundali = matchingEntry;
-              }
-            }
-            
-            // Calculate averages up to the current time entry
-            const dataUpToCurrent = isLive 
-              ? kundaliRawData 
-              : kundaliRawData.filter(d => d.time <= currentKundali.time);
-            const avgResistance = dataUpToCurrent.reduce((sum, d) => sum + d.max_ce_strike, 0) / dataUpToCurrent.length;
-            const avgSupport = dataUpToCurrent.reduce((sum, d) => sum + d.max_pe_strike, 0) / dataUpToCurrent.length;
-            
-            return {
-              resistance: currentKundali.max_ce_strike,
-              resistanceStrike2: currentKundali.max_ce_strike2,
-              support: currentKundali.max_pe_strike,
-              supportStrike2: currentKundali.max_pe_strike2,
-              resistanceStatus: currentKundali.volumeConditionCE[0],
-              supportStatus: currentKundali.volumeConditionPE[0],
-              staticResistance: firstKundali.max_ce_strike,
-              staticSupport: firstKundali.max_pe_strike,
-              avgResistance: Math.round(avgResistance),
-              avgSupport: Math.round(avgSupport),
-            };
-          })() : undefined}
         />
       )}
 
