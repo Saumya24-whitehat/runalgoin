@@ -34,6 +34,9 @@ interface OptionData {
     option_greeks: {
       iv: number;
       delta: number;
+      theta: number;
+      gamma: number;
+      vega: number;
     };
   };
   put_options: {
@@ -47,6 +50,9 @@ interface OptionData {
     option_greeks: {
       iv: number;
       delta: number;
+      theta: number;
+      gamma: number;
+      vega: number;
     };
   };
 }
@@ -113,6 +119,61 @@ const calculateShiftsFromKundali = (dataWhole: KundaliTimeData[]): ShiftingEntry
   
   // Return in reverse order (most recent first)
   return shifts.reverse();
+};
+
+// Calculate strike diff for reversal/support calculations
+const getStrikeDiff = (data: OptionData[]): number => {
+  if (data.length < 2) return 50; // Default
+  const sorted = [...data].sort((a, b) => a.strike_price - b.strike_price);
+  return Math.abs(sorted[1].strike_price - sorted[0].strike_price);
+};
+
+// Calculate reversal level (resistance) based on Greeks
+const calculateReversalValue = (
+  strike: number,
+  delta: number,
+  theta: number,
+  gamma: number,
+  vega: number,
+  strikeDiff: number
+): number => {
+  // Define weights for the reversal calculation
+  const k1 = 1.2; // Weight for delta
+  const k2 = 0.8; // Weight for theta
+  const k3 = 0.5; // Weight for gamma
+  const k4 = 0.3; // Weight for vega
+
+  // Calculate reversal adjustment
+  const reversalAdjustment = k1 * delta + k2 * theta + k3 * gamma + k4 * vega;
+
+  // Calculate reversal level
+  const reversal = strike - Math.max(strikeDiff * -1, reversalAdjustment);
+
+  return Math.round(reversal * 100) / 100;
+};
+
+// Calculate support level based on Greeks
+const calculateSupportValue = (
+  strike: number,
+  delta: number,
+  theta: number,
+  gamma: number,
+  vega: number,
+  strikeDiff: number
+): number => {
+  // Define weights for the support calculation
+  const k1 = 1.2; // Weight for delta
+  const k2 = 0.8; // Weight for theta
+  const k3 = 0.5; // Weight for gamma
+  const k4 = 0.3; // Weight for vega
+
+  // Calculate support adjustment
+  const supportAdjustment = k1 * delta - k2 * theta + k3 * gamma - k4 * vega;
+
+  // Calculate support level
+  const support = strike - Math.min(strikeDiff, supportAdjustment);
+
+  return Math.round(support * 100) / 100;
 };
 
 const SupportResistance = () => {
@@ -364,6 +425,7 @@ const SupportResistance = () => {
   };
 
   const filteredData = getFilteredData();
+  const strikeDiff = getStrikeDiff(optionData);
 
   // Calculate top N values for highlighting
   const getTopNValues = (data: OptionData[], keyFn: (row: OptionData) => number, n: number) => {
@@ -693,9 +755,16 @@ const SupportResistance = () => {
                             {row.call_options.market_data.ltp}
                           </TableCell>
                           <TableCell
-                            className={`p-1 text-center ${isCallITM ? "bg-red-950/30 text-red-400" : "text-muted-foreground"}`}
+                            className={`p-1 text-center ${isCallITM ? "bg-red-950/30 text-red-400" : "text-amber-400"}`}
                           >
-                            -
+                            {calculateReversalValue(
+                              row.strike_price,
+                              row.call_options.option_greeks.delta || 0,
+                              row.call_options.option_greeks.theta || 0,
+                              row.call_options.option_greeks.gamma || 0,
+                              row.call_options.option_greeks.vega || 0,
+                              strikeDiff
+                            )}
                           </TableCell>
 
                           {/* Strike Price Center - Clickable */}
@@ -711,9 +780,16 @@ const SupportResistance = () => {
 
                           {/* PUT Side */}
                           <TableCell
-                            className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30 text-green-400" : "text-muted-foreground"}`}
+                            className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30 text-green-400" : "text-amber-400"}`}
                           >
-                            -
+                            {calculateSupportValue(
+                              row.strike_price,
+                              row.put_options.option_greeks.delta || 0,
+                              row.put_options.option_greeks.theta || 0,
+                              row.put_options.option_greeks.gamma || 0,
+                              row.put_options.option_greeks.vega || 0,
+                              strikeDiff
+                            )}
                           </TableCell>
                           <TableCell className={`p-1 text-center ${isPutITM ? "bg-emerald-950/30" : ""}`}>
                             {row.put_options.market_data.ltp}
