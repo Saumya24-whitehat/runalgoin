@@ -203,6 +203,7 @@ const SupportResistance = () => {
   const [shiftingOpen, setShiftingOpen] = useState(false);
   const [shiftingData, setShiftingData] = useState<ShiftingEntry[]>([]);
   const [shiftingLoading, setShiftingLoading] = useState(false);
+  const [kundaliRawData, setKundaliRawData] = useState<KundaliTimeData[]>([]);
 
   // Info/Guide modal
   const [infoOpen, setInfoOpen] = useState(false);
@@ -344,13 +345,14 @@ const SupportResistance = () => {
     }
   }, [selectedExpiry, fetchOptionChain]);
 
-  // Fetch kundali data for shifts
+  // Fetch kundali data for shifts and support/resistance
   const fetchKundaliShifts = useCallback(async () => {
     if (!selectedSymbol || !selectedExpiry) return;
     setShiftingLoading(true);
     try {
       const result = await fetchKundaliData(selectedSymbol, selectedExpiry, 100);
       if (result.dataWhole && result.dataWhole.length > 0) {
+        setKundaliRawData(result.dataWhole);
         const shifts = calculateShiftsFromKundali(result.dataWhole);
         setShiftingData(shifts);
         console.log("Kundali shifts calculated:", shifts.length);
@@ -1051,6 +1053,25 @@ const SupportResistance = () => {
           putDelta={selectedStrikeData.put_options.option_greeks.delta}
           atr={strikeDiff}
           expiry={selectedExpiry}
+          kundaliData={kundaliRawData.length > 0 ? (() => {
+            const latestKundali = kundaliRawData[kundaliRawData.length - 1];
+            const firstKundali = kundaliRawData[0];
+            // Calculate averages from all data
+            const avgResistance = kundaliRawData.reduce((sum, d) => sum + d.max_ce_strike, 0) / kundaliRawData.length;
+            const avgSupport = kundaliRawData.reduce((sum, d) => sum + d.max_pe_strike, 0) / kundaliRawData.length;
+            return {
+              resistance: latestKundali.max_ce_strike,
+              resistanceStrike2: latestKundali.max_ce_strike2,
+              support: latestKundali.max_pe_strike,
+              supportStrike2: latestKundali.max_pe_strike2,
+              resistanceStatus: latestKundali.volumeConditionCE[0],
+              supportStatus: latestKundali.volumeConditionPE[0],
+              staticResistance: firstKundali.max_ce_strike,
+              staticSupport: firstKundali.max_pe_strike,
+              avgResistance: Math.round(avgResistance),
+              avgSupport: Math.round(avgSupport),
+            };
+          })() : undefined}
         />
       )}
 
