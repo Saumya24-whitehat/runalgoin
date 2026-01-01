@@ -634,7 +634,7 @@ export default function PCRAllStrikes() {
   const currentTimeData = pcrData[selectedTimeIndex];
   const chartData = getChartData();
   // MMA is first available after 09:30
-  const mmaChartData = chartData.filter((d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 30);
+  const mmaChartData = chartData.filter((d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 21);
   console.log(mmaChartData);
   const heatmapData = getHeatmapData();
   const visibleStrikes = getVisibleStrikes();
