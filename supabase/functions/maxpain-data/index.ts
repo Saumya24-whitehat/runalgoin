@@ -6,7 +6,6 @@ const corsHeaders = {
 };
 
 const BASE_URL = "https://runalgo.xyz/data";
-const AUTH_TOKEN = "Bearer eyJpYXQiOjE3NjY5NzIwNjAsImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,6 +14,16 @@ serve(async (req) => {
   }
 
   try {
+    // Get bearer token from environment variable
+    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN');
+    if (!bearerToken) {
+      console.error('Missing RUNALGO_KUNDALI_BEARER_TOKEN environment variable');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { symbol, expiry_date, tf, historicalDate } = await req.json();
 
     console.log(`Max Pain request - Symbol: ${symbol}, Expiry: ${expiry_date}, TF: ${tf}`);
@@ -38,7 +47,7 @@ serve(async (req) => {
       method: "GET",
       headers: {
         "accept": "*/*",
-        "authorization": AUTH_TOKEN,
+        "authorization": `Bearer ${bearerToken}`,
         "content-type": "application/json",
         "x-requested-with": "XMLHttpRequest",
       },

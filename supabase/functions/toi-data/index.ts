@@ -1,4 +1,4 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,15 +6,24 @@ const corsHeaders = {
 };
 
 const BASE_URL = "https://runalgo.xyz/data";
-const BEARER_TOKEN = Deno.env.get("RUNALGO_KUNDALI_BEARER_TOKEN") || "";
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Get bearer token from environment variable
+    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN');
+    if (!bearerToken) {
+      console.error('Missing RUNALGO_KUNDALI_BEARER_TOKEN environment variable');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { endpoint, symbol, expiry, strikes, historicalDate } = await req.json();
 
     console.log(`TOI Data request - Endpoint: ${endpoint}, Symbol: ${symbol}, Expiry: ${expiry}, Strikes: ${strikes}`);
@@ -61,7 +70,7 @@ Deno.serve(async (req) => {
         method: "GET",
         headers: {
           "accept": "*/*",
-          "authorization": `Bearer ${BEARER_TOKEN}`,
+          "authorization": `Bearer ${bearerToken}`,
           "content-type": "application/json",
           "x-requested-with": "XMLHttpRequest",
         },
@@ -80,10 +89,11 @@ Deno.serve(async (req) => {
     } else {
       throw new Error(`Unknown endpoint: ${endpoint}`);
     }
-  } catch (error) {
-    console.error("TOI Data Error:", error);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Internal server error";
+    console.error("TOI Data Error:", errorMessage);
     return new Response(
-      JSON.stringify({ error: error.message || "Internal server error" }),
+      JSON.stringify({ error: errorMessage }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

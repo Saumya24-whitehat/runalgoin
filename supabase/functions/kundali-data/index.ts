@@ -12,6 +12,16 @@ serve(async (req) => {
   }
 
   try {
+    // Get bearer token from environment variable
+    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN');
+    if (!bearerToken) {
+      console.error('Missing RUNALGO_KUNDALI_BEARER_TOKEN environment variable');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { symbol, expiry_date, strikeCount = 5 } = await req.json();
     
     console.log("Fetching kundali data for:", { symbol, expiry_date, strikeCount });
@@ -24,8 +34,6 @@ serve(async (req) => {
     const url = `https://runalgo.xyz/data/kundali.php?symbol=${encodedSymbol}&expiry_date=${expiry_date}&StrikeCount=${strikeCount}`;
     
     console.log("Fetching from URL:", url);
-    
-    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN') || 'eyJpYXQiOjE3NTE3NjU4MjMsImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9';
     
     const response = await fetch(url, {
       headers: {

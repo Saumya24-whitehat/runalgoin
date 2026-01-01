@@ -12,6 +12,16 @@ serve(async (req) => {
   }
 
   try {
+    // Get bearer token from environment variable
+    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN');
+    if (!bearerToken) {
+      console.error('Missing RUNALGO_KUNDALI_BEARER_TOKEN environment variable');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { symbol, expiry_date, strikeCount = 5, historicalDate } = await req.json();
     
     console.log("Fetching PCR all strikes data for:", { symbol, expiry_date, strikeCount, historicalDate });
@@ -28,8 +38,6 @@ serve(async (req) => {
     }
     
     console.log("Fetching from URL:", url);
-    
-    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN') || 'eyJpYXQiOjE3NTE3NjU4MjMsImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9';
     
     const response = await fetch(url, {
       headers: {
