@@ -36,18 +36,7 @@ import {
   Activity
 } from "lucide-react";
 import { format } from "date-fns";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  ReferenceLine,
-  ReferenceDot,
-} from "recharts";
+import OTRChart from "@/components/otr/OTRChart";
 import {
   Table,
   TableBody,
@@ -735,116 +724,7 @@ const OTR = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-3">
-                <div className="h-[500px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 10 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                      <XAxis 
-                        dataKey="time" 
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                        tickLine={{ stroke: 'hsl(var(--border))' }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis 
-                        yAxisId="toi"
-                        orientation="left"
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                        tickLine={{ stroke: 'hsl(var(--border))' }}
-                        domain={['auto', 'auto']}
-                        tickFormatter={(value) => {
-                          if (Math.abs(value) >= 10000000) return (value / 10000000).toFixed(1) + "Cr";
-                          if (Math.abs(value) >= 100000) return (value / 100000).toFixed(1) + "L";
-                          return value.toLocaleString('en-IN');
-                        }}
-                        label={{ value: 'TOI', angle: -90, position: 'insideLeft', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                      />
-                      <YAxis 
-                        yAxisId="price"
-                        orientation="right"
-                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                        tickLine={{ stroke: 'hsl(var(--border))' }}
-                        domain={['auto', 'auto']}
-                        tickFormatter={(value) => value.toLocaleString('en-IN')}
-                        label={{ value: 'Price', angle: 90, position: 'insideRight', fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend 
-                        wrapperStyle={{ paddingTop: '10px' }}
-                        formatter={(value) => <span className="text-xs">{value}</span>}
-                      />
-                      <ReferenceLine 
-                        yAxisId="toi"
-                        y={0} 
-                        stroke="hsl(var(--muted-foreground))" 
-                        strokeDasharray="5 5" 
-                        label={{ value: 'Zero Line', position: 'left', fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
-                      />
-                      <Line
-                        yAxisId="toi"
-                        type="monotone"
-                        dataKey="toi"
-                        name="TOI (Put-Call)"
-                        stroke="hsl(220 70% 50%)"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                      />
-                      <Line
-                        yAxisId="toi"
-                        type="monotone"
-                        dataKey="ema10"
-                        name="EMA 10"
-                        stroke="hsl(142 71% 45%)"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                        connectNulls={false}
-                      />
-                      <Line
-                        yAxisId="toi"
-                        type="monotone"
-                        dataKey="ema30"
-                        name="EMA 30"
-                        stroke="hsl(0 72% 51%)"
-                        strokeWidth={2}
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                        connectNulls={false}
-                      />
-                      <Line
-                        yAxisId="price"
-                        type="monotone"
-                        dataKey="spotPrice"
-                        name="Spot Price"
-                        stroke="hsl(280 71% 60%)"
-                        strokeWidth={1.5}
-                        strokeDasharray="5 5"
-                        dot={false}
-                        activeDot={{ r: 4 }}
-                      />
-                      {/* EMA Crossover markers */}
-                      {crossoverPoints.map((point, idx) => (
-                        <ReferenceDot
-                          key={`crossover-${idx}`}
-                          x={point.time}
-                          y={point.toi}
-                          yAxisId="toi"
-                          r={8}
-                          fill={point.type === 'bullish' ? 'hsl(142 71% 45%)' : 'hsl(0 72% 51%)'}
-                          stroke={point.type === 'bullish' ? 'hsl(142 71% 25%)' : 'hsl(0 72% 31%)'}
-                          strokeWidth={2}
-                          label={{
-                            value: point.type === 'bullish' ? '▲' : '▼',
-                            position: point.type === 'bullish' ? 'top' : 'bottom',
-                            fill: point.type === 'bullish' ? 'hsl(142 71% 45%)' : 'hsl(0 72% 51%)',
-                            fontSize: 14,
-                            fontWeight: 'bold',
-                          }}
-                        />
-                      ))}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <OTRChart data={chartData} crossoverPoints={crossoverPoints} />
               </CardContent>
             </Card>
           ) : (
