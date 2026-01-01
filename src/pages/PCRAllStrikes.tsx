@@ -42,21 +42,18 @@ import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAll
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
 import { CenterStrikePicker } from "@/components/pcr/CenterStrikePicker";
 import {
-  LineChart,
-  Line,
+  ComposedChart,
+  Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   ReferenceLine,
-  AreaChart,
-  Area,
-  ComposedChart,
-  Bar,
-  Cell,
 } from "recharts";
+import SpotMMAChart from "@/components/pcr/SpotMMAChart";
+import ATMPCRChart from "@/components/pcr/ATMPCRChart";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -1037,127 +1034,23 @@ export default function PCRAllStrikes() {
           {/* Charts Section */}
           {pcrData.length > 0 && chartData.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              {/* Spot Price vs MMA Chart */}
+              {/* Spot Price vs MMA Chart (Lightweight Charts) */}
               <Card className="bg-card/50 border-border/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">Spot Price vs MMA</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <ComposedChart data={mmaChartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                        <XAxis
-                          dataKey="time"
-                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          domain={["auto", "auto"]}
-                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                          tickLine={false}
-                          width={60}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            color: "white",
-                          }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: "11px" }} />
-                        <Line
-                          type="monotone"
-                          dataKey="spotPrice"
-                          stroke="#3b82f6"
-                          strokeWidth={2}
-                          dot={false}
-                          name="Spot Price"
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="mma"
-                          stroke="#f59e0b"
-                          strokeWidth={2}
-                          strokeDasharray="5 5"
-                          dot={false}
-                          name="MMA"
-                        />
-                      </ComposedChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <SpotMMAChart data={mmaChartData} />
                 </CardContent>
               </Card>
 
-              {/* ATM PCR Over Time Chart */}
+              {/* ATM PCR Over Time Chart (Lightweight Charts) */}
               <Card className="bg-card/50 border-border/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium">ATM PCR Over Time (Live ATM)</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-[250px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <AreaChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-                        <XAxis
-                          dataKey="time"
-                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                          tickLine={false}
-                        />
-                        <YAxis
-                          domain={[0, "auto"]}
-                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                          tickLine={false}
-                          width={40}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                            color: "hsl(var(--foreground))",
-                          }}
-                          labelStyle={{ color: "hsl(var(--foreground))" }}
-                          formatter={(value: unknown, name: string, props: any) => {
-                            const atmStrike = props?.payload?.atmStrike || "";
-                            return [
-                              <span key="value">
-                                {formatFixed(value, 2)}{" "}
-                                <span style={{ fontSize: "10px", opacity: 0.7 }}>(Strike: {atmStrike})</span>
-                              </span>,
-                              "ATM PCR",
-                            ];
-                          }}
-                        />
-                        <Legend wrapperStyle={{ fontSize: "11px" }} />
-                        <ReferenceLine
-                          y={1.25}
-                          stroke="#10b981"
-                          strokeDasharray="3 3"
-                          label={{ value: "1.25", position: "right", fontSize: 10, fill: "#10b981" }}
-                        />
-                        <ReferenceLine
-                          y={0.8}
-                          stroke="#ef4444"
-                          strokeDasharray="3 3"
-                          label={{ value: "0.80", position: "right", fontSize: 10, fill: "#ef4444" }}
-                        />
-                        <ReferenceLine y={1.0} stroke="#6b7280" strokeDasharray="2 2" />
-                        <Area
-                          type="monotone"
-                          dataKey="atmPCR"
-                          stroke="#8b5cf6"
-                          fill="#8b5cf6"
-                          fillOpacity={0.3}
-                          strokeWidth={2}
-                          name="ATM PCR"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                  <ATMPCRChart data={chartData} />
                 </CardContent>
               </Card>
 

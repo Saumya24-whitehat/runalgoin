@@ -41,12 +41,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  LineChart,
-  Line,
-  ReferenceLine,
   Cell,
-  Legend,
 } from "recharts";
+import MaxPainChart from "@/components/maxpain/MaxPainChart";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -660,90 +657,16 @@ const MaxPain = () => {
               </CardContent>
             </Card>
 
-            {/* Line Chart - Price History */}
+            {/* Line Chart - Price History (Lightweight Charts) */}
             <Card className="bg-card/50 border-border/50">
               <CardHeader className="p-3 pb-2">
                 <CardTitle className="text-sm">Index Price vs Max Pain</CardTitle>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <div className="h-[230px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={priceHistoryData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis
-                        dataKey="time"
-                        tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis
-                        domain={[(dataMin: number) => {
-                          const allValues = priceHistoryData.flatMap(d => [d.index, d.maxPain]);
-                          const min = Math.min(...allValues);
-                          return Math.floor(min - 100);
-                        }, (dataMax: number) => {
-                          const allValues = priceHistoryData.flatMap(d => [d.index, d.maxPain]);
-                          const max = Math.max(...allValues);
-                          return Math.ceil(max + 100);
-                        }]}
-                        tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
-                        width={55}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--popover))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                          fontSize: "10px",
-                        }}
-                        formatter={(value: number, name: string) => [
-                          value.toFixed(2),
-                          name === "index" ? "Nifty Price" : name === "maxPain" ? "Intraday Max Pain" : name
-                        ]}
-                        labelFormatter={(label) => `Time: ${label}`}
-                      />
-                      <Legend 
-                        verticalAlign="top" 
-                        height={30}
-                        formatter={(value) => {
-                          if (value === "index") return "Nifty Price";
-                          if (value === "maxPain") return "Intraday Max Pain";
-                          return value;
-                        }}
-                        wrapperStyle={{ fontSize: "10px" }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="index"
-                        stroke="hsl(var(--primary))"
-                        strokeWidth={2}
-                        dot={false}
-                        name="index"
-                      />
-                      <Line
-                        type="stepAfter"
-                        dataKey="maxPain"
-                        stroke="hsl(217 91% 60%)"
-                        strokeWidth={2}
-                        strokeDasharray="5 5"
-                        dot={false}
-                        name="maxPain"
-                      />
-                      {latestEntry && (
-                        <ReferenceLine
-                          y={latestEntry.maxPainStrike}
-                          stroke="hsl(var(--destructive))"
-                          strokeDasharray="5 5"
-                          label={{
-                            value: `Current: ${latestEntry.maxPainStrike}`,
-                            position: "right",
-                            fontSize: 9,
-                            fill: "hsl(var(--destructive))",
-                          }}
-                        />
-                      )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                <MaxPainChart 
+                  data={priceHistoryData} 
+                  currentMaxPain={latestEntry?.maxPainStrike || 0} 
+                />
               </CardContent>
             </Card>
           </div>
