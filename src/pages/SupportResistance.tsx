@@ -16,6 +16,7 @@ import LTPCalculatorModal from "@/components/LTPCalculatorModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
 
 interface OptionData {
   strike_price: number;
@@ -90,6 +91,30 @@ const formatTimeDisplay = (time: string) => {
   return `${displayHour.toString().padStart(2, "0")}:${min} ${period}`;
 };
 
+// Helper to calculate shifts from kundali data
+const calculateShiftsFromKundali = (dataWhole: KundaliTimeData[]): ShiftingEntry[] => {
+  const shifts: ShiftingEntry[] = [];
+  
+  for (let i = 1; i < dataWhole.length; i++) {
+    const prev = dataWhole[i - 1];
+    const curr = dataWhole[i];
+    
+    const callShiftOccurred = curr.max_ce_strike !== prev.max_ce_strike;
+    const putShiftOccurred = curr.max_pe_strike !== prev.max_pe_strike;
+    
+    if (callShiftOccurred || putShiftOccurred) {
+      shifts.push({
+        time: curr.time,
+        callShift: callShiftOccurred ? `SFT : ${prev.max_ce_strike} -> ${curr.max_ce_strike}` : "-",
+        putShift: putShiftOccurred ? `SFT : ${prev.max_pe_strike} -> ${curr.max_pe_strike}` : "-",
+      });
+    }
+  }
+  
+  // Return in reverse order (most recent first)
+  return shifts.reverse();
+};
+
 const SupportResistance = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -113,14 +138,10 @@ const SupportResistance = () => {
   const [highlightCount, setHighlightCount] = useState(2);
   const [highlightPercentage, setHighlightPercentage] = useState(74.99);
 
-  // Shifting modal
+  // Shifting modal - now dynamic from kundali data
   const [shiftingOpen, setShiftingOpen] = useState(false);
-  const [shiftingData] = useState<ShiftingEntry[]>([
-    { time: "09:32:11 AM", callShift: "SFT : 26200 -> 26100", putShift: "-" },
-    { time: "09:28:38 AM", callShift: "-", putShift: "SFT : 26000 -> 26100" },
-    { time: "09:28:18 AM", callShift: "-", putShift: "SFT : 26100 -> 26000" },
-    { time: "09:28:06 AM", callShift: "-", putShift: "SFT : 26000 -> 26100" },
-  ]);
+  const [shiftingData, setShiftingData] = useState<ShiftingEntry[]>([]);
+  const [shiftingLoading, setShiftingLoading] = useState(false);
 
   // Info/Guide modal
   const [infoOpen, setInfoOpen] = useState(false);
@@ -261,6 +282,30 @@ const SupportResistance = () => {
       fetchOptionChain();
     }
   }, [selectedExpiry, fetchOptionChain]);
+
+  // Fetch kundali data for shifts
+  const fetchKundaliShifts = useCallback(async () => {
+    if (!selectedSymbol || !selectedExpiry) return;
+    setShiftingLoading(true);
+    try {
+      const result = await fetchKundaliData(selectedSymbol, selectedExpiry, 100);
+      if (result.dataWhole && result.dataWhole.length > 0) {
+        const shifts = calculateShiftsFromKundali(result.dataWhole);
+        setShiftingData(shifts);
+        console.log("Kundali shifts calculated:", shifts.length);
+      }
+    } catch (err) {
+      console.error("Error fetching kundali data for shifts:", err);
+    } finally {
+      setShiftingLoading(false);
+    }
+  }, [selectedSymbol, selectedExpiry]);
+
+  useEffect(() => {
+    if (selectedExpiry) {
+      fetchKundaliShifts();
+    }
+  }, [selectedExpiry, fetchKundaliShifts]);
 
   // Auth redirect
   useEffect(() => {
@@ -872,28 +917,46 @@ const SupportResistance = () => {
 
       {/* Shifting Modal */}
       <Dialog open={shiftingOpen} onOpenChange={setShiftingOpen}>
-        <DialogContent className="bg-slate-900 border-slate-700">
+        <DialogContent className="bg-slate-900 border-slate-700 max-h-[80vh]">
           <DialogHeader>
             <DialogTitle className="text-amber-500">All Shiftings</DialogTitle>
           </DialogHeader>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>TIME</TableHead>
-                <TableHead className="bg-red-900">CALL SHIFT</TableHead>
-                <TableHead className="bg-green-900">PUT SHIFT</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shiftingData.map((entry, i) => (
-                <TableRow key={i}>
-                  <TableCell>{entry.time}</TableCell>
-                  <TableCell>{entry.callShift}</TableCell>
-                  <TableCell>{entry.putShift}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <ScrollArea className="max-h-[60vh]">
+            {shiftingLoading ? (
+              <div className="space-y-2 p-4">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
+              </div>
+            ) : shiftingData.length === 0 ? (
+              <div className="text-center text-muted-foreground py-8">
+                No shifts detected for this session
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>TIME</TableHead>
+                    <TableHead className="bg-red-900">CALL SHIFT</TableHead>
+                    <TableHead className="bg-green-900">PUT SHIFT</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {shiftingData.map((entry, i) => (
+                    <TableRow key={i}>
+                      <TableCell className="font-mono">{entry.time}</TableCell>
+                      <TableCell className={entry.callShift !== "-" ? "text-red-400 font-medium" : "text-muted-foreground"}>
+                        {entry.callShift}
+                      </TableCell>
+                      <TableCell className={entry.putShift !== "-" ? "text-green-400 font-medium" : "text-muted-foreground"}>
+                        {entry.putShift}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 
