@@ -1054,18 +1054,34 @@ const SupportResistance = () => {
           atr={strikeDiff}
           expiry={selectedExpiry}
           kundaliData={kundaliRawData.length > 0 ? (() => {
-            const latestKundali = kundaliRawData[kundaliRawData.length - 1];
             const firstKundali = kundaliRawData[0];
-            // Calculate averages from all data
-            const avgResistance = kundaliRawData.reduce((sum, d) => sum + d.max_ce_strike, 0) / kundaliRawData.length;
-            const avgSupport = kundaliRawData.reduce((sum, d) => sum + d.max_pe_strike, 0) / kundaliRawData.length;
+            
+            // Find the matching time entry for historical mode, or use latest for live
+            let currentKundali = kundaliRawData[kundaliRawData.length - 1];
+            if (!isLive && historicalTime) {
+              // Convert historicalTime (e.g., "0930") to match kundali time format
+              const formattedTime = `${historicalTime.slice(0, 2)}:${historicalTime.slice(2, 4)}`;
+              // Find the closest entry that's <= the selected time
+              const matchingEntry = kundaliRawData.filter(d => d.time <= formattedTime).pop();
+              if (matchingEntry) {
+                currentKundali = matchingEntry;
+              }
+            }
+            
+            // Calculate averages up to the current time entry
+            const dataUpToCurrent = isLive 
+              ? kundaliRawData 
+              : kundaliRawData.filter(d => d.time <= currentKundali.time);
+            const avgResistance = dataUpToCurrent.reduce((sum, d) => sum + d.max_ce_strike, 0) / dataUpToCurrent.length;
+            const avgSupport = dataUpToCurrent.reduce((sum, d) => sum + d.max_pe_strike, 0) / dataUpToCurrent.length;
+            
             return {
-              resistance: latestKundali.max_ce_strike,
-              resistanceStrike2: latestKundali.max_ce_strike2,
-              support: latestKundali.max_pe_strike,
-              supportStrike2: latestKundali.max_pe_strike2,
-              resistanceStatus: latestKundali.volumeConditionCE[0],
-              supportStatus: latestKundali.volumeConditionPE[0],
+              resistance: currentKundali.max_ce_strike,
+              resistanceStrike2: currentKundali.max_ce_strike2,
+              support: currentKundali.max_pe_strike,
+              supportStrike2: currentKundali.max_pe_strike2,
+              resistanceStatus: currentKundali.volumeConditionCE[0],
+              supportStatus: currentKundali.volumeConditionPE[0],
               staticResistance: firstKundali.max_ce_strike,
               staticSupport: firstKundali.max_pe_strike,
               avgResistance: Math.round(avgResistance),
