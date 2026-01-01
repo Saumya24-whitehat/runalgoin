@@ -634,6 +634,7 @@ export default function PCRAllStrikes() {
   const chartData = getChartData();
   // MMA is first available after 09:30
   const mmaChartData = chartData.filter((d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 30);
+  console.log(mmaChartData);
   const heatmapData = getHeatmapData();
   const visibleStrikes = getVisibleStrikes();
 
@@ -1224,9 +1225,9 @@ export default function PCRAllStrikes() {
               <CardContent className="p-0">
                 <div className="w-full overflow-auto max-h-[450px]">
                   <Table className="w-max min-w-max">
-                    <TableHeader className="sticky top-0 z-10">
+                    <TableHeader className="sticky top-0">
                       <TableRow className="border-border bg-muted">
-                        <TableHead className="sticky left-0 whitespace-nowrap">Time</TableHead>
+                        <TableHead className="sticky left-0 bg-card z-10 whitespace-nowrap">Time</TableHead>
                         <TableHead className="whitespace-nowrap">Index</TableHead>
                         <TableHead className="whitespace-nowrap">MMA</TableHead>
                         {visibleStrikes.map((strike) => (
