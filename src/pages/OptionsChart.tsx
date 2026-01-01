@@ -199,7 +199,7 @@ const OptionsChart = () => {
           // Use full_name which contains the proper symbol format (e.g., NSE_INDEX|Nifty 50)
           const apiSymbol = symbolInfo.full_name || symbolInfo.symbol || "NSE_INDEX|Nifty 50";
 
-          console.log(apiSymbol);
+          console.log(symbolInfo);
           const url = `https://runalgo.xyz/top/chart/upstox_data_fetcher.php?symbol=${encodeURIComponent(apiSymbol)}&interval=${interval}&from=${fromDate}&to=${toDate}`;
 
           const response = await fetch(url, {
