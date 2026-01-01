@@ -17,6 +17,7 @@ import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
+import SupportResistanceChart from "@/components/supportResistance/SupportResistanceChart";
 
 interface OptionData {
   strike_price: number;
@@ -603,6 +604,11 @@ const SupportResistance = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Support Resistance Chart */}
+        <div className="mb-4">
+          <SupportResistanceChart symbol={selectedSymbol} expiry={selectedExpiry} />
+        </div>
 
         {/* Main Table */}
         <div className="overflow-auto max-h-[450px] bg-card rounded-lg border border-border">
