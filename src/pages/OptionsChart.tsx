@@ -8,6 +8,8 @@ declare global {
   interface Window {
     TradingView: any;
     tvWidget: any;
+    customIndicatorsGetter: any;
+    bars: Record<number, any>;
   }
 }
 
@@ -44,6 +46,20 @@ const OptionsChart = () => {
           datafeedScript.onload = () => resolve();
           datafeedScript.onerror = () => reject(new Error("Failed to load datafeed"));
           document.head.appendChild(datafeedScript);
+        });
+
+        // Load custom indicators
+        const customIndicatorsScript = document.createElement("script");
+        customIndicatorsScript.src = "/chart/customIndicators.js";
+        customIndicatorsScript.async = true;
+
+        await new Promise<void>((resolve, reject) => {
+          customIndicatorsScript.onload = () => resolve();
+          customIndicatorsScript.onerror = () => {
+            console.warn("Custom indicators failed to load, continuing without them");
+            resolve(); // Don't reject, just continue without custom indicators
+          };
+          document.head.appendChild(customIndicatorsScript);
         });
 
         // Wait for TradingView to be available
@@ -213,16 +229,28 @@ const OptionsChart = () => {
             const data = await response.json();
             if (data && data.bars && data.bars.length > 0) {
               // API returns candles in format: [timestamp, open, high, low, close, volume, oi]
-              // Convert bars to TradingView format and filter by time range with limits
-              const bars = data.bars.map((bar) => ({
-                time: bar.time,
-                open: bar.open,
-                high: bar.high,
-                low: bar.low,
-                close: bar.close,
-                volume: bar.volume,
-                oi: bar.oi,
-              }));
+              // Convert bars to TradingView format and store for custom indicators
+              const bars = data.bars.map((bar: any) => {
+                // Store bar data for custom indicators
+                window.bars[bar.time] = {
+                  time: bar.time,
+                  open: bar.open,
+                  high: bar.high,
+                  low: bar.low,
+                  close: bar.close,
+                  volume: bar.volume,
+                  oi: bar.oi,
+                };
+                return {
+                  time: bar.time,
+                  open: bar.open,
+                  high: bar.high,
+                  low: bar.low,
+                  close: bar.close,
+                  volume: bar.volume,
+                  oi: bar.oi,
+                };
+              });
 
               onHistoryCallback(bars, { noData: false });
             } else {
@@ -246,7 +274,7 @@ const OptionsChart = () => {
     };
 
     try {
-      const widget = new window.TradingView.widget({
+      const widgetOptions: any = {
         debug: false,
         fullscreen: false,
         autosize: true,
@@ -290,7 +318,14 @@ const OptionsChart = () => {
           "paneProperties.background": isDark ? "#0a0a0b" : "#ffffff",
           "paneProperties.backgroundType": "solid",
         },
-      });
+      };
+
+      // Add custom indicators if available
+      if (window.customIndicatorsGetter) {
+        widgetOptions.custom_indicators_getter = window.customIndicatorsGetter;
+      }
+
+      const widget = new window.TradingView.widget(widgetOptions);
 
       window.tvWidget = widget;
 
