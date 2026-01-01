@@ -11,6 +11,7 @@ declare global {
     customIndicatorsGetter: any;
     bars: Record<number, any>;
     getIndicators: (id?: string) => any;
+    studies: Record<string, any>;
   }
 }
 
@@ -363,6 +364,33 @@ const OptionsChart = () => {
         // Make it a global property
         try {
           (globalThis as any).getIndicators = getIndicatorsFn;
+        } catch (e) {
+          // Ignore
+        }
+
+        // Initialize global studies object
+        window.studies = {};
+
+        // Safely try to make it available on parent/top window
+        try {
+          if (window.parent && window.parent !== window) {
+            (window.parent as any).studies = window.studies;
+          }
+        } catch (e) {
+          // Cross-origin access blocked, ignore
+        }
+
+        try {
+          if (window.top && window.top !== window) {
+            (window.top as any).studies = window.studies;
+          }
+        } catch (e) {
+          // Cross-origin access blocked, ignore
+        }
+
+        // Make it a global property
+        try {
+          (globalThis as any).studies = window.studies;
         } catch (e) {
           // Ignore
         }
