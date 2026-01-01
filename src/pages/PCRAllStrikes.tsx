@@ -563,7 +563,6 @@ export default function PCRAllStrikes() {
 
   // Prepare chart data - show actual ATM strike per time point
   const getChartData = () => {
-    console.log(pcrData);
     return pcrData.map((entry) => {
       // Get actual ATM strike for this time based on spot price
       const actualATMStrike = getATMStrike(entry.Spot_Price);
@@ -635,7 +634,6 @@ export default function PCRAllStrikes() {
   const chartData = getChartData();
   // MMA is first available after 09:30
   const mmaChartData = chartData.filter((d) => Number(d.mma) > 0 && parseTimeToMinutes(d.time) >= 9 * 60 + 21);
-  console.log(mmaChartData);
   const heatmapData = getHeatmapData();
   const visibleStrikes = getVisibleStrikes();
 
