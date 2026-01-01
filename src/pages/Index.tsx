@@ -12,7 +12,6 @@ const Index = () => {
         <TickerRibbon />
         <Navbar />
       </div>
-      <Navbar />
       <main>
         <HeroSection />
         <FeaturesSection />
