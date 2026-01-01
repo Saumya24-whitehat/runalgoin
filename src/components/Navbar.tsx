@@ -99,7 +99,7 @@ const navItems: NavItem[] = [
         title: "CHARTS",
         items: [
           { icon: TrendingUp, label: "OTR", iconColor: "text-primary", path: "/otr" },
-          { icon: LineChart, label: "Option Chart", iconColor: "text-primary" },
+          { icon: LineChart, label: "Options Chart", iconColor: "text-primary", path: "/options-chart" },
           { icon: PieChart, label: "Greeks", iconColor: "text-primary" },
           { icon: Activity, label: "Greeks Combined", iconColor: "text-yellow-500" },
         ],
