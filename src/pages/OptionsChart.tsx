@@ -8,6 +8,10 @@ declare global {
   interface Window {
     TradingView: any;
     tvWidget: any;
+    bars: Record<string, any>;
+    studies: Record<string, any>;
+    customIndicatorsGetter: any;
+    getIndicators: (id?: string) => any;
   }
 }
 
@@ -18,11 +22,44 @@ const OptionsChart = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Initialize global variables for custom indicators
+    window.bars = window.bars || {};
+    window.studies = window.studies || {};
+    
+    // Make globals available across frames
+    try {
+      if (window.parent) {
+        window.parent.bars = window.bars;
+        window.parent.studies = window.studies;
+      }
+    } catch (e) { /* Cross-origin access error */ }
+    
+    try {
+      if (window.top) {
+        window.top.bars = window.bars;
+        window.top.studies = window.studies;
+      }
+    } catch (e) { /* Cross-origin access error */ }
+    
+    (globalThis as any).bars = window.bars;
+    (globalThis as any).studies = window.studies;
+
     // Load TradingView library scripts
     const loadTradingViewScripts = async () => {
       try {
         setIsLoading(true);
         setError(null);
+
+        // Load custom indicators script first
+        const customIndicatorsScript = document.createElement("script");
+        customIndicatorsScript.src = "/chart/customIndicators.js";
+        customIndicatorsScript.async = true;
+
+        await new Promise<void>((resolve, reject) => {
+          customIndicatorsScript.onload = () => resolve();
+          customIndicatorsScript.onerror = () => reject(new Error("Failed to load custom indicators"));
+          document.head.appendChild(customIndicatorsScript);
+        });
 
         // Load main charting library
         const mainScript = document.createElement("script");
@@ -272,7 +309,6 @@ const OptionsChart = () => {
           "study_templates",
           "show_symbol_logos",
           "show_exchange_logos",
-          // Technical Analysis Features
           "studies_overrides",
           "create_volume_indicator_by_default",
           "volume_force_overlay",
@@ -303,6 +339,7 @@ const OptionsChart = () => {
           "chart_template_storage",
           "study_template_storage",
         ],
+        custom_indicators_getter: window.customIndicatorsGetter,
         overrides: {
           "mainSeriesProperties.candleStyle.upColor": "#4CAF50",
           "mainSeriesProperties.candleStyle.downColor": "#F44336",
@@ -318,6 +355,29 @@ const OptionsChart = () => {
       widget.onChartReady(() => {
         console.log("TradingView chart ready");
         setIsLoading(false);
+        
+        // Setup getIndicators function
+        const getIndicatorsFn = (id?: string) => {
+          if (id) {
+            return widget.activeChart().getStudyById(id);
+          }
+          return widget.activeChart().getAllStudies();
+        };
+        
+        window.getIndicators = getIndicatorsFn;
+        (globalThis as any).getIndicators = getIndicatorsFn;
+        
+        try {
+          if (window.parent) {
+            window.parent.getIndicators = getIndicatorsFn;
+          }
+        } catch (e) { /* Cross-origin access error */ }
+        
+        try {
+          if (window.top) {
+            window.top.getIndicators = getIndicatorsFn;
+          }
+        } catch (e) { /* Cross-origin access error */ }
       });
     } catch (err) {
       console.error("Widget initialization error:", err);
