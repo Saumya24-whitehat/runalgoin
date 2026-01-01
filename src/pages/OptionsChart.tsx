@@ -334,23 +334,38 @@ const OptionsChart = () => {
         console.log("TradingView chart ready");
         
         // Expose getIndicators function globally
-        window.getIndicators = (id?: string) => {
+        const getIndicatorsFn = (id?: string) => {
           if (id) {
             return window.tvWidget.activeChart().getStudyById(id);
           }
           return window.tvWidget.activeChart().getAllStudies();
         };
 
-        // Make it available on parent/top window
-        if (window.parent) {
-          window.parent.getIndicators = window.getIndicators;
+        window.getIndicators = getIndicatorsFn;
+
+        // Safely try to make it available on parent/top window (may fail due to cross-origin)
+        try {
+          if (window.parent && window.parent !== window) {
+            (window.parent as any).getIndicators = getIndicatorsFn;
+          }
+        } catch (e) {
+          // Cross-origin access blocked, ignore
         }
-        if (window.top) {
-          window.top.getIndicators = window.getIndicators;
+
+        try {
+          if (window.top && window.top !== window) {
+            (window.top as any).getIndicators = getIndicatorsFn;
+          }
+        } catch (e) {
+          // Cross-origin access blocked, ignore
         }
 
         // Make it a global property
-        (globalThis as any).getIndicators = window.getIndicators;
+        try {
+          (globalThis as any).getIndicators = getIndicatorsFn;
+        } catch (e) {
+          // Ignore
+        }
 
         setIsLoading(false);
       });
