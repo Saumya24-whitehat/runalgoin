@@ -250,6 +250,7 @@ const OptionsChart = () => {
         debug: false,
         fullscreen: false,
         autosize: true,
+        height: "100vh",
         symbol: "NSE_INDEX|Nifty 50",
         interval: "5",
         container: containerRef.current,
