@@ -8,10 +8,6 @@ declare global {
   interface Window {
     TradingView: any;
     tvWidget: any;
-    customIndicatorsGetter: any;
-    bars: Record<number, any>;
-    getIndicators: (id?: string) => any;
-    studies: Record<string, any>;
   }
 }
 
@@ -48,20 +44,6 @@ const OptionsChart = () => {
           datafeedScript.onload = () => resolve();
           datafeedScript.onerror = () => reject(new Error("Failed to load datafeed"));
           document.head.appendChild(datafeedScript);
-        });
-
-        // Load custom indicators
-        const customIndicatorsScript = document.createElement("script");
-        customIndicatorsScript.src = "/chart/customIndicators.js";
-        customIndicatorsScript.async = true;
-
-        await new Promise<void>((resolve, reject) => {
-          customIndicatorsScript.onload = () => resolve();
-          customIndicatorsScript.onerror = () => {
-            console.warn("Custom indicators failed to load, continuing without them");
-            resolve(); // Don't reject, just continue without custom indicators
-          };
-          document.head.appendChild(customIndicatorsScript);
         });
 
         // Wait for TradingView to be available
@@ -231,28 +213,16 @@ const OptionsChart = () => {
             const data = await response.json();
             if (data && data.bars && data.bars.length > 0) {
               // API returns candles in format: [timestamp, open, high, low, close, volume, oi]
-              // Convert bars to TradingView format and store for custom indicators
-              const bars = data.bars.map((bar: any) => {
-                // Store bar data for custom indicators
-                window.bars[bar.time] = {
-                  time: bar.time,
-                  open: bar.open,
-                  high: bar.high,
-                  low: bar.low,
-                  close: bar.close,
-                  volume: bar.volume,
-                  oi: bar.oi,
-                };
-                return {
-                  time: bar.time,
-                  open: bar.open,
-                  high: bar.high,
-                  low: bar.low,
-                  close: bar.close,
-                  volume: bar.volume,
-                  oi: bar.oi,
-                };
-              });
+              // Convert bars to TradingView format and filter by time range with limits
+              const bars = data.bars.map((bar) => ({
+                time: bar.time,
+                open: bar.open,
+                high: bar.high,
+                low: bar.low,
+                close: bar.close,
+                volume: bar.volume,
+                oi: bar.oi,
+              }));
 
               onHistoryCallback(bars, { noData: false });
             } else {
@@ -276,7 +246,7 @@ const OptionsChart = () => {
     };
 
     try {
-      const widgetOptions: any = {
+      const widget = new window.TradingView.widget({
         debug: false,
         fullscreen: false,
         autosize: true,
@@ -307,7 +277,8 @@ const OptionsChart = () => {
           "display_market_status",
           "timeframes_toolbar",
           "edit_buttons_in_legend",
-          "context_menus",
+          "context_menus"3
+          ,
           "control_bar",
         ],
         overrides: {
@@ -320,81 +291,12 @@ const OptionsChart = () => {
           "paneProperties.background": isDark ? "#0a0a0b" : "#ffffff",
           "paneProperties.backgroundType": "solid",
         },
-      };
-
-      // Add custom indicators if available
-      if (window.customIndicatorsGetter) {
-        widgetOptions.custom_indicators_getter = window.customIndicatorsGetter;
-      }
-
-      const widget = new window.TradingView.widget(widgetOptions);
+      });
 
       window.tvWidget = widget;
 
       widget.onChartReady(() => {
         console.log("TradingView chart ready");
-        
-        // Expose getIndicators function globally
-        const getIndicatorsFn = (id?: string) => {
-          if (id) {
-            return window.tvWidget.activeChart().getStudyById(id);
-          }
-          return window.tvWidget.activeChart().getAllStudies();
-        };
-
-        window.getIndicators = getIndicatorsFn;
-
-        // Safely try to make it available on parent/top window (may fail due to cross-origin)
-        try {
-          if (window.parent && window.parent !== window) {
-            (window.parent as any).getIndicators = getIndicatorsFn;
-          }
-        } catch (e) {
-          // Cross-origin access blocked, ignore
-        }
-
-        try {
-          if (window.top && window.top !== window) {
-            (window.top as any).getIndicators = getIndicatorsFn;
-          }
-        } catch (e) {
-          // Cross-origin access blocked, ignore
-        }
-
-        // Make it a global property
-        try {
-          (globalThis as any).getIndicators = getIndicatorsFn;
-        } catch (e) {
-          // Ignore
-        }
-
-        // Initialize global studies object
-        window.studies = {};
-
-        // Safely try to make it available on parent/top window
-        try {
-          if (window.parent && window.parent !== window) {
-            (window.parent as any).studies = window.studies;
-          }
-        } catch (e) {
-          // Cross-origin access blocked, ignore
-        }
-
-        try {
-          if (window.top && window.top !== window) {
-            (window.top as any).studies = window.studies;
-          }
-        } catch (e) {
-          // Cross-origin access blocked, ignore
-        }
-
-        // Make it a global property
-        try {
-          (globalThis as any).studies = window.studies;
-        } catch (e) {
-          // Ignore
-        }
-
         setIsLoading(false);
       });
     } catch (err) {
