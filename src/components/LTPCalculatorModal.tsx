@@ -15,6 +15,9 @@ interface LTPCalculatorModalProps {
   putLTP: number;
   callIV: number;
   putIV: number;
+  callDelta?: number;
+  putDelta?: number;
+  atr?: number;
   expiry: string;
 }
 
@@ -30,6 +33,9 @@ const LTPCalculatorModal = ({
   putLTP,
   callIV,
   putIV,
+  callDelta = 0.5,
+  putDelta = -0.5,
+  atr = 50,
 }: LTPCalculatorModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('spot');
   const [staticTime, setStaticTime] = useState('09:30');
@@ -302,9 +308,21 @@ const LTPCalculatorModal = ({
                     <span>IV : {callIV?.toFixed(2) || '0.01'}</span>
                     <CopyButton text={callIV?.toFixed(2) || '0.01'} fieldId="call-iv" />
                   </div>
-                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4">
+                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
                     <span>Ltp : {callLTP?.toFixed(2) || '0'}</span>
                     <CopyButton text={callLTP?.toFixed(2) || '0'} fieldId="call-ltp" />
+                  </div>
+                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
+                    <span>Delta : {callDelta?.toFixed(4) || '0'}</span>
+                    <CopyButton text={callDelta?.toFixed(4) || '0'} fieldId="call-delta" />
+                  </div>
+                  <div className="flex items-center justify-between bg-emerald-900/50 text-emerald-300 py-3 px-4 border-b border-white/10">
+                    <span>SL Buy : {(callLTP - Math.abs(atr * callDelta)).toFixed(2)}</span>
+                    <CopyButton text={(callLTP - Math.abs(atr * callDelta)).toFixed(2)} fieldId="call-sl-buy" />
+                  </div>
+                  <div className="flex items-center justify-between bg-red-900/50 text-red-300 py-3 px-4">
+                    <span>SL Sell : {(callLTP + Math.abs(atr * callDelta)).toFixed(2)}</span>
+                    <CopyButton text={(callLTP + Math.abs(atr * callDelta)).toFixed(2)} fieldId="call-sl-sell" />
                   </div>
                 </div>
 
@@ -317,9 +335,21 @@ const LTPCalculatorModal = ({
                     <span>IV : {putIV?.toFixed(2) || '0'}</span>
                     <CopyButton text={putIV?.toFixed(2) || '0'} fieldId="put-iv" />
                   </div>
-                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4">
+                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
                     <span>Ltp : {putLTP?.toFixed(2) || '0'}</span>
                     <CopyButton text={putLTP?.toFixed(2) || '0'} fieldId="put-ltp" />
+                  </div>
+                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
+                    <span>Delta : {putDelta?.toFixed(4) || '0'}</span>
+                    <CopyButton text={putDelta?.toFixed(4) || '0'} fieldId="put-delta" />
+                  </div>
+                  <div className="flex items-center justify-between bg-emerald-900/50 text-emerald-300 py-3 px-4 border-b border-white/10">
+                    <span>SL Buy : {(putLTP - Math.abs(atr * putDelta)).toFixed(2)}</span>
+                    <CopyButton text={(putLTP - Math.abs(atr * putDelta)).toFixed(2)} fieldId="put-sl-buy" />
+                  </div>
+                  <div className="flex items-center justify-between bg-red-900/50 text-red-300 py-3 px-4">
+                    <span>SL Sell : {(putLTP + Math.abs(atr * putDelta)).toFixed(2)}</span>
+                    <CopyButton text={(putLTP + Math.abs(atr * putDelta)).toFixed(2)} fieldId="put-sl-sell" />
                   </div>
                 </div>
               </div>

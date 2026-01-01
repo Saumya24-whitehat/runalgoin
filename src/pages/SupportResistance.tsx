@@ -1047,6 +1047,9 @@ const SupportResistance = () => {
           putLTP={selectedStrikeData.put_options.market_data.ltp}
           callIV={selectedStrikeData.call_options.option_greeks.iv}
           putIV={selectedStrikeData.put_options.option_greeks.iv}
+          callDelta={selectedStrikeData.call_options.option_greeks.delta}
+          putDelta={selectedStrikeData.put_options.option_greeks.delta}
+          atr={strikeDiff}
           expiry={selectedExpiry}
         />
       )}
