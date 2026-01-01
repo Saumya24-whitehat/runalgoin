@@ -277,8 +277,7 @@ const OptionsChart = () => {
           "display_market_status",
           "timeframes_toolbar",
           "edit_buttons_in_legend",
-          "context_menus"3
-          ,
+          "context_menus":3,
           "control_bar",
         ],
         overrides: {
