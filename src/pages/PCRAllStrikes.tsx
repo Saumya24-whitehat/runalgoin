@@ -563,6 +563,7 @@ export default function PCRAllStrikes() {
 
   // Prepare chart data - show actual ATM strike per time point
   const getChartData = () => {
+    console.log(pcrData);
     return pcrData.map((entry) => {
       // Get actual ATM strike for this time based on spot price
       const actualATMStrike = getATMStrike(entry.Spot_Price);
