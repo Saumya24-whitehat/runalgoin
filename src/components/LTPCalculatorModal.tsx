@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { X, Copy, Check, Clock, ChevronUp, ChevronDown } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { X, Copy, Check, Clock, ChevronUp, ChevronDown } from "lucide-react";
+import { toast } from "sonner";
 
 export interface KundaliSpotData {
   resistance: number;
@@ -35,7 +35,7 @@ interface LTPCalculatorModalProps {
   kundaliData?: KundaliSpotData;
 }
 
-type TabType = 'spot' | 'future' | 'ltp';
+type TabType = "spot" | "future" | "ltp";
 
 const LTPCalculatorModal = ({
   open,
@@ -52,43 +52,48 @@ const LTPCalculatorModal = ({
   atr = 50,
   kundaliData,
 }: LTPCalculatorModalProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>('spot');
-  const [staticTime, setStaticTime] = useState('09:30');
-  const [targetPrice, setTargetPrice] = useState('');
-  const [targetMode, setTargetMode] = useState<'spot' | 'ce' | 'pe'>('ce');
+  const [activeTab, setActiveTab] = useState<TabType>("spot");
+  const [staticTime, setStaticTime] = useState("09:30");
+  const [targetPrice, setTargetPrice] = useState("");
+  const [targetMode, setTargetMode] = useState<"spot" | "ce" | "pe">("ce");
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
   // Use Kundali data for resistance/support if available
   const resistanceData = {
-    staticLevel: kundaliData?.staticResistance?.toFixed(2) || kundaliData?.resistance?.toFixed(2) || (spotPrice * 1.002).toFixed(2),
-    average: kundaliData?.avgResistance?.toFixed(2) || kundaliData?.resistanceStrike2?.toFixed(2) || (spotPrice * 1.003).toFixed(2),
+    staticLevel:
+      kundaliData?.staticResistance?.toFixed(2) ||
+      kundaliData?.resistance?.toFixed(2) ||
+      (spotPrice * 1.002).toFixed(2),
+    average:
+      kundaliData?.avgResistance?.toFixed(2) ||
+      kundaliData?.resistanceStrike2?.toFixed(2) ||
+      (spotPrice * 1.003).toFixed(2),
     current: kundaliData?.resistance?.toFixed(2) || (spotPrice * 1.001).toFixed(2),
-    status: kundaliData?.resistanceStatus || 'Breaker Inactive',
+    status: kundaliData?.resistanceStatus || "Breaker Inactive",
   };
 
   const supportData = {
-    staticLevel: kundaliData?.staticSupport?.toFixed(2) || kundaliData?.support?.toFixed(2) || (spotPrice * 0.998).toFixed(2),
-    average: kundaliData?.avgSupport?.toFixed(2) || kundaliData?.supportStrike2?.toFixed(2) || (spotPrice * 0.997).toFixed(2),
+    staticLevel:
+      kundaliData?.staticSupport?.toFixed(2) || kundaliData?.support?.toFixed(2) || (spotPrice * 0.998).toFixed(2),
+    average:
+      kundaliData?.avgSupport?.toFixed(2) || kundaliData?.supportStrike2?.toFixed(2) || (spotPrice * 0.997).toFixed(2),
     current: kundaliData?.support?.toFixed(2) || (spotPrice * 0.999).toFixed(2),
-    status: kundaliData?.supportStatus || 'Breaker Active',
+    status: kundaliData?.supportStatus || "Breaker Active",
   };
 
   const copyToClipboard = async (text: string, fieldId: string) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopiedField(fieldId);
-      toast.success('Copied to clipboard');
+      toast.success("Copied to clipboard");
       setTimeout(() => setCopiedField(null), 1500);
     } catch (err) {
-      toast.error('Failed to copy');
+      toast.error("Failed to copy");
     }
   };
 
   const CopyButton = ({ text, fieldId }: { text: string; fieldId: string }) => (
-    <button
-      onClick={() => copyToClipboard(text, fieldId)}
-      className="p-1 hover:bg-white/10 rounded transition-colors"
-    >
+    <button onClick={() => copyToClipboard(text, fieldId)} className="p-1 hover:bg-white/10 rounded transition-colors">
       {copiedField === fieldId ? (
         <Check className="h-4 w-4 text-green-400" />
       ) : (
@@ -98,19 +103,19 @@ const LTPCalculatorModal = ({
   );
 
   const adjustTime = (increment: boolean) => {
-    const [hours, minutes] = staticTime.split(':').map(Number);
+    const [hours, minutes] = staticTime.split(":").map(Number);
     let totalMinutes = hours * 60 + minutes;
     totalMinutes += increment ? 15 : -15;
     if (totalMinutes < 555) totalMinutes = 555; // 9:15 AM
     if (totalMinutes > 930) totalMinutes = 930; // 3:30 PM
     const newHours = Math.floor(totalMinutes / 60);
     const newMins = totalMinutes % 60;
-    setStaticTime(`${newHours.toString().padStart(2, '0')}:${newMins.toString().padStart(2, '0')}`);
+    setStaticTime(`${newHours.toString().padStart(2, "0")}:${newMins.toString().padStart(2, "0")}`);
   };
 
   const formatTimeDisplay = (time: string) => {
-    const [hours] = time.split(':').map(Number);
-    return hours >= 12 ? 'PM' : 'AM';
+    const [hours] = time.split(":").map(Number);
+    return hours >= 12 ? "PM" : "AM";
   };
 
   return (
@@ -127,18 +132,12 @@ const LTPCalculatorModal = ({
         <div className="p-5">
           {/* Tab Navigation */}
           <div className="flex gap-0 mb-5 bg-amber-50 rounded-lg p-2 overflow-hidden">
-            {[
-              { id: 'spot', label: 'SPOT' },
-              { id: 'future', label: 'FUTURE' },
-              { id: 'ltp', label: 'LTP Calc...' },
-            ].map((tab) => (
+            {[{ id: "ltp", label: "LTP Calculator" }].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as TabType)}
                 className={`flex-1 py-3 px-5 text-lg font-semibold rounded-md transition-all ${
-                  activeTab === tab.id
-                    ? 'bg-orange-500 text-white'
-                    : 'text-slate-700 hover:bg-orange-100'
+                  activeTab === tab.id ? "bg-orange-500 text-white" : "text-slate-700 hover:bg-orange-100"
                 }`}
               >
                 {tab.label}
@@ -176,7 +175,7 @@ const LTPCalculatorModal = ({
           </div>
 
           {/* SPOT Tab Content */}
-          {activeTab === 'spot' && (
+          {activeTab === "spot" && (
             <>
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <div className="flex items-center justify-between bg-slate-700 border border-slate-600 rounded-md p-4">
@@ -192,9 +191,7 @@ const LTPCalculatorModal = ({
               <div className="grid grid-cols-2 gap-4">
                 {/* Resistance Column */}
                 <div className="rounded-md overflow-hidden">
-                  <div className="bg-red-700 text-white text-center py-4 text-lg font-semibold">
-                    Resistance
-                  </div>
+                  <div className="bg-red-700 text-white text-center py-4 text-lg font-semibold">Resistance</div>
                   <div className="bg-black/30 text-slate-100 text-center py-3 border-b border-white/10">
                     Status : {resistanceData.status}
                   </div>
@@ -214,9 +211,7 @@ const LTPCalculatorModal = ({
 
                 {/* Support Column */}
                 <div className="rounded-md overflow-hidden">
-                  <div className="bg-green-700 text-white text-center py-4 text-lg font-semibold">
-                    Support
-                  </div>
+                  <div className="bg-green-700 text-white text-center py-4 text-lg font-semibold">Support</div>
                   <div className="bg-black/30 text-slate-100 text-center py-3 border-b border-white/10">
                     Status : {supportData.status}
                   </div>
@@ -238,7 +233,7 @@ const LTPCalculatorModal = ({
           )}
 
           {/* FUTURE Tab Content */}
-          {activeTab === 'future' && (
+          {activeTab === "future" && (
             <>
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <div className="flex items-center justify-between bg-slate-700 border border-slate-600 rounded-md p-4">
@@ -246,7 +241,9 @@ const LTPCalculatorModal = ({
                   <CopyButton text={strikePrice.toString()} fieldId="reversal-future" />
                 </div>
                 <div className="flex items-center justify-between bg-slate-700 border border-slate-600 rounded-md p-4">
-                  <span className="text-slate-100">Future 1 Price : {(futurePrice || spotPrice * 1.0005).toFixed(2)}</span>
+                  <span className="text-slate-100">
+                    Future 1 Price : {(futurePrice || spotPrice * 1.0005).toFixed(2)}
+                  </span>
                   <CopyButton text={(futurePrice || spotPrice * 1.0005).toFixed(2)} fieldId="future-price" />
                 </div>
               </div>
@@ -254,9 +251,7 @@ const LTPCalculatorModal = ({
               <div className="grid grid-cols-2 gap-4">
                 {/* Resistance Column */}
                 <div className="rounded-md overflow-hidden">
-                  <div className="bg-red-700 text-white text-center py-4 text-lg font-semibold">
-                    Resistance
-                  </div>
+                  <div className="bg-red-700 text-white text-center py-4 text-lg font-semibold">Resistance</div>
                   <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
                     <span>9:30 AM : {(parseFloat(resistanceData.staticLevel) + 6).toFixed(2)}</span>
                     <CopyButton text={(parseFloat(resistanceData.staticLevel) + 6).toFixed(2)} fieldId="fres-static" />
@@ -273,9 +268,7 @@ const LTPCalculatorModal = ({
 
                 {/* Support Column */}
                 <div className="rounded-md overflow-hidden">
-                  <div className="bg-green-700 text-white text-center py-4 text-lg font-semibold">
-                    Support
-                  </div>
+                  <div className="bg-green-700 text-white text-center py-4 text-lg font-semibold">Support</div>
                   <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
                     <span>9:30 AM : {(parseFloat(supportData.staticLevel) + 6).toFixed(2)}</span>
                     <CopyButton text={(parseFloat(supportData.staticLevel) + 6).toFixed(2)} fieldId="fsup-static" />
@@ -294,7 +287,7 @@ const LTPCalculatorModal = ({
           )}
 
           {/* LTP Calculator Tab Content */}
-          {activeTab === 'ltp' && (
+          {activeTab === "ltp" && (
             <>
               <div className="flex justify-center mb-5">
                 <div className="bg-slate-700 border border-slate-600 rounded-md p-4 px-8">
@@ -308,7 +301,9 @@ const LTPCalculatorModal = ({
                   <CopyButton text={spotPrice.toString()} fieldId="ltp-spot" />
                 </div>
                 <div className="flex items-center justify-between bg-slate-700 border border-slate-600 rounded-md p-4">
-                  <span className="text-slate-100">Future 1 Price : {(futurePrice || spotPrice * 1.0005).toFixed(2)}</span>
+                  <span className="text-slate-100">
+                    Future 1 Price : {(futurePrice || spotPrice * 1.0005).toFixed(2)}
+                  </span>
                   <CopyButton text={(futurePrice || spotPrice * 1.0005).toFixed(2)} fieldId="ltp-future" />
                 </div>
               </div>
@@ -316,20 +311,18 @@ const LTPCalculatorModal = ({
               <div className="grid grid-cols-2 gap-4">
                 {/* CALL Column */}
                 <div className="rounded-md overflow-hidden">
-                  <div className="bg-red-700 text-white text-center py-4 text-lg font-semibold">
-                    CALL
+                  <div className="bg-red-700 text-white text-center py-4 text-lg font-semibold">CALL</div>
+                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
+                    <span>IV : {callIV?.toFixed(2) || "0.01"}</span>
+                    <CopyButton text={callIV?.toFixed(2) || "0.01"} fieldId="call-iv" />
                   </div>
                   <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
-                    <span>IV : {callIV?.toFixed(2) || '0.01'}</span>
-                    <CopyButton text={callIV?.toFixed(2) || '0.01'} fieldId="call-iv" />
+                    <span>Ltp : {callLTP?.toFixed(2) || "0"}</span>
+                    <CopyButton text={callLTP?.toFixed(2) || "0"} fieldId="call-ltp" />
                   </div>
                   <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
-                    <span>Ltp : {callLTP?.toFixed(2) || '0'}</span>
-                    <CopyButton text={callLTP?.toFixed(2) || '0'} fieldId="call-ltp" />
-                  </div>
-                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
-                    <span>Delta : {callDelta?.toFixed(4) || '0'}</span>
-                    <CopyButton text={callDelta?.toFixed(4) || '0'} fieldId="call-delta" />
+                    <span>Delta : {callDelta?.toFixed(4) || "0"}</span>
+                    <CopyButton text={callDelta?.toFixed(4) || "0"} fieldId="call-delta" />
                   </div>
                   <div className="flex items-center justify-between bg-emerald-900/50 text-emerald-300 py-3 px-4 border-b border-white/10">
                     <span>SL Buy : {(callLTP - Math.abs(atr * callDelta)).toFixed(2)}</span>
@@ -343,20 +336,18 @@ const LTPCalculatorModal = ({
 
                 {/* PUT Column */}
                 <div className="rounded-md overflow-hidden">
-                  <div className="bg-green-700 text-white text-center py-4 text-lg font-semibold">
-                    PUT
+                  <div className="bg-green-700 text-white text-center py-4 text-lg font-semibold">PUT</div>
+                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
+                    <span>IV : {putIV?.toFixed(2) || "0"}</span>
+                    <CopyButton text={putIV?.toFixed(2) || "0"} fieldId="put-iv" />
                   </div>
                   <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
-                    <span>IV : {putIV?.toFixed(2) || '0'}</span>
-                    <CopyButton text={putIV?.toFixed(2) || '0'} fieldId="put-iv" />
+                    <span>Ltp : {putLTP?.toFixed(2) || "0"}</span>
+                    <CopyButton text={putLTP?.toFixed(2) || "0"} fieldId="put-ltp" />
                   </div>
                   <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
-                    <span>Ltp : {putLTP?.toFixed(2) || '0'}</span>
-                    <CopyButton text={putLTP?.toFixed(2) || '0'} fieldId="put-ltp" />
-                  </div>
-                  <div className="flex items-center justify-between bg-black/30 text-slate-100 py-3 px-4 border-b border-white/10">
-                    <span>Delta : {putDelta?.toFixed(4) || '0'}</span>
-                    <CopyButton text={putDelta?.toFixed(4) || '0'} fieldId="put-delta" />
+                    <span>Delta : {putDelta?.toFixed(4) || "0"}</span>
+                    <CopyButton text={putDelta?.toFixed(4) || "0"} fieldId="put-delta" />
                   </div>
                   <div className="flex items-center justify-between bg-emerald-900/50 text-emerald-300 py-3 px-4 border-b border-white/10">
                     <span>SL Buy : {(putLTP - Math.abs(atr * putDelta)).toFixed(2)}</span>
@@ -380,18 +371,18 @@ const LTPCalculatorModal = ({
                 />
                 <div className="flex gap-2">
                   {[
-                    { id: 'spot', label: 'Spot' },
-                    { id: 'ce', label: 'CE' },
-                    { id: 'pe', label: 'PE' },
+                    { id: "spot", label: "Spot" },
+                    { id: "ce", label: "CE" },
+                    { id: "pe", label: "PE" },
                   ].map((mode) => (
                     <Button
                       key={mode.id}
-                      variant={targetMode === mode.id ? 'default' : 'outline'}
-                      onClick={() => setTargetMode(mode.id as 'spot' | 'ce' | 'pe')}
+                      variant={targetMode === mode.id ? "default" : "outline"}
+                      onClick={() => setTargetMode(mode.id as "spot" | "ce" | "pe")}
                       className={
                         targetMode === mode.id
-                          ? 'bg-orange-500 hover:bg-orange-600 text-white'
-                          : 'bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600'
+                          ? "bg-orange-500 hover:bg-orange-600 text-white"
+                          : "bg-slate-700 border-slate-600 text-slate-100 hover:bg-slate-600"
                       }
                     >
                       {mode.label}
