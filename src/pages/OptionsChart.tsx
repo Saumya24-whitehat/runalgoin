@@ -161,24 +161,58 @@ const OptionsChart = () => {
         onErrorCallback: Function
       ) => {
         try {
-          const { from, to, firstDataRequest } = periodParams;
-          const instrumentKey = symbolInfo.instrument_key || symbolInfo.symbol;
+          const { from, to } = periodParams;
           
-          const response = await fetch(
-            `https://runalgo.xyz/top/chart/test_upstox_history.php?instrument_key=${encodeURIComponent(instrumentKey)}&resolution=${resolution}&from=${from}&to=${to}`
-          );
+          // Map TradingView resolution to API interval
+          const intervalMap: Record<string, string> = {
+            '1': '1minute',
+            '3': '3minute',
+            '5': '5minute',
+            '10': '10minute',
+            '15': '15minute',
+            '30': '30minute',
+            '45': '30minute',
+            '60': '1hour',
+            '120': '1hour',
+            '180': '1hour',
+            '240': '1hour',
+            '1D': '1day',
+            'D': '1day',
+            '1W': '1week',
+            'W': '1week',
+            '1M': '1month',
+            'M': '1month'
+          };
+          
+          const interval = intervalMap[resolution] || '5minute';
+          const fromDate = new Date(from * 1000).toISOString().split('T')[0];
+          const toDate = new Date(to * 1000).toISOString().split('T')[0];
+          
+          // Use full_name which contains the proper symbol format (e.g., NSE_INDEX|Nifty 50)
+          const apiSymbol = symbolInfo.full_name || symbolInfo.symbol || 'NSE_INDEX|Nifty 50';
+          
+          const url = `https://runalgo.xyz/top/chart/upstox_data_fetcher.php?symbol=${encodeURIComponent(apiSymbol)}&interval=${interval}&from=${fromDate}&to=${toDate}`;
+          
+          const response = await fetch(url, {
+            headers: {
+              'Accept': '*/*',
+              'Referer': 'https://runalgo.xyz/top/chart/'
+            }
+          });
           
           if (response.ok) {
             const data = await response.json();
-            if (data.success && data.candles && data.candles.length > 0) {
-              const bars = data.candles.map((candle: any) => ({
+            if (data && data.candles && data.candles.length > 0) {
+              // API returns candles in format: [timestamp, open, high, low, close, volume, oi]
+              const bars = data.candles.map((candle: any[]) => ({
                 time: new Date(candle[0]).getTime(),
                 open: candle[1],
                 high: candle[2],
                 low: candle[3],
                 close: candle[4],
                 volume: candle[5] || 0
-              }));
+              })).sort((a: any, b: any) => a.time - b.time);
+              
               onHistoryCallback(bars, { noData: false });
             } else {
               onHistoryCallback([], { noData: true });
