@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Area, ComposedChart, Line } from 'recharts';
+import { useEffect, useRef, useMemo } from 'react';
+import { createChart, IChartApi, ISeriesApi, ColorType, LineSeries, LineStyle } from 'lightweight-charts';
 
 interface OptionBuilderChartProps {
   expiryData: [number, number][];
@@ -8,14 +8,16 @@ interface OptionBuilderChartProps {
 }
 
 const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuilderChartProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<IChartApi | null>(null);
+  const expirySeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const todaySeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+
   const chartData = useMemo(() => {
     return expiryData.map(([price, expiryPL], index) => ({
       price,
       expiryPL,
       todayPL: todayData[index]?.[1] ?? 0,
-      // Split profit and loss areas for different coloring
-      profitArea: expiryPL > 0 ? expiryPL : null,
-      lossArea: expiryPL < 0 ? expiryPL : null,
     }));
   }, [expiryData, todayData]);
 
@@ -29,6 +31,108 @@ const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuild
     return `₹${value.toFixed(0)}`;
   };
 
+  useEffect(() => {
+    if (!containerRef.current || chartData.length === 0) return;
+
+    // Cleanup previous chart
+    if (chartRef.current) {
+      chartRef.current.remove();
+      chartRef.current = null;
+    }
+
+    const chart = createChart(containerRef.current, {
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#9ca3af',
+      },
+      grid: {
+        vertLines: { color: 'rgba(255, 255, 255, 0.05)' },
+        horzLines: { color: 'rgba(255, 255, 255, 0.05)' },
+      },
+      width: containerRef.current.clientWidth,
+      height: 270,
+      rightPriceScale: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+      },
+      timeScale: {
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+        visible: true,
+      },
+      crosshair: {
+        mode: 1,
+        vertLine: {
+          color: 'rgba(255, 255, 255, 0.3)',
+          width: 1,
+          style: LineStyle.Dashed,
+        },
+        horzLine: {
+          color: 'rgba(255, 255, 255, 0.3)',
+          width: 1,
+          style: LineStyle.Dashed,
+        },
+      },
+    });
+
+    chartRef.current = chart;
+
+    // Create expiry P/L line (green)
+    const expirySeries = chart.addSeries(LineSeries, {
+      color: '#22c55e',
+      lineWidth: 2,
+      title: 'P/L at Expiry',
+      priceFormat: {
+        type: 'custom',
+        formatter: (price: number) => formatValue(price),
+      },
+    });
+    expirySeriesRef.current = expirySeries;
+
+    // Create today P/L line (gray dashed)
+    const todaySeries = chart.addSeries(LineSeries, {
+      color: '#9ca3af',
+      lineWidth: 2,
+      lineStyle: LineStyle.Dashed,
+      title: 'P/L Today',
+      priceFormat: {
+        type: 'custom',
+        formatter: (price: number) => formatValue(price),
+      },
+    });
+    todaySeriesRef.current = todaySeries;
+
+    // Prepare data
+    const expiryLineData = chartData.map((point, index) => ({
+      time: index as any,
+      value: point.expiryPL,
+    }));
+
+    const todayLineData = chartData.map((point, index) => ({
+      time: index as any,
+      value: point.todayPL,
+    }));
+
+    expirySeries.setData(expiryLineData);
+    todaySeries.setData(todayLineData);
+    chart.timeScale().fitContent();
+
+    // Handle resize
+    const handleResize = () => {
+      if (containerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ width: containerRef.current.clientWidth });
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (chartRef.current) {
+        chartRef.current.remove();
+        chartRef.current = null;
+      }
+    };
+  }, [chartData, currentPrice]);
+
   if (chartData.length === 0) {
     return (
       <div className="h-[300px] flex items-center justify-center text-muted-foreground">
@@ -39,105 +143,21 @@ const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuild
 
   return (
     <div className="h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-          <defs>
-            {/* Green gradient for profit area */}
-            <linearGradient id="profitGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#22c55e" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#22c55e" stopOpacity={0.1} />
-            </linearGradient>
-            {/* Red gradient for loss area */}
-            <linearGradient id="lossGradient" x1="0" y1="1" x2="0" y2="0">
-              <stop offset="0%" stopColor="#ef4444" stopOpacity={0.4} />
-              <stop offset="100%" stopColor="#ef4444" stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
-          <XAxis 
-            dataKey="price" 
-            stroke="hsl(var(--muted-foreground))"
-            tickFormatter={(value) => value.toFixed(0)}
-            fontSize={11}
-            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-          />
-          <YAxis 
-            stroke="hsl(var(--muted-foreground))"
-            tickFormatter={formatValue}
-            fontSize={11}
-            tick={{ fill: 'hsl(var(--muted-foreground))' }}
-          />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: 'hsl(var(--card))',
-              border: '1px solid hsl(var(--border))',
-              borderRadius: '8px',
-              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            }}
-            labelStyle={{ color: 'hsl(var(--foreground))', fontWeight: 600 }}
-            formatter={(value: number, name: string) => [
-              formatValue(value),
-              name === 'expiryPL' ? 'P/L at Expiry' : 'P/L Today'
-            ]}
-            labelFormatter={(value) => `Spot: ₹${value}`}
-          />
-          {/* Zero reference line */}
-          <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeOpacity={0.7} />
-          {/* Current price reference line - orange dashed */}
-          <ReferenceLine 
-            x={currentPrice} 
-            stroke="#f97316"
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            label={{ 
-              value: `Spot LTP: ${currentPrice}`, 
-              position: 'top',
-              fill: '#f97316',
-              fontSize: 11,
-              fontWeight: 600
-            }}
-          />
-          {/* Profit area fill (green) */}
-          <Area
-            type="monotone"
-            dataKey="profitArea"
-            stroke="none"
-            fill="url(#profitGradient)"
-            fillOpacity={1}
-            connectNulls={false}
-            baseLine={0}
-          />
-          {/* Loss area fill (red) */}
-          <Area
-            type="monotone"
-            dataKey="lossArea"
-            stroke="none"
-            fill="url(#lossGradient)"
-            fillOpacity={1}
-            connectNulls={false}
-            baseLine={0}
-          />
-          {/* P/L at Expiry line - solid green */}
-          <Line
-            type="monotone"
-            dataKey="expiryPL"
-            stroke="#22c55e"
-            strokeWidth={2}
-            dot={false}
-            name="expiryPL"
-          />
-          {/* P/L Today line - dashed gray */}
-          <Line
-            type="monotone"
-            dataKey="todayPL"
-            stroke="#9ca3af"
-            strokeWidth={2}
-            strokeDasharray="5 5"
-            dot={false}
-            name="todayPL"
-          />
-        </ComposedChart>
-      </ResponsiveContainer>
+      <div className="flex items-center justify-center gap-6 mb-2 text-xs">
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-0.5 bg-green-500" />
+          <span className="text-foreground">P/L at Expiry</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-0.5 bg-gray-400 border-b-2 border-dashed border-gray-400" />
+          <span className="text-foreground">P/L Today</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full bg-orange-500" />
+          <span className="text-foreground">Spot: ₹{currentPrice}</span>
+        </div>
+      </div>
+      <div ref={containerRef} className="w-full" style={{ height: 270 }} />
     </div>
   );
 };
