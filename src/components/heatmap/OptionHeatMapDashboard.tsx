@@ -8,11 +8,7 @@ import { HeatMapStrikeCountInput } from "@/components/heatmap/HeatMapStrikeCount
 import { HeatMapOptionTable } from "@/components/heatmap/HeatMapOptionTable";
 import { HeatMapOIChart } from "@/components/heatmap/HeatMapOIChart";
 import { HeatMapIVChart } from "@/components/heatmap/HeatMapIVChart";
-import {
-  fetchHeatMapSymbols,
-  fetchHeatMapExpiryDates,
-  fetchHeatMapOptionChainData,
-} from "@/services/optionHeatMapApi";
+import { fetchHeatMapSymbols, fetchHeatMapExpiryDates, fetchHeatMapOptionChainData } from "@/services/optionHeatMapApi";
 import { OptionChainResponse, GroupedSymbols } from "@/types/optionChain";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -24,29 +20,29 @@ const isMarketHours = (): boolean => {
   const now = new Date();
   const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
   const istTime = new Date(now.getTime() + istOffset + now.getTimezoneOffset() * 60 * 1000);
-  
+
   const hours = istTime.getHours();
   const minutes = istTime.getMinutes();
   const day = istTime.getDay();
-  
+
   // Skip weekends (Saturday = 6, Sunday = 0)
   if (day === 0 || day === 6) return false;
-  
+
   // Market hours: 9:15 AM to 3:30 PM
   const totalMinutes = hours * 60 + minutes;
   const marketOpen = 9 * 60 + 15; // 9:15 AM
   const marketClose = 15 * 60 + 30; // 3:30 PM
-  
+
   return totalMinutes >= marketOpen && totalMinutes <= marketClose;
 };
 
 const formatTime = (date: Date | null): string => {
   if (!date) return "--:--:--";
-  return date.toLocaleTimeString('en-IN', { 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    second: '2-digit',
-    hour12: true 
+  return date.toLocaleTimeString("en-IN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
   });
 };
 
@@ -106,14 +102,10 @@ export function OptionHeatMapDashboard() {
 
     setIsLoading(true);
     try {
-      const data = await fetchHeatMapOptionChainData(
-        selectedSymbol,
-        selectedExpiry,
-        strikeCount
-      );
+      const data = await fetchHeatMapOptionChainData(selectedSymbol, selectedExpiry, strikeCount);
       setOptionData(data);
       setLastRefreshed(new Date());
-      
+
       // Set next refresh time
       if (isMarketHours()) {
         setNextRefresh(new Date(Date.now() + REFRESH_INTERVAL));
@@ -151,8 +143,10 @@ export function OptionHeatMapDashboard() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <TickerRibbon />
-      <Navbar />
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
 
       <main className="container py-4 md:py-6">
         {/* Controls Section with Title and Refresh Info */}
@@ -164,7 +158,7 @@ export function OptionHeatMapDashboard() {
                 <Flame className="h-5 w-5 text-orange-500" />
                 <h1 className="text-lg font-heading font-semibold">Option Heat Map</h1>
               </div>
-              
+
               {/* Refresh Info */}
               {optionData && (
                 <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
@@ -173,24 +167,20 @@ export function OptionHeatMapDashboard() {
                     <span>Data: {optionData.Time}</span>
                   </div>
                   <div className="flex items-center gap-1.5">
-                    <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw className={`h-3.5 w-3.5 ${isLoading ? "animate-spin" : ""}`} />
                     <span>Refreshed: {formatTime(lastRefreshed)}</span>
                   </div>
                   {nextRefresh && isMarketHours() && (
-                    <div className="text-primary text-xs">
-                      Next: {formatTime(nextRefresh)}
-                    </div>
+                    <div className="text-primary text-xs">Next: {formatTime(nextRefresh)}</div>
                   )}
                 </div>
               )}
             </div>
-            
+
             {/* Controls Row */}
             <div className="grid grid-cols-3 gap-2 sm:gap-4">
               <div className="space-y-1">
-                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
-                  Symbol
-                </label>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">Symbol</label>
                 <Select value={selectedSymbol} onValueChange={handleSymbolChange} disabled={symbolsLoading}>
                   <SelectTrigger className="w-full bg-background/50">
                     <SelectValue placeholder="Select Symbol" />
@@ -200,7 +190,9 @@ export function OptionHeatMapDashboard() {
                       <>
                         <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
                         {symbols.indexSymbols.map((sym) => (
-                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                          <SelectItem key={sym} value={sym}>
+                            {sym}
+                          </SelectItem>
                         ))}
                       </>
                     )}
@@ -208,7 +200,9 @@ export function OptionHeatMapDashboard() {
                       <>
                         <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
                         {symbols.stockSymbols.map((sym) => (
-                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                          <SelectItem key={sym} value={sym}>
+                            {sym}
+                          </SelectItem>
                         ))}
                       </>
                     )}
@@ -217,9 +211,7 @@ export function OptionHeatMapDashboard() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
-                  Expiry
-                </label>
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">Expiry</label>
                 <HeatMapExpirySelector
                   expiryDates={expiryData?.expiry_dates || []}
                   value={selectedExpiry}
@@ -230,13 +222,8 @@ export function OptionHeatMapDashboard() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
-                  Strikes
-                </label>
-                <HeatMapStrikeCountInput
-                  value={strikeCount}
-                  onChange={setStrikeCount}
-                />
+                <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">Strikes</label>
+                <HeatMapStrikeCountInput value={strikeCount} onChange={setStrikeCount} />
               </div>
             </div>
           </CardContent>
@@ -250,23 +237,17 @@ export function OptionHeatMapDashboard() {
                 <div className="flex flex-wrap items-center justify-center gap-4 text-center sm:gap-8">
                   <div>
                     <p className="text-sm text-muted-foreground">Symbol</p>
-                    <p className="text-lg font-heading font-semibold text-primary">
-                      {optionData.symbol}
-                    </p>
+                    <p className="text-lg font-heading font-semibold text-primary">{optionData.symbol}</p>
                   </div>
                   <div className="h-8 w-px bg-border hidden sm:block" />
                   <div>
                     <p className="text-sm text-muted-foreground">Spot Price</p>
-                    <p className="text-lg font-heading font-semibold">
-                      ₹{optionData.Spot_Price.toFixed(2)}
-                    </p>
+                    <p className="text-lg font-heading font-semibold">₹{optionData.Spot_Price.toFixed(2)}</p>
                   </div>
                   <div className="h-8 w-px bg-border hidden sm:block" />
                   <div>
                     <p className="text-sm text-muted-foreground">ATM Strike</p>
-                    <p className="text-lg font-heading font-semibold text-atm-highlight">
-                      {optionData.atm}
-                    </p>
+                    <p className="text-lg font-heading font-semibold text-atm-highlight">{optionData.atm}</p>
                   </div>
                   <div className="h-8 w-px bg-border hidden sm:block" />
                   <div>
@@ -288,15 +269,10 @@ export function OptionHeatMapDashboard() {
         {optionData && optionData.data.length > 0 && (
           <div className="space-y-6">
             {/* Data Tables Grid */}
-            <div
-              className="grid grid-cols-1 gap-4 lg:grid-cols-3 animate-fade-in"
-              style={{ animationDelay: "0.2s" }}
-            >
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 animate-fade-in" style={{ animationDelay: "0.2s" }}>
               <Card>
                 <CardHeader className="py-3">
-                  <CardTitle className="text-sm font-medium">
-                    Open Interest & Change in OI
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">Open Interest & Change in OI</CardTitle>
                 </CardHeader>
                 <CardContent className="px-2 pb-2 overflow-x-auto">
                   <HeatMapOptionTable
@@ -310,9 +286,7 @@ export function OptionHeatMapDashboard() {
 
               <Card>
                 <CardHeader className="py-3">
-                  <CardTitle className="text-sm font-medium">
-                    Implied Volatility
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">Implied Volatility</CardTitle>
                 </CardHeader>
                 <CardContent className="px-2 pb-2 overflow-x-auto">
                   <HeatMapOptionTable
@@ -326,9 +300,7 @@ export function OptionHeatMapDashboard() {
 
               <Card>
                 <CardHeader className="py-3">
-                  <CardTitle className="text-sm font-medium">
-                    LTP & Price Change
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium">LTP & Price Change</CardTitle>
                 </CardHeader>
                 <CardContent className="px-2 pb-2 overflow-x-auto">
                   <HeatMapOptionTable
@@ -342,15 +314,10 @@ export function OptionHeatMapDashboard() {
             </div>
 
             {/* Charts Section */}
-            <div
-              className="grid grid-cols-1 gap-4 lg:grid-cols-2 animate-fade-in"
-              style={{ animationDelay: "0.3s" }}
-            >
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 animate-fade-in" style={{ animationDelay: "0.3s" }}>
               <Card>
                 <CardHeader className="py-3">
-                  <CardTitle className="text-sm font-medium text-center">
-                    OI COMPARISON (CE VS PE)
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-center">OI COMPARISON (CE VS PE)</CardTitle>
                 </CardHeader>
                 <CardContent className="px-2 pb-4">
                   <HeatMapOIChart data={optionData.data} atm={optionData.atm} />
@@ -359,9 +326,7 @@ export function OptionHeatMapDashboard() {
 
               <Card>
                 <CardHeader className="py-3">
-                  <CardTitle className="text-sm font-medium text-center">
-                    IV COMPARISON (CE VS PE)
-                  </CardTitle>
+                  <CardTitle className="text-sm font-medium text-center">IV COMPARISON (CE VS PE)</CardTitle>
                 </CardHeader>
                 <CardContent className="px-2 pb-4">
                   <HeatMapIVChart data={optionData.data} atm={optionData.atm} />
@@ -376,11 +341,10 @@ export function OptionHeatMapDashboard() {
           <Card className="animate-fade-in">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <Flame className="h-16 w-16 text-muted-foreground/30 mb-4" />
-              <h2 className="text-xl font-heading font-medium text-muted-foreground mb-2">
-                No Data Selected
-              </h2>
+              <h2 className="text-xl font-heading font-medium text-muted-foreground mb-2">No Data Selected</h2>
               <p className="text-sm text-muted-foreground text-center max-w-md">
-                Select a symbol and expiry date to view option heat map data. Data will auto-refresh every 3 minutes during market hours (9:15 AM - 3:30 PM).
+                Select a symbol and expiry date to view option heat map data. Data will auto-refresh every 3 minutes
+                during market hours (9:15 AM - 3:30 PM).
               </p>
             </CardContent>
           </Card>

@@ -163,8 +163,10 @@ export default function MarketBreadth() {
 
   return (
     <div className="min-h-screen bg-background">
-      <TickerRibbon />
-      <Navbar />
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
 
       <div className="flex">
         {/* Sidebar */}

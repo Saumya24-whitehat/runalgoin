@@ -1,16 +1,16 @@
-import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Navbar } from '@/components/Navbar';
-import { TickerRibbon } from '@/components/TickerRibbon';
-import { RefreshCw, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
-import { AdminPaletteButton } from '@/components/admin/AdminPaletteButton';
+import { useState, useEffect, useRef } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { Navbar } from "@/components/Navbar";
+import { TickerRibbon } from "@/components/TickerRibbon";
+import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
+import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 
 interface OptionData {
   strike_price: number;
@@ -54,7 +54,7 @@ interface OptionData {
   };
 }
 
-type ViewMode = 'ltp_oi' | 'oi_iv' | 'ltp_greeks' | 'oi_greeks';
+type ViewMode = "ltp_oi" | "oi_iv" | "ltp_greeks" | "oi_greeks";
 
 // Time slots from 9:15 AM to 3:30 PM in 3-minute intervals
 const generateTimeSlots = () => {
@@ -67,8 +67,8 @@ const generateTimeSlots = () => {
   for (let total = startTotalMinutes; total <= endTotalMinutes; total += stepMinutes) {
     const h = Math.floor(total / 60);
     const m = total % 60;
-    const hour = h.toString().padStart(2, '0');
-    const min = m.toString().padStart(2, '0');
+    const hour = h.toString().padStart(2, "0");
+    const min = m.toString().padStart(2, "0");
     slots.push(`${hour}${min}`);
   }
 
@@ -78,12 +78,12 @@ const generateTimeSlots = () => {
 const TIME_SLOTS = generateTimeSlots();
 
 const formatTimeDisplay = (time: string) => {
-  if (!time || time.length < 4) return '';
+  if (!time || time.length < 4) return "";
   const hour = parseInt(time.slice(0, 2));
   const min = time.slice(2, 4);
-  const period = hour >= 12 ? 'PM' : 'AM';
+  const period = hour >= 12 ? "PM" : "AM";
   const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-  return `${displayHour.toString().padStart(2, '0')}:${min} ${period}`;
+  return `${displayHour.toString().padStart(2, "0")}:${min} ${period}`;
 };
 
 const OptionChain = () => {
@@ -92,26 +92,26 @@ const OptionChain = () => {
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const spotPriceRowRef = useRef<HTMLTableRowElement>(null);
   const historicalFetchTimerRef = useRef<number | null>(null);
-  
+
   const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
   const [stockSymbols, setStockSymbols] = useState<string[]>([]);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>('Nifty 50');
+  const [selectedSymbol, setSelectedSymbol] = useState<string>("Nifty 50");
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
-  const [selectedExpiry, setSelectedExpiry] = useState<string>('');
+  const [selectedExpiry, setSelectedExpiry] = useState<string>("");
   const [optionData, setOptionData] = useState<OptionData[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
-  const [strikeCount, setStrikeCount] = useState<string>('9');
-  const [viewMode, setViewMode] = useState<ViewMode>('ltp_oi');
-  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [strikeCount, setStrikeCount] = useState<string>("9");
+  const [viewMode, setViewMode] = useState<ViewMode>("ltp_oi");
+  const [selectedTime, setSelectedTime] = useState<string>("");
   const [isHistoricalMode, setIsHistoricalMode] = useState(false);
-  
+
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingChain, setLoadingChain] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
-      navigate('/auth');
+      navigate("/auth");
     }
   }, [user, authLoading, navigate]);
 
@@ -159,7 +159,7 @@ const OptionChain = () => {
   useEffect(() => {
     if (spotPriceRowRef.current && tableContainerRef.current) {
       setTimeout(() => {
-        spotPriceRowRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        spotPriceRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
       }, 100);
     }
   }, [optionData, spotPrice]);
@@ -167,21 +167,21 @@ const OptionChain = () => {
   const fetchSymbols = async () => {
     setLoadingSymbols(true);
     try {
-      const { data, error } = await supabase.functions.invoke('option-chain', {
-        body: { action: 'getSymbols' }
+      const { data, error } = await supabase.functions.invoke("option-chain", {
+        body: { action: "getSymbols" },
       });
-      
+
       if (error) throw error;
-      
+
       // API returns "index symbols" (with space) not "index_symbols"
-      const idxSymbols = data?.['index symbols'] || data?.index_symbols || [];
+      const idxSymbols = data?.["index symbols"] || data?.index_symbols || [];
       const stkSymbols = data?.symbols || [];
-      console.log('Index symbols:', idxSymbols);
-      console.log('Stock symbols:', stkSymbols);
+      console.log("Index symbols:", idxSymbols);
+      console.log("Stock symbols:", stkSymbols);
       setIndexSymbols(idxSymbols);
       setStockSymbols(stkSymbols);
     } catch (error) {
-      console.error('Error fetching symbols:', error);
+      console.error("Error fetching symbols:", error);
     } finally {
       setLoadingSymbols(false);
     }
@@ -190,19 +190,19 @@ const OptionChain = () => {
   const fetchExpiryDates = async (symbol: string) => {
     setLoadingExpiry(true);
     try {
-      const { data, error } = await supabase.functions.invoke('option-chain', {
-        body: { action: 'getExpiryDates', symbol }
+      const { data, error } = await supabase.functions.invoke("option-chain", {
+        body: { action: "getExpiryDates", symbol },
       });
-      
+
       if (error) throw error;
-      
+
       const dates = data.expiry_dates || [];
       setExpiryDates(dates);
       if (dates.length > 0) {
         setSelectedExpiry(dates[0]);
       }
     } catch (error) {
-      console.error('Error fetching expiry dates:', error);
+      console.error("Error fetching expiry dates:", error);
     } finally {
       setLoadingExpiry(false);
     }
@@ -210,41 +210,41 @@ const OptionChain = () => {
 
   const fetchOptionChain = async () => {
     if (!selectedSymbol || !selectedExpiry) return;
-    
+
     setLoadingChain(true);
     try {
-      const body: any = { 
-        action: 'getOptionChain', 
-        symbol: selectedSymbol, 
-        expiry_date: selectedExpiry 
+      const body: any = {
+        action: "getOptionChain",
+        symbol: selectedSymbol,
+        expiry_date: selectedExpiry,
       };
-      
+
       if (isHistoricalMode && selectedTime) {
         body.time = selectedTime;
       }
-      
-      const { data, error } = await supabase.functions.invoke('option-chain', { body });
-      
+
+      const { data, error } = await supabase.functions.invoke("option-chain", { body });
+
       if (error) throw error;
-      
+
       const chainData = data.option_chain?.data || [];
       setOptionData(chainData);
-      
+
       if (chainData.length > 0) {
         setSpotPrice(chainData[0].underlying_spot_price);
       }
     } catch (error) {
-      console.error('Error fetching option chain:', error);
+      console.error("Error fetching option chain:", error);
     } finally {
       setLoadingChain(false);
     }
   };
 
-  const handleTimeChange = (direction: 'prev' | 'next') => {
+  const handleTimeChange = (direction: "prev" | "next") => {
     const getClosestSlot = () => {
       const now = new Date();
-      const currentHour = now.getHours().toString().padStart(2, '0');
-      const currentMin = now.getMinutes().toString().padStart(2, '0');
+      const currentHour = now.getHours().toString().padStart(2, "0");
+      const currentMin = now.getMinutes().toString().padStart(2, "0");
       const currentTime = `${currentHour}${currentMin}`;
       return TIME_SLOTS.reduce((prev, curr) => {
         return Math.abs(parseInt(curr) - parseInt(currentTime)) < Math.abs(parseInt(prev) - parseInt(currentTime))
@@ -255,7 +255,7 @@ const OptionChain = () => {
 
     const baseTime = selectedTime && TIME_SLOTS.includes(selectedTime) ? selectedTime : getClosestSlot();
     const baseIndex = TIME_SLOTS.indexOf(baseTime);
-    const delta = direction === 'prev' ? -1 : 1;
+    const delta = direction === "prev" ? -1 : 1;
     const nextIndex = Math.min(Math.max(baseIndex + delta, 0), TIME_SLOTS.length - 1);
 
     setSelectedTime(TIME_SLOTS[nextIndex]);
@@ -263,7 +263,7 @@ const OptionChain = () => {
 
   const resetToLive = () => {
     setIsHistoricalMode(false);
-    setSelectedTime('');
+    setSelectedTime("");
     fetchOptionChain();
   };
 
@@ -272,12 +272,14 @@ const OptionChain = () => {
       setIsHistoricalMode(true);
       // Set current time as default
       const now = new Date();
-      const currentHour = now.getHours().toString().padStart(2, '0');
-      const currentMin = now.getMinutes().toString().padStart(2, '0');
+      const currentHour = now.getHours().toString().padStart(2, "0");
+      const currentMin = now.getMinutes().toString().padStart(2, "0");
       const currentTime = `${currentHour}${currentMin}`;
       // Find closest valid time slot
       const closestSlot = TIME_SLOTS.reduce((prev, curr) => {
-        return Math.abs(parseInt(curr) - parseInt(currentTime)) < Math.abs(parseInt(prev) - parseInt(currentTime)) ? curr : prev;
+        return Math.abs(parseInt(curr) - parseInt(currentTime)) < Math.abs(parseInt(prev) - parseInt(currentTime))
+          ? curr
+          : prev;
       }, TIME_SLOTS[0]);
       setSelectedTime(closestSlot);
     }
@@ -286,19 +288,19 @@ const OptionChain = () => {
   // Filter data based on strike count around ATM
   const getFilteredData = () => {
     if (optionData.length === 0) return [];
-    
+
     const count = parseInt(strikeCount);
-    const atmIndex = optionData.findIndex(d => d.strike_price >= spotPrice);
+    const atmIndex = optionData.findIndex((d) => d.strike_price >= spotPrice);
     const startIndex = Math.max(0, atmIndex - count);
     const endIndex = Math.min(optionData.length, atmIndex + count + 1);
-    
+
     return optionData.slice(startIndex, endIndex);
   };
 
   const formatNumber = (num: number) => {
-    if (Math.abs(num) >= 10000000) return (num / 10000000).toFixed(2) + ' Cr';
-    if (Math.abs(num) >= 100000) return (num / 100000).toFixed(2) + ' L';
-    if (Math.abs(num) >= 1000) return (num / 1000).toFixed(2) + ' K';
+    if (Math.abs(num) >= 10000000) return (num / 10000000).toFixed(2) + " Cr";
+    if (Math.abs(num) >= 100000) return (num / 100000).toFixed(2) + " L";
+    if (Math.abs(num) >= 1000) return (num / 1000).toFixed(2) + " K";
     return num.toFixed(2);
   };
 
@@ -309,13 +311,13 @@ const OptionChain = () => {
   };
 
   const getCellColor = (value: number) => {
-    if (value > 0) return 'text-emerald-400';
-    if (value < 0) return 'text-red-400';
-    return 'text-muted-foreground';
+    if (value > 0) return "text-emerald-400";
+    if (value < 0) return "text-red-400";
+    return "text-muted-foreground";
   };
 
-  const isITM = (strike: number, type: 'call' | 'put') => {
-    if (type === 'call') return strike < spotPrice;
+  const isITM = (strike: number, type: "call" | "put") => {
+    if (type === "call") return strike < spotPrice;
     return strike > spotPrice;
   };
 
@@ -324,14 +326,14 @@ const OptionChain = () => {
     return diff <= 50;
   };
 
-  const getMaxOI = (type: 'call' | 'put') => {
+  const getMaxOI = (type: "call" | "put") => {
     const filteredData = getFilteredData();
     if (filteredData.length === 0) return 0;
-    
-    if (type === 'call') {
-      return Math.max(...filteredData.map(d => d.call_options.market_data.oi));
+
+    if (type === "call") {
+      return Math.max(...filteredData.map((d) => d.call_options.market_data.oi));
     }
-    return Math.max(...filteredData.map(d => d.put_options.market_data.oi));
+    return Math.max(...filteredData.map((d) => d.put_options.market_data.oi));
   };
 
   // Find where spot price should be inserted
@@ -345,23 +347,25 @@ const OptionChain = () => {
     return filtered.length;
   };
 
-  const maxCallOI = getMaxOI('call');
-  const maxPutOI = getMaxOI('put');
+  const maxCallOI = getMaxOI("call");
+  const maxPutOI = getMaxOI("put");
   const filteredData = getFilteredData();
   const spotPricePosition = getSpotPricePosition();
 
   if (authLoading) {
-    return <div className="min-h-screen bg-background flex items-center justify-center">
-      <RefreshCw className="w-8 h-8 animate-spin text-primary" />
-    </div>;
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <RefreshCw className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   const renderSpotPriceRow = () => (
     <TableRow ref={spotPriceRowRef} className="bg-primary/20 border-y-2 border-primary">
-      <TableCell colSpan={viewMode === 'ltp_oi' || viewMode === 'oi_iv' ? 9 : 9} className="py-2">
+      <TableCell colSpan={viewMode === "ltp_oi" || viewMode === "oi_iv" ? 9 : 9} className="py-2">
         <div className="flex items-center justify-center">
           <div className="bg-primary text-primary-foreground px-5 sm:px-6 py-2 rounded-full font-bold text-base sm:text-lg shadow-lg">
-            {spotPrice.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {spotPrice.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
         </div>
       </TableCell>
@@ -370,9 +374,11 @@ const OptionChain = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <TickerRibbon />
-      <Navbar />
-      
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
+
       <div className="container mx-auto px-2 sm:px-4 py-4">
         <Card className="bg-card border-border/30 shadow-xl">
           <CardContent className="p-3 sm:p-6">
@@ -389,7 +395,9 @@ const OptionChain = () => {
                       <>
                         <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
                         {indexSymbols.map((sym) => (
-                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                          <SelectItem key={sym} value={sym}>
+                            {sym}
+                          </SelectItem>
                         ))}
                       </>
                     )}
@@ -397,7 +405,9 @@ const OptionChain = () => {
                       <>
                         <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
                         {stockSymbols.map((sym) => (
-                          <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                          <SelectItem key={sym} value={sym}>
+                            {sym}
+                          </SelectItem>
                         ))}
                       </>
                     )}
@@ -413,7 +423,9 @@ const OptionChain = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {expiryDates.map((date) => (
-                      <SelectItem key={date} value={date}>{date}</SelectItem>
+                      <SelectItem key={date} value={date}>
+                        {date}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -426,8 +438,10 @@ const OptionChain = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['5', '7', '9', '11', '15', '20', '25'].map((count) => (
-                      <SelectItem key={count} value={count}>{count}</SelectItem>
+                    {["5", "7", "9", "11", "15", "20", "25"].map((count) => (
+                      <SelectItem key={count} value={count}>
+                        {count}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -439,33 +453,39 @@ const OptionChain = () => {
                   variant="outline"
                   size="icon"
                   className="h-9 w-9 border-primary/50"
-                  onClick={() => { enableHistoricalMode(); handleTimeChange('prev'); }}
+                  onClick={() => {
+                    enableHistoricalMode();
+                    handleTimeChange("prev");
+                  }}
                   disabled={!isHistoricalMode || TIME_SLOTS.indexOf(selectedTime) <= 0}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                
+
                 <Button
                   variant={isHistoricalMode ? "default" : "outline"}
-                  className={`h-9 px-3 flex items-center gap-2 ${isHistoricalMode ? 'bg-cyan-600 hover:bg-cyan-700' : 'border-primary/50'}`}
+                  className={`h-9 px-3 flex items-center gap-2 ${isHistoricalMode ? "bg-cyan-600 hover:bg-cyan-700" : "border-primary/50"}`}
                   onClick={enableHistoricalMode}
                 >
                   <Clock className="h-4 w-4" />
                   <span className="text-sm font-medium">
-                    {isHistoricalMode ? formatTimeDisplay(selectedTime) : 'Live'}
+                    {isHistoricalMode ? formatTimeDisplay(selectedTime) : "Live"}
                   </span>
                 </Button>
-                
+
                 <Button
                   variant="outline"
                   size="icon"
                   className="h-9 w-9 border-primary/50"
-                  onClick={() => { enableHistoricalMode(); handleTimeChange('next'); }}
+                  onClick={() => {
+                    enableHistoricalMode();
+                    handleTimeChange("next");
+                  }}
                   disabled={!isHistoricalMode || TIME_SLOTS.indexOf(selectedTime) >= TIME_SLOTS.length - 1}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
-                
+
                 {isHistoricalMode && (
                   <Button
                     variant="default"
@@ -478,60 +498,56 @@ const OptionChain = () => {
                 )}
               </div>
 
-              <Button 
-                onClick={fetchOptionChain} 
-                disabled={loadingChain} 
-                className="bg-primary hover:bg-primary/90 h-9"
-              >
+              <Button onClick={fetchOptionChain} disabled={loadingChain} className="bg-primary hover:bg-primary/90 h-9">
                 {loadingChain ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
                 Refresh
               </Button>
-              
+
               {/* Admin Palette Button */}
               <AdminPaletteButton />
             </div>
 
             {/* View Mode Tabs */}
             <div className="flex flex-nowrap items-center gap-2 mb-4 pb-4 border-b border-border/30 overflow-x-auto whitespace-nowrap -mx-2 px-2">
-              <Button 
-                variant={viewMode === 'ltp_oi' ? 'default' : 'outline'} 
+              <Button
+                variant={viewMode === "ltp_oi" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode('ltp_oi')}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'ltp_oi' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}`}
+                onClick={() => setViewMode("ltp_oi")}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "ltp_oi" ? "bg-cyan-600 hover:bg-cyan-700 border-cyan-600" : "border-border/50"}`}
               >
                 LTP & OI
               </Button>
-              <Button 
-                variant={viewMode === 'oi_iv' ? 'default' : 'outline'} 
+              <Button
+                variant={viewMode === "oi_iv" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode('oi_iv')}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'oi_iv' ? 'bg-cyan-600 hover:bg-cyan-700 border-cyan-600' : 'border-border/50'}`}
+                onClick={() => setViewMode("oi_iv")}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "oi_iv" ? "bg-cyan-600 hover:bg-cyan-700 border-cyan-600" : "border-border/50"}`}
               >
                 OI & IV
               </Button>
-              <Button 
-                variant={viewMode === 'ltp_greeks' ? 'default' : 'outline'} 
+              <Button
+                variant={viewMode === "ltp_greeks" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode('ltp_greeks')}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'ltp_greeks' ? 'bg-emerald-600 hover:bg-emerald-700 border-emerald-600' : 'border-border/50'}`}
+                onClick={() => setViewMode("ltp_greeks")}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "ltp_greeks" ? "bg-emerald-600 hover:bg-emerald-700 border-emerald-600" : "border-border/50"}`}
               >
                 LTP & Greeks
               </Button>
-              <Button 
-                variant={viewMode === 'oi_greeks' ? 'default' : 'outline'} 
+              <Button
+                variant={viewMode === "oi_greeks" ? "default" : "outline"}
                 size="sm"
-                onClick={() => setViewMode('oi_greeks')}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === 'oi_greeks' ? 'bg-amber-600 hover:bg-amber-700 border-amber-600' : 'border-border/50'}`}
+                onClick={() => setViewMode("oi_greeks")}
+                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "oi_greeks" ? "bg-amber-600 hover:bg-amber-700 border-amber-600" : "border-border/50"}`}
               >
                 OI & Greeks
               </Button>
             </div>
 
             {/* Option Chain Table */}
-            <div 
+            <div
               ref={tableContainerRef}
               className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact max-h-[70vh] overflow-y-auto"
-              style={{ WebkitOverflowScrolling: 'touch' }}
+              style={{ WebkitOverflowScrolling: "touch" }}
             >
               {loadingChain ? (
                 <div className="space-y-2">
@@ -543,86 +559,156 @@ const OptionChain = () => {
                 <Table className="min-w-[800px] table-fixed">
                   <TableHeader className="sticky top-0 z-30 bg-card">
                     <TableRow className="border-border/30">
-                      <TableHead colSpan={4} className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-2 sm:py-3">
+                      <TableHead
+                        colSpan={4}
+                        className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-2 sm:py-3"
+                      >
                         CALL
                       </TableHead>
                       <TableHead className="text-center bg-card font-bold text-sm py-2 sm:py-3 border-x border-border/30 w-[80px] sm:w-[100px]">
                         STRIKE
                       </TableHead>
-                      <TableHead colSpan={4} className="text-center bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2 sm:py-3">
+                      <TableHead
+                        colSpan={4}
+                        className="text-center bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2 sm:py-3"
+                      >
                         PUT
                       </TableHead>
                     </TableRow>
                     <TableRow className="border-border/30 bg-muted/10">
                       {/* Call Headers */}
-                      {viewMode === 'ltp_oi' && (
+                      {viewMode === "ltp_oi" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Chg%</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            OI (L)
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            COI
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            LTP
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Chg%
+                          </TableHead>
                         </>
                       )}
-                      {viewMode === 'oi_iv' && (
+                      {viewMode === "oi_iv" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vol</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            OI (L)
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            COI
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            IV
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Vol
+                          </TableHead>
                         </>
                       )}
-                      {viewMode === 'ltp_greeks' && (
+                      {viewMode === "ltp_greeks" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Theta</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vega</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            LTP
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Delta
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Theta
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Vega
+                          </TableHead>
                         </>
                       )}
-                      {viewMode === 'oi_greeks' && (
+                      {viewMode === "oi_greeks" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Gamma</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            OI
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Delta
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Gamma
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            IV
+                          </TableHead>
                         </>
                       )}
-                      
+
                       <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 bg-card border-x border-border/30 text-foreground font-medium w-[80px] sm:w-[100px]">
                         PCR
                       </TableHead>
-                      
+
                       {/* Put Headers */}
-                      {viewMode === 'ltp_oi' && (
+                      {viewMode === "ltp_oi" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Chg%</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Chg%
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            LTP
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            COI
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            OI (L)
+                          </TableHead>
                         </>
                       )}
-                      {viewMode === 'oi_iv' && (
+                      {viewMode === "oi_iv" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vol</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">COI</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI (L)</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Vol
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            IV
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            COI
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            OI (L)
+                          </TableHead>
                         </>
                       )}
-                      {viewMode === 'ltp_greeks' && (
+                      {viewMode === "ltp_greeks" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Vega</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Theta</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">LTP</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Vega
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Theta
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Delta
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            LTP
+                          </TableHead>
                         </>
                       )}
-                      {viewMode === 'oi_greeks' && (
+                      {viewMode === "oi_greeks" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">IV</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Gamma</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">Delta</TableHead>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">OI</TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            IV
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Gamma
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            Delta
+                          </TableHead>
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                            OI
+                          </TableHead>
                         </>
                       )}
                     </TableRow>
@@ -631,181 +717,220 @@ const OptionChain = () => {
                     {filteredData.map((row, index) => {
                       const callCOI = row.call_options.market_data.oi - row.call_options.market_data.prev_oi;
                       const putCOI = row.put_options.market_data.oi - row.put_options.market_data.prev_oi;
-                      const callITM = isITM(row.strike_price, 'call');
-                      const putITM = isITM(row.strike_price, 'put');
+                      const callITM = isITM(row.strike_price, "call");
+                      const putITM = isITM(row.strike_price, "put");
                       const isMaxCallOI = row.call_options.market_data.oi === maxCallOI;
                       const isMaxPutOI = row.put_options.market_data.oi === maxPutOI;
-                      
+
                       // Calculate LTP percentage change using close_price (previous day close) and ltp (current)
-                      const callClosePrice = row.call_options.market_data.close_price || row.call_options.market_data.ltp;
+                      const callClosePrice =
+                        row.call_options.market_data.close_price || row.call_options.market_data.ltp;
                       const putClosePrice = row.put_options.market_data.close_price || row.put_options.market_data.ltp;
-                      const callLTPChange = callClosePrice ? ((row.call_options.market_data.ltp - callClosePrice) / callClosePrice) * 100 : 0;
-                      const putLTPChange = putClosePrice ? ((row.put_options.market_data.ltp - putClosePrice) / putClosePrice) * 100 : 0;
-                      
+                      const callLTPChange = callClosePrice
+                        ? ((row.call_options.market_data.ltp - callClosePrice) / callClosePrice) * 100
+                        : 0;
+                      const putLTPChange = putClosePrice
+                        ? ((row.put_options.market_data.ltp - putClosePrice) / putClosePrice) * 100
+                        : 0;
+
                       // Calculate OI percentage change
                       const callPrevOI = row.call_options.market_data.prev_oi || 1;
                       const putPrevOI = row.put_options.market_data.prev_oi || 1;
                       const callOIChange = ((row.call_options.market_data.oi - callPrevOI) / callPrevOI) * 100;
                       const putOIChange = ((row.put_options.market_data.oi - putPrevOI) / putPrevOI) * 100;
-                      
+
                       const showSpotPrice = index === spotPricePosition;
-                      
+
                       return (
                         <>
                           {showSpotPrice && renderSpotPriceRow()}
-                          <TableRow 
-                            key={row.strike_price} 
+                          <TableRow
+                            key={row.strike_price}
                             className="border-border/20 hover:bg-muted/10 transition-colors"
                           >
                             {/* Call Data */}
-                            {viewMode === 'ltp_oi' && (
+                            {viewMode === "ltp_oi" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''} ${isMaxCallOI ? 'bg-cyan-500/20' : ''}`}>
-                                  <span className={getCellColor(callOIChange)}>{formatOI(row.call_options.market_data.oi)}</span>
+                                <TableCell
+                                  className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
+                                >
+                                  <span className={getCellColor(callOIChange)}>
+                                    {formatOI(row.call_options.market_data.oi)}
+                                  </span>
                                   <div className={`text-[10px] ${getCellColor(callOIChange)}`}>
-                                    {callOIChange >= 0 ? '+' : ''}{callOIChange.toFixed(2)}%
+                                    {callOIChange >= 0 ? "+" : ""}
+                                    {callOIChange.toFixed(2)}%
                                   </div>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   <span className={getCellColor(callCOI)}>{formatNumber(callCOI)}</span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 font-medium ${callITM ? 'bg-red-950/30' : ''}`}>
-                                  <span className={getCellColor(row.call_options.market_data.ltp - (row.call_options.market_data.bid_price || 0))}>
+                                <TableCell
+                                  className={`text-center text-xs py-2 font-medium ${callITM ? "bg-red-950/30" : ""}`}
+                                >
+                                  <span
+                                    className={getCellColor(
+                                      row.call_options.market_data.ltp - (row.call_options.market_data.bid_price || 0),
+                                    )}
+                                  >
                                     {row.call_options.market_data.ltp.toFixed(2)}
                                   </span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   <span className={getCellColor(callLTPChange)}>
-                                    {callLTPChange >= 0 ? '+' : ''}{callLTPChange.toFixed(2)}%
+                                    {callLTPChange >= 0 ? "+" : ""}
+                                    {callLTPChange.toFixed(2)}%
                                   </span>
                                 </TableCell>
                               </>
                             )}
-                            {viewMode === 'oi_iv' && (
+                            {viewMode === "oi_iv" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''} ${isMaxCallOI ? 'bg-cyan-500/20' : ''}`}>
+                                <TableCell
+                                  className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
+                                >
                                   {formatOI(row.call_options.market_data.oi)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   <span className={getCellColor(callCOI)}>{formatNumber(callCOI)}</span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {formatNumber(row.call_options.market_data.volume)}
                                 </TableCell>
                               </>
                             )}
-                            {viewMode === 'ltp_greeks' && (
+                            {viewMode === "ltp_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.market_data.ltp.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.theta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.vega.toFixed(4)}
                                 </TableCell>
                               </>
                             )}
-                            {viewMode === 'oi_greeks' && (
+                            {viewMode === "oi_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''} ${isMaxCallOI ? 'bg-cyan-500/20' : ''}`}>
+                                <TableCell
+                                  className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
+                                >
                                   {formatOI(row.call_options.market_data.oi)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.gamma.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? 'bg-red-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-red-950/30" : ""}`}>
                                   {row.call_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
                               </>
                             )}
-                            
+
                             {/* Strike Price with PCR */}
                             <TableCell className="text-center font-bold text-[11px] sm:text-sm py-1.5 sm:py-2 bg-card border-x border-border/30 w-[80px] sm:w-[100px]">
                               <div className="flex flex-col items-center">
-                                <span className="text-foreground">{row.strike_price.toLocaleString('en-IN')}</span>
-                                <span className="text-[9px] sm:text-[10px] text-muted-foreground">PCR: {row.pcr?.toFixed(2) || '-'}</span>
+                                <span className="text-foreground">{row.strike_price.toLocaleString("en-IN")}</span>
+                                <span className="text-[9px] sm:text-[10px] text-muted-foreground">
+                                  PCR: {row.pcr?.toFixed(2) || "-"}
+                                </span>
                               </div>
                             </TableCell>
-                            
+
                             {/* Put Data */}
-                            {viewMode === 'ltp_oi' && (
+                            {viewMode === "ltp_oi" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   <span className={getCellColor(putLTPChange)}>
-                                    {putLTPChange >= 0 ? '+' : ''}{putLTPChange.toFixed(2)}%
+                                    {putLTPChange >= 0 ? "+" : ""}
+                                    {putLTPChange.toFixed(2)}%
                                   </span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 font-medium ${putITM ? 'bg-emerald-950/30' : ''}`}>
-                                  <span className={getCellColor(row.put_options.market_data.ltp - (row.put_options.market_data.bid_price || 0))}>
+                                <TableCell
+                                  className={`text-center text-xs py-2 font-medium ${putITM ? "bg-emerald-950/30" : ""}`}
+                                >
+                                  <span
+                                    className={getCellColor(
+                                      row.put_options.market_data.ltp - (row.put_options.market_data.bid_price || 0),
+                                    )}
+                                  >
                                     {row.put_options.market_data.ltp.toFixed(2)}
                                   </span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   <span className={getCellColor(putCOI)}>{formatNumber(putCOI)}</span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''} ${isMaxPutOI ? 'bg-emerald-500/20' : ''}`}>
-                                  <span className={getCellColor(putOIChange)}>{formatOI(row.put_options.market_data.oi)}</span>
+                                <TableCell
+                                  className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
+                                >
+                                  <span className={getCellColor(putOIChange)}>
+                                    {formatOI(row.put_options.market_data.oi)}
+                                  </span>
                                   <div className={`text-[10px] ${getCellColor(putOIChange)}`}>
-                                    {putOIChange >= 0 ? '+' : ''}{putOIChange.toFixed(2)}%
+                                    {putOIChange >= 0 ? "+" : ""}
+                                    {putOIChange.toFixed(2)}%
                                   </div>
                                 </TableCell>
                               </>
                             )}
-                            {viewMode === 'oi_iv' && (
+                            {viewMode === "oi_iv" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {formatNumber(row.put_options.market_data.volume)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   <span className={getCellColor(putCOI)}>{formatNumber(putCOI)}</span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''} ${isMaxPutOI ? 'bg-emerald-500/20' : ''}`}>
+                                <TableCell
+                                  className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
+                                >
                                   {formatOI(row.put_options.market_data.oi)}
                                 </TableCell>
                               </>
                             )}
-                            {viewMode === 'ltp_greeks' && (
+                            {viewMode === "ltp_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.vega.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.theta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.market_data.ltp.toFixed(2)}
                                 </TableCell>
                               </>
                             )}
-                            {viewMode === 'oi_greeks' && (
+                            {viewMode === "oi_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.gamma.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""}`}>
                                   {row.put_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? 'bg-emerald-950/30' : ''} ${isMaxPutOI ? 'bg-emerald-500/20' : ''}`}>
+                                <TableCell
+                                  className={`text-center text-xs py-2 ${putITM ? "bg-emerald-950/30" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
+                                >
                                   {formatOI(row.put_options.market_data.oi)}
                                 </TableCell>
                               </>
@@ -817,9 +942,7 @@ const OptionChain = () => {
                   </TableBody>
                 </Table>
               ) : (
-                <div className="text-center py-12 text-muted-foreground">
-                  Loading option chain data...
-                </div>
+                <div className="text-center py-12 text-muted-foreground">Loading option chain data...</div>
               )}
             </div>
           </CardContent>

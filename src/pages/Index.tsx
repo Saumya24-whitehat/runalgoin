@@ -8,7 +8,10 @@ import { Footer } from "@/components/Footer";
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
-      <TickerRibbon />
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
       <Navbar />
       <main>
         <HeroSection />

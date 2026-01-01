@@ -4,7 +4,10 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 const Algo = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <TickerRibbon />
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
       <Navbar />
       <div className="flex-1">
         <iframe

@@ -597,9 +597,10 @@ const OptionBuilder = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <TickerRibbon />
-      <Navbar />
-
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
       {/* Header */}
       <div className="border-b border-border">
         <div className="container mx-auto px-4 py-3">

@@ -922,8 +922,10 @@ const OptionSimulator = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <TickerRibbon />
-      <Navbar />
+      <div className="sticky top-0 z-50">
+        <TickerRibbon />
+        <Navbar />
+      </div>
 
       <main className="flex-1 container mx-auto px-2 py-3">
         {/* Simulator Toolbar - Responsive */}
