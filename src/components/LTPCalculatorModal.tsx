@@ -5,6 +5,19 @@ import { Input } from '@/components/ui/input';
 import { X, Copy, Check, Clock, ChevronUp, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 
+export interface KundaliSpotData {
+  resistance: number;
+  resistanceStrike2: number;
+  support: number;
+  supportStrike2: number;
+  resistanceStatus?: string;
+  supportStatus?: string;
+  staticResistance?: number;
+  staticSupport?: number;
+  avgResistance?: number;
+  avgSupport?: number;
+}
+
 interface LTPCalculatorModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -19,6 +32,7 @@ interface LTPCalculatorModalProps {
   putDelta?: number;
   atr?: number;
   expiry: string;
+  kundaliData?: KundaliSpotData;
 }
 
 type TabType = 'spot' | 'future' | 'ltp';
@@ -36,6 +50,7 @@ const LTPCalculatorModal = ({
   callDelta = 0.5,
   putDelta = -0.5,
   atr = 50,
+  kundaliData,
 }: LTPCalculatorModalProps) => {
   const [activeTab, setActiveTab] = useState<TabType>('spot');
   const [staticTime, setStaticTime] = useState('09:30');
@@ -43,19 +58,19 @@ const LTPCalculatorModal = ({
   const [targetMode, setTargetMode] = useState<'spot' | 'ce' | 'pe'>('ce');
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // Mock data for resistance/support (in real app, calculate from option chain)
+  // Use Kundali data for resistance/support if available
   const resistanceData = {
-    staticLevel: (spotPrice * 1.002).toFixed(2),
-    average: (spotPrice * 1.003).toFixed(2),
-    current: (spotPrice * 1.001).toFixed(2),
-    status: 'Breaker Inactive',
+    staticLevel: kundaliData?.staticResistance?.toFixed(2) || kundaliData?.resistance?.toFixed(2) || (spotPrice * 1.002).toFixed(2),
+    average: kundaliData?.avgResistance?.toFixed(2) || kundaliData?.resistanceStrike2?.toFixed(2) || (spotPrice * 1.003).toFixed(2),
+    current: kundaliData?.resistance?.toFixed(2) || (spotPrice * 1.001).toFixed(2),
+    status: kundaliData?.resistanceStatus || 'Breaker Inactive',
   };
 
   const supportData = {
-    staticLevel: (spotPrice * 0.998).toFixed(2),
-    average: (spotPrice * 0.997).toFixed(2),
-    current: (spotPrice * 0.999).toFixed(2),
-    status: 'Breaker Active',
+    staticLevel: kundaliData?.staticSupport?.toFixed(2) || kundaliData?.support?.toFixed(2) || (spotPrice * 0.998).toFixed(2),
+    average: kundaliData?.avgSupport?.toFixed(2) || kundaliData?.supportStrike2?.toFixed(2) || (spotPrice * 0.997).toFixed(2),
+    current: kundaliData?.support?.toFixed(2) || (spotPrice * 0.999).toFixed(2),
+    status: kundaliData?.supportStatus || 'Breaker Active',
   };
 
   const copyToClipboard = async (text: string, fieldId: string) => {
