@@ -2705,5 +2705,355 @@ window.customIndicatorsGetter = function (PineJS) {
         };
       },
     },
+    {
+      name: "Double Top Bottom",
+      metainfo: {
+        _metainfoVersion: 51,
+        id: "Double Top Bottom@tv-basicstudies-1",
+        name: "Double Top Bottom",
+        description: "Double Top and Double Bottom Pattern Detection",
+        shortDescription: "DT/DB",
+        is_hidden_study: false,
+        is_price_study: true,
+        isCustomIndicator: true,
+        linkedToSeries: true,
+        format: {
+          type: "price",
+          precision: 2,
+        },
+        plots: [
+          {
+            id: "double_top_plot",
+            type: "shapes",
+          },
+          {
+            id: "double_bottom_plot",
+            type: "shapes",
+          },
+          {
+            id: "neckline_plot",
+            type: "line",
+          },
+        ],
+        defaults: {
+          styles: {
+            double_top_plot: {
+              color: "#F44336",
+              plottype: "shape_triangle_down",
+              location: "AboveBar",
+              size: "small",
+              visible: true,
+              text: "DT",
+            },
+            double_bottom_plot: {
+              color: "#4CAF50",
+              plottype: "shape_triangle_up",
+              location: "BelowBar",
+              size: "small",
+              visible: true,
+              text: "DB",
+            },
+            neckline_plot: {
+              linestyle: 2,
+              linewidth: 1,
+              plottype: 2,
+              trackPrice: false,
+              transparency: 50,
+              visible: true,
+              color: "#FF9800",
+            },
+          },
+          inputs: {
+            lookback: 20,
+            tolerance: 0.5,
+            confirmBars: 3,
+          },
+        },
+        styles: {
+          double_top_plot: {
+            title: "Double Top",
+            isHidden: false,
+          },
+          double_bottom_plot: {
+            title: "Double Bottom",
+            isHidden: false,
+          },
+          neckline_plot: {
+            title: "Neckline",
+            histogramBase: 0,
+            joinPoints: true,
+          },
+        },
+        inputs: [
+          {
+            id: "lookback",
+            name: "Lookback Period",
+            defval: 20,
+            type: "integer",
+            min: 5,
+            max: 100,
+          },
+          {
+            id: "tolerance",
+            name: "Price Tolerance (%)",
+            defval: 0.5,
+            type: "float",
+            min: 0.1,
+            max: 5,
+          },
+          {
+            id: "confirmBars",
+            name: "Confirmation Bars",
+            defval: 3,
+            type: "integer",
+            min: 1,
+            max: 10,
+          },
+        ],
+      },
+      constructor: function () {
+        this.init = function (context, inputCallback) {
+          this._context = context;
+          this._input = inputCallback;
+          
+          // Store historical highs and lows for pattern detection
+          this.highs = [];
+          this.lows = [];
+          this.times = [];
+          this.pivotHighs = [];
+          this.pivotLows = [];
+          this.lastDoubleTopTime = 0;
+          this.lastDoubleBottomTime = 0;
+          this.currentNeckline = null;
+        };
+
+        this.main = function (context, inputCallback) {
+          this._context = context;
+          this._input = inputCallback;
+
+          var time = PineJS.Std.time(this._context);
+          var lookback = this._input(0) || 20;
+          var tolerance = (this._input(1) || 0.5) / 100;
+          var confirmBars = this._input(2) || 3;
+
+          // Get current bar data
+          var high, low, close, open;
+          
+          if (window.bars && window.bars[time]) {
+            high = window.bars[time].high;
+            low = window.bars[time].low;
+            close = window.bars[time].close;
+            open = window.bars[time].open;
+          } else {
+            try {
+              high = PineJS.Std.high(this._context);
+              low = PineJS.Std.low(this._context);
+              close = PineJS.Std.close(this._context);
+              open = PineJS.Std.open(this._context);
+            } catch (e) {
+              return [NaN, NaN, NaN];
+            }
+          }
+
+          // Store bar data
+          this.highs.push(high);
+          this.lows.push(low);
+          this.times.push(time);
+
+          // Keep only lookback * 3 bars for efficiency
+          var maxBars = lookback * 3;
+          if (this.highs.length > maxBars) {
+            this.highs.shift();
+            this.lows.shift();
+            this.times.shift();
+          }
+
+          var doubleTop = NaN;
+          var doubleBottom = NaN;
+          var neckline = this.currentNeckline || NaN;
+
+          // Need at least lookback bars
+          if (this.highs.length < lookback) {
+            return [doubleTop, doubleBottom, neckline];
+          }
+
+          // Find pivot highs and lows
+          var pivotHigh = this.findPivotHigh(confirmBars);
+          var pivotLow = this.findPivotLow(confirmBars);
+
+          if (pivotHigh !== null) {
+            this.pivotHighs.push({ price: pivotHigh.price, time: pivotHigh.time, index: this.highs.length - confirmBars - 1 });
+            // Keep only recent pivots
+            if (this.pivotHighs.length > 10) this.pivotHighs.shift();
+          }
+
+          if (pivotLow !== null) {
+            this.pivotLows.push({ price: pivotLow.price, time: pivotLow.time, index: this.lows.length - confirmBars - 1 });
+            // Keep only recent pivots
+            if (this.pivotLows.length > 10) this.pivotLows.shift();
+          }
+
+          // Check for Double Top pattern
+          if (this.pivotHighs.length >= 2) {
+            var dtResult = this.detectDoubleTop(tolerance, lookback, time);
+            if (dtResult && dtResult.time !== this.lastDoubleTopTime) {
+              doubleTop = dtResult.price;
+              this.lastDoubleTopTime = dtResult.time;
+              this.currentNeckline = dtResult.neckline;
+              neckline = dtResult.neckline;
+            }
+          }
+
+          // Check for Double Bottom pattern
+          if (this.pivotLows.length >= 2) {
+            var dbResult = this.detectDoubleBottom(tolerance, lookback, time);
+            if (dbResult && dbResult.time !== this.lastDoubleBottomTime) {
+              doubleBottom = dbResult.price;
+              this.lastDoubleBottomTime = dbResult.time;
+              this.currentNeckline = dbResult.neckline;
+              neckline = dbResult.neckline;
+            }
+          }
+
+          return [doubleTop, doubleBottom, neckline];
+        };
+
+        this.findPivotHigh = function (confirmBars) {
+          var idx = this.highs.length - confirmBars - 1;
+          if (idx < confirmBars) return null;
+
+          var pivotPrice = this.highs[idx];
+          var isPivot = true;
+
+          // Check left side
+          for (var i = 1; i <= confirmBars; i++) {
+            if (this.highs[idx - i] >= pivotPrice) {
+              isPivot = false;
+              break;
+            }
+          }
+
+          // Check right side
+          if (isPivot) {
+            for (var j = 1; j <= confirmBars; j++) {
+              if (idx + j < this.highs.length && this.highs[idx + j] >= pivotPrice) {
+                isPivot = false;
+                break;
+              }
+            }
+          }
+
+          if (isPivot) {
+            return { price: pivotPrice, time: this.times[idx] };
+          }
+          return null;
+        };
+
+        this.findPivotLow = function (confirmBars) {
+          var idx = this.lows.length - confirmBars - 1;
+          if (idx < confirmBars) return null;
+
+          var pivotPrice = this.lows[idx];
+          var isPivot = true;
+
+          // Check left side
+          for (var i = 1; i <= confirmBars; i++) {
+            if (this.lows[idx - i] <= pivotPrice) {
+              isPivot = false;
+              break;
+            }
+          }
+
+          // Check right side
+          if (isPivot) {
+            for (var j = 1; j <= confirmBars; j++) {
+              if (idx + j < this.lows.length && this.lows[idx + j] <= pivotPrice) {
+                isPivot = false;
+                break;
+              }
+            }
+          }
+
+          if (isPivot) {
+            return { price: pivotPrice, time: this.times[idx] };
+          }
+          return null;
+        };
+
+        this.detectDoubleTop = function (tolerance, lookback, currentTime) {
+          // Look for two similar highs with a valley in between
+          for (var i = this.pivotHighs.length - 1; i >= 1; i--) {
+            var peak2 = this.pivotHighs[i];
+            var peak1 = this.pivotHighs[i - 1];
+
+            // Check if peaks are within tolerance
+            var priceDiff = Math.abs(peak2.price - peak1.price) / peak1.price;
+            if (priceDiff > tolerance) continue;
+
+            // Check if peaks are within lookback distance
+            var timeDiff = peak2.index - peak1.index;
+            if (timeDiff < 3 || timeDiff > lookback) continue;
+
+            // Find the valley (lowest low) between the two peaks
+            var valleyLow = Infinity;
+            for (var j = peak1.index + 1; j < peak2.index; j++) {
+              if (this.lows[j] < valleyLow) {
+                valleyLow = this.lows[j];
+              }
+            }
+
+            // Validate the pattern - valley should be significantly lower than peaks
+            var avgPeak = (peak1.price + peak2.price) / 2;
+            var valleyDepth = (avgPeak - valleyLow) / avgPeak;
+            
+            if (valleyDepth >= tolerance * 2) {
+              return {
+                price: avgPeak,
+                time: peak2.time,
+                neckline: valleyLow,
+              };
+            }
+          }
+          return null;
+        };
+
+        this.detectDoubleBottom = function (tolerance, lookback, currentTime) {
+          // Look for two similar lows with a peak in between
+          for (var i = this.pivotLows.length - 1; i >= 1; i--) {
+            var trough2 = this.pivotLows[i];
+            var trough1 = this.pivotLows[i - 1];
+
+            // Check if troughs are within tolerance
+            var priceDiff = Math.abs(trough2.price - trough1.price) / trough1.price;
+            if (priceDiff > tolerance) continue;
+
+            // Check if troughs are within lookback distance
+            var timeDiff = trough2.index - trough1.index;
+            if (timeDiff < 3 || timeDiff > lookback) continue;
+
+            // Find the peak (highest high) between the two troughs
+            var peakHigh = -Infinity;
+            for (var j = trough1.index + 1; j < trough2.index; j++) {
+              if (this.highs[j] > peakHigh) {
+                peakHigh = this.highs[j];
+              }
+            }
+
+            // Validate the pattern - peak should be significantly higher than troughs
+            var avgTrough = (trough1.price + trough2.price) / 2;
+            var peakHeight = (peakHigh - avgTrough) / avgTrough;
+            
+            if (peakHeight >= tolerance * 2) {
+              return {
+                price: avgTrough,
+                time: trough2.time,
+                neckline: peakHigh,
+              };
+            }
+          }
+          return null;
+        };
+      },
+    },
   ]);
 };
