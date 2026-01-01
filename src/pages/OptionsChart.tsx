@@ -211,9 +211,9 @@ const OptionsChart = () => {
 
           if (response.ok) {
             const data = await response.json();
-            if (data && data.candles && data.candles.length > 0) {
+            if (data && data.bars && data.bars.length > 0) {
               // API returns candles in format: [timestamp, open, high, low, close, volume, oi]
-              const bars = data.candles
+              const bars = data.bars
                 .map((candle: any[]) => ({
                   time: new Date(candle[0]).getTime(),
                   open: candle[1],
