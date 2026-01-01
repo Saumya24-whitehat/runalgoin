@@ -6,7 +6,6 @@ const corsHeaders = {
 };
 
 const BASE_URL = "https://runalgo.xyz/data/calculateLongShortPcr.php";
-const AUTH_TOKEN = "Bearer eyJpYXQiOjE3NjY5NjI5NzksImRhdGEiOiJTdW5haW5haWx1MTQzLiJ9";
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -15,6 +14,16 @@ serve(async (req) => {
   }
 
   try {
+    // Get bearer token from environment variable
+    const bearerToken = Deno.env.get('RUNALGO_KUNDALI_BEARER_TOKEN');
+    if (!bearerToken) {
+      console.error('Missing RUNALGO_KUNDALI_BEARER_TOKEN environment variable');
+      return new Response(
+        JSON.stringify({ error: 'Service configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { symbol, expiry_date, strikeCount = 5, historicalDate } = await req.json();
 
     console.log(`[pcr-long-short] Fetching data for symbol=${symbol}, expiry=${expiry_date}, strikeCount=${strikeCount}`);
@@ -32,7 +41,7 @@ serve(async (req) => {
       method: 'GET',
       headers: {
         'accept': '*/*',
-        'authorization': AUTH_TOKEN,
+        'authorization': `Bearer ${bearerToken}`,
         'content-type': 'application/json',
         'x-requested-with': 'XMLHttpRequest',
         'referer': 'https://runalgo.xyz/calculate_pcr_long_short.php',
