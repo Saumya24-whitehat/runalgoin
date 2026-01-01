@@ -10,6 +10,7 @@ declare global {
     tvWidget: any;
     customIndicatorsGetter: any;
     bars: Record<number, any>;
+    getIndicators: (id?: string) => any;
   }
 }
 
@@ -331,6 +332,26 @@ const OptionsChart = () => {
 
       widget.onChartReady(() => {
         console.log("TradingView chart ready");
+        
+        // Expose getIndicators function globally
+        window.getIndicators = (id?: string) => {
+          if (id) {
+            return window.tvWidget.activeChart().getStudyById(id);
+          }
+          return window.tvWidget.activeChart().getAllStudies();
+        };
+
+        // Make it available on parent/top window
+        if (window.parent) {
+          window.parent.getIndicators = window.getIndicators;
+        }
+        if (window.top) {
+          window.top.getIndicators = window.getIndicators;
+        }
+
+        // Make it a global property
+        (globalThis as any).getIndicators = window.getIndicators;
+
         setIsLoading(false);
       });
     } catch (err) {
