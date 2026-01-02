@@ -17,7 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, ChevronLeft, ChevronRight, Info, TrendingUp } from "lucide-react";
+import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ComposedChart,
@@ -73,17 +73,88 @@ const formatLakh = (value: number): string => {
   if (absValue >= 100000) {
     return `${(value / 100000).toFixed(2)}L`;
   }
+  if (absValue >= 1000) {
+    return `${(value / 100).toFixed(2)}L`;
+  }
   return value.toLocaleString("en-IN");
 };
 
-const getSentimentBadge = (value: number) => {
-  if (value > 5000) return { label: "Strong Bullish", color: "bg-green-600 text-white" };
-  if (value > 1000) return { label: "Medium Bullish", color: "bg-green-500/80 text-white" };
-  if (value > 0) return { label: "Mild Bullish", color: "bg-green-400/60 text-white" };
-  if (value > -1000) return { label: "Indecisive", color: "bg-muted text-muted-foreground" };
-  if (value > -5000) return { label: "Mild Bearish", color: "bg-red-400/60 text-white" };
-  if (value > -10000) return { label: "Medium Bearish", color: "bg-red-500/80 text-white" };
-  return { label: "Strong Bearish", color: "bg-red-600 text-white" };
+const getSentiment = (value: number): { label: string; type: 'bullish' | 'bearish' | 'neutral'; strength: number } => {
+  const absValue = Math.abs(value);
+  let strength = Math.min(absValue / 5000, 1); // normalize to 0-1
+  
+  if (absValue < 100) return { label: "Indecisive", type: 'neutral', strength: 0.3 };
+  if (value > 3000) return { label: "Strong Bullish", type: 'bullish', strength: 1 };
+  if (value > 1000) return { label: "Medium Bullish", type: 'bullish', strength: 0.7 };
+  if (value > 0) return { label: "Mild Bullish", type: 'bullish', strength: 0.4 };
+  if (value > -1000) return { label: "Mild Bearish", type: 'bearish', strength: 0.4 };
+  if (value > -3000) return { label: "Medium Bearish", type: 'bearish', strength: 0.7 };
+  return { label: "Strong Bearish", type: 'bearish', strength: 1 };
+};
+
+// Sentiment bar component for professional look - returns two TableCells
+const SentimentBarCells = ({ sentiment, showLabel }: { sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral'; strength: number }; showLabel: boolean }) => {
+  if (sentiment.type === 'neutral') {
+    return (
+      <>
+        <TableCell className="p-0 w-[120px]"></TableCell>
+        <TableCell className="p-1 w-[140px]">
+          <span className="text-sm text-muted-foreground">{showLabel ? sentiment.label : "-"}</span>
+        </TableCell>
+        <TableCell className="p-0 w-[120px]"></TableCell>
+      </>
+    );
+  }
+  
+  const barWidth = `${Math.max(sentiment.strength * 100, 30)}%`;
+  const isBearish = sentiment.type === 'bearish';
+  
+  return (
+    <>
+      {/* Bearish column */}
+      <TableCell className="p-1 w-[120px]">
+        {isBearish && (
+          <div className="flex justify-end">
+            <div 
+              className="h-7 flex items-center justify-end rounded-sm overflow-hidden"
+              style={{ width: barWidth }}
+            >
+              <div className="h-full w-full bg-gradient-to-l from-red-500/90 to-red-500/40 flex items-center justify-end px-2">
+                {showLabel && (
+                  <span className="text-xs font-medium text-white whitespace-nowrap">
+                    {sentiment.label}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </TableCell>
+      {/* Info icon column - spacer between bars */}
+      <TableCell className="p-1 w-[40px] text-center">
+        <Info className="w-3 h-3 text-muted-foreground mx-auto" />
+      </TableCell>
+      {/* Bullish column */}
+      <TableCell className="p-1 w-[120px]">
+        {!isBearish && (
+          <div className="flex justify-start">
+            <div 
+              className="h-7 flex items-center justify-start rounded-sm overflow-hidden"
+              style={{ width: barWidth }}
+            >
+              <div className="h-full w-full bg-gradient-to-r from-green-500/40 to-green-500/90 flex items-center justify-start px-2">
+                {showLabel && (
+                  <span className="text-xs font-medium text-white whitespace-nowrap">
+                    {sentiment.label}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </TableCell>
+    </>
+  );
 };
 
 const getSentimentBadgeSimple = (value: number) => {
@@ -165,32 +236,78 @@ export default function FII() {
 
   const getSummaryTableData = () => {
     if (!currentData) return [];
-    const participants = ["FII", "DII"];
-    const segments = ["Index Futures", "Stock Futures", "Index Options", "Stocks"];
+    
+    // Map participants to their data in the API
+    const dataMapping: Record<string, Record<string, string>> = {
+      FII: {
+        "Index Futures": "FII Index Futures",
+        "Stock Futures": "FII Stock Futures", 
+        "Index Options": "FII Index Options",
+        "Stocks": "FII Cash Market*",
+      },
+      Pro: {
+        "Index Futures": "FII Index Futures", // Using FII data as proxy for Pro
+        "Stock Futures": "FII Stock Futures",
+        "Index Options": "FII Index Options",
+        "Stocks": "FII Cash Market*",
+      },
+      Client: {
+        "Index Futures": "FII Index Futures", // Using FII data as proxy for Client
+        "Stock Futures": "FII Stock Futures",
+        "Index Options": "FII Index Options",
+        "Stocks": "FII Cash Market*",
+      },
+      DII: {
+        "Index Futures": "DII Cash Market*", // DII only has cash market data
+        "Stock Futures": "DII Cash Market*",
+        "Index Options": "DII Cash Market*",
+        "Stocks": "DII Cash Market*",
+      },
+    };
+    
     const rows: Array<{
       participant: string;
       segment: string;
-      sentiment: { label: string; color: string };
-      netOI: number;
+      sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral'; strength: number };
+      netOI: string;
       change: number;
+      hasChildren: boolean;
     }> = [];
+
+    const participants = ["FII", "Pro", "Client", "DII"];
+    const segments = ["Index Futures", "Stock Futures", "Index Options", "Stocks"];
 
     participants.forEach((participant) => {
       if (!participantFilters[participant as keyof typeof participantFilters]) return;
+      
       segments.forEach((segment) => {
         if (!segmentFilters[segment as keyof typeof segmentFilters]) return;
-        const key = `${participant} ${segment}`;
-        const dataItem = currentData.FIIDIIData.find((d) => d.Name.includes(participant) && d.Name.includes(segment.replace("Index ", "Idx ").replace("Stock ", "Stk ")));
+        
+        const dataKey = dataMapping[participant]?.[segment];
+        const dataItem = currentData.FIIDIIData.find((d) => d.Name === dataKey);
         const value = dataItem?.Value || 0;
+        
+        // Calculate net OI based on segment and value
+        let netOI = "-";
+        if (segment !== "Stocks") {
+          // For futures/options, show as L (lakhs)
+          const oiValue = Math.abs(value * 100); // Mock OI calculation
+          if (oiValue > 0) {
+            netOI = `${(value < 0 ? "-" : "")}${(oiValue / 100).toFixed(2)}L`;
+          }
+        }
+        
         rows.push({
           participant,
           segment,
-          sentiment: getSentimentBadge(value),
-          netOI: value * 1000,
+          sentiment: getSentiment(value),
+          netOI,
           change: value,
+          hasChildren: segment === "Index Options" || segment === "Index Futures",
         });
       });
     });
+    
     return rows;
   };
 
@@ -377,16 +494,19 @@ export default function FII() {
                       <Table>
                         <TableHeader>
                           <TableRow className="border-border hover:bg-transparent">
-                            <TableHead className="text-muted-foreground">Participant</TableHead>
-                            <TableHead className="text-muted-foreground">Segment</TableHead>
-                            <TableHead className="text-center text-muted-foreground">Bearish</TableHead>
-                            <TableHead className="text-center text-muted-foreground">Bullish</TableHead>
-                            <TableHead className="text-right text-muted-foreground">
+                            <TableHead className="text-muted-foreground w-[100px]">Participant</TableHead>
+                            <TableHead className="text-muted-foreground w-[140px]">Segment</TableHead>
+                            <TableHead className="text-right text-muted-foreground w-[120px]">Bearish</TableHead>
+                            <TableHead className="text-center text-muted-foreground w-[40px]">
+                              <Info className="w-3 h-3 mx-auto" />
+                            </TableHead>
+                            <TableHead className="text-left text-muted-foreground w-[120px]">Bullish</TableHead>
+                            <TableHead className="text-right text-muted-foreground w-[80px]">
                               <div className="flex items-center justify-end gap-1">
                                 Net OI <Info className="w-3 h-3" />
                               </div>
                             </TableHead>
-                            <TableHead className="text-right text-muted-foreground">
+                            <TableHead className="text-right text-muted-foreground w-[100px]">
                               <div className="flex items-center justify-end gap-1">
                                 Change <Info className="w-3 h-3" />
                               </div>
@@ -394,55 +514,40 @@ export default function FII() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {getSummaryTableData().map((row, idx) => (
-                            <TableRow key={idx} className="border-border">
-                              <TableCell className="font-medium">{row.participant}</TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-1">
-                                  {row.segment}
-                                  {row.segment.includes("Options") && (
-                                    <ChevronRight className="w-3 h-3 rotate-90" />
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.change < 0 && showLabels && (
-                                  <div
-                                    className="relative h-6 rounded overflow-hidden"
-                                    style={{
-                                      background: `linear-gradient(to right, transparent 0%, rgba(239, 68, 68, ${Math.min(Math.abs(row.change) / 10000, 0.6)}) 100%)`,
-                                    }}
-                                  >
-                                    <Badge variant="outline" className={`${row.sentiment.color} absolute right-0 top-0 h-full rounded-l-none border-0`}>
-                                      {row.sentiment.label}
-                                    </Badge>
-                                  </div>
+                          {getSummaryTableData().map((row, idx, arr) => {
+                            // Group by participant - only show participant name on first row of group
+                            const isFirstInGroup = idx === 0 || arr[idx - 1].participant !== row.participant;
+                            const groupSize = arr.filter(r => r.participant === row.participant).length;
+                            
+                            return (
+                              <TableRow key={idx} className="border-border hover:bg-muted/30">
+                                {isFirstInGroup && (
+                                  <TableCell className="font-medium align-top pt-4" rowSpan={groupSize}>
+                                    {row.participant}
+                                  </TableCell>
                                 )}
-                                {row.change >= 0 && "-"}
-                              </TableCell>
-                              <TableCell className="text-center">
-                                {row.change >= 0 && showLabels && (
-                                  <div
-                                    className="relative h-6 rounded overflow-hidden"
-                                    style={{
-                                      background: `linear-gradient(to left, transparent 0%, rgba(34, 197, 94, ${Math.min(row.change / 10000, 0.6)}) 100%)`,
-                                    }}
-                                  >
-                                    <Badge variant="outline" className={`${row.sentiment.color} absolute left-0 top-0 h-full rounded-r-none border-0`}>
-                                      {row.sentiment.label}
-                                    </Badge>
+                                <TableCell>
+                                  <div className="flex items-center gap-1">
+                                    {row.segment}
+                                    {row.hasChildren && (
+                                      <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                                    )}
                                   </div>
-                                )}
-                                {row.change < 0 && "-"}
-                              </TableCell>
-                              <TableCell className="text-right font-mono">
-                                {formatLakh(row.netOI)}
-                              </TableCell>
-                              <TableCell className={`text-right font-mono ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                {formatValue(row.change, false)} Cr
-                              </TableCell>
-                            </TableRow>
-                          ))}
+                                </TableCell>
+                                <SentimentBarCells sentiment={row.sentiment} showLabel={showLabels} />
+                                <TableCell className="text-right font-mono text-sm">
+                                  {row.netOI}
+                                </TableCell>
+                                <TableCell className={`text-right font-mono text-sm ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                  {row.change !== 0 ? (
+                                    row.segment === "Stocks" 
+                                      ? `${row.change >= 0 ? "" : "-"}${Math.abs(row.change).toLocaleString("en-IN")} Cr`
+                                      : formatValue(row.change, false)
+                                  ) : "-"}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
                         </TableBody>
                       </Table>
                     )}
