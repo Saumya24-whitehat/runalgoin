@@ -634,13 +634,14 @@ export default function FII() {
                         ))}
                       </div>
                     ) : (
-                      fiiData?.slice(0, 2).map((item, idx) => {
+                      fiiData?.slice(selectedDate, selectedDate + 2).map((item, idx) => {
                         const nifty = item.ClosePrice.find((p) => p.Symbol === "NIFTY");
-                        const bankNifty = item.ClosePrice.find((p) => p.Symbol === "SENSEX");
+                        const sensex = item.ClosePrice.find((p) => p.Symbol === "SENSEX");
+                        const isSelected = idx === 0;
                         return (
                           <div key={idx} className="border-b border-border pb-4 last:border-0">
                             <div className="text-sm text-muted-foreground mb-2">
-                              {idx === 0 ? `Today, ${format(parseISO(item.Date), "dd MMM")}` : format(parseISO(item.Date), "dd MMM, EEE")}
+                              {isSelected ? `Selected: ${format(parseISO(item.Date), "dd MMM yyyy")}` : format(parseISO(item.Date), "dd MMM, EEE")}
                             </div>
                             <div className="space-y-2">
                               <div>
@@ -656,11 +657,11 @@ export default function FII() {
                               <div>
                                 <div className="font-semibold">SENSEX</div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-lg">{bankNifty?.C.toLocaleString()}</span>
-                                  <span className={`text-sm ${(bankNifty?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                    {(bankNifty?.CZG || 0) >= 0 ? "+" : ""}{bankNifty?.CZG.toFixed(2)}%
+                                  <span className="text-lg">{sensex?.C.toLocaleString()}</span>
+                                  <span className={`text-sm ${(sensex?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                    {(sensex?.CZG || 0) >= 0 ? "+" : ""}{sensex?.CZG.toFixed(2)}%
                                   </span>
-                                  <TrendingUp className={`w-4 h-4 ${(bankNifty?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`} />
+                                  <TrendingUp className={`w-4 h-4 ${(sensex?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`} />
                                 </div>
                               </div>
                             </div>
