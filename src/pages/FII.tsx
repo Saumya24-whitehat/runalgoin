@@ -97,11 +97,11 @@ const SentimentBarCells = ({ sentiment, showLabel }: { sentiment: { label: strin
   if (sentiment.type === 'neutral') {
     return (
       <>
-        <TableCell className="p-0 w-[120px]"></TableCell>
-        <TableCell className="p-1 w-[140px]">
-          <span className="text-sm text-muted-foreground">{showLabel ? sentiment.label : "-"}</span>
+        <TableCell className="p-0 w-[100px]"></TableCell>
+        <TableCell className="p-0.5 w-[80px]">
+          <span className="text-[10px] text-muted-foreground">{showLabel ? sentiment.label : "-"}</span>
         </TableCell>
-        <TableCell className="p-0 w-[120px]"></TableCell>
+        <TableCell className="p-0 w-[100px]"></TableCell>
       </>
     );
   }
@@ -112,16 +112,16 @@ const SentimentBarCells = ({ sentiment, showLabel }: { sentiment: { label: strin
   return (
     <>
       {/* Bearish column */}
-      <TableCell className="p-1 w-[120px]">
+      <TableCell className="p-0.5 w-[100px]">
         {isBearish && (
           <div className="flex justify-end">
             <div 
-              className="h-7 flex items-center justify-end rounded-sm overflow-hidden"
+              className="h-4 flex items-center justify-end rounded-sm overflow-hidden"
               style={{ width: barWidth }}
             >
-              <div className="h-full w-full bg-gradient-to-l from-red-500/90 to-red-500/40 flex items-center justify-end px-2">
+              <div className="h-full w-full bg-gradient-to-l from-red-500/90 to-red-500/40 flex items-center justify-end px-1">
                 {showLabel && (
-                  <span className="text-xs font-medium text-white whitespace-nowrap">
+                  <span className="text-[9px] font-medium text-white whitespace-nowrap">
                     {sentiment.label}
                   </span>
                 )}
@@ -131,20 +131,20 @@ const SentimentBarCells = ({ sentiment, showLabel }: { sentiment: { label: strin
         )}
       </TableCell>
       {/* Info icon column - spacer between bars */}
-      <TableCell className="p-1 w-[40px] text-center">
-        <Info className="w-3 h-3 text-muted-foreground mx-auto" />
+      <TableCell className="p-0.5 w-[24px] text-center">
+        <Info className="w-2.5 h-2.5 text-muted-foreground mx-auto" />
       </TableCell>
       {/* Bullish column */}
-      <TableCell className="p-1 w-[120px]">
+      <TableCell className="p-0.5 w-[100px]">
         {!isBearish && (
           <div className="flex justify-start">
             <div 
-              className="h-7 flex items-center justify-start rounded-sm overflow-hidden"
+              className="h-4 flex items-center justify-start rounded-sm overflow-hidden"
               style={{ width: barWidth }}
             >
-              <div className="h-full w-full bg-gradient-to-r from-green-500/40 to-green-500/90 flex items-center justify-start px-2">
+              <div className="h-full w-full bg-gradient-to-r from-green-500/40 to-green-500/90 flex items-center justify-start px-1">
                 {showLabel && (
-                  <span className="text-xs font-medium text-white whitespace-nowrap">
+                  <span className="text-[9px] font-medium text-white whitespace-nowrap">
                     {sentiment.label}
                   </span>
                 )}
@@ -235,7 +235,9 @@ export default function FII() {
   }, [fiiData]);
 
   const getSummaryTableData = () => {
-    if (!currentData) return [];
+    if (!currentData || !fiiData || fiiData.length < 2) return [];
+    
+    const previousData = fiiData[selectedDate + 1]; // Previous day's data
     
     // Map participants to their data in the API
     const dataMapping: Record<string, Record<string, string>> = {
@@ -246,19 +248,19 @@ export default function FII() {
         "Stocks": "FII Cash Market*",
       },
       Pro: {
-        "Index Futures": "FII Index Futures", // Using FII data as proxy for Pro
+        "Index Futures": "FII Index Futures",
         "Stock Futures": "FII Stock Futures",
         "Index Options": "FII Index Options",
         "Stocks": "FII Cash Market*",
       },
       Client: {
-        "Index Futures": "FII Index Futures", // Using FII data as proxy for Client
+        "Index Futures": "FII Index Futures",
         "Stock Futures": "FII Stock Futures",
         "Index Options": "FII Index Options",
         "Stocks": "FII Cash Market*",
       },
       DII: {
-        "Index Futures": "DII Cash Market*", // DII only has cash market data
+        "Index Futures": "DII Cash Market*",
         "Stock Futures": "DII Cash Market*",
         "Index Options": "DII Cash Market*",
         "Stocks": "DII Cash Market*",
@@ -284,25 +286,28 @@ export default function FII() {
         if (!segmentFilters[segment as keyof typeof segmentFilters]) return;
         
         const dataKey = dataMapping[participant]?.[segment];
-        const dataItem = currentData.FIIDIIData.find((d) => d.Name === dataKey);
-        const value = dataItem?.Value || 0;
+        const currentItem = currentData.FIIDIIData.find((d) => d.Name === dataKey);
+        const previousItem = previousData?.FIIDIIData.find((d) => d.Name === dataKey);
+        
+        const currentValue = currentItem?.Value || 0;
+        const previousValue = previousItem?.Value || 0;
+        const change = currentValue - previousValue;
         
         // Calculate net OI based on segment and value
         let netOI = "-";
         if (segment !== "Stocks") {
-          // For futures/options, show as L (lakhs)
-          const oiValue = Math.abs(value * 100); // Mock OI calculation
+          const oiValue = Math.abs(currentValue * 100);
           if (oiValue > 0) {
-            netOI = `${(value < 0 ? "-" : "")}${(oiValue / 100).toFixed(2)}L`;
+            netOI = `${(currentValue < 0 ? "-" : "")}${(oiValue / 100).toFixed(2)}L`;
           }
         }
         
         rows.push({
           participant,
           segment,
-          sentiment: getSentiment(value),
+          sentiment: getSentiment(currentValue),
           netOI,
-          change: value,
+          change,
           hasChildren: segment === "Index Options" || segment === "Index Futures",
         });
       });
@@ -494,55 +499,54 @@ export default function FII() {
                       <Table>
                         <TableHeader>
                           <TableRow className="border-border hover:bg-transparent">
-                            <TableHead className="text-muted-foreground w-[100px]">Participant</TableHead>
-                            <TableHead className="text-muted-foreground w-[140px]">Segment</TableHead>
-                            <TableHead className="text-right text-muted-foreground w-[120px]">Bearish</TableHead>
-                            <TableHead className="text-center text-muted-foreground w-[40px]">
-                              <Info className="w-3 h-3 mx-auto" />
+                            <TableHead className="text-muted-foreground text-[11px] w-[80px] py-2">Participant</TableHead>
+                            <TableHead className="text-muted-foreground text-[11px] w-[100px] py-2">Segment</TableHead>
+                            <TableHead className="text-right text-muted-foreground text-[11px] w-[100px] py-2">Bearish</TableHead>
+                            <TableHead className="text-center text-muted-foreground w-[24px] py-2">
+                              <Info className="w-2.5 h-2.5 mx-auto" />
                             </TableHead>
-                            <TableHead className="text-left text-muted-foreground w-[120px]">Bullish</TableHead>
-                            <TableHead className="text-right text-muted-foreground w-[80px]">
-                              <div className="flex items-center justify-end gap-1">
-                                Net OI <Info className="w-3 h-3" />
+                            <TableHead className="text-left text-muted-foreground text-[11px] w-[100px] py-2">Bullish</TableHead>
+                            <TableHead className="text-right text-muted-foreground text-[11px] w-[70px] py-2">
+                              <div className="flex items-center justify-end gap-0.5">
+                                Net OI <Info className="w-2.5 h-2.5" />
                               </div>
                             </TableHead>
-                            <TableHead className="text-right text-muted-foreground w-[100px]">
-                              <div className="flex items-center justify-end gap-1">
-                                Change <Info className="w-3 h-3" />
+                            <TableHead className="text-right text-muted-foreground text-[11px] w-[80px] py-2">
+                              <div className="flex items-center justify-end gap-0.5">
+                                Change <Info className="w-2.5 h-2.5" />
                               </div>
                             </TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {getSummaryTableData().map((row, idx, arr) => {
-                            // Group by participant - only show participant name on first row of group
                             const isFirstInGroup = idx === 0 || arr[idx - 1].participant !== row.participant;
                             const groupSize = arr.filter(r => r.participant === row.participant).length;
                             
                             return (
                               <TableRow key={idx} className="border-border hover:bg-muted/30">
                                 {isFirstInGroup && (
-                                  <TableCell className="font-medium align-top pt-4" rowSpan={groupSize}>
+                                  <TableCell className="font-medium text-[11px] align-top pt-3" rowSpan={groupSize}>
                                     {row.participant}
                                   </TableCell>
                                 )}
-                                <TableCell>
-                                  <div className="flex items-center gap-1">
+                                <TableCell className="py-1.5">
+                                  <div className="flex items-center gap-0.5 text-[11px]">
                                     {row.segment}
                                     {row.hasChildren && (
-                                      <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                                      <ChevronDown className="w-2.5 h-2.5 text-muted-foreground" />
                                     )}
                                   </div>
                                 </TableCell>
                                 <SentimentBarCells sentiment={row.sentiment} showLabel={showLabels} />
-                                <TableCell className="text-right font-mono text-sm">
+                                <TableCell className="text-right font-mono text-[10px] py-1.5">
                                   {row.netOI}
                                 </TableCell>
-                                <TableCell className={`text-right font-mono text-sm ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                <TableCell className={`text-right font-mono text-[10px] py-1.5 ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
                                   {row.change !== 0 ? (
                                     row.segment === "Stocks" 
-                                      ? `${row.change >= 0 ? "" : "-"}${Math.abs(row.change).toLocaleString("en-IN")} Cr`
-                                      : formatValue(row.change, false)
+                                      ? `${row.change >= 0 ? "+" : ""}${row.change.toLocaleString("en-IN")} Cr`
+                                      : `${row.change >= 0 ? "+" : ""}${row.change.toFixed(2)}`
                                   ) : "-"}
                                 </TableCell>
                               </TableRow>
