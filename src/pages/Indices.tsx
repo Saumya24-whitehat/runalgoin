@@ -79,15 +79,16 @@ const Indices = () => {
       try {
         setLoading(true);
         const activeRange = timePeriodMap[timePeriod] || "week";
-        const { data, error } = await supabase.functions.invoke('indices-data', {
-          body: { activeRange }
+        const { data, error } = await supabase.functions.invoke("indices-data", {
+          body: { activeRange },
         });
-        
+
+        console.log(data);
         if (!error && data?.body?.indices?.table) {
           setIndicesData(data.body.indices.table);
         }
       } catch (err) {
-        console.error('Error fetching indices data:', err);
+        console.error("Error fetching indices data:", err);
       } finally {
         setLoading(false);
       }
@@ -106,26 +107,36 @@ const Indices = () => {
   // Get current time formatted
   const getCurrentTime = () => {
     const now = new Date();
-    return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toLowerCase();
+    return now
+      .toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })
+      .toLowerCase();
   };
 
   // Get change value based on time period
   const getChangeForPeriod = (index: IndexData): number => {
     switch (timePeriod) {
-      case "1D": return index.day_changeP;
-      case "1W": return index.week_changeP;
-      case "1M": return index.month_changeP;
-      case "3M": return index.qtr_changeP;
-      case "1Y": return index.year_changeP;
-      case "2Y": return index.three_year_changeP; // Using 3Y as proxy for 2Y
-      case "5Y": return index.five_year_changeP;
-      default: return index.week_changeP;
+      case "1D":
+        return index.day_changeP;
+      case "1W":
+        return index.week_changeP;
+      case "1M":
+        return index.month_changeP;
+      case "3M":
+        return index.qtr_changeP;
+      case "1Y":
+        return index.year_changeP;
+      case "2Y":
+        return index.three_year_changeP; // Using 3Y as proxy for 2Y
+      case "5Y":
+        return index.five_year_changeP;
+      default:
+        return index.week_changeP;
     }
   };
 
   // Filter by exchange and sort based on active tab
   const getProcessedData = () => {
-    let filtered = indicesData.filter(index => {
+    let filtered = indicesData.filter((index) => {
       const name = index.stock_column.get_full_name.toLowerCase();
       if (exchange === "NSE") {
         return name.includes("nifty") || name.includes("nse");
@@ -145,7 +156,7 @@ const Indices = () => {
     } else if (activeTab === "losers") {
       return filtered.sort((a, b) => getChangeForPeriod(a) - getChangeForPeriod(b));
     }
-    
+
     return filtered;
   };
 
@@ -161,12 +172,7 @@ const Indices = () => {
       <main className="container mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="h-8 w-8"
-          >
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <h1 className="text-2xl font-bold">Indices</h1>
@@ -200,7 +206,7 @@ const Indices = () => {
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex flex-wrap items-center gap-4">
             <span className="text-sm text-muted-foreground">{getCurrentDate()}</span>
-            
+
             {/* Time Period Buttons */}
             <div className="flex items-center gap-1">
               {timePeriods.map((period) => (
@@ -276,35 +282,38 @@ const Indices = () => {
                       const changePercent = getChangeForPeriod(index);
                       const isPositive = changePercent >= 0;
                       const change = (index.currentPrice * changePercent) / (100 + changePercent);
-                      
+
                       return (
-                        <tr 
-                          key={idx} 
+                        <tr
+                          key={idx}
                           className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
                         >
                           <td className="py-4 px-6">
-                            <span className="font-medium text-foreground">
-                              {index.stock_column.get_full_name}
-                            </span>
+                            <span className="font-medium text-foreground">{index.stock_column.get_full_name}</span>
                           </td>
                           <td className="py-4 px-6 text-right">
                             <span className="font-semibold text-foreground">
-                              {index.currentPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {index.currentPrice?.toLocaleString("en-IN", {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              })}
                             </span>
                           </td>
                           <td className="py-4 px-6 text-right">
-                            <span className={`flex items-center justify-end gap-1 ${isPositive ? "text-success" : "text-destructive"}`}>
-                              {isPositive ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : (
-                                <TrendingDown className="h-3 w-3" />
-                              )}
-                              {isPositive ? "+" : ""}{change?.toFixed(2)}
+                            <span
+                              className={`flex items-center justify-end gap-1 ${isPositive ? "text-success" : "text-destructive"}`}
+                            >
+                              {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                              {isPositive ? "+" : ""}
+                              {change?.toFixed(2)}
                             </span>
                           </td>
                           <td className="py-4 px-6 text-right">
-                            <span className={`flex items-center justify-end gap-1 ${isPositive ? "text-success" : "text-destructive"}`}>
-                              {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}{changePercent?.toFixed(1)}%
+                            <span
+                              className={`flex items-center justify-end gap-1 ${isPositive ? "text-success" : "text-destructive"}`}
+                            >
+                              {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}
+                              {changePercent?.toFixed(1)}%
                             </span>
                           </td>
                           <td className="py-4 px-6 text-right">
