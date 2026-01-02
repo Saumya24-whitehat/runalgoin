@@ -9,81 +9,91 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, TrendingUp, TrendingDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface TickerData {
-  ltp: number;
-  ch: number;
-  chPer: string;
-  c: string;
-  symbol: string;
+interface IndexData {
+  stock_column: {
+    pk: number;
+    get_full_name: string;
+    absolute_url: string;
+    NSEcode: string;
+    BSEcode: string;
+    ISIN: string;
+  };
+  week_changeP: number;
+  currentPrice: number;
+  companies_count: number;
+  advance: { value: number; color: string };
+  decline: { value: number; color: string };
+  adv_dec_ratio: { value: number | null; color: string | null };
+  abs_score: number;
+  yearHighLow: {
+    low: number;
+    high: number;
+    ltp: number;
+    changeP: number;
+  };
+  day_changeP: number;
+  month_changeP: number;
+  qtr_changeP: number;
+  halfyr_changeP: number;
+  year_changeP: number;
+  three_year_changeP: number;
+  five_year_changeP: number;
+  ten_year_changeP: number;
+  live_pe: number | null;
+  PB: number | null;
+  DIV: number | null;
+  eps: number | null;
 }
 
-// All NSE indices with display names
-const nseIndices = [
-  { key: "Nifty 50", displayName: "Nifty 50" },
-  { key: "Nifty Bank", displayName: "Bank Nifty" },
-  { key: "Nifty Financial Services", displayName: "Nifty Financial Services" },
-  { key: "NIFTY MIDCAP SELECT", displayName: "Nifty Midcap Select" },
-  { key: "Nifty 100", displayName: "Nifty 100" },
-  { key: "Nifty 200", displayName: "Nifty 200" },
-  { key: "Nifty 500", displayName: "Nifty 500" },
-  { key: "Nifty Next 50", displayName: "Nifty Next 50" },
-  { key: "Nifty IT", displayName: "Nifty IT" },
-  { key: "Nifty Auto", displayName: "Nifty Auto" },
-  { key: "Nifty PSU Bank", displayName: "Nifty PSU Bank" },
-  { key: "Nifty Pharma", displayName: "Nifty Pharma" },
-  { key: "Nifty Metal", displayName: "Nifty Metal" },
-  { key: "Nifty FMCG", displayName: "Nifty FMCG" },
-  { key: "Nifty Infra", displayName: "Nifty Infra" },
-  { key: "Nifty Private Bank", displayName: "Nifty Pvt Bank" },
-  { key: "Nifty Media", displayName: "Nifty Media" },
-  { key: "Nifty Realty", displayName: "Nifty Realty" },
-  { key: "Nifty Healthcare", displayName: "Nifty Healthcare" },
-  { key: "Nifty Consumer Durables", displayName: "Nifty Consumer Durables" },
-  { key: "Nifty Oil & Gas", displayName: "Nifty Oil & Gas" },
-  { key: "Nifty Smallcap", displayName: "Nifty Smallcap" },
-  { key: "Nifty Midcap", displayName: "Nifty Midcap" },
-  { key: "Nifty Energy", displayName: "Nifty Energy" },
-  { key: "Nifty Commodities", displayName: "Nifty Commodities" },
-  { key: "CPSE", displayName: "CPSE" },
-];
+interface ApiResponse {
+  body: {
+    indices: {
+      table: IndexData[];
+    };
+  };
+}
 
-// BSE indices
-const bseIndices = [
-  { key: "Sensex", displayName: "Sensex" },
-  { key: "BSE 100", displayName: "BSE 100" },
-  { key: "BSE 200", displayName: "BSE 200" },
-  { key: "BSE 500", displayName: "BSE 500" },
-  { key: "BSE Midcap", displayName: "BSE Midcap" },
-  { key: "BSE Smallcap", displayName: "BSE Smallcap" },
-];
+const timePeriodMap: Record<string, string> = {
+  "1D": "day",
+  "1W": "week",
+  "1M": "month",
+  "3M": "quarter",
+  "1Y": "year",
+  "2Y": "twoyear",
+  "5Y": "fiveyear",
+};
 
 const timePeriods = ["1D", "1W", "1M", "3M", "1Y", "2Y", "5Y"];
 
 const Indices = () => {
   const navigate = useNavigate();
-  const [tickerData, setTickerData] = useState<Record<string, TickerData> | null>(null);
+  const [indicesData, setIndicesData] = useState<IndexData[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"major" | "gainers" | "losers">("major");
   const [exchange, setExchange] = useState<"NSE" | "BSE">("NSE");
   const [timePeriod, setTimePeriod] = useState("5Y");
 
-  // Fetch ticker data
+  // Fetch indices data
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const { data, error } = await supabase.functions.invoke('ticker-data');
-        if (!error && data) {
-          setTickerData(data);
+        const activeRange = timePeriodMap[timePeriod] || "week";
+        const { data, error } = await supabase.functions.invoke('indices-data', {
+          body: { activeRange }
+        });
+        
+        if (!error && data?.body?.indices?.table) {
+          setIndicesData(data.body.indices.table);
         }
       } catch (err) {
-        console.error('Error fetching ticker data:', err);
+        console.error('Error fetching indices data:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [timePeriod]);
 
   // Get current date formatted
   const getCurrentDate = () => {
@@ -99,49 +109,47 @@ const Indices = () => {
     return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).toLowerCase();
   };
 
-  // Process indices data
+  // Get change value based on time period
+  const getChangeForPeriod = (index: IndexData): number => {
+    switch (timePeriod) {
+      case "1D": return index.day_changeP;
+      case "1W": return index.week_changeP;
+      case "1M": return index.month_changeP;
+      case "3M": return index.qtr_changeP;
+      case "1Y": return index.year_changeP;
+      case "2Y": return index.three_year_changeP; // Using 3Y as proxy for 2Y
+      case "5Y": return index.five_year_changeP;
+      default: return index.week_changeP;
+    }
+  };
+
+  // Filter by exchange and sort based on active tab
   const getProcessedData = () => {
-    if (!tickerData) return [];
-
-    const indices = exchange === "NSE" ? nseIndices : bseIndices;
-    
-    const processed = indices.map(index => {
-      const data = tickerData[index.key];
-      if (!data) {
-        return {
-          name: index.displayName,
-          ltp: null,
-          change: null,
-          changePercent: null,
-          isPositive: false,
-          lastUpdate: getCurrentTime(),
-        };
+    let filtered = indicesData.filter(index => {
+      const name = index.stock_column.get_full_name.toLowerCase();
+      if (exchange === "NSE") {
+        return name.includes("nifty") || name.includes("nse");
+      } else {
+        return name.includes("bse") || name.includes("sensex") || name.includes("s&p bse");
       }
+    });
 
-      const change = data.ch || 0;
-      const changePercent = parseFloat(data.chPer) || 0;
-
-      return {
-        name: index.displayName,
-        ltp: data.ltp,
-        change: change,
-        changePercent: changePercent,
-        isPositive: change >= 0,
-        lastUpdate: getCurrentTime(),
-      };
-    }).filter(item => item.ltp !== null);
+    // If no specific filter matches, show all
+    if (filtered.length === 0) {
+      filtered = indicesData;
+    }
 
     // Sort based on active tab
     if (activeTab === "gainers") {
-      return processed.sort((a, b) => (b.changePercent || 0) - (a.changePercent || 0));
+      return filtered.sort((a, b) => getChangeForPeriod(b) - getChangeForPeriod(a));
     } else if (activeTab === "losers") {
-      return processed.sort((a, b) => (a.changePercent || 0) - (b.changePercent || 0));
+      return filtered.sort((a, b) => getChangeForPeriod(a) - getChangeForPeriod(b));
     }
     
-    return processed;
+    return filtered;
   };
 
-  const indicesData = getProcessedData();
+  const processedData = getProcessedData();
 
   return (
     <div className="min-h-screen bg-background">
@@ -237,7 +245,7 @@ const Indices = () => {
               <div className="flex items-center justify-center py-20">
                 <div className="animate-pulse text-muted-foreground">Loading indices data...</div>
               </div>
-            ) : indicesData.length === 0 ? (
+            ) : processedData.length === 0 ? (
               <div className="flex items-center justify-center py-20">
                 <div className="text-muted-foreground">No data available</div>
               </div>
@@ -264,39 +272,47 @@ const Indices = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {indicesData.map((index, idx) => (
-                      <tr 
-                        key={idx} 
-                        className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
-                      >
-                        <td className="py-4 px-6">
-                          <span className="font-medium text-foreground">{index.name}</span>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <span className="font-semibold text-foreground">
-                            {index.ltp?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <span className={`flex items-center justify-end gap-1 ${index.isPositive ? "text-success" : "text-destructive"}`}>
-                            {index.isPositive ? (
-                              <TrendingUp className="h-3 w-3" />
-                            ) : (
-                              <TrendingDown className="h-3 w-3" />
-                            )}
-                            {index.isPositive ? "+" : ""}{index.change?.toFixed(2)}
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <span className={`flex items-center justify-end gap-1 ${index.isPositive ? "text-success" : "text-destructive"}`}>
-                            {index.isPositive ? "▲" : "▼"} {index.isPositive ? "+" : ""}{index.changePercent?.toFixed(1)}%
-                          </span>
-                        </td>
-                        <td className="py-4 px-6 text-right">
-                          <span className="text-muted-foreground text-sm">{index.lastUpdate}</span>
-                        </td>
-                      </tr>
-                    ))}
+                    {processedData.map((index, idx) => {
+                      const changePercent = getChangeForPeriod(index);
+                      const isPositive = changePercent >= 0;
+                      const change = (index.currentPrice * changePercent) / (100 + changePercent);
+                      
+                      return (
+                        <tr 
+                          key={idx} 
+                          className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
+                        >
+                          <td className="py-4 px-6">
+                            <span className="font-medium text-foreground">
+                              {index.stock_column.get_full_name}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <span className="font-semibold text-foreground">
+                              {index.currentPrice?.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <span className={`flex items-center justify-end gap-1 ${isPositive ? "text-success" : "text-destructive"}`}>
+                              {isPositive ? (
+                                <TrendingUp className="h-3 w-3" />
+                              ) : (
+                                <TrendingDown className="h-3 w-3" />
+                              )}
+                              {isPositive ? "+" : ""}{change?.toFixed(2)}
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <span className={`flex items-center justify-end gap-1 ${isPositive ? "text-success" : "text-destructive"}`}>
+                              {isPositive ? "▲" : "▼"} {isPositive ? "+" : ""}{changePercent?.toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="py-4 px-6 text-right">
+                            <span className="text-muted-foreground text-sm">{getCurrentTime()}</span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
