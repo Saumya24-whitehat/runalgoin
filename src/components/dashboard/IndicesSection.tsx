@@ -457,7 +457,7 @@ export function IndicesSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Indices</h2>
-        <a href="#" className="text-primary text-sm hover:underline">View All &gt;</a>
+        <a href="/indices" className="text-primary text-sm hover:underline">View All &gt;</a>
       </div>
 
       {/* Desktop Grid - 3 columns */}
