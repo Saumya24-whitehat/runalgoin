@@ -84,8 +84,8 @@ const Indices = () => {
         });
 
         console.log(data);
-        if (!error && data?.body?.indices?.table) {
-          setIndicesData(data.body.indices.table);
+        if (!error && data?.body?.indices?.tableData) {
+          setIndicesData(data.body.indices.tableData);
         }
       } catch (err) {
         console.error("Error fetching indices data:", err);
