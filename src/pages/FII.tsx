@@ -17,7 +17,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Calendar, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
+import { CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ComposedChart,
@@ -188,6 +190,40 @@ export default function FII() {
 
   const currentData = fiiData?.[selectedDate];
   const currentDate = currentData ? format(parseISO(currentData.Date), "dd MMM yyyy") : "-";
+  const currentDateParsed = currentData ? parseISO(currentData.Date) : new Date();
+
+  // Get all available dates for the calendar
+  const availableDates = useMemo(() => {
+    if (!fiiData) return [];
+    return fiiData.map((item) => parseISO(item.Date));
+  }, [fiiData]);
+
+  const handlePreviousDate = () => {
+    if (fiiData && selectedDate < fiiData.length - 1) {
+      setSelectedDate(selectedDate + 1);
+    }
+  };
+
+  const handleNextDate = () => {
+    if (selectedDate > 0) {
+      setSelectedDate(selectedDate - 1);
+    }
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    if (!date || !fiiData) return;
+    const dateIndex = fiiData.findIndex((item) => {
+      const itemDate = parseISO(item.Date);
+      return (
+        itemDate.getFullYear() === date.getFullYear() &&
+        itemDate.getMonth() === date.getMonth() &&
+        itemDate.getDate() === date.getDate()
+      );
+    });
+    if (dateIndex !== -1) {
+      setSelectedDate(dateIndex);
+    }
+  };
 
   const chartData = useMemo(() => {
     if (!fiiData) return [];
@@ -475,14 +511,42 @@ export default function FII() {
                         <span className="text-sm text-muted-foreground">How to interpret this data?</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handlePreviousDate}
+                          disabled={!fiiData || selectedDate >= fiiData.length - 1}
+                        >
                           <ChevronLeft className="w-4 h-4" />
                         </Button>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md">
-                          <Calendar className="w-4 h-4" />
-                          <span className="text-sm">{currentDate}</span>
-                        </div>
-                        <Button variant="ghost" size="sm">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" size="sm" className="gap-2 px-3">
+                              <CalendarIcon className="w-4 h-4" />
+                              <span className="text-sm">{currentDate}</span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0" align="center">
+                            <Calendar
+                              mode="single"
+                              selected={currentDateParsed}
+                              onSelect={handleDateSelect}
+                              disabled={(date) => !availableDates.some(
+                                (d) => d.getFullYear() === date.getFullYear() &&
+                                       d.getMonth() === date.getMonth() &&
+                                       d.getDate() === date.getDate()
+                              )}
+                              className="pointer-events-auto"
+                              initialFocus
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={handleNextDate}
+                          disabled={selectedDate <= 0}
+                        >
                           <ChevronRight className="w-4 h-4" />
                         </Button>
                       </div>
