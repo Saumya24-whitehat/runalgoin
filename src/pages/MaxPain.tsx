@@ -6,32 +6,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMaxPainData, MaxPainTimeEntry, MaxPainStrikeData } from "@/services/maxPainApi";
 import { useToast } from "@/hooks/use-toast";
-import { CalendarIcon, Loader2, RefreshCw, Timer, ChevronLeft, ChevronRight, Target, TrendingUp, TrendingDown, Minus, Info } from "lucide-react";
+import {
+  CalendarIcon,
+  Loader2,
+  RefreshCw,
+  Timer,
+  ChevronLeft,
+  ChevronRight,
+  Target,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Info,
+} from "lucide-react";
 import { format } from "date-fns";
 import {
   BarChart,
@@ -41,9 +34,12 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  ReferenceLine,
   Cell,
+  Legend,
 } from "recharts";
-import MaxPainChart from "@/components/maxpain/MaxPainChart";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -143,39 +139,42 @@ const MaxPain = () => {
   }, [selectedSymbol, toast]);
 
   // Fetch Max Pain data
-  const fetchData = useCallback(async (showLoader = true) => {
-    if (!selectedSymbol || !selectedExpiry) return;
+  const fetchData = useCallback(
+    async (showLoader = true) => {
+      if (!selectedSymbol || !selectedExpiry) return;
 
-    if (showLoader) setLoadingData(true);
+      if (showLoader) setLoadingData(true);
 
-    try {
-      const response = await fetchMaxPainData(
-        selectedSymbol,
-        selectedExpiry,
-        "1min",
-        historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined
-      );
+      try {
+        const response = await fetchMaxPainData(
+          selectedSymbol,
+          selectedExpiry,
+          "1min",
+          historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined,
+        );
 
-      if (response.DataWhole && response.DataWhole.length > 0) {
-        setMaxPainData(response.DataWhole);
-        setSelectedTimeIndex(response.DataWhole.length - 1);
-        setLatestEntry(response.DataWhole[response.DataWhole.length - 1]);
-        setLastRefresh(new Date());
-        setNextRefresh(new Date(Date.now() + AUTO_REFRESH_INTERVAL));
+        if (response.DataWhole && response.DataWhole.length > 0) {
+          setMaxPainData(response.DataWhole);
+          setSelectedTimeIndex(response.DataWhole.length - 1);
+          setLatestEntry(response.DataWhole[response.DataWhole.length - 1]);
+          setLastRefresh(new Date());
+          setNextRefresh(new Date(Date.now() + AUTO_REFRESH_INTERVAL));
+        }
+      } catch (err) {
+        console.error("Error fetching Max Pain data:", err);
+        if (showLoader) {
+          toast({
+            title: "Error",
+            description: "Failed to load Max Pain data",
+            variant: "destructive",
+          });
+        }
+      } finally {
+        if (showLoader) setLoadingData(false);
       }
-    } catch (err) {
-      console.error("Error fetching Max Pain data:", err);
-      if (showLoader) {
-        toast({
-          title: "Error",
-          description: "Failed to load Max Pain data",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      if (showLoader) setLoadingData(false);
-    }
-  }, [selectedSymbol, selectedExpiry, historicalDate, toast]);
+    },
+    [selectedSymbol, selectedExpiry, historicalDate, toast],
+  );
 
   // Auto-fetch when selections change
   useEffect(() => {
@@ -284,6 +283,7 @@ const MaxPain = () => {
     maxPain: entry.maxPainStrike,
   }));
 
+  console.log(priceHistoryData);
   const formatLargeNumber = (value: number) => {
     if (value >= 1e9) return (value / 1e9).toFixed(2) + "B";
     if (value >= 1e7) return (value / 1e7).toFixed(2) + "Cr";
@@ -295,11 +295,20 @@ const MaxPain = () => {
     <div className="min-h-screen bg-background">
       <Helmet>
         <title>Max Pain Calculator | Options Max Pain Analysis for Nifty & Bank Nifty</title>
-        <meta name="description" content="Free Max Pain calculator for Nifty 50, Bank Nifty & all F&O stocks. Analyze option chain data, track intraday max pain changes, and make informed trading decisions." />
-        <meta name="keywords" content="max pain, options max pain, nifty max pain, bank nifty max pain, option pain theory, options trading, strike price analysis" />
+        <meta
+          name="description"
+          content="Free Max Pain calculator for Nifty 50, Bank Nifty & all F&O stocks. Analyze option chain data, track intraday max pain changes, and make informed trading decisions."
+        />
+        <meta
+          name="keywords"
+          content="max pain, options max pain, nifty max pain, bank nifty max pain, option pain theory, options trading, strike price analysis"
+        />
         <link rel="canonical" href="https://runalgo.xyz/max-pain" />
         <meta property="og:title" content="Max Pain Calculator | Options Max Pain Analysis" />
-        <meta property="og:description" content="Track real-time max pain levels for Nifty, Bank Nifty and all F&O stocks. Free intraday max pain analysis tool." />
+        <meta
+          property="og:description"
+          content="Track real-time max pain levels for Nifty, Bank Nifty and all F&O stocks. Free intraday max pain analysis tool."
+        />
         <meta property="og:type" content="website" />
       </Helmet>
       <div className="sticky top-0 z-50">
@@ -324,7 +333,9 @@ const MaxPain = () => {
                       <>
                         <div className="px-2 py-1 text-[10px] font-semibold text-primary bg-muted/50">INDEX</div>
                         {symbols.indexSymbols.map((sym) => (
-                          <SelectItem key={sym} value={sym} className="text-[11px]">{sym}</SelectItem>
+                          <SelectItem key={sym} value={sym} className="text-[11px]">
+                            {sym}
+                          </SelectItem>
                         ))}
                       </>
                     )}
@@ -332,7 +343,9 @@ const MaxPain = () => {
                       <>
                         <div className="px-2 py-1 text-[10px] font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
                         {symbols.stockSymbols.map((sym) => (
-                          <SelectItem key={sym} value={sym} className="text-[11px]">{sym}</SelectItem>
+                          <SelectItem key={sym} value={sym} className="text-[11px]">
+                            {sym}
+                          </SelectItem>
                         ))}
                       </>
                     )}
@@ -353,7 +366,9 @@ const MaxPain = () => {
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
                     {expiryDates.map((date) => (
-                      <SelectItem key={date} value={date} className="text-[11px]">{date}</SelectItem>
+                      <SelectItem key={date} value={date} className="text-[11px]">
+                        {date}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -364,7 +379,10 @@ const MaxPain = () => {
                 <label className="text-[10px] font-medium text-muted-foreground">Historical</label>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary h-8 text-[11px]">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-left font-normal bg-secondary h-8 text-[11px]"
+                    >
                       <CalendarIcon className="mr-2 h-3 w-3" />
                       {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
                     </Button>
@@ -436,9 +454,7 @@ const MaxPain = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                {lastRefresh && (
-                  <span>Updated: {format(lastRefresh, "HH:mm:ss")}</span>
-                )}
+                {lastRefresh && <span>Updated: {format(lastRefresh, "HH:mm:ss")}</span>}
                 {countdown && (
                   <span className="flex items-center gap-1">
                     <Timer className="h-3 w-3" /> {countdown}
@@ -536,15 +552,29 @@ const MaxPain = () => {
                     </DialogHeader>
                     <div className="space-y-4 text-sm text-muted-foreground">
                       <p>
-                        <strong className="text-foreground">Max Pain</strong> is the strike price where option buyers (both Call and Put) would lose the maximum amount of money at expiration. It represents the point where option sellers (writers) would profit the most.
+                        <strong className="text-foreground">Max Pain</strong> is the strike price where option buyers
+                        (both Call and Put) would lose the maximum amount of money at expiration. It represents the
+                        point where option sellers (writers) would profit the most.
                       </p>
                       <div>
                         <h4 className="font-semibold text-foreground mb-2">How to use this page:</h4>
                         <ul className="list-disc list-inside space-y-1">
-                          <li><strong>Strike-wise Pain Data:</strong> Shows the pain value at each strike. The highlighted row is the current Max Pain strike.</li>
-                          <li><strong>Pain Distribution Chart:</strong> Visual representation of CE and PE pain across strikes. Highest bar indicates Max Pain.</li>
-                          <li><strong>Index vs Max Pain Chart:</strong> Track how spot price moves relative to Max Pain throughout the day.</li>
-                          <li><strong>Trend Indicator:</strong> Shows if spot is above or below Max Pain and by what percentage.</li>
+                          <li>
+                            <strong>Strike-wise Pain Data:</strong> Shows the pain value at each strike. The highlighted
+                            row is the current Max Pain strike.
+                          </li>
+                          <li>
+                            <strong>Pain Distribution Chart:</strong> Visual representation of CE and PE pain across
+                            strikes. Highest bar indicates Max Pain.
+                          </li>
+                          <li>
+                            <strong>Index vs Max Pain Chart:</strong> Track how spot price moves relative to Max Pain
+                            throughout the day.
+                          </li>
+                          <li>
+                            <strong>Trend Indicator:</strong> Shows if spot is above or below Max Pain and by what
+                            percentage.
+                          </li>
                         </ul>
                       </div>
                       <div>
@@ -578,7 +608,9 @@ const MaxPain = () => {
                         key={row.strike}
                         className={row.strike === latestEntry?.maxPainStrike ? "bg-destructive/10" : ""}
                       >
-                        <TableCell className={`font-medium ${row.strike === latestEntry?.maxPainStrike ? "text-destructive font-bold" : ""}`}>
+                        <TableCell
+                          className={`font-medium ${row.strike === latestEntry?.maxPainStrike ? "text-destructive font-bold" : ""}`}
+                        >
                           {row.strike}
                         </TableCell>
                         <TableCell className="text-right text-success">{formatLargeNumber(row.CE)}</TableCell>
@@ -657,16 +689,93 @@ const MaxPain = () => {
               </CardContent>
             </Card>
 
-            {/* Line Chart - Price History (Lightweight Charts) */}
+            {/* Line Chart - Price History */}
             <Card className="bg-card/50 border-border/50">
               <CardHeader className="p-3 pb-2">
                 <CardTitle className="text-sm">Index Price vs Max Pain</CardTitle>
               </CardHeader>
               <CardContent className="p-3 pt-0">
-                <MaxPainChart 
-                  data={priceHistoryData} 
-                  currentMaxPain={latestEntry?.maxPainStrike || 0} 
-                />
+                <div className="h-[230px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={priceHistoryData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis
+                        dataKey="time"
+                        tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis
+                        domain={[
+                          (dataMin: number) => {
+                            const allValues = priceHistoryData.flatMap((d) => [d.index, d.maxPain]);
+                            const min = Math.min(...allValues);
+                            return Math.floor(min - 100);
+                          },
+                          (dataMax: number) => {
+                            const allValues = priceHistoryData.flatMap((d) => [d.index, d.maxPain]);
+                            const max = Math.max(...allValues);
+                            return Math.ceil(max + 100);
+                          },
+                        ]}
+                        tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
+                        width={55}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--popover))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                          fontSize: "10px",
+                        }}
+                        formatter={(value: number, name: string) => [
+                          value.toFixed(2),
+                          name === "index" ? "Nifty Price" : name === "maxPain" ? "Intraday Max Pain" : name,
+                        ]}
+                        labelFormatter={(label) => `Time: ${label}`}
+                      />
+                      <Legend
+                        verticalAlign="top"
+                        height={30}
+                        formatter={(value) => {
+                          if (value === "index") return "Nifty Price";
+                          if (value === "maxPain") return "Intraday Max Pain";
+                          return value;
+                        }}
+                        wrapperStyle={{ fontSize: "10px" }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="index"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={false}
+                        name="index"
+                      />
+                      <Line
+                        type="stepAfter"
+                        dataKey="maxPain"
+                        stroke="hsl(217 91% 60%)"
+                        strokeWidth={2}
+                        strokeDasharray="5 5"
+                        dot={false}
+                        name="maxPain"
+                      />
+                      {latestEntry && (
+                        <ReferenceLine
+                          y={latestEntry.maxPainStrike}
+                          stroke="hsl(var(--destructive))"
+                          strokeDasharray="5 5"
+                          label={{
+                            value: `Current: ${latestEntry.maxPainStrike}`,
+                            position: "right",
+                            fontSize: 9,
+                            fill: "hsl(var(--destructive))",
+                          }}
+                        />
+                      )}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </CardContent>
             </Card>
           </div>
