@@ -83,9 +83,9 @@ const Indices = () => {
           body: { activeRange },
         });
 
-        console.log(data);
-        if (!error && data?.body?.indices?.tableData) {
-          setIndicesData(data.body.indices.tableData);
+        console.log(data?.body?.index?.tableData);
+        if (!error && data?.body?.index?.tableData) {
+          setIndicesData(data.body.index.tableData);
         }
       } catch (err) {
         console.error("Error fetching indices data:", err);
