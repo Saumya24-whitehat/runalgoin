@@ -28,6 +28,7 @@ import FutureRollover from "./pages/FutureRollover";
 import MarketBreadth from "./pages/MarketBreadth";
 import OptionsChart from "./pages/OptionsChart";
 import Indices from "./pages/Indices";
+import FII from "./pages/FII";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="/market-breadth" element={<MarketBreadth />} />
               <Route path="/options-chart" element={<OptionsChart />} />
               <Route path="/indices" element={<Indices />} />
+              <Route path="/fii" element={<FII />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
