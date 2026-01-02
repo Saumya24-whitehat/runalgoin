@@ -81,21 +81,30 @@ const formatLakh = (value: number): string => {
   return value.toLocaleString("en-IN");
 };
 
-const getSentiment = (value: number): { label: string; type: 'bullish' | 'bearish' | 'neutral'; strength: number } => {
+const getSentiment = (value: number): { label: string; type: 'bullish' | 'bearish' | 'neutral' } => {
   const absValue = Math.abs(value);
-  let strength = Math.min(absValue / 5000, 1); // normalize to 0-1
   
-  if (absValue < 100) return { label: "Indecisive", type: 'neutral', strength: 0.3 };
-  if (value > 3000) return { label: "Strong Bullish", type: 'bullish', strength: 1 };
-  if (value > 1000) return { label: "Medium Bullish", type: 'bullish', strength: 0.7 };
-  if (value > 0) return { label: "Mild Bullish", type: 'bullish', strength: 0.4 };
-  if (value > -1000) return { label: "Mild Bearish", type: 'bearish', strength: 0.4 };
-  if (value > -3000) return { label: "Medium Bearish", type: 'bearish', strength: 0.7 };
-  return { label: "Strong Bearish", type: 'bearish', strength: 1 };
+  if (absValue < 100) return { label: "Indecisive", type: 'neutral' };
+  if (value > 3000) return { label: "Strong Bullish", type: 'bullish' };
+  if (value > 1000) return { label: "Medium Bullish", type: 'bullish' };
+  if (value > 0) return { label: "Mild Bullish", type: 'bullish' };
+  if (value > -1000) return { label: "Mild Bearish", type: 'bearish' };
+  if (value > -3000) return { label: "Medium Bearish", type: 'bearish' };
+  return { label: "Strong Bearish", type: 'bearish' };
 };
 
 // Sentiment bar component for professional look - returns two TableCells
-const SentimentBarCells = ({ sentiment, showLabel }: { sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral'; strength: number }; showLabel: boolean }) => {
+const SentimentBarCells = ({ 
+  sentiment, 
+  showLabel, 
+  value, 
+  maxValue 
+}: { 
+  sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' }; 
+  showLabel: boolean;
+  value: number;
+  maxValue: number;
+}) => {
   if (sentiment.type === 'neutral') {
     return (
       <>
@@ -108,7 +117,10 @@ const SentimentBarCells = ({ sentiment, showLabel }: { sentiment: { label: strin
     );
   }
   
-  const barWidth = `${Math.max(sentiment.strength * 100, 30)}%`;
+  // Calculate bar width based on actual value relative to max value
+  const absValue = Math.abs(value);
+  const normalizedWidth = maxValue > 0 ? (absValue / maxValue) : 0;
+  const barWidth = `${Math.max(normalizedWidth * 100, 20)}%`;
   const isBearish = sentiment.type === 'bearish';
   
   return (
@@ -306,9 +318,10 @@ export default function FII() {
     const rows: Array<{
       participant: string;
       segment: string;
-      sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral'; strength: number };
+      sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
       netOI: string;
       change: number;
+      value: number;
       hasChildren: boolean;
     }> = [];
 
@@ -344,6 +357,7 @@ export default function FII() {
           sentiment: getSentiment(currentValue),
           netOI,
           change,
+          value: currentValue,
           hasChildren: segment === "Index Options" || segment === "Index Futures",
         });
       });
@@ -351,6 +365,11 @@ export default function FII() {
     
     return rows;
   };
+  
+  const summaryTableData = getSummaryTableData();
+  const maxValue = useMemo(() => {
+    return Math.max(...summaryTableData.map(row => Math.abs(row.value)), 1);
+  }, [summaryTableData]);
 
   const getHistoryData = () => {
     if (!fiiData) return [];
@@ -583,7 +602,7 @@ export default function FII() {
                           </TableRow>
                         </TableHeader>
                         <TableBody>
-                          {getSummaryTableData().map((row, idx, arr) => {
+                          {summaryTableData.map((row, idx, arr) => {
                             const isFirstInGroup = idx === 0 || arr[idx - 1].participant !== row.participant;
                             const groupSize = arr.filter(r => r.participant === row.participant).length;
                             
@@ -602,7 +621,12 @@ export default function FII() {
                                     )}
                                   </div>
                                 </TableCell>
-                                <SentimentBarCells sentiment={row.sentiment} showLabel={showLabels} />
+                                <SentimentBarCells 
+                                  sentiment={row.sentiment} 
+                                  showLabel={showLabels} 
+                                  value={row.value}
+                                  maxValue={maxValue}
+                                />
                                 <TableCell className="text-right font-mono text-[10px] py-1.5">
                                   {row.netOI}
                                 </TableCell>
