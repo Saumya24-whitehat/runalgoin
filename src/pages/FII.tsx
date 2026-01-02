@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -147,12 +147,14 @@ const SentimentBarCells = ({
       </TableCell>
       {/* Info icon column - spacer between bars */}
       <TableCell className="p-0.5 w-[24px] text-center">
-        <TooltipProvider>
+        <TooltipProvider delayDuration={100}>
           <UITooltip>
             <TooltipTrigger asChild>
-              <Info className="w-2.5 h-2.5 text-muted-foreground mx-auto cursor-help" />
+              <span className="inline-flex cursor-help">
+                <Info className="w-2.5 h-2.5 text-muted-foreground mx-auto" />
+              </span>
             </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-[200px] text-xs">
+            <TooltipContent side="top" className="max-w-[200px] text-xs z-50">
               <p>Bar width shows relative position size. Sentiment label indicates market outlook based on net value.</p>
             </TooltipContent>
           </UITooltip>
@@ -191,6 +193,7 @@ export default function FII() {
   const [activeTab, setActiveTab] = useState("summary");
   const [selectedDate, setSelectedDate] = useState(0);
   const [showLabels, setShowLabels] = useState(true);
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [participantFilters, setParticipantFilters] = useState({
     FII: true,
     Pro: true,
@@ -203,6 +206,18 @@ export default function FII() {
     "Index Options": true,
     "Stocks": true,
   });
+
+  const toggleRowExpanded = (key: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  };
 
   const { data: fiiData, isLoading, error } = useQuery({
     queryKey: ["fii-data"],
@@ -333,6 +348,12 @@ export default function FII() {
       change: number;
       value: number;
       hasChildren: boolean;
+      childData?: Array<{
+        name: string;
+        value: number;
+        change: number;
+        sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
+      }>;
     }> = [];
 
     const participants = ["FII", "Pro", "Client", "DII"];
@@ -360,6 +381,27 @@ export default function FII() {
             netOI = `${(currentValue < 0 ? "-" : "")}${(oiValue / 100).toFixed(2)}L`;
           }
         }
+
+        // Get child data for Index Futures and Index Options
+        let childData: Array<{
+          name: string;
+          value: number;
+          change: number;
+          sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
+        }> | undefined;
+
+        if ((segment === "Index Futures" || segment === "Index Options") && currentItem?.ChildData) {
+          childData = currentItem.ChildData.map((child) => {
+            const prevChild = previousItem?.ChildData?.find(c => c.Name === child.Name);
+            const childChange = child.Value - (prevChild?.Value || 0);
+            return {
+              name: child.Name,
+              value: child.Value,
+              change: childChange,
+              sentiment: getSentiment(child.Value),
+            };
+          });
+        }
         
         rows.push({
           participant,
@@ -368,7 +410,8 @@ export default function FII() {
           netOI,
           change,
           value: currentValue,
-          hasChildren: segment === "Index Options" || segment === "Index Futures",
+          hasChildren: (segment === "Index Options" || segment === "Index Futures") && !!childData && childData.length > 0,
+          childData,
         });
       });
     });
@@ -596,12 +639,14 @@ export default function FII() {
                             <TableHead className="text-muted-foreground text-[11px] w-[100px] py-2">Segment</TableHead>
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[100px] py-2">Bearish</TableHead>
                             <TableHead className="text-center text-muted-foreground w-[24px] py-2">
-                              <TooltipProvider>
+                              <TooltipProvider delayDuration={100}>
                                 <UITooltip>
                                   <TooltipTrigger asChild>
-                                    <Info className="w-2.5 h-2.5 mx-auto cursor-help" />
+                                    <span className="inline-flex cursor-help">
+                                      <Info className="w-2.5 h-2.5 mx-auto" />
+                                    </span>
                                   </TooltipTrigger>
-                                  <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                  <TooltipContent side="top" className="max-w-[220px] text-xs z-50">
                                     <p><strong>How to interpret:</strong> Red bars = Bearish sentiment (selling/shorting). Green bars = Bullish sentiment (buying/long). Bar width shows relative position size.</p>
                                   </TooltipContent>
                                 </UITooltip>
@@ -611,12 +656,14 @@ export default function FII() {
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[70px] py-2">
                               <div className="flex items-center justify-end gap-0.5">
                                 Net OI
-                                <TooltipProvider>
+                                <TooltipProvider delayDuration={100}>
                                   <UITooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="w-2.5 h-2.5 cursor-help" />
+                                      <span className="inline-flex cursor-help">
+                                        <Info className="w-2.5 h-2.5" />
+                                      </span>
                                     </TooltipTrigger>
-                                    <TooltipContent side="top" className="max-w-[200px] text-xs">
+                                    <TooltipContent side="top" className="max-w-[200px] text-xs z-50">
                                       <p><strong>Net Open Interest:</strong> Total outstanding positions. Positive = net long, Negative = net short. Displayed in Lakhs (L).</p>
                                     </TooltipContent>
                                   </UITooltip>
@@ -626,12 +673,14 @@ export default function FII() {
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[80px] py-2">
                               <div className="flex items-center justify-end gap-0.5">
                                 Change
-                                <TooltipProvider>
+                                <TooltipProvider delayDuration={100}>
                                   <UITooltip>
                                     <TooltipTrigger asChild>
-                                      <Info className="w-2.5 h-2.5 cursor-help" />
+                                      <span className="inline-flex cursor-help">
+                                        <Info className="w-2.5 h-2.5" />
+                                      </span>
                                     </TooltipTrigger>
-                                    <TooltipContent side="top" className="max-w-[200px] text-xs">
+                                    <TooltipContent side="top" className="max-w-[200px] text-xs z-50">
                                       <p><strong>Daily Change:</strong> Difference from previous trading day. Green = increased, Red = decreased.</p>
                                     </TooltipContent>
                                   </UITooltip>
@@ -644,39 +693,69 @@ export default function FII() {
                           {summaryTableData.map((row, idx, arr) => {
                             const isFirstInGroup = idx === 0 || arr[idx - 1].participant !== row.participant;
                             const groupSize = arr.filter(r => r.participant === row.participant).length;
+                            const rowKey = `${row.participant}-${row.segment}`;
+                            const isExpanded = expandedRows.has(rowKey);
                             
                             return (
-                              <TableRow key={idx} className="border-border hover:bg-muted/30">
-                                {isFirstInGroup && (
-                                  <TableCell className="font-medium text-[11px] align-top pt-3" rowSpan={groupSize}>
-                                    {row.participant}
+                              <React.Fragment key={rowKey}>
+                                <TableRow className="border-border hover:bg-muted/30">
+                                  {isFirstInGroup && (
+                                    <TableCell className="font-medium text-[11px] align-top pt-3" rowSpan={groupSize + (isExpanded && row.childData ? row.childData.length : 0)}>
+                                      {row.participant}
+                                    </TableCell>
+                                  )}
+                                  <TableCell className="py-1.5">
+                                    <div 
+                                      className={`flex items-center gap-0.5 text-[11px] ${row.hasChildren ? 'cursor-pointer hover:text-primary' : ''}`}
+                                      onClick={() => row.hasChildren && toggleRowExpanded(rowKey)}
+                                    >
+                                      {row.segment}
+                                      {row.hasChildren && (
+                                        <ChevronDown className={`w-2.5 h-2.5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                      )}
+                                    </div>
                                   </TableCell>
-                                )}
-                                <TableCell className="py-1.5">
-                                  <div className="flex items-center gap-0.5 text-[11px]">
-                                    {row.segment}
-                                    {row.hasChildren && (
-                                      <ChevronDown className="w-2.5 h-2.5 text-muted-foreground" />
-                                    )}
-                                  </div>
-                                </TableCell>
-                                <SentimentBarCells 
-                                  sentiment={row.sentiment} 
-                                  showLabel={showLabels} 
-                                  value={row.value}
-                                  maxValue={maxValue}
-                                />
-                                <TableCell className="text-right font-mono text-[10px] py-1.5">
-                                  {row.netOI}
-                                </TableCell>
-                                <TableCell className={`text-right font-mono text-[10px] py-1.5 ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                  {row.change !== 0 ? (
-                                    row.segment === "Stocks" 
-                                      ? `${row.change >= 0 ? "+" : ""}${row.change.toLocaleString("en-IN")} Cr`
-                                      : `${row.change >= 0 ? "+" : ""}${row.change.toFixed(2)}`
-                                  ) : "-"}
-                                </TableCell>
-                              </TableRow>
+                                  <SentimentBarCells 
+                                    sentiment={row.sentiment} 
+                                    showLabel={showLabels} 
+                                    value={row.value}
+                                    maxValue={maxValue}
+                                  />
+                                  <TableCell className="text-right font-mono text-[10px] py-1.5">
+                                    {row.netOI}
+                                  </TableCell>
+                                  <TableCell className={`text-right font-mono text-[10px] py-1.5 ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                    {row.change !== 0 ? (
+                                      row.segment === "Stocks" 
+                                        ? `${row.change >= 0 ? "+" : ""}${row.change.toLocaleString("en-IN")} Cr`
+                                        : `${row.change >= 0 ? "+" : ""}${row.change.toFixed(2)}`
+                                    ) : "-"}
+                                  </TableCell>
+                                </TableRow>
+                                {/* Child rows when expanded */}
+                                {isExpanded && row.childData?.map((child, childIdx) => (
+                                  <TableRow key={`${idx}-child-${childIdx}`} className="border-border bg-muted/20 hover:bg-muted/40">
+                                    <TableCell className="py-1 pl-6">
+                                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                                        {child.name}
+                                      </div>
+                                    </TableCell>
+                                    <SentimentBarCells 
+                                      sentiment={child.sentiment} 
+                                      showLabel={showLabels} 
+                                      value={child.value}
+                                      maxValue={maxValue}
+                                    />
+                                    <TableCell className="text-right font-mono text-[9px] py-1">
+                                      {Math.abs(child.value * 100) > 0 ? `${(child.value < 0 ? "-" : "")}${(Math.abs(child.value * 100) / 100).toFixed(2)}L` : "-"}
+                                    </TableCell>
+                                    <TableCell className={`text-right font-mono text-[9px] py-1 ${child.change >= 0 ? "text-green-500" : "text-red-500"}`}>
+                                      {child.change !== 0 ? `${child.change >= 0 ? "+" : ""}${child.change.toFixed(2)}` : "-"}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </React.Fragment>
                             );
                           })}
                         </TableBody>
