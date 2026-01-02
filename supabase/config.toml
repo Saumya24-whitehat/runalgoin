@@ -59,6 +59,3 @@ verify_jwt = false
 
 [functions.market-breadth]
 verify_jwt = false
-
-[functions.indices-data]
-verify_jwt = false
