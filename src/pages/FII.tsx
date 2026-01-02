@@ -20,6 +20,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 import {
   ComposedChart,
@@ -28,7 +29,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Legend,
   ReferenceLine,
@@ -146,7 +147,16 @@ const SentimentBarCells = ({
       </TableCell>
       {/* Info icon column - spacer between bars */}
       <TableCell className="p-0.5 w-[24px] text-center">
-        <Info className="w-2.5 h-2.5 text-muted-foreground mx-auto" />
+        <TooltipProvider>
+          <UITooltip>
+            <TooltipTrigger asChild>
+              <Info className="w-2.5 h-2.5 text-muted-foreground mx-auto cursor-help" />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="max-w-[200px] text-xs">
+              <p>Bar width shows relative position size. Sentiment label indicates market outlook based on net value.</p>
+            </TooltipContent>
+          </UITooltip>
+        </TooltipProvider>
       </TableCell>
       {/* Bullish column */}
       <TableCell className="p-0.5 w-[100px]">
@@ -586,17 +596,46 @@ export default function FII() {
                             <TableHead className="text-muted-foreground text-[11px] w-[100px] py-2">Segment</TableHead>
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[100px] py-2">Bearish</TableHead>
                             <TableHead className="text-center text-muted-foreground w-[24px] py-2">
-                              <Info className="w-2.5 h-2.5 mx-auto" />
+                              <TooltipProvider>
+                                <UITooltip>
+                                  <TooltipTrigger asChild>
+                                    <Info className="w-2.5 h-2.5 mx-auto cursor-help" />
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-[220px] text-xs">
+                                    <p><strong>How to interpret:</strong> Red bars = Bearish sentiment (selling/shorting). Green bars = Bullish sentiment (buying/long). Bar width shows relative position size.</p>
+                                  </TooltipContent>
+                                </UITooltip>
+                              </TooltipProvider>
                             </TableHead>
                             <TableHead className="text-left text-muted-foreground text-[11px] w-[100px] py-2">Bullish</TableHead>
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[70px] py-2">
                               <div className="flex items-center justify-end gap-0.5">
-                                Net OI <Info className="w-2.5 h-2.5" />
+                                Net OI
+                                <TooltipProvider>
+                                  <UITooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="w-2.5 h-2.5 cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-[200px] text-xs">
+                                      <p><strong>Net Open Interest:</strong> Total outstanding positions. Positive = net long, Negative = net short. Displayed in Lakhs (L).</p>
+                                    </TooltipContent>
+                                  </UITooltip>
+                                </TooltipProvider>
                               </div>
                             </TableHead>
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[80px] py-2">
                               <div className="flex items-center justify-end gap-0.5">
-                                Change <Info className="w-2.5 h-2.5" />
+                                Change
+                                <TooltipProvider>
+                                  <UITooltip>
+                                    <TooltipTrigger asChild>
+                                      <Info className="w-2.5 h-2.5 cursor-help" />
+                                    </TooltipTrigger>
+                                    <TooltipContent side="top" className="max-w-[200px] text-xs">
+                                      <p><strong>Daily Change:</strong> Difference from previous trading day. Green = increased, Red = decreased.</p>
+                                    </TooltipContent>
+                                  </UITooltip>
+                                </TooltipProvider>
                               </div>
                             </TableHead>
                           </TableRow>
@@ -748,7 +787,7 @@ export default function FII() {
                           domain={["dataMin - 100", "dataMax + 100"]}
                           tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         />
-                        <Tooltip content={<CustomTooltip />} />
+                        <RechartsTooltip content={<CustomTooltip />} />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--muted-foreground))" strokeOpacity={0.5} />
                         <Bar yAxisId="left" dataKey="fiiIdxOpt" name="FII Index Options" fill="#22c55e" opacity={0.8} />
                         <Bar yAxisId="left" dataKey="fiiIdxFut" name="FII Index Futures" fill="#ef4444" opacity={0.8} />
@@ -806,7 +845,7 @@ export default function FII() {
                           domain={["dataMin - 100", "dataMax + 100"]}
                           tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         />
-                        <Tooltip content={<CustomTooltip />} />
+                        <RechartsTooltip content={<CustomTooltip />} />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--muted-foreground))" strokeOpacity={0.5} />
                         <Bar yAxisId="left" dataKey="fiiIdxFut" name="FII Index Futures" fill="#06b6d4" opacity={0.8} />
                         <Line
@@ -878,7 +917,7 @@ export default function FII() {
                           domain={["dataMin - 100", "dataMax + 100"]}
                           tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
                         />
-                        <Tooltip content={<CustomTooltip />} />
+                        <RechartsTooltip content={<CustomTooltip />} />
                         <Legend />
                         <ReferenceLine yAxisId="left" y={0} stroke="hsl(var(--muted-foreground))" strokeOpacity={0.5} />
                         <Bar yAxisId="left" dataKey="fiiCash" name="FII" fill="#06b6d4" opacity={0.9} />
