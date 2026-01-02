@@ -502,7 +502,7 @@ const Dashboard = () => {
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-lg font-semibold">FII/DII Activity</CardTitle>
-              <a href="#" className="text-primary text-sm hover:underline">
+              <a href="/fii" className="text-primary text-sm hover:underline">
                 View All ›
               </a>
             </CardHeader>
