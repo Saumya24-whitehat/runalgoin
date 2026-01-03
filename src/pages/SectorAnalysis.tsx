@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -20,17 +20,57 @@ import {
 type SortColumn = "name" | "price" | "change" | "high" | "low";
 type SortDirection = "asc" | "desc";
 
+// Helper to find index symbol from sector name (e.g. "NIFTY ENERGY" -> "SYML:NSE;CNXENERGY")
+const findIndexByName = (sectorName: string): string | null => {
+  const normalizedSearch = sectorName.toUpperCase().trim();
+  for (const group of groupedIndices) {
+    for (const idx of group.indices) {
+      const normalizedDisplay = idx.displayName.toUpperCase().trim();
+      if (normalizedDisplay === normalizedSearch || normalizedSearch.includes(normalizedDisplay) || normalizedDisplay.includes(normalizedSearch)) {
+        return idx.symbol;
+      }
+    }
+  }
+  return null;
+};
+
 const SectorAnalysis = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  const [selectedIndex, setSelectedIndex] = useState<string>("SYML:NSE;CNXENERGY");
+  
+  // Get initial index from URL param if provided
+  const getInitialIndex = (): string => {
+    const sectorParam = searchParams.get("sector");
+    if (sectorParam) {
+      const foundIndex = findIndexByName(sectorParam);
+      if (foundIndex) return foundIndex;
+    }
+    return "SYML:NSE;CNXENERGY";
+  };
+
+  const [selectedIndex, setSelectedIndex] = useState<string>(getInitialIndex);
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [sortColumn, setSortColumn] = useState<SortColumn>("change");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Sectoral Indices"]));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
+    // Auto-expand the group containing the selected index
+    const sectorParam = searchParams.get("sector");
+    if (sectorParam) {
+      const foundIndex = findIndexByName(sectorParam);
+      if (foundIndex) {
+        for (const group of groupedIndices) {
+          if (group.indices.some((idx) => idx.symbol === foundIndex)) {
+            return new Set([group.name]);
+          }
+        }
+      }
+    }
+    return new Set(["Sectoral Indices"]);
+  });
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
