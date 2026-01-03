@@ -150,6 +150,10 @@ const AllSectors = () => {
                   const monthItem = monthRanked[index];
                   const rank = index + 1;
 
+                  const handleSectorClick = (sectorName: string) => {
+                    navigate(`/sector-analysis?sector=${encodeURIComponent(sectorName)}`);
+                  };
+
                   return (
                     <div
                       key={index}
@@ -163,27 +167,36 @@ const AllSectors = () => {
                       {/* 1D Column */}
                       <div className="flex items-center justify-center">
                         {dayItem && (
-                          <span className={`text-sm font-medium text-center ${getChangeColor(dayItem.change)}`}>
+                          <button
+                            onClick={() => handleSectorClick(dayItem.name)}
+                            className={`text-sm font-medium text-center hover:underline cursor-pointer ${getChangeColor(dayItem.change)}`}
+                          >
                             {dayItem.name} ({formatChange(dayItem.change)})
-                          </span>
+                          </button>
                         )}
                       </div>
 
                       {/* 1W Column */}
                       <div className="flex items-center justify-center">
                         {weekItem && (
-                          <span className={`text-sm font-medium text-center ${getChangeColor(weekItem.change)}`}>
+                          <button
+                            onClick={() => handleSectorClick(weekItem.name)}
+                            className={`text-sm font-medium text-center hover:underline cursor-pointer ${getChangeColor(weekItem.change)}`}
+                          >
                             {weekItem.name} ({formatChange(weekItem.change)})
-                          </span>
+                          </button>
                         )}
                       </div>
 
                       {/* 1M Column */}
                       <div className="flex items-center justify-center">
                         {monthItem && (
-                          <span className={`text-sm font-medium text-center ${getChangeColor(monthItem.change)}`}>
+                          <button
+                            onClick={() => handleSectorClick(monthItem.name)}
+                            className={`text-sm font-medium text-center hover:underline cursor-pointer ${getChangeColor(monthItem.change)}`}
+                          >
                             {monthItem.name} ({formatChange(monthItem.change)})
-                          </span>
+                          </button>
                         )}
                       </div>
                     </div>
