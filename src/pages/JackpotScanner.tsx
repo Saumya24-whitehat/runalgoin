@@ -90,9 +90,7 @@ const JackpotScanner = () => {
               >
                 <div className="p-2 text-center">
                   <a
-                    href={`https://runalgo.xyz/stockJackpot/jackpotScreener.php?symbol=${stock.symbol}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href={`/jackpot-detail?symbol=${stock.symbol}`}
                     className="text-primary underline hover:text-primary/80"
                   >
                     {stock.symbol}
