@@ -33,6 +33,7 @@ import IPO from "./pages/IPO";
 import StockScreeners from "./pages/StockScreeners";
 import JackpotScanner from "./pages/JackpotScanner";
 import JackpotDetail from "./pages/JackpotDetail";
+import AllSectors from "./pages/AllSectors";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -80,6 +81,7 @@ const App = () => (
               <Route path="/stock-screeners" element={<StockScreeners />} />
               <Route path="/jackpot-scanner" element={<JackpotScanner />} />
               <Route path="/jackpot-detail" element={<JackpotDetail />} />
+              <Route path="/all-sectors" element={<AllSectors />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>

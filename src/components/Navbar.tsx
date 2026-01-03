@@ -145,13 +145,13 @@ const navItems: NavItem[] = [
         title: "JACKPOT SECTION",
         items: [
           { icon: Target, label: "Jackpot Scanner", iconColor: "text-yellow-500", path: "/jackpot-scanner" },
-          { icon: Crown, label: "Jackpot", iconColor: "text-yellow-500" },
+          { icon: Crown, label: "Jackpot", iconColor: "text-yellow-500", path: "/jackpot-detail?symbol=RELIANCE" },
         ],
       },
       {
         title: "SECTOR SELECTION",
         items: [
-          { icon: BarChart2, label: "All Sector Analysis", iconColor: "text-emerald-500" },
+          { icon: BarChart2, label: "All Sector Analysis", iconColor: "text-emerald-500", path: "/all-sectors" },
           { icon: Layers, label: "Sector Analysis", iconColor: "text-emerald-500" },
         ],
       },
