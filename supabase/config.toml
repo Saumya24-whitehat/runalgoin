@@ -77,3 +77,6 @@ verify_jwt = false
 
 [functions.jackpot-scanner]
 verify_jwt = false
+
+[functions.jackpot-symbol-data]
+verify_jwt = false

@@ -32,6 +32,7 @@ import FII from "./pages/FII";
 import IPO from "./pages/IPO";
 import StockScreeners from "./pages/StockScreeners";
 import JackpotScanner from "./pages/JackpotScanner";
+import JackpotDetail from "./pages/JackpotDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -78,6 +79,7 @@ const App = () => (
               <Route path="/ipo" element={<IPO />} />
               <Route path="/stock-screeners" element={<StockScreeners />} />
               <Route path="/jackpot-scanner" element={<JackpotScanner />} />
+              <Route path="/jackpot-detail" element={<JackpotDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
