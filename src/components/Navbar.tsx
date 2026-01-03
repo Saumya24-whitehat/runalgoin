@@ -139,7 +139,7 @@ const navItems: NavItem[] = [
     sections: [
       {
         title: "ANALYSIS",
-        items: [{ icon: BarChart3, label: "Screeners", iconColor: "text-primary" }],
+        items: [{ icon: BarChart3, label: "Screeners", iconColor: "text-primary", path: "/stock-screeners" }],
       },
       {
         title: "JACKPOT SECTION",

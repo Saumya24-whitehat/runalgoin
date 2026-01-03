@@ -30,6 +30,7 @@ import OptionsChart from "./pages/OptionsChart";
 import Indices from "./pages/Indices";
 import FII from "./pages/FII";
 import IPO from "./pages/IPO";
+import StockScreeners from "./pages/StockScreeners";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -74,6 +75,7 @@ const App = () => (
               <Route path="/indices" element={<Indices />} />
               <Route path="/fii" element={<FII />} />
               <Route path="/ipo" element={<IPO />} />
+              <Route path="/stock-screeners" element={<StockScreeners />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
