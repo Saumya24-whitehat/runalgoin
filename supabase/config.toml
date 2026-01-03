@@ -71,3 +71,6 @@ verify_jwt = false
 
 [functions.market-actions]
 verify_jwt = false
+
+[functions.trending-stocks]
+verify_jwt = false

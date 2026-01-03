@@ -13,38 +13,26 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 
-const trendingStocks = [
-  {
-    symbol: "Nestle India",
-    sector: "NESTLEIND",
-    ltp: "1275.2",
-    prev: "1259.7",
-    change: "▲ 1.23%",
-    isPositive: true,
-    logo: "N",
-  },
-  {
-    symbol: "Tube Investments of India",
-    sector: "TIINDIA",
-    ltp: "2607.5",
-    prev: "2595.7",
-    change: "▲ 1.23%",
-    isPositive: true,
-    logo: "T",
-  },
-  { symbol: "Saqliy", sector: "SAQLITY", ltp: "52.85", prev: "52.22", change: "▲ 1.21%", isPositive: true, logo: "S" },
-  {
-    symbol: "PI Industries",
-    sector: "PIIND",
-    ltp: "3258.0",
-    prev: "3218.2",
-    change: "▲ 1.20%",
-    isPositive: true,
-    logo: "P",
-  },
-  { symbol: "IRFC", sector: "IRFC", ltp: "78.10", prev: "77.81", change: "▲ 1.15%", isPositive: true, logo: "I" },
-  { symbol: "NHPC", sector: "NHPC", ltp: "315.9", prev: "313.1", change: "▲ 1.12%", isPositive: true, logo: "N" },
-];
+interface TrendingStock {
+  companyName: string;
+  nseScriptCode: string;
+  ltp: string;
+  close: string;
+  yearHigh: string;
+  yearLow: string;
+  tag: string;
+  moverType: string;
+}
+
+interface TrendingStocksData {
+  TOP_GAINERS?: TrendingStock[];
+  TOP_LOSERS?: TrendingStock[];
+  VOLUME_SHOCKER?: TrendingStock[];
+  TOP_VOLUME?: TrendingStock[];
+  MOST_VISITED?: TrendingStock[];
+  YEARLY_HIGH?: TrendingStock[];
+  YEARLY_LOW?: TrendingStock[];
+}
 
 const marketEvents = [
   { company: "Rani Ratna Wires Ltd.", event: "Bonus", ratio: "1:1" },
@@ -143,6 +131,8 @@ const Dashboard = () => {
   const [upcomingResults, setUpcomingResults] = useState<MarketActionItem[]>([]);
   const [releasedResults, setReleasedResults] = useState<MarketActionItem[]>([]);
   const [resultsLoading, setResultsLoading] = useState(true);
+  const [trendingData, setTrendingData] = useState<TrendingStocksData | null>(null);
+  const [trendingLoading, setTrendingLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -256,6 +246,73 @@ const Dashboard = () => {
     fetchMarketActions();
   }, []);
 
+  // Fetch trending stocks data
+  useEffect(() => {
+    const fetchTrendingStocks = async () => {
+      setTrendingLoading(true);
+      try {
+        const { data, error } = await supabase.functions.invoke('trending-stocks');
+        if (!error && data) {
+          setTrendingData(data);
+        }
+      } catch (err) {
+        console.error("Error fetching trending stocks:", err);
+      } finally {
+        setTrendingLoading(false);
+      }
+    };
+    fetchTrendingStocks();
+  }, []);
+
+  // Helper to render stock list
+  const renderStockList = (stocks: TrendingStock[] | undefined, isGainer: boolean = true) => {
+    if (trendingLoading) {
+      return <div className="text-center py-8 text-muted-foreground">Loading...</div>;
+    }
+    if (!stocks || stocks.length === 0) {
+      return <div className="text-center py-8 text-muted-foreground">No data available</div>;
+    }
+    return (
+      <div className="space-y-2">
+        {stocks.slice(0, 10).map((stock, idx) => {
+          const ltp = parseFloat(stock.ltp);
+          const close = parseFloat(stock.close);
+          const change = ((ltp - close) / close) * 100;
+          const isPositive = change >= 0;
+          return (
+            <div
+              key={idx}
+              className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+            >
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white ${
+                  idx % 4 === 0
+                    ? "bg-gradient-to-br from-blue-500 to-blue-700"
+                    : idx % 4 === 1
+                      ? "bg-gradient-to-br from-purple-500 to-purple-700"
+                      : idx % 4 === 2
+                        ? "bg-gradient-to-br from-orange-500 to-orange-700"
+                        : "bg-gradient-to-br from-green-500 to-green-700"
+                }`}
+              >
+                {stock.companyName.charAt(0)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-medium truncate">{stock.companyName}</div>
+                <div className="text-xs text-muted-foreground">{stock.nseScriptCode}</div>
+              </div>
+              <div className="text-primary font-medium">₹{ltp.toLocaleString()}</div>
+              <div className="text-muted-foreground">₹{close.toLocaleString()}</div>
+              <div className={`font-medium ${isPositive ? "text-success" : "text-destructive"}`}>
+                {isPositive ? "▲" : "▼"} {Math.abs(change).toFixed(2)}%
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
   // Get FII/DII data for display (with child data)
   const getFiiDiiDisplayData = () => {
     if (!fiiData || fiiData.length === 0) {
@@ -368,8 +425,14 @@ const Dashboard = () => {
             </a>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="52weekhighlow" className="w-full">
+            <Tabs defaultValue="topgainers" className="w-full">
               <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start gap-6 h-auto p-0 mb-4 overflow-x-auto">
+                <TabsTrigger
+                  value="topgainers"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
+                >
+                  Top Gainers
+                </TabsTrigger>
                 <TabsTrigger
                   value="toplosers"
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
@@ -389,10 +452,16 @@ const Dashboard = () => {
                   Top Volume
                 </TabsTrigger>
                 <TabsTrigger
-                  value="52weekhighlow"
+                  value="52weekhigh"
                   className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
                 >
-                  52 Week High Low
+                  52 Week High
+                </TabsTrigger>
+                <TabsTrigger
+                  value="52weeklow"
+                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
+                >
+                  52 Week Low
                 </TabsTrigger>
                 <TabsTrigger
                   value="mostvisited"
@@ -401,51 +470,26 @@ const Dashboard = () => {
                   Most Visited
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="52weekhighlow">
-                <div className="text-xs text-muted-foreground mb-3">26/12/2025</div>
-                <div className="space-y-2">
-                  {trendingStocks.map((stock, idx) => (
-                    <div
-                      key={idx}
-                      className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white ${
-                          idx % 4 === 0
-                            ? "bg-gradient-to-br from-blue-500 to-blue-700"
-                            : idx % 4 === 1
-                              ? "bg-gradient-to-br from-purple-500 to-purple-700"
-                              : idx % 4 === 2
-                                ? "bg-gradient-to-br from-orange-500 to-orange-700"
-                                : "bg-gradient-to-br from-green-500 to-green-700"
-                        }`}
-                      >
-                        {stock.logo}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium truncate">{stock.symbol}</div>
-                        <div className="text-xs text-muted-foreground">{stock.sector}</div>
-                      </div>
-                      <div className="text-primary font-medium">{stock.ltp}</div>
-                      <div className="text-muted-foreground">{stock.prev}</div>
-                      <div className={`font-medium ${stock.isPositive ? "text-green-500" : "text-red-500"}`}>
-                        {stock.change}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+              <TabsContent value="topgainers">
+                {renderStockList(trendingData?.TOP_GAINERS, true)}
               </TabsContent>
               <TabsContent value="toplosers">
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                {renderStockList(trendingData?.TOP_LOSERS, false)}
               </TabsContent>
               <TabsContent value="volumeshockers">
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                {renderStockList(trendingData?.VOLUME_SHOCKER)}
               </TabsContent>
               <TabsContent value="topvolume">
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                {renderStockList(trendingData?.TOP_VOLUME)}
+              </TabsContent>
+              <TabsContent value="52weekhigh">
+                {renderStockList(trendingData?.YEARLY_HIGH)}
+              </TabsContent>
+              <TabsContent value="52weeklow">
+                {renderStockList(trendingData?.YEARLY_LOW, false)}
               </TabsContent>
               <TabsContent value="mostvisited">
-                <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                {renderStockList(trendingData?.MOST_VISITED)}
               </TabsContent>
             </Tabs>
           </CardContent>
