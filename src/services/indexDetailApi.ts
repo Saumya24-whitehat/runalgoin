@@ -216,7 +216,7 @@ export function getIndexSymbol(indexName: string): string {
     "nifty serv sector": "SYML:NSE;NIFTYSERVSECTOR",
   };
 
-  return indexMap[indexName] || `SYML:NSE;${indexName.replace(/\s+/g, "").toUpperCase()}`;
+  return indexMap[indexName.toLowerCase()] || `SYML:NSE;${indexName.replace(/\s+/g, "").toUpperCase()}`;
 }
 
 // Format market cap for display
