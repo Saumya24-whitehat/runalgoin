@@ -56,8 +56,34 @@ interface FIIDataItem {
   }>;
 }
 
+interface FIISummaryData {
+  "Client Type": Record<string, string>;
+  "Future Index Long": Record<string, number>;
+  "Future Index Short": Record<string, number>;
+  "Future Stock Long": Record<string, number>;
+  "Future Stock Short ": Record<string, number>;
+  "Option Index Call Long": Record<string, number>;
+  "Option Index Put Long": Record<string, number>;
+  "Option Index Call Short": Record<string, number>;
+  "Option Index Put Short": Record<string, number>;
+  "Option Stock Call Long": Record<string, number>;
+  "Option Stock Put Long": Record<string, number>;
+  "Option Stock Call Short": Record<string, number>;
+  "Option Stock Put Short": Record<string, number>;
+  "Total Long Contracts ": Record<string, number>;
+  "Total Short Contracts": Record<string, number>;
+}
+
 const fetchFIIData = async (): Promise<FIIDataItem[]> => {
   const { data, error } = await supabase.functions.invoke("fii-data");
+  if (error) throw error;
+  return data;
+};
+
+const fetchFIISummary = async (date: string): Promise<FIISummaryData> => {
+  const { data, error } = await supabase.functions.invoke("fii-summary", {
+    body: { date }
+  });
   if (error) throw error;
   return data;
 };
@@ -204,7 +230,7 @@ export default function FII() {
     "Index Futures": true,
     "Stock Futures": true,
     "Index Options": true,
-    "Stocks": true,
+    "Stock Options": true,
   });
 
   const toggleRowExpanded = (key: string) => {
@@ -228,6 +254,22 @@ export default function FII() {
   const currentData = fiiData?.[selectedDate];
   const currentDate = currentData ? format(parseISO(currentData.Date), "dd MMM yyyy") : "-";
   const currentDateParsed = currentData ? parseISO(currentData.Date) : new Date();
+  
+  // Format date for summary API (DD-MM-YYYY)
+  const summaryDateParam = currentData 
+    ? format(parseISO(currentData.Date), "dd-MM-yyyy") 
+    : format(new Date(), "dd-MM-yyyy");
+
+  // Fetch summary data from new API
+  const { data: summaryData, isLoading: isSummaryLoading, isFetching: isSummaryFetching } = useQuery({
+    queryKey: ["fii-summary", summaryDateParam],
+    queryFn: () => fetchFIISummary(summaryDateParam),
+    enabled: !!currentData,
+    refetchInterval: 60000,
+  });
+  
+  // Combined loading state - show data once fii-data is loaded
+  const showSummaryLoading = isLoading;
 
   // Get all available dates for the calendar
   const availableDates = useMemo(() => {
@@ -308,36 +350,23 @@ export default function FII() {
   }, [fiiData]);
 
   const getSummaryTableData = () => {
-    if (!currentData || !fiiData || fiiData.length < 2) return [];
+    // Use summaryData from new API if available
+    if (!summaryData) return [];
     
-    const previousData = fiiData[selectedDate + 1]; // Previous day's data
+    // Map client type index to participant name
+    const clientTypeMap: Record<string, string> = {};
+    const clientTypes = summaryData["Client Type"];
+    if (!clientTypes) return [];
+    Object.entries(clientTypes).forEach(([idx, name]) => {
+      clientTypeMap[idx] = name;
+    });
     
-    // Map participants to their data in the API
-    const dataMapping: Record<string, Record<string, string>> = {
-      FII: {
-        "Index Futures": "FII Index Futures",
-        "Stock Futures": "FII Stock Futures", 
-        "Index Options": "FII Index Options",
-        "Stocks": "FII Cash Market*",
-      },
-      Pro: {
-        "Index Futures": "FII Index Futures",
-        "Stock Futures": "FII Stock Futures",
-        "Index Options": "FII Index Options",
-        "Stocks": "FII Cash Market*",
-      },
-      Client: {
-        "Index Futures": "FII Index Futures",
-        "Stock Futures": "FII Stock Futures",
-        "Index Options": "FII Index Options",
-        "Stocks": "FII Cash Market*",
-      },
-      DII: {
-        "Index Futures": "DII Cash Market*",
-        "Stock Futures": "DII Cash Market*",
-        "Index Options": "DII Cash Market*",
-        "Stocks": "DII Cash Market*",
-      },
+    // Find index for each participant
+    const getParticipantIndex = (name: string): string | null => {
+      for (const [idx, val] of Object.entries(clientTypeMap)) {
+        if (val === name) return idx;
+      }
+      return null;
     };
     
     const rows: Array<{
@@ -347,6 +376,8 @@ export default function FII() {
       netOI: string;
       change: number;
       value: number;
+      longValue: number;
+      shortValue: number;
       hasChildren: boolean;
       childData?: Array<{
         name: string;
@@ -356,61 +387,117 @@ export default function FII() {
       }>;
     }> = [];
 
-    const participants = ["FII", "Pro", "Client", "DII"];
-    const segments = ["Index Futures", "Stock Futures", "Index Options", "Stocks"];
+    const participants = ["FII", "DII", "Pro", "Client"];
+    const segments = ["Index Futures", "Stock Futures", "Index Options", "Stock Options"];
 
     participants.forEach((participant) => {
       if (!participantFilters[participant as keyof typeof participantFilters]) return;
       
+      const idx = getParticipantIndex(participant);
+      if (!idx) return;
+      
       segments.forEach((segment) => {
         if (!segmentFilters[segment as keyof typeof segmentFilters]) return;
         
-        const dataKey = dataMapping[participant]?.[segment];
-        const currentItem = currentData.FIIDIIData.find((d) => d.Name === dataKey);
-        const previousItem = previousData?.FIIDIIData.find((d) => d.Name === dataKey);
-        
-        const currentValue = currentItem?.Value || 0;
-        const previousValue = previousItem?.Value || 0;
-        const change = currentValue - previousValue;
-        
-        // Calculate net OI based on segment and value
-        let netOI = "-";
-        if (segment !== "Stocks") {
-          const oiValue = Math.abs(currentValue * 100);
-          if (oiValue > 0) {
-            netOI = `${(currentValue < 0 ? "-" : "")}${(oiValue / 100).toFixed(2)}L`;
-          }
-        }
-
-        // Get child data for Index Futures and Index Options
+        let longValue = 0;
+        let shortValue = 0;
         let childData: Array<{
           name: string;
           value: number;
           change: number;
           sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
         }> | undefined;
-
-        if ((segment === "Index Futures" || segment === "Index Options") && currentItem?.ChildData) {
-          childData = currentItem.ChildData.map((child) => {
-            const prevChild = previousItem?.ChildData?.find(c => c.Name === child.Name);
-            const childChange = child.Value - (prevChild?.Value || 0);
-            return {
-              name: child.Name,
-              value: child.Value,
-              change: childChange,
-              sentiment: getSentiment(child.Value),
-            };
-          });
+        
+        if (segment === "Index Futures") {
+          longValue = summaryData["Future Index Long"]?.[idx] || 0;
+          shortValue = summaryData["Future Index Short"]?.[idx] || 0;
+        } else if (segment === "Stock Futures") {
+          longValue = summaryData["Future Stock Long"]?.[idx] || 0;
+          shortValue = summaryData["Future Stock Short "]?.[idx] || 0;
+        } else if (segment === "Index Options") {
+          const callLong = summaryData["Option Index Call Long"]?.[idx] || 0;
+          const putLong = summaryData["Option Index Put Long"]?.[idx] || 0;
+          const callShort = summaryData["Option Index Call Short"]?.[idx] || 0;
+          const putShort = summaryData["Option Index Put Short"]?.[idx] || 0;
+          longValue = callLong + putLong;
+          shortValue = callShort + putShort;
+          
+          // Child data for Index Options
+          childData = [
+            {
+              name: "Call Long",
+              value: callLong,
+              change: 0,
+              sentiment: getSentiment(callLong - callShort),
+            },
+            {
+              name: "Call Short",
+              value: callShort,
+              change: 0,
+              sentiment: getSentiment(callShort * -1),
+            },
+            {
+              name: "Put Long",
+              value: putLong,
+              change: 0,
+              sentiment: getSentiment(putLong - putShort),
+            },
+            {
+              name: "Put Short",
+              value: putShort,
+              change: 0,
+              sentiment: getSentiment(putShort * -1),
+            },
+          ];
+        } else if (segment === "Stock Options") {
+          const callLong = summaryData["Option Stock Call Long"]?.[idx] || 0;
+          const putLong = summaryData["Option Stock Put Long"]?.[idx] || 0;
+          const callShort = summaryData["Option Stock Call Short"]?.[idx] || 0;
+          const putShort = summaryData["Option Stock Put Short"]?.[idx] || 0;
+          longValue = callLong + putLong;
+          shortValue = callShort + putShort;
+          
+          // Child data for Stock Options
+          childData = [
+            {
+              name: "Call Long",
+              value: callLong,
+              change: 0,
+              sentiment: getSentiment(callLong - callShort),
+            },
+            {
+              name: "Call Short",
+              value: callShort,
+              change: 0,
+              sentiment: getSentiment(callShort * -1),
+            },
+            {
+              name: "Put Long",
+              value: putLong,
+              change: 0,
+              sentiment: getSentiment(putLong - putShort),
+            },
+            {
+              name: "Put Short",
+              value: putShort,
+              change: 0,
+              sentiment: getSentiment(putShort * -1),
+            },
+          ];
         }
+        
+        const netValue = longValue - shortValue;
         
         rows.push({
           participant,
           segment,
-          sentiment: getSentiment(currentValue),
-          netOI,
-          change,
-          value: currentValue,
-          hasChildren: (segment === "Index Options" || segment === "Index Futures") && !!childData && childData.length > 0,
+          sentiment: getSentiment(netValue),
+          netOI: formatLakh(netValue),
+          change: 0, // Change will require comparing with previous day data
+          value: netValue,
+          longValue,
+          shortValue,
+          hasChildren: (segment === "Index Options" || segment === "Stock Options") && !!childData && childData.length > 0,
           childData,
         });
       });
@@ -625,7 +712,7 @@ export default function FII() {
                     </div>
                   </CardHeader>
                   <CardContent>
-                    {isLoading ? (
+                    {showSummaryLoading ? (
                       <div className="space-y-2">
                         {[...Array(8)].map((_, i) => (
                           <Skeleton key={i} className="h-12 w-full" />
