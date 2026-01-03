@@ -1,72 +1,35 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
-import { Footer } from "@/components/Footer";
-import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TrendingUp, TrendingDown, RefreshCw, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent } from "@/components/ui/card";
+import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import {
+  groupedIndices,
+  fetchMarketBreadthData,
+  fetchAdvanceDeclineData,
+  calculateAdvanceDecline,
+  StockData,
+  AdvanceDeclineData,
+} from "@/services/marketBreadthApi";
 
-interface SectorData {
-  stock_column: {
-    pk: number;
-    get_full_name: string;
-    absolute_url: string;
-    NSEcode: string;
-    BSEcode: string;
-    ISIN: string;
-  };
-  week_changeP: number;
-  currentPrice: number;
-  companies_count: number;
-  advance: { value: number; color: string };
-  decline: { value: number; color: string };
-  adv_dec_ratio: { value: number | null; color: string | null };
-  abs_score: number;
-  yearHighLow: {
-    low: number;
-    high: number;
-    ltp: number;
-    changeP: number;
-  };
-  day_changeP: number;
-  month_changeP: number;
-  qtr_changeP: number;
-  halfyr_changeP: number;
-  year_changeP: number;
-  three_year_changeP: number;
-  five_year_changeP: number;
-  ten_year_changeP: number;
-  live_pe: number | null;
-  PB: number | null;
-  DIV: number | null;
-  eps: number | null;
-}
-
-type TimePeriod = "1D" | "1W" | "1M" | "3M" | "1Y";
-type SortColumn = "name" | "price" | "change" | "advance" | "decline" | "ratio";
+type SortColumn = "name" | "price" | "change" | "high" | "low";
 type SortDirection = "asc" | "desc";
-
-const timePeriodMap: Record<TimePeriod, string> = {
-  "1D": "day",
-  "1W": "week",
-  "1M": "month",
-  "3M": "quarter",
-  "1Y": "year",
-};
 
 const SectorAnalysis = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const [sectorsData, setSectorsData] = useState<SectorData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("1W");
-  const [exchange, setExchange] = useState<"NSE" | "BSE">("NSE");
+  const [selectedIndex, setSelectedIndex] = useState<string>("SYML:NSE;CNXENERGY");
+  const [stocks, setStocks] = useState<StockData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<string>("");
   const [sortColumn, setSortColumn] = useState<SortColumn>("change");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Sectoral Indices"]));
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -74,84 +37,96 @@ const SectorAnalysis = () => {
     }
   }, [user, authLoading, navigate]);
 
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const activeRange = timePeriodMap[timePeriod];
-      const { data, error } = await supabase.functions.invoke("indices-data", {
-        body: { activeRange },
-      });
-
-      if (!error && data?.body?.index?.tableData) {
-        setSectorsData(data.body.index.tableData);
+  // Fetch advance/decline data on mount
+  useEffect(() => {
+    const fetchAdvDec = async () => {
+      const data = await fetchAdvanceDeclineData();
+      if (data) {
+        setAdvanceDeclineData(data);
       }
-    } catch (err) {
-      console.error("Error fetching sectors data:", err);
+    };
+    fetchAdvDec();
+  }, []);
+
+  const fetchData = async () => {
+    setIsLoading(true);
+    try {
+      const data = await fetchMarketBreadthData(selectedIndex);
+      if (data) {
+        setStocks(data.content);
+        setLastUpdated(data.date);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchData();
-  }, [timePeriod]);
+  }, [selectedIndex]);
 
-  const getChangeForPeriod = (sector: SectorData): number => {
-    switch (timePeriod) {
-      case "1D":
-        return sector.day_changeP;
-      case "1W":
-        return sector.week_changeP;
-      case "1M":
-        return sector.month_changeP;
-      case "3M":
-        return sector.qtr_changeP;
-      case "1Y":
-        return sector.year_changeP;
-      default:
-        return sector.week_changeP;
-    }
+  const toggleGroup = (groupName: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupName)) {
+        next.delete(groupName);
+      } else {
+        next.add(groupName);
+      }
+      return next;
+    });
   };
 
-  const filteredAndSortedData = () => {
-    let filtered = sectorsData.filter((sector) => {
-      const name = sector.stock_column.get_full_name.toUpperCase();
-      if (exchange === "NSE") {
-        return name.includes("NIFTY");
-      } else {
-        return name.includes("BSE") || name.includes("SENSEX");
-      }
-    });
+  // Calculate advance/decline stats from current stocks
+  const { advances, declines } = useMemo(() => {
+    return calculateAdvanceDecline(stocks);
+  }, [stocks]);
 
-    // Sort
-    filtered.sort((a, b) => {
+  const selectedIndexInfo = useMemo(() => {
+    return groupedIndices.flatMap((g) => g.indices).find((i) => i.symbol === selectedIndex);
+  }, [selectedIndex]);
+
+  // Get advance/decline for a specific index from API
+  const getAdvDecForIndex = (symbol: string): { advance: number; decline: number; total: number } | null => {
+    if (!advanceDeclineData) return null;
+    const data = advanceDeclineData[symbol];
+    if (!data) return null;
+    return {
+      advance: data.advance,
+      decline: data.decline,
+      total: data.advance + data.decline,
+    };
+  };
+
+  // Sort stocks
+  const sortedStocks = useMemo(() => {
+    const sorted = [...stocks];
+    sorted.sort((a, b) => {
       let aVal: number | string = 0;
       let bVal: number | string = 0;
 
       switch (sortColumn) {
         case "name":
-          aVal = a.stock_column.get_full_name;
-          bVal = b.stock_column.get_full_name;
+          aVal = a.name;
+          bVal = b.name;
           break;
         case "price":
-          aVal = a.currentPrice || 0;
-          bVal = b.currentPrice || 0;
+          aVal = a.close;
+          bVal = b.close;
           break;
         case "change":
-          aVal = getChangeForPeriod(a);
-          bVal = getChangeForPeriod(b);
+          aVal = a.changePct;
+          bVal = b.changePct;
           break;
-        case "advance":
-          aVal = a.advance?.value || 0;
-          bVal = b.advance?.value || 0;
+        case "high":
+          aVal = a.high;
+          bVal = b.high;
           break;
-        case "decline":
-          aVal = a.decline?.value || 0;
-          bVal = b.decline?.value || 0;
-          break;
-        case "ratio":
-          aVal = a.adv_dec_ratio?.value || 0;
-          bVal = b.adv_dec_ratio?.value || 0;
+        case "low":
+          aVal = a.low;
+          bVal = b.low;
           break;
       }
 
@@ -162,8 +137,8 @@ const SectorAnalysis = () => {
       return sortDirection === "asc" ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
     });
 
-    return filtered;
-  };
+    return sorted;
+  }, [stocks, sortColumn, sortDirection]);
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
@@ -193,8 +168,6 @@ const SectorAnalysis = () => {
     });
   };
 
-  const processedData = filteredAndSortedData();
-
   if (authLoading) {
     return (
       <div className="min-h-screen bg-background">
@@ -216,205 +189,255 @@ const SectorAnalysis = () => {
         <Navbar />
       </div>
 
-      <main className="container mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h1 className="text-2xl font-bold">Sector Analysis</h1>
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-72 border-r border-border bg-card min-h-[calc(100vh-8rem)]">
+          <div className="p-3 border-b border-border">
+            <h2 className="font-semibold text-foreground">Select Sector</h2>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
-        </div>
 
-        {/* Filters Row */}
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
-          {/* Time Period Tabs */}
-          <Tabs value={timePeriod} onValueChange={(v) => setTimePeriod(v as TimePeriod)}>
-            <TabsList>
-              {(["1D", "1W", "1M", "3M", "1Y"] as TimePeriod[]).map((period) => (
-                <TabsTrigger key={period} value={period}>
-                  {period}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <ScrollArea className="h-[calc(100vh-12rem)]">
+            <div className="p-2 space-y-1">
+              {groupedIndices.map((group) => (
+                <div key={group.name} className="space-y-1">
+                  <button
+                    onClick={() => toggleGroup(group.name)}
+                    className="w-full flex items-center justify-between px-2 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide hover:bg-muted/50 rounded transition-colors"
+                  >
+                    <span>{group.name}</span>
+                    {expandedGroups.has(group.name) ? (
+                      <ChevronDown className="h-4 w-4" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4" />
+                    )}
+                  </button>
 
-          {/* Exchange Toggle */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant={exchange === "NSE" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setExchange("NSE")}
-            >
-              NSE
-            </Button>
-            <Button
-              variant={exchange === "BSE" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setExchange("BSE")}
-            >
-              BSE
-            </Button>
-          </div>
-        </div>
+                  {expandedGroups.has(group.name) && (
+                    <div className="space-y-0.5 ml-2">
+                      {group.indices.map((index) => {
+                        const isSelected = selectedIndex === index.symbol;
+                        const advDecStats = getAdvDecForIndex(index.symbol);
 
-        {/* Table */}
-        <Card className="bg-card border-border overflow-hidden">
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="flex items-center justify-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              </div>
-            ) : processedData.length === 0 ? (
-              <div className="flex items-center justify-center py-20">
-                <div className="text-muted-foreground">No data available</div>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-[#0a3d2e] text-white">
-                      <th
-                        onClick={() => handleSort("name")}
-                        className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
-                      >
-                        Sector Name {getSortIcon("name")}
-                      </th>
-                      <th
-                        onClick={() => handleSort("price")}
-                        className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
-                      >
-                        LTP {getSortIcon("price")}
-                      </th>
-                      <th
-                        onClick={() => handleSort("change")}
-                        className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
-                      >
-                        Change % {getSortIcon("change")}
-                      </th>
-                      <th
-                        onClick={() => handleSort("advance")}
-                        className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
-                      >
-                        Advances {getSortIcon("advance")}
-                      </th>
-                      <th
-                        onClick={() => handleSort("decline")}
-                        className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
-                      >
-                        Declines {getSortIcon("decline")}
-                      </th>
-                      <th
-                        onClick={() => handleSort("ratio")}
-                        className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
-                      >
-                        A/D Ratio {getSortIcon("ratio")}
-                      </th>
-                      <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider">
-                        Breadth
-                      </th>
-                      <th className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider">
-                        52W High
-                      </th>
-                      <th className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider">
-                        52W Low
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {processedData.map((sector, idx) => {
-                      const change = getChangeForPeriod(sector);
-                      const advanceVal = sector.advance?.value || 0;
-                      const declineVal = sector.decline?.value || 0;
-                      const total = advanceVal + declineVal;
-                      const advancePercent = total > 0 ? (advanceVal / total) * 100 : 50;
-
-                      return (
-                        <tr
-                          key={idx}
-                          className="border-b border-border hover:bg-secondary/30 transition-colors"
-                        >
-                          <td className="py-3 px-4">
-                            <span className="font-medium text-foreground">
-                              {sector.stock_column.get_full_name}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="font-semibold text-foreground">
-                              {formatNumber(sector.currentPrice)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className={`flex items-center justify-end gap-1 font-medium ${getChangeColor(change)}`}>
-                              {change > 0 ? (
-                                <TrendingUp className="h-3 w-3" />
-                              ) : change < 0 ? (
-                                <TrendingDown className="h-3 w-3" />
-                              ) : null}
-                              {change >= 0 ? "+" : ""}
-                              {formatNumber(change)}%
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-success font-medium">{advanceVal}</span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-destructive font-medium">{declineVal}</span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span
-                              className={
-                                (sector.adv_dec_ratio?.value || 0) >= 1
-                                  ? "text-success font-medium"
-                                  : "text-destructive font-medium"
-                              }
-                            >
-                              {sector.adv_dec_ratio?.value !== null
-                                ? formatNumber(sector.adv_dec_ratio?.value)
-                                : "-"}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <div className="flex items-center justify-center">
-                              <div className="w-24 h-3 bg-muted rounded-full overflow-hidden flex">
-                                <div
-                                  className="h-full bg-success transition-all"
-                                  style={{ width: `${advancePercent}%` }}
-                                />
-                                <div
-                                  className="h-full bg-destructive transition-all"
-                                  style={{ width: `${100 - advancePercent}%` }}
-                                />
-                              </div>
+                        return (
+                          <button
+                            key={index.symbol}
+                            onClick={() => setSelectedIndex(index.symbol)}
+                            className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                              isSelected ? "bg-primary/10 border border-primary/30" : "hover:bg-muted/50"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-1">
+                              <span
+                                className={`text-sm font-medium ${isSelected ? "text-primary" : "text-foreground"}`}
+                              >
+                                {index.displayName}
+                              </span>
                             </div>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-muted-foreground text-sm">
-                              {formatNumber(sector.yearHighLow?.high)}
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <span className="text-muted-foreground text-sm">
-                              {formatNumber(sector.yearHighLow?.low)}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
 
-      <Footer />
+                            {advDecStats && advDecStats.total > 0 && (
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden flex">
+                                  <div
+                                    className="h-full bg-success transition-all"
+                                    style={{ width: `${(advDecStats.advance / advDecStats.total) * 100}%` }}
+                                  />
+                                  <div
+                                    className="h-full bg-destructive transition-all"
+                                    style={{ width: `${(advDecStats.decline / advDecStats.total) * 100}%` }}
+                                  />
+                                </div>
+                                <div className="flex items-center gap-0.5 text-[10px] min-w-[40px] justify-end">
+                                  <span className="text-success font-medium">{advDecStats.advance}</span>
+                                  <span className="text-muted-foreground">/</span>
+                                  <span className="text-destructive font-medium">{advDecStats.decline}</span>
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-4">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <h1 className="text-2xl font-bold text-foreground">
+                {selectedIndexInfo?.displayName || "Sector Analysis"}
+              </h1>
+              {!isLoading && stocks.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-success/10 text-success text-sm font-medium">
+                    <TrendingUp className="h-4 w-4" />
+                    {advances} Advances
+                  </span>
+                  <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-destructive/10 text-destructive text-sm font-medium">
+                    <TrendingDown className="h-4 w-4" />
+                    {declines} Declines
+                  </span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {lastUpdated && <span className="text-xs text-muted-foreground">Last updated: {lastUpdated}</span>}
+              <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
+                <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
+                Refresh
+              </Button>
+            </div>
+          </div>
+
+          {/* Stocks Table */}
+          <Card className="bg-card border-border overflow-hidden">
+            <CardContent className="p-0">
+              {isLoading ? (
+                <div className="flex items-center justify-center py-20">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                </div>
+              ) : stocks.length === 0 ? (
+                <div className="flex items-center justify-center py-20">
+                  <div className="text-muted-foreground">No data available for this sector</div>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-[#0a3d2e] text-white">
+                        <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider w-12">
+                          #
+                        </th>
+                        <th
+                          onClick={() => handleSort("name")}
+                          className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
+                        >
+                          Stock {getSortIcon("name")}
+                        </th>
+                        <th
+                          onClick={() => handleSort("price")}
+                          className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
+                        >
+                          LTP {getSortIcon("price")}
+                        </th>
+                        <th
+                          onClick={() => handleSort("change")}
+                          className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
+                        >
+                          Change % {getSortIcon("change")}
+                        </th>
+                        <th
+                          onClick={() => handleSort("high")}
+                          className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
+                        >
+                          High {getSortIcon("high")}
+                        </th>
+                        <th
+                          onClick={() => handleSort("low")}
+                          className="text-right py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
+                        >
+                          Low {getSortIcon("low")}
+                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider">
+                          Trend
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedStocks.map((stock, idx) => {
+                        const isPositive = stock.changePct >= 0;
+
+                        return (
+                          <tr
+                            key={`${stock.name}-${idx}`}
+                            className="border-b border-border hover:bg-secondary/30 transition-colors"
+                          >
+                            <td className="py-3 px-4 text-center">
+                              <span className="text-muted-foreground text-sm">{idx + 1}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div>
+                                <span className="font-medium text-foreground">{stock.name}</span>
+                                {stock.description && (
+                                  <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                                    {stock.description}
+                                  </p>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="font-semibold text-foreground">₹{formatNumber(stock.close)}</span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span
+                                className={`flex items-center justify-end gap-1 font-medium ${getChangeColor(stock.changePct)}`}
+                              >
+                                {isPositive ? (
+                                  <TrendingUp className="h-3 w-3" />
+                                ) : (
+                                  <TrendingDown className="h-3 w-3" />
+                                )}
+                                {stock.changePct >= 0 ? "+" : ""}
+                                {formatNumber(stock.changePct)}%
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="text-muted-foreground">₹{formatNumber(stock.high)}</span>
+                            </td>
+                            <td className="py-3 px-4 text-right">
+                              <span className="text-muted-foreground">₹{formatNumber(stock.low)}</span>
+                            </td>
+                            <td className="py-3 px-4">
+                              <div className="flex justify-center">
+                                <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                  <div
+                                    className={`h-full ${isPositive ? "bg-success" : "bg-destructive"}`}
+                                    style={{ width: `${Math.min(Math.abs(stock.changePct) * 10, 100)}%` }}
+                                  />
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Summary Stats */}
+          {!isLoading && stocks.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="bg-card border-border p-4">
+                <p className="text-xs text-muted-foreground mb-1">Total Stocks</p>
+                <p className="text-2xl font-bold text-foreground">{stocks.length}</p>
+              </Card>
+              <Card className="bg-card border-border p-4">
+                <p className="text-xs text-muted-foreground mb-1">Advances</p>
+                <p className="text-2xl font-bold text-success">{advances}</p>
+              </Card>
+              <Card className="bg-card border-border p-4">
+                <p className="text-xs text-muted-foreground mb-1">Declines</p>
+                <p className="text-2xl font-bold text-destructive">{declines}</p>
+              </Card>
+              <Card className="bg-card border-border p-4">
+                <p className="text-xs text-muted-foreground mb-1">A/D Ratio</p>
+                <p className={`text-2xl font-bold ${advances >= declines ? "text-success" : "text-destructive"}`}>
+                  {declines > 0 ? (advances / declines).toFixed(2) : advances > 0 ? "∞" : "-"}
+                </p>
+              </Card>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
