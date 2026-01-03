@@ -1169,10 +1169,37 @@ export default function FII() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg">FII History</CardTitle>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-md">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-sm">January 2026</span>
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        <CalendarIcon className="w-4 h-4" />
+                        <span>{format(currentDateParsed, "MMMM yyyy")}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={currentDateParsed}
+                        onSelect={(date) => {
+                          if (date && fiiData) {
+                            // Find the closest available date index
+                            const dateStr = format(date, "yyyy-MM-dd");
+                            const idx = fiiData.findIndex(item => item.Date.startsWith(dateStr));
+                            if (idx !== -1) {
+                              setSelectedDate(idx);
+                            }
+                          }
+                        }}
+                        disabled={(date) => {
+                          if (!availableDates.length) return false;
+                          const dateStr = format(date, "yyyy-MM-dd");
+                          return !fiiData?.some(item => item.Date.startsWith(dateStr));
+                        }}
+                        initialFocus
+                        className="pointer-events-auto"
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </CardHeader>
               <CardContent>
