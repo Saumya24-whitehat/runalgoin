@@ -419,34 +419,30 @@ export function IndicesSection() {
       </CardContent>
     </Card>
   );
-
   const AdvanceDeclineBar = ({ item }: { item: { name: string; advance: number; decline: number } }) => {
     const total = item.advance + item.decline;
     const advancePercent = total > 0 ? (item.advance / total) * 100 : 50;
     const declinePercent = total > 0 ? (item.decline / total) * 100 : 50;
 
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         {/* Index Name */}
-        <span className="text-foreground font-medium w-24">{item.name}</span>
+        <span className="w-24 text-foreground font-medium">{item.name}</span>
 
-        {/* Advances count */}
-        <span className="text-xs text-success w-7 text-right">▲{item.advance}</span>
+        {/* Fixed-width container for counts + bars */}
+        <div className="flex items-center gap-1 w-[260px]">
+          {/* Advance count */}
+          <span className="text-xs text-success w-7 text-right">▲{item.advance}</span>
 
-        {/* Advance Bar */}
-        <div
-          className="h-4 bg-success rounded-l"
-          style={{ width: `${advancePercent}%`, maxWidth: "120px", minWidth: "8px" }}
-        />
+          {/* Advance bar (flexible width) */}
+          <div className="h-4 bg-success rounded-l" style={{ flexBasis: `${advancePercent}%` }} />
 
-        {/* Decline Bar */}
-        <div
-          className="h-4 bg-destructive rounded-r"
-          style={{ width: `${declinePercent}%`, maxWidth: "120px", minWidth: "8px" }}
-        />
+          {/* Decline bar (flexible width) */}
+          <div className="h-4 bg-destructive rounded-r" style={{ flexBasis: `${declinePercent}%` }} />
 
-        {/* Declines count */}
-        <span className="text-xs text-destructive w-8 text-left">▼{item.decline}</span>
+          {/* Decline count */}
+          <span className="text-xs text-destructive w-7 text-left">▼{item.decline}</span>
+        </div>
       </div>
     );
   };
