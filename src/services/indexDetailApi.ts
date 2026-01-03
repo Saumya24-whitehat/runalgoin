@@ -88,48 +88,48 @@ export interface StockTechnical {
 
 export async function fetchIndexStocks(indexSymbol: string): Promise<IndexStock[] | null> {
   try {
-    const { data, error } = await supabase.functions.invoke('index-detail', {
-      body: { index: indexSymbol, dataType: 'stocks' }
+    const { data, error } = await supabase.functions.invoke("index-detail", {
+      body: { index: indexSymbol, dataType: "stocks" },
     });
 
     if (error) {
-      console.error('Error fetching index stocks:', error);
+      console.error("Error fetching index stocks:", error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching index stocks:', error);
+    console.error("Error fetching index stocks:", error);
     return null;
   }
 }
 
 export async function fetchDeliveryData(indexSymbol: string): Promise<DeliveryData | null> {
   try {
-    const { data, error } = await supabase.functions.invoke('index-detail', {
-      body: { index: indexSymbol, dataType: 'delivery' }
+    const { data, error } = await supabase.functions.invoke("index-detail", {
+      body: { index: indexSymbol, dataType: "delivery" },
     });
 
     if (error) {
-      console.error('Error fetching delivery data:', error);
+      console.error("Error fetching delivery data:", error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching delivery data:', error);
+    console.error("Error fetching delivery data:", error);
     return null;
   }
 }
 
 export async function fetchTechnicalsData(indexSymbol: string): Promise<StockTechnical[] | null> {
   try {
-    const { data, error } = await supabase.functions.invoke('index-detail', {
-      body: { index: indexSymbol, dataType: 'technicals' }
+    const { data, error } = await supabase.functions.invoke("index-detail", {
+      body: { index: indexSymbol, dataType: "technicals" },
     });
 
     if (error) {
-      console.error('Error fetching technicals data:', error);
+      console.error("Error fetching technicals data:", error);
       return null;
     }
 
@@ -137,46 +137,49 @@ export async function fetchTechnicalsData(indexSymbol: string): Promise<StockTec
     if (Array.isArray(data) && data.length > 0 && data[0].content) {
       return data[0].content;
     }
-    
+
     return data;
   } catch (error) {
-    console.error('Error fetching technicals data:', error);
+    console.error("Error fetching technicals data:", error);
     return null;
   }
 }
 
-export async function fetchShareholdingData(indexSymbol: string, type: 'promoter' | 'fii' | 'mf' | 'public' = 'promoter'): Promise<any[] | null> {
+export async function fetchShareholdingData(
+  indexSymbol: string,
+  type: "promoter" | "fii" | "mf" | "public" = "promoter",
+): Promise<any[] | null> {
   try {
-    const { data, error } = await supabase.functions.invoke('index-detail', {
-      body: { index: indexSymbol, dataType: 'shareholding', shareholdingType: type }
+    const { data, error } = await supabase.functions.invoke("index-detail", {
+      body: { index: indexSymbol, dataType: "shareholding", shareholdingType: type },
     });
 
     if (error) {
-      console.error('Error fetching shareholding data:', error);
+      console.error("Error fetching shareholding data:", error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching shareholding data:', error);
+    console.error("Error fetching shareholding data:", error);
     return null;
   }
 }
 
 export async function fetchBreadthData(indexSymbol: string): Promise<any | null> {
   try {
-    const { data, error } = await supabase.functions.invoke('index-detail', {
-      body: { index: indexSymbol, dataType: 'breadth' }
+    const { data, error } = await supabase.functions.invoke("index-detail", {
+      body: { index: indexSymbol, dataType: "breadth" },
     });
 
     if (error) {
-      console.error('Error fetching breadth data:', error);
+      console.error("Error fetching breadth data:", error);
       return null;
     }
 
     return data;
   } catch (error) {
-    console.error('Error fetching breadth data:', error);
+    console.error("Error fetching breadth data:", error);
     return null;
   }
 }
@@ -184,38 +187,36 @@ export async function fetchBreadthData(indexSymbol: string): Promise<any | null>
 // Helper to get index symbol from display name
 export function getIndexSymbol(indexName: string): string {
   const indexMap: Record<string, string> = {
-    'Nifty 50': 'SYML:NSE;NIFTY',
-    'NIFTY 50': 'SYML:NSE;NIFTY',
-    'NIFTY BANK': 'SYML:NSE;BANKNIFTY',
-    'Nifty Bank': 'SYML:NSE;BANKNIFTY',
-    'NIFTY IT': 'SYML:NSE;CNXIT',
-    'NIFTY METAL': 'SYML:NSE;CNXMETAL',
-    'NIFTY PHARMA': 'SYML:NSE;CNXPHARMA',
-    'NIFTY AUTO': 'SYML:NSE;CNXAUTO',
-    'NIFTY ENERGY': 'SYML:NSE;CNXENERGY',
-    'NIFTY FMCG': 'SYML:NSE;CNXFMCG',
-    'NIFTY REALTY': 'SYML:NSE;CNXREALTY',
-    'NIFTY INFRA': 'SYML:NSE;CNXINFRA',
-    'NIFTY PSE': 'SYML:NSE;CNXPSE',
-    'NIFTY MEDIA': 'SYML:NSE;CNXMEDIA',
-    'NIFTY PRIVATE BANK': 'SYML:NSE;NIFTYPVTBANK',
-    'NIFTY PSU BANK': 'SYML:NSE;CNXPSUBANK',
-    'NIFTY FIN SERVICE': 'SYML:NSE;CNXFINANCE',
-    'NIFTY NEXT 50': 'SYML:NSE;NIFTYJR',
-    'NIFTY MIDCAP 50': 'SYML:NSE;NIFTYMIDCAP50',
-    'NIFTY 100': 'SYML:NSE;NIFTY100',
-    'NIFTY 200': 'SYML:NSE;NIFTY200',
-    'NIFTY 500': 'SYML:NSE;NIFTY500',
-    'NIFTY COMMODITIES': 'SYML:NSE;CNXCOMMODITY',
-    'NIFTY CONSUMPTION': 'SYML:NSE;NIFTYCONSUMPTION',
-    'NIFTY CPSE': 'SYML:NSE;NIFTYCPSE',
-    'NIFTY GROWSECT 15': 'SYML:NSE;NIFTYGROWSECT15',
-    'NIFTY MNC': 'SYML:NSE;CNXMNC',
-    'NIFTY OIL & GAS': 'SYML:NSE;NIFTYOILGAS',
-    'NIFTY SERV SECTOR': 'SYML:NSE;NIFTYSERVSECTOR',
+    "nifty 50": "SYML:NSE;NIFTY",
+    "nifty bank": "SYML:NSE;BANKNIFTY",
+    "nifty it": "SYML:NSE;CNXIT",
+    "nifty metal": "SYML:NSE;CNXMETAL",
+    "nifty pharma": "SYML:NSE;CNXPHARMA",
+    "nifty auto": "SYML:NSE;CNXAUTO",
+    "nifty energy": "SYML:NSE;CNXENERGY",
+    "nifty fmcg": "SYML:NSE;CNXFMCG",
+    "nifty realty": "SYML:NSE;CNXREALTY",
+    "nifty infra": "SYML:NSE;CNXINFRA",
+    "nifty pse": "SYML:NSE;CNXPSE",
+    "nifty media": "SYML:NSE;CNXMEDIA",
+    "nifty private bank": "SYML:NSE;NIFTYPVTBANK",
+    "nifty psu bank": "SYML:NSE;CNXPSUBANK",
+    "nifty fin service": "SYML:NSE;CNXFINANCE",
+    "nifty next 50": "SYML:NSE;NIFTYJR",
+    "nifty midcap 50": "SYML:NSE;NIFTYMIDCAP50",
+    "nifty 100": "SYML:NSE;NIFTY100",
+    "nifty 200": "SYML:NSE;NIFTY200",
+    "nifty 500": "SYML:NSE;NIFTY500",
+    "nifty commodities": "SYML:NSE;CNXCOMMODITY",
+    "nifty consumption": "SYML:NSE;NIFTYCONSUMPTION",
+    "nifty cpse": "SYML:NSE;NIFTYCPSE",
+    "nifty growsect 15": "SYML:NSE;NIFTYGROWSECT15",
+    "nifty mnc": "SYML:NSE;CNXMNC",
+    "nifty oil & gas": "SYML:NSE;NIFTYOILGAS",
+    "nifty serv sector": "SYML:NSE;NIFTYSERVSECTOR",
   };
-  
-  return indexMap[indexName] || `SYML:NSE;${indexName.replace(/\s+/g, '').toUpperCase()}`;
+
+  return indexMap[indexName] || `SYML:NSE;${indexName.replace(/\s+/g, "").toUpperCase()}`;
 }
 
 // Format market cap for display
