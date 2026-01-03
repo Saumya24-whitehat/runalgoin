@@ -102,14 +102,17 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="text-primary">Symbol</TableHead>
-              <TableHead className="text-right">LTP</TableHead>
-              <TableHead className="text-right">Chg. %</TableHead>
+              <TableHead className="text-primary w-[60%]">Symbol</TableHead>
+              <TableHead className="text-right w-[20%]">LTP</TableHead>
+              <TableHead className="text-right w-[20%]">Chg. %</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {stocks.map((stock) => {
               const pctChange = stock.change || 0;
+              const rangePosition = stock.low && stock.high && stock.close
+                ? Math.min(100, Math.max(0, ((stock.close - stock.low) / (stock.high - stock.low)) * 100))
+                : 50;
               
               return (
                 <TableRow
@@ -117,37 +120,38 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
                   className="cursor-pointer hover:bg-muted/30"
                   onClick={() => handleStockClick(stock.name)}
                 >
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-bold">
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
                         {stock.name.substring(0, 2)}
                       </div>
-                      <div>
-                        <div className="font-medium text-primary">{stock.description || stock.name}</div>
-                        {/* Range bar */}
-                        <div className="mt-1 relative h-2 w-48 bg-gradient-to-r from-muted via-primary to-muted rounded">
-                          <div className="absolute text-[9px] -top-3 left-0 text-muted-foreground">
-                            Low: {stock.low?.toFixed(1) || '-'}
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-primary truncate mb-2">
+                          {stock.description || stock.name}
+                        </div>
+                        {/* Range bar with labels */}
+                        <div className="relative">
+                          <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
+                            <span>Low: {stock.low?.toFixed(1) || '-'}</span>
+                            <span>High: {stock.high?.toFixed(1) || '-'}</span>
                           </div>
-                          <div className="absolute text-[9px] -top-3 right-0 text-muted-foreground">
-                            High: {stock.high?.toFixed(1) || '-'}
-                          </div>
-                          {stock.low && stock.high && stock.close && (
+                          <div className="relative h-1.5 w-full max-w-[300px] bg-gradient-to-r from-destructive/40 via-primary to-success/40 rounded-full">
+                            {/* Position marker */}
                             <div
-                              className="absolute top-1/2 -translate-y-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-foreground"
-                              style={{
-                                left: `${Math.min(100, Math.max(0, ((stock.close - stock.low) / (stock.high - stock.low)) * 100))}%`
-                              }}
-                            />
-                          )}
+                              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+                              style={{ left: `${rangePosition}%` }}
+                            >
+                              <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right font-mono">
+                  <TableCell className="text-right font-mono text-base">
                     {stock.close?.toFixed(2) || '-'}
                   </TableCell>
-                  <TableCell className={`text-right font-mono ${pctChange >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  <TableCell className={`text-right font-mono text-base ${pctChange >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%
                   </TableCell>
                 </TableRow>
