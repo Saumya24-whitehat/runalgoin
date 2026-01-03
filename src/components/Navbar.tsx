@@ -144,7 +144,7 @@ const navItems: NavItem[] = [
       {
         title: "JACKPOT SECTION",
         items: [
-          { icon: Target, label: "Jackpot Scanner", iconColor: "text-yellow-500" },
+          { icon: Target, label: "Jackpot Scanner", iconColor: "text-yellow-500", path: "/jackpot-scanner" },
           { icon: Crown, label: "Jackpot", iconColor: "text-yellow-500" },
         ],
       },

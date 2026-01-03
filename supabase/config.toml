@@ -74,3 +74,6 @@ verify_jwt = false
 
 [functions.trending-stocks]
 verify_jwt = false
+
+[functions.jackpot-scanner]
+verify_jwt = false
