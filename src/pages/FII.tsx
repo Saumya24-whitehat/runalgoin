@@ -692,15 +692,27 @@ export default function FII() {
                         <TableBody>
                           {summaryTableData.map((row, idx, arr) => {
                             const isFirstInGroup = idx === 0 || arr[idx - 1].participant !== row.participant;
-                            const groupSize = arr.filter(r => r.participant === row.participant).length;
                             const rowKey = `${row.participant}-${row.segment}`;
                             const isExpanded = expandedRows.has(rowKey);
+                            
+                            // Calculate total rows for this participant including any expanded children
+                            const calculateGroupRowSpan = () => {
+                              const groupRows = arr.filter(r => r.participant === row.participant);
+                              let totalRows = groupRows.length;
+                              groupRows.forEach(r => {
+                                const rKey = `${r.participant}-${r.segment}`;
+                                if (expandedRows.has(rKey) && r.childData) {
+                                  totalRows += r.childData.length;
+                                }
+                              });
+                              return totalRows;
+                            };
                             
                             return (
                               <React.Fragment key={rowKey}>
                                 <TableRow className="border-border hover:bg-muted/30">
                                   {isFirstInGroup && (
-                                    <TableCell className="font-medium text-[11px] align-top pt-3" rowSpan={groupSize + (isExpanded && row.childData ? row.childData.length : 0)}>
+                                    <TableCell className="font-medium text-[11px] align-top pt-3" rowSpan={calculateGroupRowSpan()}>
                                       {row.participant}
                                     </TableCell>
                                   )}
@@ -734,7 +746,7 @@ export default function FII() {
                                 </TableRow>
                                 {/* Child rows when expanded */}
                                 {isExpanded && row.childData?.map((child, childIdx) => (
-                                  <TableRow key={`${idx}-child-${childIdx}`} className="border-border bg-muted/20 hover:bg-muted/40">
+                                  <TableRow key={`${rowKey}-child-${childIdx}`} className="border-border bg-muted/20 hover:bg-muted/40">
                                     <TableCell className="py-1 pl-6">
                                       <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                                         <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
@@ -748,7 +760,7 @@ export default function FII() {
                                       maxValue={maxValue}
                                     />
                                     <TableCell className="text-right font-mono text-[9px] py-1">
-                                      {Math.abs(child.value * 100) > 0 ? `${(child.value < 0 ? "-" : "")}${(Math.abs(child.value * 100) / 100).toFixed(2)}L` : "-"}
+                                      {Math.abs(child.value) > 0 ? `${formatLakh(child.value)}` : "-"}
                                     </TableCell>
                                     <TableCell className={`text-right font-mono text-[9px] py-1 ${child.change >= 0 ? "text-green-500" : "text-red-500"}`}>
                                       {child.change !== 0 ? `${child.change >= 0 ? "+" : ""}${child.change.toFixed(2)}` : "-"}
