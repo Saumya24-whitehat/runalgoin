@@ -162,16 +162,16 @@ const Dashboard = () => {
       try {
         const baseUrl = import.meta.env.VITE_SUPABASE_URL;
         const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-        
+
         const [bulkRes, blockRes, shortRes] = await Promise.all([
           fetch(`${baseUrl}/functions/v1/deals-data?file=bulk`, {
-            headers: { 'Authorization': `Bearer ${anonKey}` },
+            headers: { Authorization: `Bearer ${anonKey}` },
           }),
           fetch(`${baseUrl}/functions/v1/deals-data?file=block`, {
-            headers: { 'Authorization': `Bearer ${anonKey}` },
+            headers: { Authorization: `Bearer ${anonKey}` },
           }),
           fetch(`${baseUrl}/functions/v1/deals-data?file=short`, {
-            headers: { 'Authorization': `Bearer ${anonKey}` },
+            headers: { Authorization: `Bearer ${anonKey}` },
           }),
         ]);
 
@@ -203,37 +203,37 @@ const Dashboard = () => {
       try {
         const baseUrl = import.meta.env.VITE_SUPABASE_URL;
         const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-        
+
         const response = await fetch(`${baseUrl}/functions/v1/market-actions`, {
-          headers: { 'Authorization': `Bearer ${anonKey}` },
+          headers: { Authorization: `Bearer ${anonKey}` },
         });
 
         if (response.ok) {
           const data: MarketActionsData = await response.json();
-          
+
           // Parse upcoming results (this week)
           const upcoming = (data.dataThisWeek || []).slice(0, 8).map((item: unknown[]) => ({
-            symbol: String(item[0] || ''),
-            company: String(item[1] || ''),
-            date: String(item[2] || ''),
-            actionType: String(item[3] || ''),
-            meetingType: String(item[4] || ''),
-            description: String(item[5] || ''),
+            symbol: String(item[0] || ""),
+            company: String(item[1] || ""),
+            date: String(item[2] || ""),
+            actionType: String(item[3] || ""),
+            meetingType: String(item[4] || ""),
+            description: String(item[5] || ""),
             price: Number(item[6]) || 0,
-            notes: String(item[7] || ''),
+            notes: String(item[7] || ""),
           }));
           setUpcomingResults(upcoming);
-          
+
           // Parse released results (last week)
           const released = (data.dataLastWeekResults || []).slice(0, 8).map((item: unknown[]) => ({
-            symbol: String(item[0] || ''),
-            company: String(item[1] || ''),
-            date: String(item[2] || ''),
-            actionType: String(item[3] || ''),
-            meetingType: String(item[4] || ''),
-            description: String(item[5] || ''),
+            symbol: String(item[0] || ""),
+            company: String(item[1] || ""),
+            date: String(item[2] || ""),
+            actionType: String(item[3] || ""),
+            meetingType: String(item[4] || ""),
+            description: String(item[5] || ""),
             price: Number(item[6]) || 0,
-            notes: String(item[7] || ''),
+            notes: String(item[7] || ""),
           }));
           setReleasedResults(released);
         }
@@ -251,7 +251,7 @@ const Dashboard = () => {
     const fetchTrendingStocks = async () => {
       setTrendingLoading(true);
       try {
-        const { data, error } = await supabase.functions.invoke('trending-stocks');
+        const { data, error } = await supabase.functions.invoke("trending-stocks");
         if (!error && data) {
           setTrendingData(data);
         }
@@ -284,14 +284,17 @@ const Dashboard = () => {
               key={idx}
               className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
             >
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#2a2e39' }}>
+              <div
+                className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
+                style={{ backgroundColor: "#2a2e39" }}
+              >
                 <img
                   src={`https://runalgo.xyz/top/chart/data/svg/nse_${stock.nseScriptCode}.svg`}
                   alt={stock.nseScriptCode}
                   className="w-full h-full object-contain"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
+                    target.style.display = "none";
                     target.parentElement!.innerHTML = `<span class="text-sm font-bold text-white">${stock.companyName.charAt(0)}</span>`;
                   }}
                 />
@@ -469,27 +472,13 @@ const Dashboard = () => {
                   Most Visited
                 </TabsTrigger>
               </TabsList>
-              <TabsContent value="topgainers">
-                {renderStockList(trendingData?.TOP_GAINERS, true)}
-              </TabsContent>
-              <TabsContent value="toplosers">
-                {renderStockList(trendingData?.TOP_LOSERS, false)}
-              </TabsContent>
-              <TabsContent value="volumeshockers">
-                {renderStockList(trendingData?.VOLUME_SHOCKERS)}
-              </TabsContent>
-              <TabsContent value="topvolume">
-                {renderStockList(trendingData?.TRADED_BY_VOLUME)}
-              </TabsContent>
-              <TabsContent value="52weekhigh">
-                {renderStockList(trendingData?.YEARLY_HIGH)}
-              </TabsContent>
-              <TabsContent value="52weeklow">
-                {renderStockList(trendingData?.YEARLY_LOW, false)}
-              </TabsContent>
-              <TabsContent value="mostvisited">
-                {renderStockList(trendingData?.MOST_VISITED)}
-              </TabsContent>
+              <TabsContent value="topgainers">{renderStockList(trendingData?.TOP_GAINERS, true)}</TabsContent>
+              <TabsContent value="toplosers">{renderStockList(trendingData?.TOP_LOSERS, false)}</TabsContent>
+              <TabsContent value="volumeshockers">{renderStockList(trendingData?.VOLUME_SHOCKERS)}</TabsContent>
+              <TabsContent value="topvolume">{renderStockList(trendingData?.TRADED_BY_VOLUME)}</TabsContent>
+              <TabsContent value="52weekhigh">{renderStockList(trendingData?.YEARLY_HIGH)}</TabsContent>
+              <TabsContent value="52weeklow">{renderStockList(trendingData?.YEARLY_LOW, false)}</TabsContent>
+              <TabsContent value="mostvisited">{renderStockList(trendingData?.MOST_VISITED)}</TabsContent>
             </Tabs>
           </CardContent>
         </Card>
@@ -592,7 +581,9 @@ const Dashboard = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate">{result.company}</div>
-                              <div className="text-xs text-muted-foreground">{result.date} • ₹{result.price.toLocaleString()}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {result.date} • ₹{result.price.toLocaleString()}
+                              </div>
                             </div>
                             <Badge
                               className={`text-xs ${
@@ -642,7 +633,9 @@ const Dashboard = () => {
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm truncate">{result.company}</div>
-                              <div className="text-xs text-muted-foreground">{result.date} • ₹{result.price.toLocaleString()}</div>
+                              <div className="text-xs text-muted-foreground">
+                                {result.date} • ₹{result.price.toLocaleString()}
+                              </div>
                             </div>
                             <Badge
                               className={`text-xs ${
@@ -728,8 +721,12 @@ const Dashboard = () => {
                                 </Badge>
                               </td>
                               <td className="py-2">{deal.company}</td>
-                              <td className="py-2 text-right">{typeof deal.qty === 'number' ? deal.qty.toLocaleString() : deal.qty}</td>
-                              <td className="py-2 text-right">{typeof deal.price === 'number' ? deal.price.toFixed(2) : deal.price}</td>
+                              <td className="py-2 text-right">
+                                {typeof deal.qty === "number" ? deal.qty.toLocaleString() : deal.qty}
+                              </td>
+                              <td className="py-2 text-right">
+                                {typeof deal.price === "number" ? deal.price.toFixed(2) : deal.price}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -766,8 +763,12 @@ const Dashboard = () => {
                                 </Badge>
                               </td>
                               <td className="py-2">{deal.company}</td>
-                              <td className="py-2 text-right">{typeof deal.qty === 'number' ? deal.qty.toLocaleString() : deal.qty}</td>
-                              <td className="py-2 text-right">{typeof deal.price === 'number' ? deal.price.toFixed(2) : deal.price}</td>
+                              <td className="py-2 text-right">
+                                {typeof deal.qty === "number" ? deal.qty.toLocaleString() : deal.qty}
+                              </td>
+                              <td className="py-2 text-right">
+                                {typeof deal.price === "number" ? deal.price.toFixed(2) : deal.price}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -804,8 +805,12 @@ const Dashboard = () => {
                                 </Badge>
                               </td>
                               <td className="py-2">{deal.company}</td>
-                              <td className="py-2 text-right">{typeof deal.qty === 'number' ? deal.qty.toLocaleString() : deal.qty}</td>
-                              <td className="py-2 text-right">{typeof deal.price === 'number' ? deal.price.toFixed(2) : deal.price}</td>
+                              <td className="py-2 text-right">
+                                {typeof deal.qty === "number" ? deal.qty.toLocaleString() : deal.qty}
+                              </td>
+                              <td className="py-2 text-right">
+                                {typeof deal.price === "number" ? deal.price.toFixed(2) : deal.price}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
@@ -1048,7 +1053,7 @@ const Dashboard = () => {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-semibold">IPO Listing</CardTitle>
-            <a href="#" className="text-primary text-sm hover:underline">
+            <a href="/ipo" className="text-primary text-sm hover:underline">
               View All ›
             </a>
           </CardHeader>
