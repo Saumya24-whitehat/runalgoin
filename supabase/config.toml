@@ -62,3 +62,6 @@ verify_jwt = false
 
 [functions.indices-data]
 verify_jwt = false
+
+[functions.fii-summary]
+verify_jwt = false
