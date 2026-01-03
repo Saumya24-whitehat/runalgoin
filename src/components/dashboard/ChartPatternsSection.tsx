@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
-import dojiIcon from "@/assets/patterns/doji.svg";
 interface PatternItem {
   id: number;
   conditionName: string;
@@ -94,12 +93,10 @@ export function ChartPatternsSection() {
     }
   };
 
-  const getPatternIcon = (conditionName: string, thumbnail?: string) => {
-    const lowerName = conditionName.toLowerCase();
-    if (lowerName.includes("doji") || lowerName.includes("dozi")) {
-      return dojiIcon;
-    }
-    return thumbnail;
+  const getPatternIcon = (conditionName: string) => {
+    // Use pattern name to construct URL from runalgo.xyz
+    const encodedName = encodeURIComponent(conditionName);
+    return `https://runalgo.xyz/chartpatterns/svg/${encodedName}.svg`;
   };
 
   const formatTimeFrame = (tf: string) => {
@@ -281,7 +278,7 @@ export function ChartPatternsSection() {
                   {/* Pattern Icon */}
                   <div className="w-10 h-10 flex-shrink-0">
                     <img 
-                      src={getPatternIcon(pattern.conditionName, pattern.thumbnail)} 
+                      src={getPatternIcon(pattern.conditionName)} 
                       alt={pattern.conditionName}
                       className="w-full h-full object-contain"
                       onError={(e) => {
