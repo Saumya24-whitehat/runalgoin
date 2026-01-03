@@ -51,23 +51,30 @@ interface FIIDataItem {
   }>;
 }
 
+// API field names may have inconsistent trailing spaces, so we use Record<string, any>
 interface FIISummaryData {
-  "Client Type": Record<string, string>;
-  "Future Index Long": Record<string, number>;
-  "Future Index Short": Record<string, number>;
-  "Future Stock Long": Record<string, number>;
-  "Future Stock Short ": Record<string, number>;
-  "Option Index Call Long": Record<string, number>;
-  "Option Index Put Long": Record<string, number>;
-  "Option Index Call Short": Record<string, number>;
-  "Option Index Put Short": Record<string, number>;
-  "Option Stock Call Long": Record<string, number>;
-  "Option Stock Put Long": Record<string, number>;
-  "Option Stock Call Short": Record<string, number>;
-  "Option Stock Put Short": Record<string, number>;
-  "Total Long Contracts ": Record<string, number>;
-  "Total Short Contracts": Record<string, number>;
+  [key: string]: Record<string, string | number>;
 }
+
+// Helper to get value from summary data with fuzzy key matching (handles trailing spaces)
+const getSummaryValue = (data: FIISummaryData | undefined, keyPrefix: string, idx: string): number => {
+  if (!data) return 0;
+  const matchingKey = Object.keys(data).find(k => k.trim() === keyPrefix.trim());
+  if (matchingKey) {
+    const record = data[matchingKey];
+    return typeof record[idx] === 'number' ? record[idx] as number : 0;
+  }
+  return 0;
+};
+
+const getClientTypes = (data: FIISummaryData | undefined): Record<string, string> => {
+  if (!data) return {};
+  const matchingKey = Object.keys(data).find(k => k.trim() === "Client Type");
+  if (matchingKey) {
+    return data[matchingKey] as Record<string, string>;
+  }
+  return {};
+};
 
 const fetchFIIData = async (): Promise<FIIDataItem[]> => {
   const { data, error } = await supabase.functions.invoke("fii-data");
@@ -350,10 +357,10 @@ export default function FII() {
 
     // Map client type index to participant name
     const clientTypeMap: Record<string, string> = {};
-    const clientTypes = summaryData["Client Type"];
-    if (!clientTypes) return [];
+    const clientTypes = getClientTypes(summaryData);
+    if (!clientTypes || Object.keys(clientTypes).length === 0) return [];
     Object.entries(clientTypes).forEach(([idx, name]) => {
-      clientTypeMap[idx] = name;
+      clientTypeMap[idx] = String(name);
     });
 
     // Find index for each participant
@@ -406,16 +413,16 @@ export default function FII() {
           | undefined;
 
         if (segment === "Index Futures") {
-          longValue = summaryData["Future Index Long"]?.[idx] || 0;
-          shortValue = summaryData["Future Index Short"]?.[idx] || 0;
+          longValue = getSummaryValue(summaryData, "Future Index Long", idx);
+          shortValue = getSummaryValue(summaryData, "Future Index Short", idx);
         } else if (segment === "Stock Futures") {
-          longValue = summaryData["Future Stock Long"]?.[idx] || 0;
-          shortValue = summaryData["Future Stock Short "]?.[idx] || 0;
+          longValue = getSummaryValue(summaryData, "Future Stock Long", idx);
+          shortValue = getSummaryValue(summaryData, "Future Stock Short", idx);
         } else if (segment === "Index Options") {
-          const callLong = summaryData["Option Index Call Long"]?.[idx] || 0;
-          const putLong = summaryData["Option Index Put Long"]?.[idx] || 0;
-          const callShort = summaryData["Option Index Call Short"]?.[idx] || 0;
-          const putShort = summaryData["Option Index Put Short"]?.[idx] || 0;
+          const callLong = getSummaryValue(summaryData, "Option Index Call Long", idx);
+          const putLong = getSummaryValue(summaryData, "Option Index Put Long", idx);
+          const callShort = getSummaryValue(summaryData, "Option Index Call Short", idx);
+          const putShort = getSummaryValue(summaryData, "Option Index Put Short", idx);
           longValue = callLong + putLong;
           shortValue = callShort + putShort;
 
@@ -447,10 +454,10 @@ export default function FII() {
             },
           ];
         } else if (segment === "Stock Options") {
-          const callLong = summaryData["Option Stock Call Long"]?.[idx] || 0;
-          const putLong = summaryData["Option Stock Put Long"]?.[idx] || 0;
-          const callShort = summaryData["Option Stock Call Short"]?.[idx] || 0;
-          const putShort = summaryData["Option Stock Put Short"]?.[idx] || 0;
+          const callLong = getSummaryValue(summaryData, "Option Stock Call Long", idx);
+          const putLong = getSummaryValue(summaryData, "Option Stock Put Long", idx);
+          const callShort = getSummaryValue(summaryData, "Option Stock Call Short", idx);
+          const putShort = getSummaryValue(summaryData, "Option Stock Put Short", idx);
           longValue = callLong + putLong;
           shortValue = callShort + putShort;
 
