@@ -284,18 +284,17 @@ const Dashboard = () => {
               key={idx}
               className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
             >
-              <div
-                className={`w-9 h-9 rounded-lg flex items-center justify-center text-sm font-bold text-white ${
-                  idx % 4 === 0
-                    ? "bg-gradient-to-br from-blue-500 to-blue-700"
-                    : idx % 4 === 1
-                      ? "bg-gradient-to-br from-purple-500 to-purple-700"
-                      : idx % 4 === 2
-                        ? "bg-gradient-to-br from-orange-500 to-orange-700"
-                        : "bg-gradient-to-br from-green-500 to-green-700"
-                }`}
-              >
-                {stock.companyName.charAt(0)}
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden" style={{ backgroundColor: '#2a2e39' }}>
+                <img
+                  src={`https://runalgo.xyz/top/chart/data/svg/nse_${stock.nseScriptCode}.svg`}
+                  alt={stock.nseScriptCode}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                    target.parentElement!.innerHTML = `<span class="text-sm font-bold text-white">${stock.companyName.charAt(0)}</span>`;
+                  }}
+                />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-medium truncate">{stock.companyName}</div>
