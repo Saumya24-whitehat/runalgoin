@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.fii-summary]
 verify_jwt = false
+
+[functions.deals-data]
+verify_jwt = false

@@ -54,18 +54,13 @@ const marketEvents = [
   { company: "Vineet Laboratories Ltd.", event: "Rights", ratio: "1:2 (2 share at ₹ 25)" },
 ];
 
-const bulkDeals = [
-  { client: "IMPERIAL CHEMICAL INDUSTRIES LIMITED", type: "BUY", company: "AKZONDIA", qty: "4870635", price: "3163.5" },
-  {
-    client: "PRAKASH TRADING AND INVESTMENT COMPANY PRIVATE LIMITED",
-    type: "SELL",
-    company: "MIKT",
-    qty: "5638308",
-    price: "149.08",
-  },
-  { client: "VIDYARITI LLP", type: "SELL", company: "MIKT", qty: "5638308", price: "149.08" },
-  { client: "BORGES MULTITRADE LLP", type: "SELL", company: "LLOYDSME", qty: "3008910", price: "1382.25" },
-];
+interface DealData {
+  client: string;
+  type: string;
+  company: string;
+  qty: string | number;
+  price: string | number;
+}
 
 interface FIIChildData {
   Name: string;
@@ -125,6 +120,10 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [fiiData, setFiiData] = useState<FIIRecord[] | null>(null);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [bulkDeals, setBulkDeals] = useState<DealData[]>([]);
+  const [blockDeals, setBlockDeals] = useState<DealData[]>([]);
+  const [shortDeals, setShortDeals] = useState<DealData[]>([]);
+  const [dealsLoading, setDealsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -145,6 +144,47 @@ const Dashboard = () => {
       }
     };
     fetchFiiData();
+  }, []);
+
+  // Fetch deals data
+  useEffect(() => {
+    const fetchDealsData = async () => {
+      setDealsLoading(true);
+      try {
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        
+        const [bulkRes, blockRes, shortRes] = await Promise.all([
+          fetch(`${baseUrl}/functions/v1/deals-data?file=bulk`, {
+            headers: { 'Authorization': `Bearer ${anonKey}` },
+          }),
+          fetch(`${baseUrl}/functions/v1/deals-data?file=block`, {
+            headers: { 'Authorization': `Bearer ${anonKey}` },
+          }),
+          fetch(`${baseUrl}/functions/v1/deals-data?file=short`, {
+            headers: { 'Authorization': `Bearer ${anonKey}` },
+          }),
+        ]);
+
+        if (bulkRes.ok) {
+          const bulkData = await bulkRes.json();
+          setBulkDeals(Array.isArray(bulkData) ? bulkData.slice(0, 10) : []);
+        }
+        if (blockRes.ok) {
+          const blockData = await blockRes.json();
+          setBlockDeals(Array.isArray(blockData) ? blockData.slice(0, 10) : []);
+        }
+        if (shortRes.ok) {
+          const shortData = await shortRes.json();
+          setShortDeals(Array.isArray(shortData) ? shortData.slice(0, 10) : []);
+        }
+      } catch (err) {
+        console.error("Error fetching deals data:", err);
+      } finally {
+        setDealsLoading(false);
+      }
+    };
+    fetchDealsData();
   }, []);
 
   // Get FII/DII data for display (with child data)
@@ -454,42 +494,118 @@ const Dashboard = () => {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="bulk">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="border-b border-border text-muted-foreground">
-                          <th className="text-left py-2 font-medium">Client</th>
-                          <th className="text-left py-2 font-medium">Type</th>
-                          <th className="text-left py-2 font-medium">Company</th>
-                          <th className="text-right py-2 font-medium">Qty</th>
-                          <th className="text-right py-2 font-medium">Price ↓</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bulkDeals.map((deal, idx) => (
-                          <tr key={idx} className="border-b border-border/50">
-                            <td className="py-2 max-w-32 truncate">{deal.client}</td>
-                            <td className="py-2">
-                              <Badge
-                                className={`text-xs ${deal.type === "BUY" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
-                              >
-                                {deal.type}
-                              </Badge>
-                            </td>
-                            <td className="py-2">{deal.company}</td>
-                            <td className="py-2 text-right">{deal.qty}</td>
-                            <td className="py-2 text-right">{deal.price}</td>
+                  {dealsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  ) : bulkDeals.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">No data available</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border text-muted-foreground">
+                            <th className="text-left py-2 font-medium">Client</th>
+                            <th className="text-left py-2 font-medium">Type</th>
+                            <th className="text-left py-2 font-medium">Company</th>
+                            <th className="text-right py-2 font-medium">Qty</th>
+                            <th className="text-right py-2 font-medium">Price</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                        </thead>
+                        <tbody>
+                          {bulkDeals.map((deal, idx) => (
+                            <tr key={idx} className="border-b border-border/50">
+                              <td className="py-2 max-w-32 truncate">{deal.client}</td>
+                              <td className="py-2">
+                                <Badge
+                                  className={`text-xs ${deal.type === "BUY" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
+                                >
+                                  {deal.type}
+                                </Badge>
+                              </td>
+                              <td className="py-2">{deal.company}</td>
+                              <td className="py-2 text-right">{typeof deal.qty === 'number' ? deal.qty.toLocaleString() : deal.qty}</td>
+                              <td className="py-2 text-right">{typeof deal.price === 'number' ? deal.price.toFixed(2) : deal.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="block">
-                  <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  {dealsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  ) : blockDeals.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">No data available</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border text-muted-foreground">
+                            <th className="text-left py-2 font-medium">Client</th>
+                            <th className="text-left py-2 font-medium">Type</th>
+                            <th className="text-left py-2 font-medium">Company</th>
+                            <th className="text-right py-2 font-medium">Qty</th>
+                            <th className="text-right py-2 font-medium">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {blockDeals.map((deal, idx) => (
+                            <tr key={idx} className="border-b border-border/50">
+                              <td className="py-2 max-w-32 truncate">{deal.client}</td>
+                              <td className="py-2">
+                                <Badge
+                                  className={`text-xs ${deal.type === "BUY" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
+                                >
+                                  {deal.type}
+                                </Badge>
+                              </td>
+                              <td className="py-2">{deal.company}</td>
+                              <td className="py-2 text-right">{typeof deal.qty === 'number' ? deal.qty.toLocaleString() : deal.qty}</td>
+                              <td className="py-2 text-right">{typeof deal.price === 'number' ? deal.price.toFixed(2) : deal.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </TabsContent>
                 <TabsContent value="short">
-                  <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  {dealsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  ) : shortDeals.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">No data available</div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-border text-muted-foreground">
+                            <th className="text-left py-2 font-medium">Client</th>
+                            <th className="text-left py-2 font-medium">Type</th>
+                            <th className="text-left py-2 font-medium">Company</th>
+                            <th className="text-right py-2 font-medium">Qty</th>
+                            <th className="text-right py-2 font-medium">Price</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {shortDeals.map((deal, idx) => (
+                            <tr key={idx} className="border-b border-border/50">
+                              <td className="py-2 max-w-32 truncate">{deal.client}</td>
+                              <td className="py-2">
+                                <Badge
+                                  className={`text-xs ${deal.type === "BUY" ? "bg-green-500/20 text-green-400" : "bg-red-500/20 text-red-400"}`}
+                                >
+                                  {deal.type}
+                                </Badge>
+                              </td>
+                              <td className="py-2">{deal.company}</td>
+                              <td className="py-2 text-right">{typeof deal.qty === 'number' ? deal.qty.toLocaleString() : deal.qty}</td>
+                              <td className="py-2 text-right">{typeof deal.price === 'number' ? deal.price.toFixed(2) : deal.price}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
