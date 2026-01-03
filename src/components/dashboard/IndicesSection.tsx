@@ -432,7 +432,7 @@ export function IndicesSection() {
         {/* Fixed-width container for counts + bars */}
         <div className="flex items-center gap-1 w-[260px]">
           {/* Advance count */}
-          <span className="text-xs text-success w-7 text-right">▲{item.advance}</span>
+          <span className="text-xs text-success w-9 text-right">▲{item.advance}</span>
 
           {/* Advance bar (flexible width) */}
           <div className="h-4 bg-success rounded-l" style={{ flexBasis: `${advancePercent}%` }} />
@@ -441,7 +441,7 @@ export function IndicesSection() {
           <div className="h-4 bg-destructive rounded-r" style={{ flexBasis: `${declinePercent}%` }} />
 
           {/* Decline count */}
-          <span className="text-xs text-destructive w-7 text-left">▼{item.decline}</span>
+          <span className="text-xs text-destructive w-9 text-left">▼{item.decline}</span>
         </div>
       </div>
     );
