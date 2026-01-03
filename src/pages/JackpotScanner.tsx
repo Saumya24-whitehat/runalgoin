@@ -61,11 +61,7 @@ const JackpotScanner = () => {
     return null;
   }
 
-  const renderTable = (
-    stocks: JackpotStock[],
-    title: string,
-    headerBgColor: string
-  ) => (
+  const renderTable = (stocks: JackpotStock[], title: string, headerBgColor: string) => (
     <Card className="h-full border-border">
       <CardHeader className="p-0">
         <CardTitle
@@ -103,9 +99,7 @@ const JackpotScanner = () => {
                   </a>
                 </div>
                 <div className="p-2 text-center text-foreground">{stock.trend}</div>
-                <div className="p-2 text-center text-foreground">
-                  {parseFloat(stock.ltp).toLocaleString()}
-                </div>
+                <div className="p-2 text-center text-foreground">{parseFloat(stock.ltp).toLocaleString()}</div>
               </div>
             ))
           )}
@@ -116,15 +110,13 @@ const JackpotScanner = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
       <TickerRibbon />
+      <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
-          <p className="text-muted-foreground">
-            Real-time stock trends based on futures OI and price analysis
-          </p>
+          <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

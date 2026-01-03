@@ -4,14 +4,9 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TickerRibbon } from "@/components/TickerRibbon";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -82,7 +77,7 @@ const fetchFIIData = async (): Promise<FIIDataItem[]> => {
 
 const fetchFIISummary = async (date: string): Promise<FIISummaryData> => {
   const { data, error } = await supabase.functions.invoke("fii-summary", {
-    body: { date }
+    body: { date },
   });
   if (error) throw error;
   return data;
@@ -108,31 +103,31 @@ const formatLakh = (value: number): string => {
   return value.toLocaleString("en-IN");
 };
 
-const getSentiment = (value: number): { label: string; type: 'bullish' | 'bearish' | 'neutral' } => {
+const getSentiment = (value: number): { label: string; type: "bullish" | "bearish" | "neutral" } => {
   const absValue = Math.abs(value);
-  
-  if (absValue < 100) return { label: "Indecisive", type: 'neutral' };
-  if (value > 3000) return { label: "Strong Bullish", type: 'bullish' };
-  if (value > 1000) return { label: "Medium Bullish", type: 'bullish' };
-  if (value > 0) return { label: "Mild Bullish", type: 'bullish' };
-  if (value > -1000) return { label: "Mild Bearish", type: 'bearish' };
-  if (value > -3000) return { label: "Medium Bearish", type: 'bearish' };
-  return { label: "Strong Bearish", type: 'bearish' };
+
+  if (absValue < 100) return { label: "Indecisive", type: "neutral" };
+  if (value > 3000) return { label: "Strong Bullish", type: "bullish" };
+  if (value > 1000) return { label: "Medium Bullish", type: "bullish" };
+  if (value > 0) return { label: "Mild Bullish", type: "bullish" };
+  if (value > -1000) return { label: "Mild Bearish", type: "bearish" };
+  if (value > -3000) return { label: "Medium Bearish", type: "bearish" };
+  return { label: "Strong Bearish", type: "bearish" };
 };
 
 // Sentiment bar component for professional look - returns two TableCells
-const SentimentBarCells = ({ 
-  sentiment, 
-  showLabel, 
-  value, 
-  maxValue 
-}: { 
-  sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' }; 
+const SentimentBarCells = ({
+  sentiment,
+  showLabel,
+  value,
+  maxValue,
+}: {
+  sentiment: { label: string; type: "bullish" | "bearish" | "neutral" };
   showLabel: boolean;
   value: number;
   maxValue: number;
 }) => {
-  if (sentiment.type === 'neutral') {
+  if (sentiment.type === "neutral") {
     return (
       <>
         <TableCell className="p-0 w-[100px]"></TableCell>
@@ -143,28 +138,23 @@ const SentimentBarCells = ({
       </>
     );
   }
-  
+
   // Calculate bar width based on actual value relative to max value
   const absValue = Math.abs(value);
-  const normalizedWidth = maxValue > 0 ? (absValue / maxValue) : 0;
+  const normalizedWidth = maxValue > 0 ? absValue / maxValue : 0;
   const barWidth = `${Math.max(normalizedWidth * 100, 20)}%`;
-  const isBearish = sentiment.type === 'bearish';
-  
+  const isBearish = sentiment.type === "bearish";
+
   return (
     <>
       {/* Bearish column */}
       <TableCell className="p-0.5 w-[100px]">
         {isBearish && (
           <div className="flex justify-end">
-            <div 
-              className="h-4 flex items-center justify-end rounded-sm overflow-hidden"
-              style={{ width: barWidth }}
-            >
+            <div className="h-4 flex items-center justify-end rounded-sm overflow-hidden" style={{ width: barWidth }}>
               <div className="h-full w-full bg-gradient-to-l from-red-500/90 to-red-500/40 flex items-center justify-end px-1">
                 {showLabel && (
-                  <span className="text-[9px] font-medium text-white whitespace-nowrap">
-                    {sentiment.label}
-                  </span>
+                  <span className="text-[9px] font-medium text-white whitespace-nowrap">{sentiment.label}</span>
                 )}
               </div>
             </div>
@@ -181,7 +171,9 @@ const SentimentBarCells = ({
               </span>
             </TooltipTrigger>
             <TooltipContent side="top" className="max-w-[200px] text-xs z-50">
-              <p>Bar width shows relative position size. Sentiment label indicates market outlook based on net value.</p>
+              <p>
+                Bar width shows relative position size. Sentiment label indicates market outlook based on net value.
+              </p>
             </TooltipContent>
           </UITooltip>
         </TooltipProvider>
@@ -190,15 +182,10 @@ const SentimentBarCells = ({
       <TableCell className="p-0.5 w-[100px]">
         {!isBearish && (
           <div className="flex justify-start">
-            <div 
-              className="h-4 flex items-center justify-start rounded-sm overflow-hidden"
-              style={{ width: barWidth }}
-            >
+            <div className="h-4 flex items-center justify-start rounded-sm overflow-hidden" style={{ width: barWidth }}>
               <div className="h-full w-full bg-gradient-to-r from-green-500/40 to-green-500/90 flex items-center justify-start px-1">
                 {showLabel && (
-                  <span className="text-[9px] font-medium text-white whitespace-nowrap">
-                    {sentiment.label}
-                  </span>
+                  <span className="text-[9px] font-medium text-white whitespace-nowrap">{sentiment.label}</span>
                 )}
               </div>
             </div>
@@ -234,7 +221,7 @@ export default function FII() {
   });
 
   const toggleRowExpanded = (key: string) => {
-    setExpandedRows(prev => {
+    setExpandedRows((prev) => {
       const next = new Set(prev);
       if (next.has(key)) {
         next.delete(key);
@@ -245,7 +232,11 @@ export default function FII() {
     });
   };
 
-  const { data: fiiData, isLoading, error } = useQuery({
+  const {
+    data: fiiData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["fii-data"],
     queryFn: fetchFIIData,
     refetchInterval: 60000,
@@ -254,20 +245,24 @@ export default function FII() {
   const currentData = fiiData?.[selectedDate];
   const currentDate = currentData ? format(parseISO(currentData.Date), "dd MMM yyyy") : "-";
   const currentDateParsed = currentData ? parseISO(currentData.Date) : new Date();
-  
+
   // Format date for summary API (DD-MM-YYYY)
-  const summaryDateParam = currentData 
-    ? format(parseISO(currentData.Date), "dd-MM-yyyy") 
+  const summaryDateParam = currentData
+    ? format(parseISO(currentData.Date), "dd-MM-yyyy")
     : format(new Date(), "dd-MM-yyyy");
 
   // Fetch summary data from new API
-  const { data: summaryData, isLoading: isSummaryLoading, isFetching: isSummaryFetching } = useQuery({
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    isFetching: isSummaryFetching,
+  } = useQuery({
     queryKey: ["fii-summary", summaryDateParam],
     queryFn: () => fetchFIISummary(summaryDateParam),
     enabled: !!currentData,
     refetchInterval: 60000,
   });
-  
+
   // Combined loading state - show data once fii-data is loaded
   const showSummaryLoading = isLoading;
 
@@ -352,7 +347,7 @@ export default function FII() {
   const getSummaryTableData = () => {
     // Use summaryData from new API if available
     if (!summaryData) return [];
-    
+
     // Map client type index to participant name
     const clientTypeMap: Record<string, string> = {};
     const clientTypes = summaryData["Client Type"];
@@ -360,7 +355,7 @@ export default function FII() {
     Object.entries(clientTypes).forEach(([idx, name]) => {
       clientTypeMap[idx] = name;
     });
-    
+
     // Find index for each participant
     const getParticipantIndex = (name: string): string | null => {
       for (const [idx, val] of Object.entries(clientTypeMap)) {
@@ -368,11 +363,11 @@ export default function FII() {
       }
       return null;
     };
-    
+
     const rows: Array<{
       participant: string;
       segment: string;
-      sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
+      sentiment: { label: string; type: "bullish" | "bearish" | "neutral" };
       netOI: string;
       change: number;
       value: number;
@@ -383,7 +378,7 @@ export default function FII() {
         name: string;
         value: number;
         change: number;
-        sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
+        sentiment: { label: string; type: "bullish" | "bearish" | "neutral" };
       }>;
     }> = [];
 
@@ -392,22 +387,24 @@ export default function FII() {
 
     participants.forEach((participant) => {
       if (!participantFilters[participant as keyof typeof participantFilters]) return;
-      
+
       const idx = getParticipantIndex(participant);
       if (!idx) return;
-      
+
       segments.forEach((segment) => {
         if (!segmentFilters[segment as keyof typeof segmentFilters]) return;
-        
+
         let longValue = 0;
         let shortValue = 0;
-        let childData: Array<{
-          name: string;
-          value: number;
-          change: number;
-          sentiment: { label: string; type: 'bullish' | 'bearish' | 'neutral' };
-        }> | undefined;
-        
+        let childData:
+          | Array<{
+              name: string;
+              value: number;
+              change: number;
+              sentiment: { label: string; type: "bullish" | "bearish" | "neutral" };
+            }>
+          | undefined;
+
         if (segment === "Index Futures") {
           longValue = summaryData["Future Index Long"]?.[idx] || 0;
           shortValue = summaryData["Future Index Short"]?.[idx] || 0;
@@ -421,7 +418,7 @@ export default function FII() {
           const putShort = summaryData["Option Index Put Short"]?.[idx] || 0;
           longValue = callLong + putLong;
           shortValue = callShort + putShort;
-          
+
           // Child data for Index Options
           childData = [
             {
@@ -456,7 +453,7 @@ export default function FII() {
           const putShort = summaryData["Option Stock Put Short"]?.[idx] || 0;
           longValue = callLong + putLong;
           shortValue = callShort + putShort;
-          
+
           // Child data for Stock Options
           childData = [
             {
@@ -485,9 +482,9 @@ export default function FII() {
             },
           ];
         }
-        
+
         const netValue = longValue - shortValue;
-        
+
         rows.push({
           participant,
           segment,
@@ -497,18 +494,19 @@ export default function FII() {
           value: netValue,
           longValue,
           shortValue,
-          hasChildren: (segment === "Index Options" || segment === "Stock Options") && !!childData && childData.length > 0,
+          hasChildren:
+            (segment === "Index Options" || segment === "Stock Options") && !!childData && childData.length > 0,
           childData,
         });
       });
     });
-    
+
     return rows;
   };
-  
+
   const summaryTableData = getSummaryTableData();
   const maxValue = useMemo(() => {
-    return Math.max(...summaryTableData.map(row => Math.abs(row.value)), 1);
+    return Math.max(...summaryTableData.map((row) => Math.abs(row.value)), 1);
   }, [summaryTableData]);
 
   const getHistoryData = () => {
@@ -542,13 +540,12 @@ export default function FII() {
           <p className="font-semibold text-foreground mb-2">{data.fullDate}</p>
           {payload.map((entry: any, index: number) => (
             <div key={index} className="flex items-center gap-2 text-sm">
-              <div
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: entry.color }}
-              />
+              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
               <span className="text-muted-foreground">{entry.name}:</span>
               <span className={entry.value >= 0 ? "text-green-500" : "text-red-500"}>
-                {entry.name === "NIFTY" ? entry.value.toLocaleString() : `${entry.value >= 0 ? "+" : ""}${entry.value.toLocaleString()} Cr`}
+                {entry.name === "NIFTY"
+                  ? entry.value.toLocaleString()
+                  : `${entry.value >= 0 ? "+" : ""}${entry.value.toLocaleString()} Cr`}
               </span>
             </div>
           ))}
@@ -561,6 +558,7 @@ export default function FII() {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
+        <TickerRibbon />
         <Navbar />
         <main className="flex-grow container mx-auto px-4 py-6">
           <Card className="bg-card border-border">
@@ -576,21 +574,34 @@ export default function FII() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
+      <TickerRibbon />
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex items-center justify-between mb-6">
             <TabsList className="bg-muted/50">
-              <TabsTrigger value="summary" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger
+                value="summary"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
                 Summary
               </TabsTrigger>
-              <TabsTrigger value="futures-options" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger
+                value="futures-options"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
                 Futures and Options
               </TabsTrigger>
-              <TabsTrigger value="cash-market" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger
+                value="cash-market"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
                 Cash Market
               </TabsTrigger>
-              <TabsTrigger value="fii-history" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+              <TabsTrigger
+                value="fii-history"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
                 FII History
               </TabsTrigger>
             </TabsList>
@@ -670,9 +681,9 @@ export default function FII() {
                         <span className="text-sm text-muted-foreground">How to interpret this data?</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={handlePreviousDate}
                           disabled={!fiiData || selectedDate >= fiiData.length - 1}
                         >
@@ -690,22 +701,20 @@ export default function FII() {
                               mode="single"
                               selected={currentDateParsed}
                               onSelect={handleDateSelect}
-                              disabled={(date) => !availableDates.some(
-                                (d) => d.getFullYear() === date.getFullYear() &&
-                                       d.getMonth() === date.getMonth() &&
-                                       d.getDate() === date.getDate()
-                              )}
+                              disabled={(date) =>
+                                !availableDates.some(
+                                  (d) =>
+                                    d.getFullYear() === date.getFullYear() &&
+                                    d.getMonth() === date.getMonth() &&
+                                    d.getDate() === date.getDate(),
+                                )
+                              }
                               className="pointer-events-auto"
                               initialFocus
                             />
                           </PopoverContent>
                         </Popover>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={handleNextDate}
-                          disabled={selectedDate <= 0}
-                        >
+                        <Button variant="ghost" size="sm" onClick={handleNextDate} disabled={selectedDate <= 0}>
                           <ChevronRight className="w-4 h-4" />
                         </Button>
                       </div>
@@ -722,9 +731,13 @@ export default function FII() {
                       <Table>
                         <TableHeader>
                           <TableRow className="border-border hover:bg-transparent">
-                            <TableHead className="text-muted-foreground text-[11px] w-[80px] py-2">Participant</TableHead>
+                            <TableHead className="text-muted-foreground text-[11px] w-[80px] py-2">
+                              Participant
+                            </TableHead>
                             <TableHead className="text-muted-foreground text-[11px] w-[100px] py-2">Segment</TableHead>
-                            <TableHead className="text-right text-muted-foreground text-[11px] w-[100px] py-2">Bearish</TableHead>
+                            <TableHead className="text-right text-muted-foreground text-[11px] w-[100px] py-2">
+                              Bearish
+                            </TableHead>
                             <TableHead className="text-center text-muted-foreground w-[24px] py-2">
                               <TooltipProvider delayDuration={100}>
                                 <UITooltip>
@@ -734,12 +747,18 @@ export default function FII() {
                                     </span>
                                   </TooltipTrigger>
                                   <TooltipContent side="top" className="max-w-[220px] text-xs z-50">
-                                    <p><strong>How to interpret:</strong> Red bars = Bearish sentiment (selling/shorting). Green bars = Bullish sentiment (buying/long). Bar width shows relative position size.</p>
+                                    <p>
+                                      <strong>How to interpret:</strong> Red bars = Bearish sentiment
+                                      (selling/shorting). Green bars = Bullish sentiment (buying/long). Bar width shows
+                                      relative position size.
+                                    </p>
                                   </TooltipContent>
                                 </UITooltip>
                               </TooltipProvider>
                             </TableHead>
-                            <TableHead className="text-left text-muted-foreground text-[11px] w-[100px] py-2">Bullish</TableHead>
+                            <TableHead className="text-left text-muted-foreground text-[11px] w-[100px] py-2">
+                              Bullish
+                            </TableHead>
                             <TableHead className="text-right text-muted-foreground text-[11px] w-[70px] py-2">
                               <div className="flex items-center justify-end gap-0.5">
                                 Net OI
@@ -751,7 +770,10 @@ export default function FII() {
                                       </span>
                                     </TooltipTrigger>
                                     <TooltipContent side="top" className="max-w-[200px] text-xs z-50">
-                                      <p><strong>Net Open Interest:</strong> Total outstanding positions. Positive = net long, Negative = net short. Displayed in Lakhs (L).</p>
+                                      <p>
+                                        <strong>Net Open Interest:</strong> Total outstanding positions. Positive = net
+                                        long, Negative = net short. Displayed in Lakhs (L).
+                                      </p>
                                     </TooltipContent>
                                   </UITooltip>
                                 </TooltipProvider>
@@ -768,7 +790,10 @@ export default function FII() {
                                       </span>
                                     </TooltipTrigger>
                                     <TooltipContent side="top" className="max-w-[200px] text-xs z-50">
-                                      <p><strong>Daily Change:</strong> Difference from previous trading day. Green = increased, Red = decreased.</p>
+                                      <p>
+                                        <strong>Daily Change:</strong> Difference from previous trading day. Green =
+                                        increased, Red = decreased.
+                                      </p>
                                     </TooltipContent>
                                   </UITooltip>
                                 </TooltipProvider>
@@ -781,12 +806,12 @@ export default function FII() {
                             const isFirstInGroup = idx === 0 || arr[idx - 1].participant !== row.participant;
                             const rowKey = `${row.participant}-${row.segment}`;
                             const isExpanded = expandedRows.has(rowKey);
-                            
+
                             // Calculate total rows for this participant including any expanded children
                             const calculateGroupRowSpan = () => {
-                              const groupRows = arr.filter(r => r.participant === row.participant);
+                              const groupRows = arr.filter((r) => r.participant === row.participant);
                               let totalRows = groupRows.length;
-                              groupRows.forEach(r => {
+                              groupRows.forEach((r) => {
                                 const rKey = `${r.participant}-${r.segment}`;
                                 if (expandedRows.has(rKey) && r.childData) {
                                   totalRows += r.childData.length;
@@ -794,66 +819,79 @@ export default function FII() {
                               });
                               return totalRows;
                             };
-                            
+
                             return (
                               <React.Fragment key={rowKey}>
                                 <TableRow className="border-border hover:bg-muted/30">
                                   {isFirstInGroup && (
-                                    <TableCell className="font-medium text-[11px] align-top pt-3" rowSpan={calculateGroupRowSpan()}>
+                                    <TableCell
+                                      className="font-medium text-[11px] align-top pt-3"
+                                      rowSpan={calculateGroupRowSpan()}
+                                    >
                                       {row.participant}
                                     </TableCell>
                                   )}
                                   <TableCell className="py-1.5">
-                                    <div 
-                                      className={`flex items-center gap-0.5 text-[11px] ${row.hasChildren ? 'cursor-pointer hover:text-primary' : ''}`}
+                                    <div
+                                      className={`flex items-center gap-0.5 text-[11px] ${row.hasChildren ? "cursor-pointer hover:text-primary" : ""}`}
                                       onClick={() => row.hasChildren && toggleRowExpanded(rowKey)}
                                     >
                                       {row.segment}
                                       {row.hasChildren && (
-                                        <ChevronDown className={`w-2.5 h-2.5 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                        <ChevronDown
+                                          className={`w-2.5 h-2.5 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                                        />
                                       )}
                                     </div>
                                   </TableCell>
-                                  <SentimentBarCells 
-                                    sentiment={row.sentiment} 
-                                    showLabel={showLabels} 
+                                  <SentimentBarCells
+                                    sentiment={row.sentiment}
+                                    showLabel={showLabels}
                                     value={row.value}
                                     maxValue={maxValue}
                                   />
-                                  <TableCell className="text-right font-mono text-[10px] py-1.5">
-                                    {row.netOI}
-                                  </TableCell>
-                                  <TableCell className={`text-right font-mono text-[10px] py-1.5 ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                    {row.change !== 0 ? (
-                                      row.segment === "Stocks" 
+                                  <TableCell className="text-right font-mono text-[10px] py-1.5">{row.netOI}</TableCell>
+                                  <TableCell
+                                    className={`text-right font-mono text-[10px] py-1.5 ${row.change >= 0 ? "text-green-500" : "text-red-500"}`}
+                                  >
+                                    {row.change !== 0
+                                      ? row.segment === "Stocks"
                                         ? `${row.change >= 0 ? "+" : ""}${row.change.toLocaleString("en-IN")} Cr`
                                         : `${row.change >= 0 ? "+" : ""}${row.change.toFixed(2)}`
-                                    ) : "-"}
+                                      : "-"}
                                   </TableCell>
                                 </TableRow>
                                 {/* Child rows when expanded */}
-                                {isExpanded && row.childData?.map((child, childIdx) => (
-                                  <TableRow key={`${rowKey}-child-${childIdx}`} className="border-border bg-muted/20 hover:bg-muted/40">
-                                    <TableCell className="py-1 pl-6">
-                                      <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
-                                        {child.name}
-                                      </div>
-                                    </TableCell>
-                                    <SentimentBarCells 
-                                      sentiment={child.sentiment} 
-                                      showLabel={showLabels} 
-                                      value={child.value}
-                                      maxValue={maxValue}
-                                    />
-                                    <TableCell className="text-right font-mono text-[9px] py-1">
-                                      {Math.abs(child.value) > 0 ? `${formatLakh(child.value)}` : "-"}
-                                    </TableCell>
-                                    <TableCell className={`text-right font-mono text-[9px] py-1 ${child.change >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                      {child.change !== 0 ? `${child.change >= 0 ? "+" : ""}${child.change.toFixed(2)}` : "-"}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
+                                {isExpanded &&
+                                  row.childData?.map((child, childIdx) => (
+                                    <TableRow
+                                      key={`${rowKey}-child-${childIdx}`}
+                                      className="border-border bg-muted/20 hover:bg-muted/40"
+                                    >
+                                      <TableCell className="py-1 pl-6">
+                                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50" />
+                                          {child.name}
+                                        </div>
+                                      </TableCell>
+                                      <SentimentBarCells
+                                        sentiment={child.sentiment}
+                                        showLabel={showLabels}
+                                        value={child.value}
+                                        maxValue={maxValue}
+                                      />
+                                      <TableCell className="text-right font-mono text-[9px] py-1">
+                                        {Math.abs(child.value) > 0 ? `${formatLakh(child.value)}` : "-"}
+                                      </TableCell>
+                                      <TableCell
+                                        className={`text-right font-mono text-[9px] py-1 ${child.change >= 0 ? "text-green-500" : "text-red-500"}`}
+                                      >
+                                        {child.change !== 0
+                                          ? `${child.change >= 0 ? "+" : ""}${child.change.toFixed(2)}`
+                                          : "-"}
+                                      </TableCell>
+                                    </TableRow>
+                                  ))}
                               </React.Fragment>
                             );
                           })}
@@ -882,27 +920,39 @@ export default function FII() {
                         return (
                           <div key={idx} className="border-b border-border pb-4 last:border-0">
                             <div className="text-sm text-muted-foreground mb-2">
-                              {isSelected ? `Selected: ${format(parseISO(item.Date), "dd MMM yyyy")}` : format(parseISO(item.Date), "dd MMM, EEE")}
+                              {isSelected
+                                ? `Selected: ${format(parseISO(item.Date), "dd MMM yyyy")}`
+                                : format(parseISO(item.Date), "dd MMM, EEE")}
                             </div>
                             <div className="space-y-2">
                               <div>
                                 <div className="font-semibold">NIFTY</div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg">{nifty?.C.toLocaleString()}</span>
-                                  <span className={`text-sm ${(nifty?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                    {(nifty?.CZG || 0) >= 0 ? "+" : ""}{nifty?.CZG.toFixed(2)}%
+                                  <span
+                                    className={`text-sm ${(nifty?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}
+                                  >
+                                    {(nifty?.CZG || 0) >= 0 ? "+" : ""}
+                                    {nifty?.CZG.toFixed(2)}%
                                   </span>
-                                  <TrendingUp className={`w-4 h-4 ${(nifty?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`} />
+                                  <TrendingUp
+                                    className={`w-4 h-4 ${(nifty?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}
+                                  />
                                 </div>
                               </div>
                               <div>
                                 <div className="font-semibold">SENSEX</div>
                                 <div className="flex items-center gap-2">
                                   <span className="text-lg">{sensex?.C.toLocaleString()}</span>
-                                  <span className={`text-sm ${(sensex?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                    {(sensex?.CZG || 0) >= 0 ? "+" : ""}{sensex?.CZG.toFixed(2)}%
+                                  <span
+                                    className={`text-sm ${(sensex?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}
+                                  >
+                                    {(sensex?.CZG || 0) >= 0 ? "+" : ""}
+                                    {sensex?.CZG.toFixed(2)}%
                                   </span>
-                                  <TrendingUp className={`w-4 h-4 ${(sensex?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`} />
+                                  <TrendingUp
+                                    className={`w-4 h-4 ${(sensex?.CZG || 0) >= 0 ? "text-green-500" : "text-red-500"}`}
+                                  />
                                 </div>
                               </div>
                             </div>
@@ -1013,10 +1063,7 @@ export default function FII() {
                       <ComposedChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                         <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                        <YAxis
-                          yAxisId="left"
-                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                        />
+                        <YAxis yAxisId="left" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                         <YAxis
                           yAxisId="right"
                           orientation="right"
@@ -1071,8 +1118,12 @@ export default function FII() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm">Daily</Button>
-                        <Button variant="secondary" size="sm">Monthly</Button>
+                        <Button variant="outline" size="sm">
+                          Daily
+                        </Button>
+                        <Button variant="secondary" size="sm">
+                          Monthly
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -1085,10 +1136,7 @@ export default function FII() {
                       <ComposedChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
                         <XAxis dataKey="date" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
-                        <YAxis
-                          yAxisId="left"
-                          tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }}
-                        />
+                        <YAxis yAxisId="left" tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 12 }} />
                         <YAxis
                           yAxisId="right"
                           orientation="right"
@@ -1143,15 +1191,29 @@ export default function FII() {
                         {monthlyData.slice(0, 12).map((row, idx) => (
                           <TableRow key={idx} className="border-border">
                             <TableCell className="font-medium">{row.month}</TableCell>
-                            <TableCell className="text-right font-mono">₹{Math.abs(row.fiiCash * 0.8).toLocaleString()} Cr</TableCell>
-                            <TableCell className="text-right font-mono">₹{Math.abs(row.fiiCash * 1.2).toLocaleString()} Cr</TableCell>
-                            <TableCell className={`text-right font-mono ${row.fiiCash >= 0 ? "text-green-500" : "text-red-500"}`}>
-                              {row.fiiCash >= 0 ? "+" : ""}{formatValue(row.fiiCash, false)} Cr
+                            <TableCell className="text-right font-mono">
+                              ₹{Math.abs(row.fiiCash * 0.8).toLocaleString()} Cr
                             </TableCell>
-                            <TableCell className="text-right font-mono">₹{Math.abs(row.diiCash * 0.9).toLocaleString()} Cr</TableCell>
-                            <TableCell className="text-right font-mono">₹{Math.abs(row.diiCash * 0.7).toLocaleString()} Cr</TableCell>
-                            <TableCell className={`text-right font-mono ${row.diiCash >= 0 ? "text-green-500" : "text-red-500"}`}>
-                              {row.diiCash >= 0 ? "+" : ""}{formatValue(row.diiCash, false)} Cr
+                            <TableCell className="text-right font-mono">
+                              ₹{Math.abs(row.fiiCash * 1.2).toLocaleString()} Cr
+                            </TableCell>
+                            <TableCell
+                              className={`text-right font-mono ${row.fiiCash >= 0 ? "text-green-500" : "text-red-500"}`}
+                            >
+                              {row.fiiCash >= 0 ? "+" : ""}
+                              {formatValue(row.fiiCash, false)} Cr
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              ₹{Math.abs(row.diiCash * 0.9).toLocaleString()} Cr
+                            </TableCell>
+                            <TableCell className="text-right font-mono">
+                              ₹{Math.abs(row.diiCash * 0.7).toLocaleString()} Cr
+                            </TableCell>
+                            <TableCell
+                              className={`text-right font-mono ${row.diiCash >= 0 ? "text-green-500" : "text-red-500"}`}
+                            >
+                              {row.diiCash >= 0 ? "+" : ""}
+                              {formatValue(row.diiCash, false)} Cr
                             </TableCell>
                           </TableRow>
                         ))}
@@ -1184,7 +1246,7 @@ export default function FII() {
                           if (date && fiiData) {
                             // Find the closest available date index
                             const dateStr = format(date, "yyyy-MM-dd");
-                            const idx = fiiData.findIndex(item => item.Date.startsWith(dateStr));
+                            const idx = fiiData.findIndex((item) => item.Date.startsWith(dateStr));
                             if (idx !== -1) {
                               setSelectedDate(idx);
                             }
@@ -1193,7 +1255,7 @@ export default function FII() {
                         disabled={(date) => {
                           if (!availableDates.length) return false;
                           const dateStr = format(date, "yyyy-MM-dd");
-                          return !fiiData?.some(item => item.Date.startsWith(dateStr));
+                          return !fiiData?.some((item) => item.Date.startsWith(dateStr));
                         }}
                         initialFocus
                         className="pointer-events-auto"
@@ -1214,15 +1276,29 @@ export default function FII() {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-border hover:bg-transparent">
-                          <TableHead className="text-muted-foreground" rowSpan={2}>Date</TableHead>
-                          <TableHead className="text-muted-foreground" rowSpan={2}>NIFTY</TableHead>
-                          <TableHead className="text-center text-muted-foreground border-x border-border" colSpan={2}>Options</TableHead>
-                          <TableHead className="text-center text-muted-foreground border-r border-border" colSpan={4}>Futures</TableHead>
-                          <TableHead className="text-center text-muted-foreground" colSpan={2}>Cash</TableHead>
+                          <TableHead className="text-muted-foreground" rowSpan={2}>
+                            Date
+                          </TableHead>
+                          <TableHead className="text-muted-foreground" rowSpan={2}>
+                            NIFTY
+                          </TableHead>
+                          <TableHead className="text-center text-muted-foreground border-x border-border" colSpan={2}>
+                            Options
+                          </TableHead>
+                          <TableHead className="text-center text-muted-foreground border-r border-border" colSpan={4}>
+                            Futures
+                          </TableHead>
+                          <TableHead className="text-center text-muted-foreground" colSpan={2}>
+                            Cash
+                          </TableHead>
                         </TableRow>
                         <TableRow className="border-border hover:bg-transparent">
-                          <TableHead className="text-muted-foreground text-center border-x border-border">FII Call OI Chg</TableHead>
-                          <TableHead className="text-muted-foreground text-center border-r border-border">FII Put OI Chg</TableHead>
+                          <TableHead className="text-muted-foreground text-center border-x border-border">
+                            FII Call OI Chg
+                          </TableHead>
+                          <TableHead className="text-muted-foreground text-center border-r border-border">
+                            FII Put OI Chg
+                          </TableHead>
                           <TableHead className="text-muted-foreground text-center">Buy/Sell(Amt)</TableHead>
                           <TableHead className="text-muted-foreground text-center">OI Change (Qty)</TableHead>
                           <TableHead className="text-muted-foreground text-center">View</TableHead>
@@ -1239,14 +1315,21 @@ export default function FII() {
                               <div className="flex items-center gap-2">
                                 <span>{row.nifty.toLocaleString()}</span>
                                 <span className={`text-xs ${row.niftyChange >= 0 ? "text-green-500" : "text-red-500"}`}>
-                                  {row.niftyChange >= 0 ? "+" : ""}{row.niftyChange.toFixed(2)}%
+                                  {row.niftyChange >= 0 ? "+" : ""}
+                                  {row.niftyChange.toFixed(2)}%
                                 </span>
                               </div>
                             </TableCell>
                             <TableCell className="text-center border-x border-border">
                               <div className="flex items-center justify-center gap-2">
                                 <span>{row.fiiCallOI.toLocaleString()}</span>
-                                <Badge className={row.fiiCallOI > 0 ? "bg-green-600 hover:bg-green-600" : "bg-red-600 hover:bg-red-600"}>
+                                <Badge
+                                  className={
+                                    row.fiiCallOI > 0
+                                      ? "bg-green-600 hover:bg-green-600"
+                                      : "bg-red-600 hover:bg-red-600"
+                                  }
+                                >
                                   {row.fiiCallOI > 0 ? "BULLISH" : "BEARISH"}
                                 </Badge>
                               </div>
@@ -1254,7 +1337,11 @@ export default function FII() {
                             <TableCell className="text-center border-r border-border">
                               <div className="flex items-center justify-center gap-2">
                                 <span>{row.fiiPutOI.toLocaleString()}</span>
-                                <Badge className={row.fiiPutOI > 0 ? "bg-green-600 hover:bg-green-600" : "bg-red-600 hover:bg-red-600"}>
+                                <Badge
+                                  className={
+                                    row.fiiPutOI > 0 ? "bg-green-600 hover:bg-green-600" : "bg-red-600 hover:bg-red-600"
+                                  }
+                                >
                                   {row.fiiPutOI > 0 ? "BULLISH" : "BEARISH"}
                                 </Badge>
                               </div>
@@ -1262,7 +1349,13 @@ export default function FII() {
                             <TableCell className="text-center">{formatValue(row.fiiIdxFutBuySell, false)} Cr</TableCell>
                             <TableCell className="text-center">{row.fiiIdxFutOIChange.toLocaleString()}</TableCell>
                             <TableCell className="text-center">
-                              <Badge className={row.fiiIdxFutOIChange > 0 ? "bg-green-600 hover:bg-green-600" : "bg-red-600 hover:bg-red-600"}>
+                              <Badge
+                                className={
+                                  row.fiiIdxFutOIChange > 0
+                                    ? "bg-green-600 hover:bg-green-600"
+                                    : "bg-red-600 hover:bg-red-600"
+                                }
+                              >
                                 {row.fiiIdxFutOIChange > 0 ? "BULLISH" : "BEARISH"}
                               </Badge>
                             </TableCell>
@@ -1272,7 +1365,11 @@ export default function FII() {
                                 <span className={row.fiiCash >= 0 ? "text-green-500" : "text-red-500"}>
                                   {formatValue(row.fiiCash, false)} Cr
                                 </span>
-                                <Badge className={row.fiiCash >= 0 ? "bg-green-600 hover:bg-green-600" : "bg-red-600 hover:bg-red-600"}>
+                                <Badge
+                                  className={
+                                    row.fiiCash >= 0 ? "bg-green-600 hover:bg-green-600" : "bg-red-600 hover:bg-red-600"
+                                  }
+                                >
                                   {row.fiiCash >= 0 ? "BULLISH" : "BEARISH"}
                                 </Badge>
                               </div>
