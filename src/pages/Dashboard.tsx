@@ -27,8 +27,8 @@ interface TrendingStock {
 interface TrendingStocksData {
   TOP_GAINERS?: TrendingStock[];
   TOP_LOSERS?: TrendingStock[];
-  VOLUME_SHOCKER?: TrendingStock[];
-  TOP_VOLUME?: TrendingStock[];
+  VOLUME_SHOCKERS?: TrendingStock[];
+  TRADED_BY_VOLUME?: TrendingStock[];
   MOST_VISITED?: TrendingStock[];
   YEARLY_HIGH?: TrendingStock[];
   YEARLY_LOW?: TrendingStock[];
@@ -477,10 +477,10 @@ const Dashboard = () => {
                 {renderStockList(trendingData?.TOP_LOSERS, false)}
               </TabsContent>
               <TabsContent value="volumeshockers">
-                {renderStockList(trendingData?.VOLUME_SHOCKER)}
+                {renderStockList(trendingData?.VOLUME_SHOCKERS)}
               </TabsContent>
               <TabsContent value="topvolume">
-                {renderStockList(trendingData?.TOP_VOLUME)}
+                {renderStockList(trendingData?.TRADED_BY_VOLUME)}
               </TabsContent>
               <TabsContent value="52weekhigh">
                 {renderStockList(trendingData?.YEARLY_HIGH)}
