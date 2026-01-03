@@ -152,7 +152,7 @@ const navItems: NavItem[] = [
         title: "SECTOR SELECTION",
         items: [
           { icon: BarChart2, label: "All Sector Analysis", iconColor: "text-emerald-500", path: "/all-sectors" },
-          { icon: Layers, label: "Sector Analysis", iconColor: "text-emerald-500" },
+          { icon: Layers, label: "Sector Analysis", iconColor: "text-emerald-500", path: "/sector-analysis" },
         ],
       },
     ],
