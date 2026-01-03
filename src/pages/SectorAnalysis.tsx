@@ -5,7 +5,8 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   groupedIndices,
@@ -30,6 +31,7 @@ const SectorAnalysis = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Sectoral Indices"]));
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -100,9 +102,21 @@ const SectorAnalysis = () => {
     };
   };
 
-  // Sort stocks
+  // Filter and sort stocks
   const sortedStocks = useMemo(() => {
-    const sorted = [...stocks];
+    // First filter by search query
+    let filtered = stocks;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = stocks.filter(
+        (s) =>
+          s.name.toLowerCase().includes(query) ||
+          s.description?.toLowerCase().includes(query)
+      );
+    }
+
+    // Then sort
+    const sorted = [...filtered];
     sorted.sort((a, b) => {
       let aVal: number | string = 0;
       let bVal: number | string = 0;
@@ -138,7 +152,11 @@ const SectorAnalysis = () => {
     });
 
     return sorted;
-  }, [stocks, sortColumn, sortDirection]);
+  }, [stocks, sortColumn, sortDirection, searchQuery]);
+
+  const handleStockClick = (stockName: string) => {
+    navigate(`/jackpot-detail?symbol=${encodeURIComponent(stockName)}`);
+  };
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
@@ -295,6 +313,18 @@ const SectorAnalysis = () => {
             </div>
           </div>
 
+          {/* Search Filter */}
+          <div className="relative mb-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search stocks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 max-w-sm"
+            />
+          </div>
+
           {/* Stocks Table */}
           <Card className="bg-card border-border overflow-hidden">
             <CardContent className="p-0">
@@ -356,7 +386,8 @@ const SectorAnalysis = () => {
                         return (
                           <tr
                             key={`${stock.name}-${idx}`}
-                            className="border-b border-border hover:bg-secondary/30 transition-colors"
+                            onClick={() => handleStockClick(stock.name)}
+                            className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
                           >
                             <td className="py-3 px-4 text-center">
                               <span className="text-muted-foreground text-sm">{idx + 1}</span>
