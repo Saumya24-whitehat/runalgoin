@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.jackpot-symbol-data]
 verify_jwt = false
+
+[functions.index-detail]
+verify_jwt = false

@@ -287,6 +287,7 @@ const Indices = () => {
                         <tr
                           key={idx}
                           className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
+                          onClick={() => navigate(`/index-detail?index=${encodeURIComponent(index.stock_column.get_full_name)}`)}
                         >
                           <td className="py-4 px-6">
                             <span className="font-medium text-foreground">{index.stock_column.get_full_name}</span>

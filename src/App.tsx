@@ -35,6 +35,7 @@ import JackpotScanner from "./pages/JackpotScanner";
 import JackpotDetail from "./pages/JackpotDetail";
 import AllSectors from "./pages/AllSectors";
 import SectorAnalysis from "./pages/SectorAnalysis";
+import IndexDetail from "./pages/IndexDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +85,7 @@ const App = () => (
               <Route path="/jackpot-detail" element={<JackpotDetail />} />
               <Route path="/all-sectors" element={<AllSectors />} />
               <Route path="/sector-analysis" element={<SectorAnalysis />} />
+              <Route path="/index-detail" element={<IndexDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
