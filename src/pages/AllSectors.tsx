@@ -151,7 +151,7 @@ const AllSectors = () => {
                   const rank = index + 1;
 
                   const handleSectorClick = (sectorName: string) => {
-                    navigate(`/index-detail?index=${encodeURIComponent(sectorName)}`);
+                    navigate(`/sector-analysis?sector=${encodeURIComponent(sectorName)}`);
                   };
 
                   return (
