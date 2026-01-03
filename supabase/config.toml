@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.deals-data]
 verify_jwt = false
+
+[functions.market-actions]
+verify_jwt = false

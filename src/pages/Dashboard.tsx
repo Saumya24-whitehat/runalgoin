@@ -62,6 +62,22 @@ interface DealData {
   price: string | number;
 }
 
+interface MarketActionItem {
+  symbol: string;
+  company: string;
+  date: string;
+  actionType: string;
+  meetingType: string;
+  description: string;
+  price: number;
+  notes: string;
+}
+
+interface MarketActionsData {
+  dataLastWeekResults: unknown[][];
+  dataThisWeek: unknown[][];
+}
+
 interface FIIChildData {
   Name: string;
   ShortName: string;
@@ -124,6 +140,9 @@ const Dashboard = () => {
   const [blockDeals, setBlockDeals] = useState<DealData[]>([]);
   const [shortDeals, setShortDeals] = useState<DealData[]>([]);
   const [dealsLoading, setDealsLoading] = useState(true);
+  const [upcomingResults, setUpcomingResults] = useState<MarketActionItem[]>([]);
+  const [releasedResults, setReleasedResults] = useState<MarketActionItem[]>([]);
+  const [resultsLoading, setResultsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -185,6 +204,56 @@ const Dashboard = () => {
       }
     };
     fetchDealsData();
+  }, []);
+
+  // Fetch market actions (results) data
+  useEffect(() => {
+    const fetchMarketActions = async () => {
+      setResultsLoading(true);
+      try {
+        const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        
+        const response = await fetch(`${baseUrl}/functions/v1/market-actions`, {
+          headers: { 'Authorization': `Bearer ${anonKey}` },
+        });
+
+        if (response.ok) {
+          const data: MarketActionsData = await response.json();
+          
+          // Parse upcoming results (this week)
+          const upcoming = (data.dataThisWeek || []).slice(0, 8).map((item: unknown[]) => ({
+            symbol: String(item[0] || ''),
+            company: String(item[1] || ''),
+            date: String(item[2] || ''),
+            actionType: String(item[3] || ''),
+            meetingType: String(item[4] || ''),
+            description: String(item[5] || ''),
+            price: Number(item[6]) || 0,
+            notes: String(item[7] || ''),
+          }));
+          setUpcomingResults(upcoming);
+          
+          // Parse released results (last week)
+          const released = (data.dataLastWeekResults || []).slice(0, 8).map((item: unknown[]) => ({
+            symbol: String(item[0] || ''),
+            company: String(item[1] || ''),
+            date: String(item[2] || ''),
+            actionType: String(item[3] || ''),
+            meetingType: String(item[4] || ''),
+            description: String(item[5] || ''),
+            price: Number(item[6]) || 0,
+            notes: String(item[7] || ''),
+          }));
+          setReleasedResults(released);
+        }
+      } catch (err) {
+        console.error("Error fetching market actions:", err);
+      } finally {
+        setResultsLoading(false);
+      }
+    };
+    fetchMarketActions();
   }, []);
 
   // Get FII/DII data for display (with child data)
@@ -454,10 +523,104 @@ const Dashboard = () => {
                   </div>
                 </TabsContent>
                 <TabsContent value="upcoming">
-                  <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  {resultsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  ) : upcomingResults.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">No upcoming results</div>
+                  ) : (
+                    <ScrollArea className="h-[280px]">
+                      <div className="space-y-2">
+                        {upcomingResults.map((result, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white ${
+                                result.actionType.includes("Quarterly")
+                                  ? "bg-blue-600"
+                                  : result.actionType.includes("Bonus")
+                                    ? "bg-green-600"
+                                    : result.actionType.includes("Split")
+                                      ? "bg-purple-600"
+                                      : result.actionType.includes("Dividend")
+                                        ? "bg-cyan-600"
+                                        : "bg-orange-600"
+                              }`}
+                            >
+                              {result.symbol.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{result.company}</div>
+                              <div className="text-xs text-muted-foreground">{result.date} • ₹{result.price.toLocaleString()}</div>
+                            </div>
+                            <Badge
+                              className={`text-xs ${
+                                result.actionType.includes("Quarterly")
+                                  ? "bg-blue-500/20 text-blue-400"
+                                  : result.actionType.includes("Bonus")
+                                    ? "bg-green-500/20 text-green-400"
+                                    : result.actionType.includes("Split")
+                                      ? "bg-purple-500/20 text-purple-400"
+                                      : result.actionType.includes("Dividend")
+                                        ? "bg-cyan-500/20 text-cyan-400"
+                                        : "bg-orange-500/20 text-orange-400"
+                              }`}
+                            >
+                              {result.meetingType}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
                 </TabsContent>
                 <TabsContent value="released">
-                  <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  {resultsLoading ? (
+                    <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  ) : releasedResults.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">No released results</div>
+                  ) : (
+                    <ScrollArea className="h-[280px]">
+                      <div className="space-y-2">
+                        {releasedResults.map((result, idx) => (
+                          <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-white ${
+                                result.actionType.includes("Quarterly")
+                                  ? "bg-blue-600"
+                                  : result.actionType.includes("Bonus")
+                                    ? "bg-green-600"
+                                    : result.actionType.includes("Split")
+                                      ? "bg-purple-600"
+                                      : result.actionType.includes("Dividend")
+                                        ? "bg-cyan-600"
+                                        : "bg-orange-600"
+                              }`}
+                            >
+                              {result.symbol.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="font-medium text-sm truncate">{result.company}</div>
+                              <div className="text-xs text-muted-foreground">{result.date} • ₹{result.price.toLocaleString()}</div>
+                            </div>
+                            <Badge
+                              className={`text-xs ${
+                                result.actionType.includes("Quarterly")
+                                  ? "bg-blue-500/20 text-blue-400"
+                                  : result.actionType.includes("Bonus")
+                                    ? "bg-green-500/20 text-green-400"
+                                    : result.actionType.includes("Split")
+                                      ? "bg-purple-500/20 text-purple-400"
+                                      : result.actionType.includes("Dividend")
+                                        ? "bg-cyan-500/20 text-cyan-400"
+                                        : "bg-orange-500/20 text-orange-400"
+                              }`}
+                            >
+                              {result.meetingType}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
                 </TabsContent>
               </Tabs>
             </CardContent>
