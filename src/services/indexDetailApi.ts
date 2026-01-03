@@ -186,6 +186,7 @@ export async function fetchBreadthData(indexSymbol: string): Promise<any | null>
 
 // Helper to get index symbol from display name
 export function getIndexSymbol(indexName: string): string {
+  console.log(indexName);
   const indexMap: Record<string, string> = {
     "nifty 50": "SYML:NSE;NIFTY",
     "nifty bank": "SYML:NSE;BANKNIFTY",
