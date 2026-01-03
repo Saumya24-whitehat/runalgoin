@@ -1,7 +1,21 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
+
+interface ChartBar {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+interface ChartDataState {
+  bars: ChartBar[];
+  isLoading: boolean;
+  error: string | null;
+}
 
 interface TickerData {
   ltp: number;
@@ -322,6 +336,133 @@ export function IndicesSection() {
     </Card>
   );
 
+  // Chart data state
+  const [chartData, setChartData] = useState<Record<string, ChartDataState>>({
+    nifty50: { bars: [], isLoading: false, error: null },
+    nifty500: { bars: [], isLoading: false, error: null },
+    niftybank: { bars: [], isLoading: false, error: null },
+  });
+
+  // Symbol mapping for chart API
+  const chartSymbolMap: Record<"nifty50" | "nifty500" | "niftybank", string> = {
+    nifty50: "NSE_INDEX|Nifty 50",
+    nifty500: "NSE_INDEX|Nifty 500",
+    niftybank: "NSE_INDEX|Nifty Bank",
+  };
+
+  // Fetch chart data when activeChart changes
+  useEffect(() => {
+    const fetchChartData = async () => {
+      if (chartData[activeChart].bars.length > 0) return; // Already fetched
+
+      setChartData((prev) => ({
+        ...prev,
+        [activeChart]: { ...prev[activeChart], isLoading: true, error: null },
+      }));
+
+      try {
+        const today = new Date();
+        const fromDate = new Date(today);
+        fromDate.setDate(today.getDate() - 5);
+        
+        const formatDate = (d: Date) => d.toISOString().split("T")[0];
+        const symbol = encodeURIComponent(chartSymbolMap[activeChart]);
+        
+        const url = `https://runalgo.xyz/top/chart/upstox_data_fetcher.php?symbol=${symbol}&interval=5minute&from=${formatDate(fromDate)}&to=${formatDate(today)}`;
+        
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        if (data.success && data.bars) {
+          setChartData((prev) => ({
+            ...prev,
+            [activeChart]: { bars: data.bars, isLoading: false, error: null },
+          }));
+        } else {
+          throw new Error("Invalid data");
+        }
+      } catch (err) {
+        console.error("Error fetching chart data:", err);
+        setChartData((prev) => ({
+          ...prev,
+          [activeChart]: { bars: [], isLoading: false, error: "Failed to load" },
+        }));
+      }
+    };
+
+    fetchChartData();
+  }, [activeChart]);
+
+  // Compute chart rendering data
+  const chartRenderData = useMemo(() => {
+    const bars = chartData[activeChart].bars;
+    if (bars.length === 0) {
+      return { points: "", areaPath: "", yLabels: [], xLabels: [], lastPrice: 0, isPositive: true };
+    }
+
+    // Get today's data only (last trading session)
+    const todayStart = new Date();
+    todayStart.setHours(9, 15, 0, 0);
+    const todayBars = bars.filter((b) => b.time >= todayStart.getTime());
+    const displayBars = todayBars.length > 10 ? todayBars : bars.slice(-75);
+
+    if (displayBars.length === 0) {
+      return { points: "", areaPath: "", yLabels: [], xLabels: [], lastPrice: 0, isPositive: true };
+    }
+
+    const opens = displayBars.map((b) => b.open);
+    const closes = displayBars.map((b) => b.close);
+    const allPrices = [...opens, ...closes];
+    const minPrice = Math.min(...allPrices);
+    const maxPrice = Math.max(...allPrices);
+    const priceRange = maxPrice - minPrice || 1;
+
+    const chartWidth = 320;
+    const chartHeight = 120;
+    const paddingLeft = 60;
+    const paddingTop = 20;
+    const paddingBottom = 30;
+
+    const points = displayBars.map((bar, i) => {
+      const x = paddingLeft + (i / (displayBars.length - 1)) * chartWidth;
+      const y = paddingTop + ((maxPrice - bar.close) / priceRange) * chartHeight;
+      return `${x},${y}`;
+    }).join(" ");
+
+    const firstPoint = `${paddingLeft},${paddingTop + ((maxPrice - displayBars[0].close) / priceRange) * chartHeight}`;
+    const lastX = paddingLeft + chartWidth;
+    const lastY = paddingTop + ((maxPrice - displayBars[displayBars.length - 1].close) / priceRange) * chartHeight;
+    const areaPath = `M${firstPoint} ${points.split(" ").map((p) => `L${p}`).join(" ")} L${lastX},${paddingTop + chartHeight} L${paddingLeft},${paddingTop + chartHeight} Z`;
+
+    // Y-axis labels (5 levels)
+    const yLabels = Array.from({ length: 5 }, (_, i) => {
+      const price = maxPrice - (i / 4) * priceRange;
+      const y = paddingTop + (i / 4) * chartHeight;
+      return { price: price.toLocaleString("en-IN", { maximumFractionDigits: 2 }), y: y + 4 };
+    });
+
+    // X-axis labels (6 time points)
+    const xLabels = [0, 0.2, 0.4, 0.6, 0.8, 1].map((ratio) => {
+      const idx = Math.floor(ratio * (displayBars.length - 1));
+      const bar = displayBars[idx];
+      const date = new Date(bar.time);
+      const hours = date.getHours();
+      const minutes = date.getMinutes().toString().padStart(2, "0");
+      const period = hours >= 12 ? "PM" : "AM";
+      const displayHour = hours > 12 ? hours - 12 : hours || 12;
+      return {
+        label: `${displayHour}:${minutes} ${period}`,
+        x: paddingLeft + ratio * chartWidth,
+      };
+    });
+
+    const firstPrice = displayBars[0].open;
+    const lastPrice = displayBars[displayBars.length - 1].close;
+    const isPositive = lastPrice >= firstPrice;
+
+    return { points, areaPath, yLabels, xLabels, lastPrice, isPositive, lastY };
+  }, [chartData, activeChart]);
+
   const ChartCard = () => (
     <Card className="bg-card border-border h-full">
       <CardContent className="p-4 h-full flex flex-col">
@@ -342,79 +483,66 @@ export function IndicesSection() {
 
         {/* Chart */}
         <div className="flex-1 relative">
-          <svg viewBox="0 0 400 180" className="w-full h-full">
-            {/* Grid lines */}
-            <line x1="50" y1="20" x2="380" y2="20" stroke="hsl(var(--border))" strokeWidth="0.5" />
-            <line x1="50" y1="50" x2="380" y2="50" stroke="hsl(var(--border))" strokeWidth="0.5" />
-            <line x1="50" y1="80" x2="380" y2="80" stroke="hsl(var(--border))" strokeWidth="0.5" />
-            <line x1="50" y1="110" x2="380" y2="110" stroke="hsl(var(--border))" strokeWidth="0.5" />
-            <line x1="50" y1="140" x2="380" y2="140" stroke="hsl(var(--border))" strokeWidth="0.5" />
+          {chartData[activeChart].isLoading ? (
+            <div className="flex items-center justify-center h-full text-muted-foreground">Loading...</div>
+          ) : chartData[activeChart].error ? (
+            <div className="flex items-center justify-center h-full text-destructive text-sm">{chartData[activeChart].error}</div>
+          ) : chartRenderData.points ? (
+            <svg viewBox="0 0 400 180" className="w-full h-full">
+              {/* Grid lines */}
+              {chartRenderData.yLabels.map((label, i) => (
+                <line key={i} x1="60" y1={label.y - 4} x2="380" y2={label.y - 4} stroke="hsl(var(--border))" strokeWidth="0.5" />
+              ))}
 
-            {/* Y-axis labels */}
-            <text x="45" y="24" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="end">
-              26,120
-            </text>
-            <text x="45" y="54" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="end">
-              26,100
-            </text>
-            <text x="45" y="84" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="end">
-              26,080
-            </text>
-            <text x="45" y="114" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="end">
-              26,060
-            </text>
-            <text x="45" y="144" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="end">
-              26,020
-            </text>
+              {/* Y-axis labels */}
+              {chartRenderData.yLabels.map((label, i) => (
+                <text key={i} x="55" y={label.y} fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="end">
+                  {label.price}
+                </text>
+              ))}
 
-            {/* Area gradient */}
-            <defs>
-              <linearGradient id="chartGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity="0" />
-              </linearGradient>
-            </defs>
+              {/* Area gradient */}
+              <defs>
+                <linearGradient id="chartGradientDynamic" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"} stopOpacity="0.3" />
+                  <stop offset="100%" stopColor={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"} stopOpacity="0" />
+                </linearGradient>
+              </defs>
 
-            {/* Area fill */}
-            <path
-              d="M60,20 L100,25 L140,30 L180,35 L220,60 L260,80 L300,100 L340,120 L370,130 L370,150 L60,150 Z"
-              fill="url(#chartGradient)"
-            />
+              {/* Area fill */}
+              <path d={chartRenderData.areaPath} fill="url(#chartGradientDynamic)" />
 
-            {/* Line */}
-            <polyline
-              points="60,20 100,25 140,30 180,35 220,60 260,80 300,100 340,120 370,130"
-              fill="none"
-              stroke="hsl(var(--destructive))"
-              strokeWidth="2"
-            />
+              {/* Line */}
+              <polyline
+                points={chartRenderData.points}
+                fill="none"
+                stroke={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+                strokeWidth="2"
+              />
 
-            {/* Current price indicator */}
-            <rect x="350" y="125" width="45" height="16" fill="hsl(var(--destructive))" rx="2" />
-            <text x="372" y="136" fill="white" fontSize="8" textAnchor="middle" fontWeight="600">
-              26,042.30
-            </text>
+              {/* Current price indicator */}
+              <rect
+                x="340"
+                y={(chartRenderData.lastY || 80) - 8}
+                width="55"
+                height="16"
+                fill={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+                rx="2"
+              />
+              <text x="367" y={(chartRenderData.lastY || 80) + 3} fill="white" fontSize="8" textAnchor="middle" fontWeight="600">
+                {chartRenderData.lastPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              </text>
 
-            {/* X-axis labels */}
-            <text x="80" y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
-              10 AM
-            </text>
-            <text x="140" y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
-              11 AM
-            </text>
-            <text x="200" y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
-              12 PM
-            </text>
-            <text x="260" y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
-              01 PM
-            </text>
-            <text x="320" y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
-              02 PM
-            </text>
-            <text x="370" y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
-              03 PM
-            </text>
-          </svg>
+              {/* X-axis labels */}
+              {chartRenderData.xLabels.map((label, i) => (
+                <text key={i} x={label.x} y="165" fill="hsl(var(--muted-foreground))" fontSize="9" textAnchor="middle">
+                  {label.label}
+                </text>
+              ))}
+            </svg>
+          ) : (
+            <div className="flex items-center justify-center h-full text-muted-foreground">No data</div>
+          )}
         </div>
       </CardContent>
     </Card>
