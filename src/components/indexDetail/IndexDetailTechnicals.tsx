@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -18,20 +18,80 @@ const timeframes = [
 ];
 
 const indicators = [
-  { key: 'AT', label: 'AT' },
-  { key: 'SMA', label: 'SMA' },
-  { key: 'EMA', label: 'EMA' },
-  { key: 'PIVOT', label: 'PIVOT' },
-  { key: 'BB', label: 'BB' },
-  { key: 'PSAR', label: 'PSAR' },
-  { key: 'ICHK', label: 'ICHK' },
-  { key: 'RSI', label: 'RSI' },
-  { key: 'CCI', label: 'CCI' },
-  { key: 'MFI', label: 'MFI' },
-  { key: 'ROC', label: 'ROC' },
-  { key: 'STOCH', label: 'STOCH' },
-  { key: 'WR', label: 'W%R' },
+  { key: 'AT', label: 'AT', fields: ['close', 'change', 'high', 'low'] },
+  { key: 'SMA', label: 'SMA', fields: ['SMA20', 'SMA50', 'SMA100', 'SMA200'] },
+  { key: 'EMA', label: 'EMA', fields: ['EMA20', 'EMA50', 'EMA100', 'EMA200'] },
+  { key: 'PIVOT', label: 'PIVOT', fields: ['Pivot.M.Classic.R1', 'Pivot.M.Classic.R2', 'Pivot.M.Classic.S1', 'Pivot.M.Classic.S2'] },
+  { key: 'BB', label: 'BB', fields: ['BB.upper', 'BB.lower', 'BB.basis'] },
+  { key: 'PSAR', label: 'PSAR', fields: ['P.SAR'] },
+  { key: 'ICHK', label: 'ICHK', fields: ['Ichimoku.BLine', 'Ichimoku.CLine'] },
+  { key: 'RSI', label: 'RSI', fields: ['RSI'] },
+  { key: 'CCI', label: 'CCI', fields: ['CCI20'] },
+  { key: 'MFI', label: 'MFI', fields: ['MoneyFlow'] },
+  { key: 'ROC', label: 'ROC', fields: ['ROC'] },
+  { key: 'STOCH', label: 'STOCH', fields: ['Stoch.K_14_1_3', 'Stoch.D_14_1_3'] },
+  { key: 'WR', label: 'W%R', fields: ['W.R'] },
 ];
+
+// Helper to get display value for a field
+const getFieldDisplayName = (field: string): string => {
+  const nameMap: Record<string, string> = {
+    'close': 'Close',
+    'change': 'Chg %',
+    'high': 'High',
+    'low': 'Low',
+    'SMA20': 'SMA 20',
+    'SMA50': 'SMA 50',
+    'SMA100': 'SMA 100',
+    'SMA200': 'SMA 200',
+    'EMA20': 'EMA 20',
+    'EMA50': 'EMA 50',
+    'EMA100': 'EMA 100',
+    'EMA200': 'EMA 200',
+    'Pivot.M.Classic.R1': 'R1',
+    'Pivot.M.Classic.R2': 'R2',
+    'Pivot.M.Classic.S1': 'S1',
+    'Pivot.M.Classic.S2': 'S2',
+    'BB.upper': 'Upper',
+    'BB.lower': 'Lower',
+    'BB.basis': 'Basis',
+    'P.SAR': 'PSAR',
+    'Ichimoku.BLine': 'Base',
+    'Ichimoku.CLine': 'Conv',
+    'RSI': 'RSI',
+    'CCI20': 'CCI',
+    'MoneyFlow': 'MFI',
+    'ROC': 'ROC',
+    'Stoch.K_14_1_3': '%K',
+    'Stoch.D_14_1_3': '%D',
+    'W.R': 'W%R',
+    'Perf.W': 'Week',
+    'Perf.1M': '1M',
+    'price_52_week_high': '52W High',
+    'price_52_week_low': '52W Low',
+    'High.1M': '1M High',
+    'Low.1M': '1M Low',
+  };
+  return nameMap[field] || field;
+};
+
+// Get fields based on timeframe
+const getTimeframeFields = (timeframe: string): string[] => {
+  switch (timeframe) {
+    case 'D':
+      return ['high', 'low'];
+    case 'PD':
+      return ['high', 'low'];
+    case 'W':
+      return ['Perf.W'];
+    case 'M':
+      return ['Perf.1M', 'High.1M', 'Low.1M'];
+    case '52W':
+      return ['Perf.Y', 'price_52_week_high', 'price_52_week_low'];
+    default:
+      return ['high', 'low'];
+  }
+};
 
 export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProps) => {
   const navigate = useNavigate();
@@ -56,6 +116,20 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
   const handleStockClick = (ticker: string) => {
     navigate(`/jackpot-detail?symbol=${ticker}`);
   };
+
+  // Get current indicator config
+  const currentIndicator = useMemo(() => {
+    return indicators.find(ind => ind.key === activeIndicator) || indicators[0];
+  }, [activeIndicator]);
+
+  // Get columns based on indicator
+  const columns = useMemo(() => {
+    if (activeIndicator === 'AT') {
+      // For AT, show based on timeframe
+      return getTimeframeFields(activeTimeframe);
+    }
+    return currentIndicator.fields;
+  }, [activeIndicator, activeTimeframe, currentIndicator]);
 
   if (loading) {
     return (
@@ -102,17 +176,19 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/30">
-              <TableHead className="text-primary w-[60%]">Symbol</TableHead>
-              <TableHead className="text-right w-[20%]">LTP</TableHead>
-              <TableHead className="text-right w-[20%]">Chg. %</TableHead>
+              <TableHead className="text-primary">Symbol</TableHead>
+              <TableHead className="text-right">LTP</TableHead>
+              <TableHead className="text-right">Chg %</TableHead>
+              {columns.map((col) => (
+                <TableHead key={col} className="text-right">
+                  {getFieldDisplayName(col)}
+                </TableHead>
+              ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {stocks.map((stock) => {
               const pctChange = stock.change || 0;
-              const rangePosition = stock.low && stock.high && stock.close
-                ? Math.min(100, Math.max(0, ((stock.close - stock.low) / (stock.high - stock.low)) * 100))
-                : 50;
               
               return (
                 <TableRow
@@ -120,40 +196,38 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
                   className="cursor-pointer hover:bg-muted/30"
                   onClick={() => handleStockClick(stock.name)}
                 >
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded bg-primary/20 flex items-center justify-center text-sm font-bold text-primary shrink-0">
+                  <TableCell className="py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                         {stock.name.substring(0, 2)}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-medium text-primary truncate mb-2">
-                          {stock.description || stock.name}
-                        </div>
-                        {/* Range bar with labels */}
-                        <div className="relative">
-                          <div className="flex justify-between text-[10px] text-muted-foreground mb-1">
-                            <span>Low: {stock.low?.toFixed(1) || '-'}</span>
-                            <span>High: {stock.high?.toFixed(1) || '-'}</span>
-                          </div>
-                          <div className="relative h-1.5 w-full max-w-[300px] bg-gradient-to-r from-destructive/40 via-primary to-success/40 rounded-full">
-                            {/* Position marker */}
-                            <div
-                              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
-                              style={{ left: `${rangePosition}%` }}
-                            >
-                              <div className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[6px] border-l-transparent border-r-transparent border-b-primary" />
-                            </div>
-                          </div>
-                        </div>
+                      <div className="font-medium text-primary truncate">
+                        {stock.description || stock.name}
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right font-mono text-base">
+                  <TableCell className="text-right font-mono">
                     {stock.close?.toFixed(2) || '-'}
                   </TableCell>
-                  <TableCell className={`text-right font-mono text-base ${pctChange >= 0 ? 'text-success' : 'text-destructive'}`}>
+                  <TableCell className={`text-right font-mono ${pctChange >= 0 ? 'text-success' : 'text-destructive'}`}>
                     {pctChange >= 0 ? '+' : ''}{pctChange.toFixed(2)}%
                   </TableCell>
+                  {columns.map((col) => {
+                    const value = (stock as any)[col];
+                    const isPercentage = col.startsWith('Perf') || col === 'change' || col === 'RSI' || col === 'ROC' || col === 'W.R' || col === 'MoneyFlow';
+                    const formattedValue = value !== undefined && value !== null 
+                      ? (isPercentage ? `${value >= 0 ? '+' : ''}${Number(value).toFixed(2)}%` : Number(value).toFixed(2))
+                      : '-';
+                    const colorClass = isPercentage && value !== undefined 
+                      ? (value >= 0 ? 'text-success' : 'text-destructive') 
+                      : '';
+                    
+                    return (
+                      <TableCell key={col} className={`text-right font-mono ${colorClass}`}>
+                        {formattedValue}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               );
             })}
