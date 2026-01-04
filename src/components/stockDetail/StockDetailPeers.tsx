@@ -21,14 +21,13 @@ interface PeerStock {
 export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
   const [peers, setPeers] = useState<PeerStock[]>([]);
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const fetchPeers = async () => {
       setLoading(true);
 
       try {
         // Build the API URL
-        const apiUrl = `https://ucvstbihgvuuaficfjsu.supabase.co/functions/v1/market-breadth?index=${encodeURIComponent(symbol)}`;
+        const apiUrl = `https://ucvstbihgvuuaficfjsu.supabase.co/functions/v1/market-breadth?index=${encodeURIComponent(sector)}`;
 
         const response = await fetch(apiUrl, {
           method: "GET",
@@ -48,7 +47,6 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
 
         const data = await response.json();
 
-        console.log(data);
         // Assuming API returns peer stocks under data.peers
         const peersFromApi = data?.peers || [];
 
