@@ -113,27 +113,101 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
 
     const datafeed = {
       onReady: (callback: Function) => {
-        setTimeout(() => callback({
-          supports_marks: false,
-          supports_timescale_marks: true,
-          supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
-          exchanges: [
-            { value: "", name: "All Exchanges", desc: "" },
-            { value: "NSE", name: "NSE", desc: "National Stock Exchange" },
-            { value: "NFO", name: "NFO", desc: "NSE F&O" },
-            { value: "BSE", name: "BSE", desc: "Bombay Stock Exchange" },
-          ],
-          symbols_types: [
-            { name: "All types", value: "" },
-            { name: "Stock", value: "stock" },
-            { name: "Index", value: "index" },
-          ],
-        }), 0);
+        this._quotesSubscriptions = {};
+        this.csvSymbols = [];
+        this.csvLoaded = false;
+        this.logoCache = new Map(); // Cache for logos
+        this.availableLogos = new Set(); // Pre-loaded logo list
+        this.loadAvailableLogos(); // Load logo list first
+        this.loadCSVSymbols();
+        setTimeout(
+          () =>
+            callback({
+              supports_marks: false,
+              supports_timescale_marks: true,
+              supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
+              exchanges: [
+                { value: "", name: "All Exchanges", desc: "" },
+                { value: "NSE", name: "NSE", desc: "National Stock Exchange" },
+                { value: "BSE", name: "BSE", desc: "Bombay Stock Exchange" },
+                { value: "MCX", name: "MCX", desc: "Multi Commodity Exchange" },
+                { value: "NFO", name: "NFO", desc: "NSE F&O" },
+                { value: "BFO", name: "BFO", desc: "BSE F&O" },
+                { value: "CDS", name: "CDS", desc: "Currency Derivative Segment" },
+              ],
+              symbols_types: [
+                { name: "All types", value: "" },
+                { name: "Stock", value: "EQ" },
+                { name: "Stock Future", value: "FUTSTK" },
+                { name: "Stock Option", value: "OPTSTK" },
+                { name: "Index Future", value: "FUTIDX" },
+                { name: "Index Option", value: "OPTIDX" },
+                { name: "Commodity Future", value: "FUTCOM" },
+                { name: "Commodity Option", value: "OPTCOM" },
+                { name: "Currency Future", value: "FUTCUR" },
+                { name: "Currency Option", value: "OPTCUR" },
+                { name: "Index", value: "IDX" },
+              ],
+            }),
+          0,
+        );
       },
-      searchSymbols: async (userInput: string, exchange: string, symbolType: string, onResultReadyCallback: Function) => {
+
+      // Load NSE.json data
+      async loadCSVSymbols(): Promise<void> {
+        try {
+          const response = await fetch("./NSE.json");
+
+          if (!response.ok) {
+            const altPaths = ["./data/NSE.json", "../NSE.json", "./json/NSE.json", "./assets/NSE.json"];
+
+            for (const path of altPaths) {
+              try {
+                const altResponse = await fetch(path);
+                if (altResponse.ok) {
+                  const jsonData = (await altResponse.json()) as NseInstrument[];
+                  this.csvSymbols = this.parseNSEJson(jsonData);
+                  this.csvLoaded = true;
+                  return;
+                }
+              } catch {
+                // ignore and continue
+              }
+            }
+
+            throw new Error(`NSE.json not found in any path. Status: ${response.status}`);
+          }
+
+          const jsonData = (await response.json()) as NseInstrument[];
+
+          this.csvSymbols = this.parseNSEJson(jsonData);
+          this.csvLoaded = true;
+
+          // Extras (optional), remove if not needed
+          const exchangeCounts: Record<string, number> = {};
+          const segmentCounts: Record<string, number> = {};
+          const typeCounts: Record<string, number> = {};
+
+          this.csvSymbols.forEach((s) => {
+            exchangeCounts[s.exchange] = (exchangeCounts[s.exchange] || 0) + 1;
+            segmentCounts[s.segment] = (segmentCounts[s.segment] || 0) + 1;
+            typeCounts[s.type] = (typeCounts[s.type] || 0) + 1;
+          });
+        } catch (error) {
+          console.error("❌ Error loading NSE.json:", error);
+          this.csvSymbols = [];
+          this.csvLoaded = false;
+        }
+      },
+      searchSymbols: async (
+        userInput: string,
+        exchange: string,
+        symbolType: string,
+        onResultReadyCallback: Function,
+      ) => {
         try {
           const response = await fetch(
-            `https://runalgo.xyz/top/chart/upstox_symbol_search.php?query=${encodeURIComponent(userInput)}&limit=50&symbolType=${symbolType}`
+            `https://runalgo.xyz/top/chart/upstox_symbol_search.php?query=${encodeURIComponent(userInput)}&limit=50&symbolType=${symbolType}`,
           );
           if (response.ok) {
             const data = await response.json();
@@ -172,14 +246,33 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
           });
         }, 0);
       },
-      getBars: async (symbolInfo: any, resolution: string, periodParams: any, onHistoryCallback: Function, onErrorCallback: Function) => {
+      getBars: async (
+        symbolInfo: any,
+        resolution: string,
+        periodParams: any,
+        onHistoryCallback: Function,
+        onErrorCallback: Function,
+      ) => {
         try {
           const { from, to } = periodParams;
           const intervalMap: Record<string, string> = {
-            "1": "1minute", "3": "3minute", "5": "5minute", "10": "10minute",
-            "15": "15minute", "30": "30minute", "45": "30minute", "60": "1hour",
-            "120": "1hour", "180": "1hour", "240": "1hour",
-            "1D": "1day", "D": "1day", "1W": "1week", "W": "1week", "1M": "1month", "M": "1month",
+            "1": "1minute",
+            "3": "3minute",
+            "5": "5minute",
+            "10": "10minute",
+            "15": "15minute",
+            "30": "30minute",
+            "45": "30minute",
+            "60": "1hour",
+            "120": "1hour",
+            "180": "1hour",
+            "240": "1hour",
+            "1D": "1day",
+            D: "1day",
+            "1W": "1week",
+            W: "1week",
+            "1M": "1month",
+            M: "1month",
           };
 
           const interval = intervalMap[resolution] || "5minute";
@@ -196,8 +289,12 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
             const data = await response.json();
             if (data?.bars?.length > 0) {
               const bars = data.bars.map((bar: any) => ({
-                time: bar.time, open: bar.open, high: bar.high,
-                low: bar.low, close: bar.close, volume: bar.volume,
+                time: bar.time,
+                open: bar.open,
+                high: bar.high,
+                low: bar.low,
+                close: bar.close,
+                volume: bar.volume,
               }));
               onHistoryCallback(bars, { noData: false });
             } else {
@@ -228,14 +325,28 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         theme: isDark ? "dark" : "light",
         disabled_features: ["use_localstorage_for_settings", "open_account_manager", "trading_account_manager"],
         enabled_features: [
-          "study_templates", "show_symbol_logos", "show_exchange_logos",
-          "create_volume_indicator_by_default", "volume_force_overlay",
-          "left_toolbar", "header_indicators", "header_compare",
-          "header_undo_redo", "header_screenshot", "header_chart_type",
-          "header_resolutions", "header_settings", "legend_context_menu",
-          "display_market_status", "remove_library_container_border",
-          "timeframes_toolbar", "edit_buttons_in_legend", "context_menus",
-          "control_bar", "items_favoriting", "save_chart_properties_to_local_storage",
+          "study_templates",
+          "show_symbol_logos",
+          "show_exchange_logos",
+          "create_volume_indicator_by_default",
+          "volume_force_overlay",
+          "left_toolbar",
+          "header_indicators",
+          "header_compare",
+          "header_undo_redo",
+          "header_screenshot",
+          "header_chart_type",
+          "header_resolutions",
+          "header_settings",
+          "legend_context_menu",
+          "display_market_status",
+          "remove_library_container_border",
+          "timeframes_toolbar",
+          "edit_buttons_in_legend",
+          "context_menus",
+          "control_bar",
+          "items_favoriting",
+          "save_chart_properties_to_local_storage",
         ],
         custom_indicators_getter: window.customIndicatorsGetter,
         overrides: {
@@ -279,7 +390,12 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
   return (
     <Card className="p-0 overflow-hidden bg-card border-border relative">
       <div className="absolute top-2 right-2 z-10">
-        <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-1.5 bg-background/80 backdrop-blur-sm">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={toggleFullscreen}
+          className="gap-1.5 bg-background/80 backdrop-blur-sm"
+        >
           {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
         </Button>
       </div>
@@ -297,7 +413,9 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
           <div className="flex flex-col items-center gap-3 text-center p-4">
             <span className="text-destructive font-medium">{error}</span>
-            <Button onClick={() => window.location.reload()} variant="outline" size="sm">Retry</Button>
+            <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+              Retry
+            </Button>
           </div>
         </div>
       )}
