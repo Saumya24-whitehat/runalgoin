@@ -158,7 +158,7 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                     <TableCell className="text-right text-sm text-foreground">{oiData[row.exp] || "-"}</TableCell>
 
                     <TableCell className="text-right text-sm text-foreground">
-                      {oiData[row.oi].toFixed(2) || "-"}
+                      {parseFloat(oiData[row.oi]).toFixed(2) || "-"}
                     </TableCell>
 
                     <TableCell
