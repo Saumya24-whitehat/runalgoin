@@ -148,14 +148,6 @@ export function IndicesSection() {
     fetchAdvanceDecline();
   }, []);
 
-  // Auto-scroll for mobile carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % 3);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Get current index data
   const getCurrentIndexData = () => {
     if (!tickerData) {
@@ -364,15 +356,15 @@ export function IndicesSection() {
         const today = new Date();
         const fromDate = new Date(today);
         fromDate.setDate(today.getDate() - 5);
-        
+
         const formatDate = (d: Date) => d.toISOString().split("T")[0];
         const symbol = encodeURIComponent(chartSymbolMap[activeChart]);
-        
+
         const url = `https://runalgo.xyz/top/chart/upstox_data_fetcher.php?symbol=${symbol}&interval=5minute&from=${formatDate(fromDate)}&to=${formatDate(today)}`;
-        
+
         const response = await fetch(url);
         const data = await response.json();
-        
+
         if (data.success && data.bars) {
           setChartData((prev) => ({
             ...prev,
@@ -423,16 +415,21 @@ export function IndicesSection() {
     const paddingTop = 20;
     const paddingBottom = 30;
 
-    const points = displayBars.map((bar, i) => {
-      const x = paddingLeft + (i / (displayBars.length - 1)) * chartWidth;
-      const y = paddingTop + ((maxPrice - bar.close) / priceRange) * chartHeight;
-      return `${x},${y}`;
-    }).join(" ");
+    const points = displayBars
+      .map((bar, i) => {
+        const x = paddingLeft + (i / (displayBars.length - 1)) * chartWidth;
+        const y = paddingTop + ((maxPrice - bar.close) / priceRange) * chartHeight;
+        return `${x},${y}`;
+      })
+      .join(" ");
 
     const firstPoint = `${paddingLeft},${paddingTop + ((maxPrice - displayBars[0].close) / priceRange) * chartHeight}`;
     const lastX = paddingLeft + chartWidth;
     const lastY = paddingTop + ((maxPrice - displayBars[displayBars.length - 1].close) / priceRange) * chartHeight;
-    const areaPath = `M${firstPoint} ${points.split(" ").map((p) => `L${p}`).join(" ")} L${lastX},${paddingTop + chartHeight} L${paddingLeft},${paddingTop + chartHeight} Z`;
+    const areaPath = `M${firstPoint} ${points
+      .split(" ")
+      .map((p) => `L${p}`)
+      .join(" ")} L${lastX},${paddingTop + chartHeight} L${paddingLeft},${paddingTop + chartHeight} Z`;
 
     // Y-axis labels (5 levels)
     const yLabels = Array.from({ length: 5 }, (_, i) => {
@@ -486,12 +483,22 @@ export function IndicesSection() {
           {chartData[activeChart].isLoading ? (
             <div className="flex items-center justify-center h-full text-muted-foreground">Loading...</div>
           ) : chartData[activeChart].error ? (
-            <div className="flex items-center justify-center h-full text-destructive text-sm">{chartData[activeChart].error}</div>
+            <div className="flex items-center justify-center h-full text-destructive text-sm">
+              {chartData[activeChart].error}
+            </div>
           ) : chartRenderData.points ? (
             <svg viewBox="0 0 400 180" className="w-full h-full">
               {/* Grid lines */}
               {chartRenderData.yLabels.map((label, i) => (
-                <line key={i} x1="60" y1={label.y - 4} x2="380" y2={label.y - 4} stroke="hsl(var(--border))" strokeWidth="0.5" />
+                <line
+                  key={i}
+                  x1="60"
+                  y1={label.y - 4}
+                  x2="380"
+                  y2={label.y - 4}
+                  stroke="hsl(var(--border))"
+                  strokeWidth="0.5"
+                />
               ))}
 
               {/* Y-axis labels */}
@@ -504,8 +511,16 @@ export function IndicesSection() {
               {/* Area gradient */}
               <defs>
                 <linearGradient id="chartGradientDynamic" x1="0%" y1="0%" x2="0%" y2="100%">
-                  <stop offset="0%" stopColor={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"} stopOpacity="0.3" />
-                  <stop offset="100%" stopColor={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"} stopOpacity="0" />
+                  <stop
+                    offset="0%"
+                    stopColor={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+                    stopOpacity="0.3"
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
+                    stopOpacity="0"
+                  />
                 </linearGradient>
               </defs>
 
@@ -529,7 +544,14 @@ export function IndicesSection() {
                 fill={chartRenderData.isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))"}
                 rx="2"
               />
-              <text x="367" y={(chartRenderData.lastY || 80) + 3} fill="white" fontSize="8" textAnchor="middle" fontWeight="600">
+              <text
+                x="367"
+                y={(chartRenderData.lastY || 80) + 3}
+                fill="white"
+                fontSize="8"
+                textAnchor="middle"
+                fontWeight="600"
+              >
                 {chartRenderData.lastPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
               </text>
 
