@@ -25,22 +25,26 @@ const OptionsChart = () => {
     // Initialize global variables for custom indicators
     window.bars = window.bars || {};
     window.studies = window.studies || {};
-    
+
     // Make globals available across frames
     try {
       if (window.parent) {
         window.parent.bars = window.bars;
         window.parent.studies = window.studies;
       }
-    } catch (e) { /* Cross-origin access error */ }
-    
+    } catch (e) {
+      /* Cross-origin access error */
+    }
+
     try {
       if (window.top) {
         window.top.bars = window.bars;
         window.top.studies = window.studies;
       }
-    } catch (e) { /* Cross-origin access error */ }
-    
+    } catch (e) {
+      /* Cross-origin access error */
+    }
+
     (globalThis as any).bars = window.bars;
     (globalThis as any).studies = window.studies;
 
@@ -134,16 +138,24 @@ const OptionsChart = () => {
               exchanges: [
                 { value: "", name: "All Exchanges", desc: "" },
                 { value: "NSE", name: "NSE", desc: "National Stock Exchange" },
-                { value: "NFO", name: "NFO", desc: "NSE F&O" },
                 { value: "BSE", name: "BSE", desc: "Bombay Stock Exchange" },
                 { value: "MCX", name: "MCX", desc: "Multi Commodity Exchange" },
+                { value: "NFO", name: "NFO", desc: "NSE F&O" },
+                { value: "BFO", name: "BFO", desc: "BSE F&O" },
+                { value: "CDS", name: "CDS", desc: "Currency Derivative Segment" },
               ],
               symbols_types: [
                 { name: "All types", value: "" },
-                { name: "Stock", value: "stock" },
-                { name: "Index", value: "index" },
-                { name: "Futures", value: "futures" },
-                { name: "Options", value: "option" },
+                { name: "Stock", value: "EQ" },
+                { name: "Stock Future", value: "FUTSTK" },
+                { name: "Stock Option", value: "OPTSTK" },
+                { name: "Index Future", value: "FUTIDX" },
+                { name: "Index Option", value: "OPTIDX" },
+                { name: "Commodity Future", value: "FUTCOM" },
+                { name: "Commodity Option", value: "OPTCOM" },
+                { name: "Currency Future", value: "FUTCUR" },
+                { name: "Currency Option", value: "OPTCUR" },
+                { name: "Index", value: "IDX" },
               ],
             }),
           0,
@@ -355,7 +367,7 @@ const OptionsChart = () => {
       widget.onChartReady(() => {
         console.log("TradingView chart ready");
         setIsLoading(false);
-        
+
         // Setup getIndicators function
         const getIndicatorsFn = (id?: string) => {
           if (id) {
@@ -363,21 +375,25 @@ const OptionsChart = () => {
           }
           return widget.activeChart().getAllStudies();
         };
-        
+
         window.getIndicators = getIndicatorsFn;
         (globalThis as any).getIndicators = getIndicatorsFn;
-        
+
         try {
           if (window.parent) {
             window.parent.getIndicators = getIndicatorsFn;
           }
-        } catch (e) { /* Cross-origin access error */ }
-        
+        } catch (e) {
+          /* Cross-origin access error */
+        }
+
         try {
           if (window.top) {
             window.top.getIndicators = getIndicatorsFn;
           }
-        } catch (e) { /* Cross-origin access error */ }
+        } catch (e) {
+          /* Cross-origin access error */
+        }
       });
     } catch (err) {
       console.error("Widget initialization error:", err);
