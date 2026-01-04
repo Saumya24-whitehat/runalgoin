@@ -49,7 +49,7 @@ export default function MarketBreadth() {
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Major Market Indices"]));
 
   const handleStockClick = (symbol: string) => {
-    navigate(`/jackpot-detail?symbol=${symbol}`);
+    navigate(`/stock-detail?symbol=${symbol}`);
   };
   // Fetch advance/decline data on mount
   useEffect(() => {
