@@ -418,7 +418,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
           }
 
           setTimeout(() => onSymbolResolvedCallback(symbolInfo), 0);
-        }, 1000);
+        }, 3000);
       },
 
       async getBars(
