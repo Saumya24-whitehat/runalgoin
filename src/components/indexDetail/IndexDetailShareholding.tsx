@@ -24,7 +24,7 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
   const navigate = useNavigate();
   const [data, setData] = useState<ShareholdingItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeType, setActiveType] = useState<'promoter' | 'fii' | 'mf' | 'public'>('promoter');
+  const [activeType, setActiveType] = useState<"promoter" | "fii" | "mf" | "public">("promoter");
   const [showCurrentOnly, setShowCurrentOnly] = useState(false);
 
   useEffect(() => {
@@ -32,10 +32,11 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
       setLoading(true);
       const result = await fetchShareholdingData(indexSymbol, activeType);
       if (result) {
+        console.log(activeType);
         // Transform the data into our format
         const transformed: ShareholdingItem[] = result.map((item: any) => ({
-          symbol: item.symbol || item.ticker || '',
-          name: item.name || item.company_name || '',
+          symbol: item.symbol || item.ticker || "",
+          name: item.name || item.company_name || "",
           ltp: item.ltp || item.price || 0,
           marketCap: item.market_cap || item.marketCap || 0,
           currentPercent: item.current_percent || item.percent || 0,
@@ -56,22 +57,70 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
 
   // Mock data for display (since real API may not be available)
   const mockData: ShareholdingItem[] = [
-    { symbol: 'ADANIENT', name: 'Adani Enterprises', ltp: 2278.9, marketCap: 278807.83, currentPercent: 73.97, qoq: 0.00, yoy: -0.92 },
-    { symbol: 'WIPRO', name: 'Wipro', ltp: 261.74, marketCap: 274469.02, currentPercent: 72.65, qoq: -0.01, yoy: -0.15 },
-    { symbol: 'TCS', name: 'TCS', ltp: 3230.2, marketCap: 1168714.62, currentPercent: 71.77, qoq: 0.00, yoy: 0.00 },
-    { symbol: 'ADANIPORTS', name: 'Adani Ports', ltp: 1512.6, marketCap: 326742.61, currentPercent: 65.89, qoq: 0.00, yoy: 0.00 },
-    { symbol: 'COALINDIA', name: 'Coal India', ltp: 384.45, marketCap: 236926.09, currentPercent: 63.13, qoq: 0.00, yoy: 0.00 },
-    { symbol: 'NESTLEIND', name: 'Nestle', ltp: 1243.5, marketCap: 239785.88, currentPercent: 62.76, qoq: 0.00, yoy: 0.00 },
-    { symbol: 'HINDUNILVR', name: 'Hindustan Unilever', ltp: 2293.5, marketCap: 538878.76, currentPercent: 61.90, qoq: 0.00, yoy: 0.00 },
+    {
+      symbol: "ADANIENT",
+      name: "Adani Enterprises",
+      ltp: 2278.9,
+      marketCap: 278807.83,
+      currentPercent: 73.97,
+      qoq: 0.0,
+      yoy: -0.92,
+    },
+    {
+      symbol: "WIPRO",
+      name: "Wipro",
+      ltp: 261.74,
+      marketCap: 274469.02,
+      currentPercent: 72.65,
+      qoq: -0.01,
+      yoy: -0.15,
+    },
+    { symbol: "TCS", name: "TCS", ltp: 3230.2, marketCap: 1168714.62, currentPercent: 71.77, qoq: 0.0, yoy: 0.0 },
+    {
+      symbol: "ADANIPORTS",
+      name: "Adani Ports",
+      ltp: 1512.6,
+      marketCap: 326742.61,
+      currentPercent: 65.89,
+      qoq: 0.0,
+      yoy: 0.0,
+    },
+    {
+      symbol: "COALINDIA",
+      name: "Coal India",
+      ltp: 384.45,
+      marketCap: 236926.09,
+      currentPercent: 63.13,
+      qoq: 0.0,
+      yoy: 0.0,
+    },
+    {
+      symbol: "NESTLEIND",
+      name: "Nestle",
+      ltp: 1243.5,
+      marketCap: 239785.88,
+      currentPercent: 62.76,
+      qoq: 0.0,
+      yoy: 0.0,
+    },
+    {
+      symbol: "HINDUNILVR",
+      name: "Hindustan Unilever",
+      ltp: 2293.5,
+      marketCap: 538878.76,
+      currentPercent: 61.9,
+      qoq: 0.0,
+      yoy: 0.0,
+    },
   ];
 
   const displayData = data.length > 0 ? data : mockData;
 
   const formatMarketCap = (value: number) => {
     if (value >= 100000) {
-      return (value / 100000).toFixed(2) + ' L Cr';
+      return (value / 100000).toFixed(2) + " L Cr";
     }
-    return value.toFixed(2) + ' Cr';
+    return value.toFixed(2) + " Cr";
   };
 
   if (loading) {
@@ -88,29 +137,21 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
       <div className="flex gap-2">
         <Button
           size="sm"
-          variant={activeType === 'promoter' ? 'default' : 'outline'}
-          onClick={() => setActiveType('promoter')}
+          variant={activeType === "promoter" ? "default" : "outline"}
+          onClick={() => setActiveType("promoter")}
         >
           Promoter
         </Button>
-        <Button
-          size="sm"
-          variant={activeType === 'fii' ? 'default' : 'outline'}
-          onClick={() => setActiveType('fii')}
-        >
+        <Button size="sm" variant={activeType === "fii" ? "default" : "outline"} onClick={() => setActiveType("fii")}>
           FII
         </Button>
-        <Button
-          size="sm"
-          variant={activeType === 'mf' ? 'default' : 'outline'}
-          onClick={() => setActiveType('mf')}
-        >
+        <Button size="sm" variant={activeType === "mf" ? "default" : "outline"} onClick={() => setActiveType("mf")}>
           MF
         </Button>
         <Button
           size="sm"
-          variant={activeType === 'public' ? 'default' : 'outline'}
-          onClick={() => setActiveType('public')}
+          variant={activeType === "public" ? "default" : "outline"}
+          onClick={() => setActiveType("public")}
         >
           Public
         </Button>
@@ -118,7 +159,7 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
 
       {/* Filter */}
       <div className="flex items-center gap-2">
-        <Checkbox 
+        <Checkbox
           id="currentPeriod"
           checked={showCurrentOnly}
           onCheckedChange={(checked) => setShowCurrentOnly(checked === true)}
@@ -160,17 +201,15 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-right font-mono">
-                  {formatMarketCap(item.marketCap)}
+                <TableCell className="text-right font-mono">{formatMarketCap(item.marketCap)}</TableCell>
+                <TableCell className="text-right font-mono font-semibold">{item.currentPercent.toFixed(2)}%</TableCell>
+                <TableCell className={`text-right font-mono ${item.qoq >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                  {item.qoq >= 0 ? "+" : ""}
+                  {item.qoq.toFixed(2)}
                 </TableCell>
-                <TableCell className="text-right font-mono font-semibold">
-                  {item.currentPercent.toFixed(2)}%
-                </TableCell>
-                <TableCell className={`text-right font-mono ${item.qoq >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {item.qoq >= 0 ? '+' : ''}{item.qoq.toFixed(2)}
-                </TableCell>
-                <TableCell className={`text-right font-mono ${item.yoy >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {item.yoy >= 0 ? '+' : ''}{item.yoy.toFixed(2)}
+                <TableCell className={`text-right font-mono ${item.yoy >= 0 ? "text-emerald-500" : "text-red-500"}`}>
+                  {item.yoy >= 0 ? "+" : ""}
+                  {item.yoy.toFixed(2)}
                 </TableCell>
               </TableRow>
             ))}
@@ -179,9 +218,7 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
       </div>
 
       {displayData.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          No shareholding data available
-        </div>
+        <div className="text-center py-8 text-muted-foreground">No shareholding data available</div>
       )}
     </div>
   );
