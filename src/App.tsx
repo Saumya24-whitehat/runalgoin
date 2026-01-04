@@ -36,6 +36,7 @@ import JackpotDetail from "./pages/JackpotDetail";
 import AllSectors from "./pages/AllSectors";
 import SectorAnalysis from "./pages/SectorAnalysis";
 import IndexDetail from "./pages/IndexDetail";
+import StockDetail from "./pages/StockDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -86,6 +87,7 @@ const App = () => (
               <Route path="/all-sectors" element={<AllSectors />} />
               <Route path="/sector-analysis" element={<SectorAnalysis />} />
               <Route path="/index-detail" element={<IndexDetail />} />
+              <Route path="/stock-detail" element={<StockDetail />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
