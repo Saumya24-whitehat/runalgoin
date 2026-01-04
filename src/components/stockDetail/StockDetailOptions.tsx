@@ -66,7 +66,7 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
 
   const averageData = data[0] || {};
   const oiData = data[1] || [];
-  const historyData = data[2] || [];
+  const historicalData = data[2] || [];
 
   const getLogicStyle = (logic: string) => {
     const lowerLogic = logic?.toLowerCase() || "";
