@@ -6,6 +6,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { useNavigate } from "react-router-dom";
+
 import {
   groupedIndices,
   fetchMarketBreadthData,
@@ -20,10 +22,6 @@ type SortOption = "name";
 type SortDirection = "asc" | "desc";
 type ChangeFilter = "+5" | "+3" | "+1" | "0" | "-1" | "-3" | "-5" | null;
 
-import { useNavigate } from "react-router-dom";
-
-// Inside your component
-const navigate = useNavigate();
 // Map index symbols to advance-decline API keys
 const indexToAdvDeclineKey: Record<string, string> = {
   "SYML:NSE;NIFTY": "SYML:NSE;NIFTY",
@@ -38,6 +36,7 @@ const indexToAdvDeclineKey: Record<string, string> = {
 };
 
 export default function MarketBreadth() {
+  const navigate = useNavigate();
   const [selectedIndex, setSelectedIndex] = useState<string>("SYML:NSE;NIFTY");
   const [selectedExchange, setSelectedExchange] = useState<"NSE" | "BSE">("NSE");
   const [stocks, setStocks] = useState<StockData[]>([]);
@@ -49,6 +48,9 @@ export default function MarketBreadth() {
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Major Market Indices"]));
 
+  const handleStockClick = (symbol: string) => {
+    navigate(`/jackpot-detail?symbol=${symbol}`);
+  };
   // Fetch advance/decline data on mount
   useEffect(() => {
     const fetchAdvDec = async () => {
@@ -356,10 +358,10 @@ export default function MarketBreadth() {
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-0.5">
               {filteredAndSortedStocks.map((stock, idx) => (
-                <Tooltip key={`${stock.name}-${idx}`} onCl>
+                <Tooltip key={`${stock.name}-${idx}`}>
                   <TooltipTrigger asChild>
                     <div
-                      onClick={() => navigate(`/stock-detail?symbol=${stock.symbol}`)}
+                      onClick={() => handleStockClick(item.symbol)}
                       style={{ backgroundColor: getStockBgColor(stock.changePct) }}
                       className="text-black px-1 py-0.5 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[48px] flex flex-col justify-center items-center text-center"
                     >
