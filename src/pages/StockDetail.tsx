@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Maximize2, Loader2, MoreVertical } from "lucide-react";
-import { StockOverview, fetchStockOverview, formatMarketCap, formatPrice, formatPercentage } from "@/services/stockDetailApi";
+import {
+  StockOverview,
+  fetchStockOverview,
+  formatMarketCap,
+  formatPrice,
+  formatPercentage,
+} from "@/services/stockDetailApi";
 import { StockDetailChart } from "@/components/stockDetail/StockDetailChart";
 import { StockDetailOverview } from "@/components/stockDetail/StockDetailOverview";
 import { StockDetailFinancials } from "@/components/stockDetail/StockDetailFinancials";
@@ -18,6 +24,7 @@ const StockDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const symbol = searchParams.get("symbol") || "ITC";
+  const sector = searchParams.get("sector") || "ITC";
   const [activeTab, setActiveTab] = useState("chart");
   const [stockData, setStockData] = useState<StockOverview | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,9 +38,9 @@ const StockDetail = () => {
         if (data) {
           setStockData(data);
         }
-        setLastUpdated(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) + ' IST');
+        setLastUpdated(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + " IST");
       } catch (error) {
-        console.error('Error fetching stock data:', error);
+        console.error("Error fetching stock data:", error);
       } finally {
         setLoading(false);
       }
@@ -61,40 +68,38 @@ const StockDetail = () => {
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            
+
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
                 <span className="text-primary font-bold text-sm">{symbol.charAt(0)}</span>
               </div>
-              
+
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-foreground">
-                    {stockData?.company_name || symbol}
-                  </h1>
+                  <h1 className="text-xl font-bold text-foreground">{stockData?.company_name || symbol}</h1>
                   <Badge variant="secondary" className="text-xs bg-primary text-primary-foreground">
                     NSE
                   </Badge>
                 </div>
-                <p className="text-xs text-muted-foreground uppercase">
-                  {stockData?.sector || 'Loading...'}
-                </p>
+                <p className="text-xs text-muted-foreground uppercase">{stockData?.sector || "Loading..."}</p>
               </div>
             </div>
-            
+
             {loading ? (
               <div className="flex items-center gap-2 ml-4">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
-            ) : stockData && (
-              <div className="flex items-center gap-2 ml-4">
-                <span className="text-2xl font-bold text-foreground">
-                  {formatPrice(stockData.price)}
-                </span>
-                <span className={`text-sm font-medium ${stockData.change_percent >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {formatPercentage(stockData.change_percent)}
-                </span>
-              </div>
+            ) : (
+              stockData && (
+                <div className="flex items-center gap-2 ml-4">
+                  <span className="text-2xl font-bold text-foreground">{formatPrice(stockData.price)}</span>
+                  <span
+                    className={`text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  >
+                    {formatPercentage(stockData.change_percent)}
+                  </span>
+                </div>
+              )
             )}
           </div>
 
@@ -121,7 +126,7 @@ const StockDetail = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase">P/E Ratio</p>
-              <p className="text-sm font-semibold text-foreground">{stockData.pe_ratio?.toFixed(2) || 'N/A'}</p>
+              <p className="text-sm font-semibold text-foreground">{stockData.pe_ratio?.toFixed(2) || "N/A"}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase">Dividend Yield</p>
@@ -133,7 +138,7 @@ const StockDetail = () => {
             </div>
             <div>
               <p className="text-xs text-muted-foreground uppercase">Volume</p>
-              <p className="text-sm font-semibold text-foreground">{stockData.volume?.toLocaleString('en-IN')}</p>
+              <p className="text-sm font-semibold text-foreground">{stockData.volume?.toLocaleString("en-IN")}</p>
             </div>
           </div>
         )}
@@ -141,12 +146,24 @@ const StockDetail = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-muted/30 border border-border w-full justify-start overflow-x-auto">
-            <TabsTrigger value="chart" className="data-[state=active]:bg-background">Chart</TabsTrigger>
-            <TabsTrigger value="overview" className="data-[state=active]:bg-background">Overview</TabsTrigger>
-            <TabsTrigger value="financials" className="data-[state=active]:bg-background">Financials</TabsTrigger>
-            <TabsTrigger value="options" className="data-[state=active]:bg-background">Options</TabsTrigger>
-            <TabsTrigger value="peers" className="data-[state=active]:bg-background">Peers</TabsTrigger>
-            <TabsTrigger value="technicals" className="data-[state=active]:bg-background">Technicals</TabsTrigger>
+            <TabsTrigger value="chart" className="data-[state=active]:bg-background">
+              Chart
+            </TabsTrigger>
+            <TabsTrigger value="overview" className="data-[state=active]:bg-background">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="financials" className="data-[state=active]:bg-background">
+              Financials
+            </TabsTrigger>
+            <TabsTrigger value="options" className="data-[state=active]:bg-background">
+              Options
+            </TabsTrigger>
+            <TabsTrigger value="peers" className="data-[state=active]:bg-background">
+              Peers
+            </TabsTrigger>
+            <TabsTrigger value="technicals" className="data-[state=active]:bg-background">
+              Technicals
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="chart" className="mt-4">
@@ -166,7 +183,7 @@ const StockDetail = () => {
           </TabsContent>
 
           <TabsContent value="peers" className="mt-4">
-            <StockDetailPeers symbol={symbol} sector={stockData?.sector || ''} />
+            <StockDetailPeers symbol={symbol} sector={sector || ""} />
           </TabsContent>
 
           <TabsContent value="technicals" className="mt-4">
