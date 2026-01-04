@@ -76,7 +76,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
 
   // Filter peers by name
   const filteredPeers = useMemo(
-    () => peers.filter((p) => p.company_name.toLowerCase().includes(filterText.toLowerCase())),
+    () => peers.filter((p) => p.name.toLowerCase().includes(filterText.toLowerCase())),
     [peers, filterText],
   );
 
