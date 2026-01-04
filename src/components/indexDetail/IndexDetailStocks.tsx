@@ -145,7 +145,7 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-bold">
-                      <img src={`https://runalgo.xyz/top/chart/data/svg/nse_${stock.name}.svg`} />
+                      <img src={`https://runalgo.xyz/top/chart/data/svg/nse_${stock.ticker}.svg`} />
                     </div>
                     <div>
                       <div className="font-medium text-primary">{stock.company_name}</div>
