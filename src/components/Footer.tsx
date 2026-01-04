@@ -3,15 +3,33 @@ import { TrendingUp, Mail, Phone, MapPin } from "lucide-react";
 const footerLinks = [
   {
     title: "Products",
-    links: ["Option Chain", "Future Data", "Market Breath", "Stock Analysis", "Algo Trading"],
+    links: [
+      { name: "Option Chain", url: "/option-chain" },
+      { name: "Future Data", url: "/future-data" },
+      { name: "Market Breath", url: "/market-breadth" },
+      { name: "Stock Analysis", url: "/stock-analysis" },
+      { name: "Algo Trading", url: "/algo-trading" },
+    ],
   },
   {
     title: "Resources",
-    links: ["Documentation", "Video Tutorials", "Blog", "FAQ", "Support"],
+    links: [
+      { name: "Documentation", url: "/documentation" },
+      { name: "Video Tutorials", url: "/videos" },
+      { name: "Blog", url: "/blog" },
+      { name: "FAQ", url: "/faq" },
+      { name: "Support", url: "/support" },
+    ],
   },
   {
     title: "Company",
-    links: ["About Us", "Careers", "Contact", "Privacy Policy", "Terms of Service"],
+    links: [
+      { name: "About Us", url: "/about" },
+      { name: "Careers", url: "/careers" },
+      { name: "Contact", url: "/contact" },
+      { name: "Privacy Policy", url: "/privacy-policy" },
+      { name: "Terms of Service", url: "/terms" },
+    ],
   },
 ];
 
@@ -27,7 +45,8 @@ export function Footer() {
               <span className="font-heading font-bold text-xl text-foreground">Runalgo</span>
             </a>
             <p className="text-muted-foreground mb-6 max-w-sm">
-              Advanced tools for smart options trading in Indian markets. Make data-driven decisions with real-time analytics.
+              Advanced tools for smart options trading in Indian markets. Make data-driven decisions with real-time
+              analytics.
             </p>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
@@ -48,17 +67,12 @@ export function Footer() {
           {/* Link Columns */}
           {footerLinks.map((section, index) => (
             <div key={index}>
-              <h4 className="font-heading font-semibold text-foreground mb-4">
-                {section.title}
-              </h4>
+              <h4 className="font-heading font-semibold text-foreground mb-4">{section.title}</h4>
               <ul className="space-y-3">
                 {section.links.map((link, linkIdx) => (
                   <li key={linkIdx}>
-                    <a
-                      href="#"
-                      className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      {link}
+                    <a href={link.url} className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                      {link.name}
                     </a>
                   </li>
                 ))}
@@ -68,12 +82,8 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-muted-foreground">
-            © 2024 Runalgo. All rights reserved.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Trading involves risk. Please trade responsibly.
-          </p>
+          <p className="text-sm text-muted-foreground">© 2024 Runalgo. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">Trading involves risk. Please trade responsibly.</p>
         </div>
       </div>
     </footer>
