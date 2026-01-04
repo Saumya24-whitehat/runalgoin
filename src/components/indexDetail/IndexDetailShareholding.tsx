@@ -212,7 +212,7 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded bg-muted flex items-center justify-center text-xs font-bold">
-                      {item.symbol.substring(0, 2).toLowerCase()}
+                      <img src={`https://runalgo.xyz/top/chart/data/svg/nse_${item.symbol}.svg`} />
                     </div>
                     <div>
                       <div className="font-medium text-foreground">{item.name}</div>
