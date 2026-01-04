@@ -204,51 +204,83 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {historyData.slice(0, 20).map((row: HistoryRow, idx: number) => (
-                  <TableRow key={idx} className="border-border hover:bg-muted/30">
-                    <TableCell className="font-medium text-sm text-foreground">{row.date}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{row.close}</TableCell>
-                    <TableCell
-                      className={`text-right text-sm ${
-                        parseFloat(String(row.chng)) < 0 ? "text-red-500" : "text-foreground"
-                      }`}
-                    >
-                      {row.chng}
-                    </TableCell>
-                    <TableCell
-                      className={`text-right text-sm ${
-                        parseFloat(String(row.priceChng)) < 0 ? "text-red-500" : "text-emerald-500"
-                      }`}
-                    >
-                      {row.priceChng}
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{row.delivery}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{row.vwap}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{row.action}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{row.avgDelivery}</TableCell>
-                    <TableCell className="text-center">
-                      {row.jackpot && <Badge className="bg-amber-500 text-black text-xs">{row.jackpot}</Badge>}
-                    </TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{row.oi}</TableCell>
-                    <TableCell
-                      className={`text-right text-sm ${
-                        parseFloat(String(row.chngInOi)?.replace(/,/g, "")) < 0 ? "text-red-500" : "text-emerald-500"
-                      }`}
-                    >
-                      {row.chngInOi}
-                    </TableCell>
-                    <TableCell
-                      className={`text-right text-sm ${
-                        parseFloat(String(row.coiPercent)) < 0 ? "text-red-500" : "text-emerald-500"
-                      }`}
-                    >
-                      {row.coiPercent}
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <Badge className={`text-xs ${getLogicStyle(row.logic)}`}>{row.logic || "-"}</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {historyData
+                  .slice()
+                  .reverse()
+                  .slice(0, 20)
+                  .map((row: HistoryRow, idx: number) => {
+                    // --- JACKPOT LOGIC (old: col10 > col16 AND col12 > col14) ---
+                    const isJackpot =
+                      parseFloat(String(row.delivery)) > parseFloat(String(row.avgDelivery)) &&
+                      parseFloat(String(row.action)) > parseFloat(String(row.vwap));
+
+                    const jackpotText = isJackpot ? "JACKPOT" : "";
+                    const jackpotClass = isJackpot ? "bg-amber-500 text-black font-bold" : "";
+
+                    // --- TREND LOGIC (old: col24 & col31) ---
+                    const coi = parseFloat(String(row.oi)); // old col24
+                    const chngInOi = parseFloat(String(row.chngInOi)?.replace(/,/g, "")); // old col31
+
+                    let trend = "-";
+                    let trendClass = "";
+
+                    if (coi > 0 && chngInOi > 0) {
+                      trend = "Long Buildup";
+                      trendClass = "bg-green-300 text-black font-bold";
+                    } else if (coi < 0 && chngInOi > 0) {
+                      trend = "Short Covering";
+                      trendClass = "text-lime-400";
+                    } else if (coi > 0 && chngInOi < 0) {
+                      trend = "Short Buildup";
+                      trendClass = "bg-red-300 text-black font-bold";
+                    } else if (coi < 0 && chngInOi < 0) {
+                      trend = "Long Unwinding";
+                      trendClass = "text-red-600";
+                    }
+
+                    return (
+                      <TableRow key={idx} className="border-border hover:bg-muted/30">
+                        <TableCell className="font-medium text-sm text-foreground">{row.date}</TableCell>
+                        <TableCell className="text-right text-sm text-foreground">{row.close}</TableCell>
+                        <TableCell className={`text-right text-sm ${row.chng < 0 ? "text-red-500" : ""}`}>
+                          {row.chng}
+                        </TableCell>
+                        <TableCell
+                          className={`text-right text-sm ${row.priceChng < 0 ? "text-red-500" : "text-emerald-500"}`}
+                        >
+                          {row.priceChng}
+                        </TableCell>
+                        <TableCell className="text-right text-sm">{row.delivery}</TableCell>
+                        <TableCell className="text-right text-sm">{row.vwap}</TableCell>
+                        <TableCell className="text-right text-sm">{row.action}</TableCell>
+                        <TableCell className="text-right text-sm">{row.avgDelivery}</TableCell>
+
+                        {/* JACKPOT */}
+                        <TableCell className="text-center">
+                          {isJackpot && <Badge className={`text-xs ${jackpotClass}`}>{jackpotText}</Badge>}
+                        </TableCell>
+
+                        <TableCell className="text-right text-sm">{row.oi}</TableCell>
+
+                        <TableCell
+                          className={`text-right text-sm ${chngInOi < 0 ? "text-red-500" : "text-emerald-500"}`}
+                        >
+                          {row.chngInOi}
+                        </TableCell>
+
+                        <TableCell
+                          className={`text-right text-sm ${parseFloat(String(row.coiPercent)) < 0 ? "text-red-500" : "text-emerald-500"}`}
+                        >
+                          {row.coiPercent}
+                        </TableCell>
+
+                        {/* TREND */}
+                        <TableCell className="text-center">
+                          <Badge className={`text-xs ${trendClass}`}>{trend}</Badge>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
               </TableBody>
             </Table>
           </ScrollArea>
