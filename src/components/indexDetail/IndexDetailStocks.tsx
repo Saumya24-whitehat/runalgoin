@@ -59,8 +59,8 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
       return 0;
     });
 
-  const handleStockClick = (ticker: string) => {
-    navigate(`/stock-detail?symbol=${ticker}`);
+  const handleStockClick = (ticker: string, sector: string) => {
+    navigate(`/stock-detail?symbol=${ticker}&sector=${sector}`);
   };
 
   if (loading) {
@@ -140,7 +140,7 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
               <TableRow
                 key={stock.ticker}
                 className="cursor-pointer hover:bg-muted/30"
-                onClick={() => handleStockClick(stock.ticker)}
+                onClick={() => handleStockClick(stock.ticker, indexSymbol)}
               >
                 <TableCell>
                   <div className="flex items-center gap-3">
