@@ -117,7 +117,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
           placeholder="Filter by company"
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
-          className="px-2 py-1 border rounded w-full text-sm"
+          className="px-2 py-1 w-full text-sm rounded border bg-gray-800 border-gray-700 text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </CardHeader>
       <CardContent className="pt-0">
@@ -128,7 +128,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
                 onClick={() => handleSort("company_name")}
                 className="text-xs font-medium flex items-center gap-2"
               >
-                COMPANY {sortKey === "company_name" ? (sortAsc ? "▲" : "▼") : ""}
+                COMPANY {sortKey === "name" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
               <TableHead onClick={() => handleSort("close")} className="text-xs font-medium text-right">
                 PRICE {sortKey === "close" ? (sortAsc ? "▲" : "▼") : ""}
