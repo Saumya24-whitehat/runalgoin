@@ -157,7 +157,50 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
           });
         }, 0);
       },
+      getSymbolLogoFast(symbol) {
+        // Get clean symbol name from CSV name field
+        let cleanName = "";
 
+        if (symbol.ticker && symbol.ticker.trim()) {
+          cleanName = symbol.ticker.trim();
+        } else if (symbol.ticker) {
+          cleanName = symbol.ticker.replace(/-[A-Z]+$/, "");
+        }
+
+        // Clean the name
+        cleanName = (
+          symbol.exchange +
+          "_" +
+          cleanName
+            .replace(/-EQ$|_EQ$|-BE$|_BE$|-SM$|_SM$|-BZ$|_BZ$/gi, "")
+            .replace(/-FUT$|_FUT$|-OPT$|_OPT$/gi, "")
+            .replace(/\s+/g, "")
+            .replace(/[^a-zA-Z0-9]/g, "")
+        ).toLowerCase();
+        // //console.log(cleanName)
+        // Check if logo exists in our pre-loaded list
+        const hasLogo = this.availableLogos.has(cleanName);
+
+        // Exchange fallback
+        let exchangeLogo = "./data/svg/nse.svg";
+        if (symbol.exchange) {
+          switch (symbol.exchange.toUpperCase()) {
+            case "BSE":
+            case "BFO":
+              exchangeLogo = "./data/svg/bse.svg";
+              break;
+            case "MCX":
+              exchangeLogo = "./data/svg/mcx.svg";
+              break;
+            case "CDS":
+              exchangeLogo = "./data/svg/cds.svg";
+              break;
+          }
+        }
+
+        // Return logo URL or fallback immediately
+        return [`./data/svg/${cleanName}.svg`, exchangeLogo];
+      },
       async loadCSVSymbols(): Promise<void> {
         try {
           const response = await fetch("https://runalgo.xyz/top/chart/NSE.json");
