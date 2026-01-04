@@ -228,6 +228,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
             symbolInfo = foundSymbol;
           }
         }
+        console.log(symbolInfo);
 
         // Handle NSE_INDEX| format
         if (!symbolInfo && symbolName.includes("NSE_INDEX|")) {
