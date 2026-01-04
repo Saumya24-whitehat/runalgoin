@@ -46,42 +46,42 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
               {
                 indicator: "SMA 20",
                 value: stockData.SMA20 || "-",
-                signal: stockData.ltp > (stockData.SMA20 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.SMA20 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "SMA 50",
                 value: stockData.SMA50 || "-",
-                signal: stockData.ltp > (stockData.SMA50 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.SMA50 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "SMA 100",
                 value: stockData.SMA100 || "-",
-                signal: stockData.ltp > (stockData.SMA100 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.SMA100 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "SMA 200",
                 value: stockData.SMA200 || "-",
-                signal: stockData.ltp > (stockData.SMA200 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.SMA200 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "EMA 20",
                 value: stockData.EMA20 || "-",
-                signal: stockData.ltp > (stockData.EMA20 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.EMA20 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "EMA 50",
                 value: stockData.EMA50 || "-",
-                signal: stockData.ltp > (stockData.EMA50 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.EMA50 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "EMA 100",
                 value: stockData.EMA100 || "-",
-                signal: stockData.ltp > (stockData.EMA100 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.EMA100 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "EMA 200",
                 value: stockData.EMA200 || "-",
-                signal: stockData.ltp > (stockData.EMA200 || 0) ? "buy" : "sell",
+                signal: stockData.close > (stockData.EMA200 || 0) ? "buy" : "sell",
               },
             ];
 
