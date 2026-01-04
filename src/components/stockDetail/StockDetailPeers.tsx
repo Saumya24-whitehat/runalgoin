@@ -103,9 +103,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
             {peers.map((peer, idx) => (
               <TableRow key={idx} className="border-border hover:bg-muted/30 cursor-pointer">
                 <TableCell className="font-semibold text-sm text-foreground">{peer.company_name}</TableCell>
-                <TableCell className="text-right text-sm text-foreground">
-                  ₹{peer.price.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-                </TableCell>
+                <TableCell className="text-right text-sm text-foreground">₹{peer.price}</TableCell>
                 <TableCell className="text-right text-sm text-foreground">{peer.pe_ratio.toFixed(2)}</TableCell>
                 <TableCell className="text-right text-sm text-foreground">{formatMarketCap(peer.market_cap)}</TableCell>
                 <TableCell
