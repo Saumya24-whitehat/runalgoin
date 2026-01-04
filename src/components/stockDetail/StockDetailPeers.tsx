@@ -117,7 +117,19 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
           placeholder="Filter by company"
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
-          className="px-2 py-1 border rounded w-full text-sm"
+          style={{
+            width: "100%",
+            padding: "6px 8px",
+            fontSize: "0.875rem", // text-sm
+            borderRadius: "6px",
+            border: "1px solid #4B5563", // dark gray border
+            backgroundColor: "#1F2937", // dark background
+            color: "#E5E7EB", // light text
+            outline: "none",
+          }}
+          onFocus={(e) => (e.target.style.boxShadow = "0 0 0 2px #3B82F6")} // blue focus ring
+          onBlur={(e) => (e.target.style.boxShadow = "none")}
+          placeholder="Filter by company"
         />
       </CardHeader>
       <CardContent className="pt-0">
