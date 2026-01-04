@@ -20,6 +20,10 @@ type SortOption = "name";
 type SortDirection = "asc" | "desc";
 type ChangeFilter = "+5" | "+3" | "+1" | "0" | "-1" | "-3" | "-5" | null;
 
+import { useNavigate } from "react-router-dom";
+
+// Inside your component
+const navigate = useNavigate();
 // Map index symbols to advance-decline API keys
 const indexToAdvDeclineKey: Record<string, string> = {
   "SYML:NSE;NIFTY": "SYML:NSE;NIFTY",
@@ -352,9 +356,10 @@ export default function MarketBreadth() {
           ) : (
             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-0.5">
               {filteredAndSortedStocks.map((stock, idx) => (
-                <Tooltip key={`${stock.name}-${idx}`}>
+                <Tooltip key={`${stock.name}-${idx}`} onCl>
                   <TooltipTrigger asChild>
                     <div
+                      onClick={() => navigate(`/stock-detail?symbol=${stock.symbol}`)}
                       style={{ backgroundColor: getStockBgColor(stock.changePct) }}
                       className="text-black px-1 py-0.5 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[48px] flex flex-col justify-center items-center text-center"
                     >
