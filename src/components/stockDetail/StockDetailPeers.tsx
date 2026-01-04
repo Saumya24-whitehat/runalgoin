@@ -91,12 +91,21 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
       <CardContent className="pt-0">
         <Table>
           <TableHeader>
-            <TableRow className="border-border hover:bg-transparent">
-              <TableHead className="text-muted-foreground text-xs font-medium">COMPANY</TableHead>
+            <TableRow className="border-border bg-background/50">
+              <TableHead className="text-muted-foreground text-xs font-medium flex items-center gap-2">
+                COMPANY
+              </TableHead>
               <TableHead className="text-muted-foreground text-xs font-medium text-right">PRICE</TableHead>
               <TableHead className="text-muted-foreground text-xs font-medium text-right">P/E RATIO</TableHead>
               <TableHead className="text-muted-foreground text-xs font-medium text-right">MARKET CAP</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">1M RETURN</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">3M RETURN</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">6M RETURN</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">YTD RETURN</TableHead>
               <TableHead className="text-muted-foreground text-xs font-medium text-right">52W RETURN</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">RSI</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">52W HIGH/LOW</TableHead>
+              <TableHead className="text-muted-foreground text-xs font-medium text-right">SMA20</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
