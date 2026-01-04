@@ -115,11 +115,11 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                     </TableCell>
 
                     <TableCell className="text-right text-sm text-foreground">
-                      {averageData[row.del].toFixed(2) || "-"}
+                      {parseFloat(averageData[row.del]).toFixed(2) || "-"}
                     </TableCell>
 
                     <TableCell className="text-right text-sm text-foreground">
-                      {averageData[row.act].toFixed(2) || "-"}
+                      {parseFloat(averageData[row.act]).toFixed(2) || "-"}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -166,7 +166,7 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                         parseFloat(oiData[row.coi]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {oiData[row.coi].toFixed(2) || "-"}
+                      {parseFloat(oiData[row.coi]).toFixed(2) || "-"}
                     </TableCell>
 
                     <TableCell
@@ -174,7 +174,7 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                         parseFloat(oiData[row.pct]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {oiData[row.pct].toFixed(2) || "-"}
+                      {parseFloat(oiData[row.pct]).toFixed(2) || "-"}
                     </TableCell>
                   </TableRow>
                 ))}
