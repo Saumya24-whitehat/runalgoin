@@ -102,17 +102,21 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
           <TableBody>
             {peers.map((peer, idx) => (
               <TableRow key={idx} className="border-border hover:bg-muted/30 cursor-pointer">
-                <TableCell className="font-semibold text-sm text-foreground">{peer.company_name}</TableCell>
-                <TableCell className="text-right text-sm text-foreground">₹{peer.price}</TableCell>
-                <TableCell className="text-right text-sm text-foreground">{peer.pe_ratio.toFixed(2)}</TableCell>
-                <TableCell className="text-right text-sm text-foreground">{formatMarketCap(peer.market_cap)}</TableCell>
+                <TableCell className="font-semibold text-sm text-foreground">{peer.name}</TableCell>
+                <TableCell className="text-right text-sm text-foreground">₹{peer.close}</TableCell>
+                <TableCell className="text-right text-sm text-foreground">
+                  {peer.price_earnings_ttm.toFixed(2)}
+                </TableCell>
+                <TableCell className="text-right text-sm text-foreground">
+                  {formatMarketCap(peer.market_cap_basic)}
+                </TableCell>
                 <TableCell
                   className={`text-right text-sm font-medium ${
-                    peer.return_52w >= 0 ? "text-emerald-500" : "text-red-500"
+                    peer["Perf.Y"] >= 0 ? "text-emerald-500" : "text-red-500"
                   }`}
                 >
-                  {peer.return_52w >= 0 ? "+" : ""}
-                  {peer.return_52w.toFixed(1)}%
+                  {peer["Perf.Y"] >= 0 ? "+" : ""}
+                  {peer["Perf.Y"].toFixed(1)}%
                 </TableCell>
               </TableRow>
             ))}
