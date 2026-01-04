@@ -92,7 +92,7 @@ const StockDetail = () => {
             ) : (
               stockData && (
                 <div className="flex items-center gap-2 ml-4">
-                  <span className="text-2xl font-bold text-foreground">{formatPrice(stockData.price)}</span>
+                  <span className="text-2xl font-bold text-foreground">{formatPrice(stockData.close)}</span>
                   <span
                     className={`text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
                   >
