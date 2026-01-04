@@ -48,7 +48,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
         const data = await response.json();
 
         // Assuming API returns peer stocks under data.peers
-        const peersFromApi = data?.peers || [];
+        const peersFromApi = data[0].content || [];
 
         // Remove the same symbol from the list
         const filteredPeers = peersFromApi.filter((stock: any) => stock.name !== symbol);
