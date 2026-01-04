@@ -64,10 +64,9 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
     return <div className="text-center text-muted-foreground py-8">No options data available for {symbol}</div>;
   }
 
-  const averageData = data.average || {};
-  const oiData = data.oi || [];
-  const historyData = data.history || [];
-  console.log(data);
+  const averageData = data[0] || {};
+  const oiData = data[1] || [];
+  const historyData = data[2] || [];
 
   const getLogicStyle = (logic: string) => {
     const lowerLogic = logic?.toLowerCase() || "";
@@ -80,65 +79,104 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
 
   return (
     <div className="space-y-4">
-      {/* Option Summary */}
-      <Card className="bg-card border-border">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-medium text-foreground">Option Summary (PCR, IV, Greeks)</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-border hover:bg-transparent">
-                <TableHead className="text-muted-foreground text-xs font-medium">AVERAGE</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">% PRICE CHNG</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">% DELIVERY</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">ACTION</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">EXPIRY</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">OI</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">CHNG IN OI</TableHead>
-                <TableHead className="text-muted-foreground text-xs font-medium text-right">% COI</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {["One Day", "Three Days", "Five Days"].map((period, idx) => {
-                const avg = averageData[period] || {};
-                const oi = oiData[idx] || {};
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* AVERAGE TABLE */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-medium text-foreground">Average Summary (1D / 3D / 5D)</CardTitle>
+          </CardHeader>
 
-                return (
-                  <TableRow key={period} className="border-border hover:bg-muted/30">
-                    <TableCell className="font-medium text-sm text-foreground">{period}</TableCell>
+          <CardContent className="pt-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-muted-foreground text-xs font-medium">PERIOD</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">% PRICE CHNG</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">% DELIVERY</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">ACTION</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {[
+                  { label: "One Day", chng: "ChangePCT", del: "DelPCT", act: "Action" },
+                  { label: "Three Days", chng: "ChangePCT3Day", del: "DelPCT3Day", act: "Action3Day" },
+                  { label: "Five Days", chng: "ChangePCT5Day", del: "DelPCT5Day", act: "Action5Day" },
+                ].map((row) => (
+                  <TableRow key={row.label} className="border-border hover:bg-muted/30">
+                    <TableCell className="font-medium text-sm text-foreground">{row.label}</TableCell>
+
                     <TableCell
                       className={`text-right text-sm ${
-                        parseFloat(avg.avgPriceChng) < 0 ? "text-red-500" : "text-emerald-500"
+                        parseFloat(averageData[row.chng]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {avg.avgPriceChng || "-"}
+                      {averageData[row.chng] || "-"}
                     </TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{avg.avgDelivery || "-"}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{avg.avgAction || "-"}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{oi.expiry || "-"}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{oi.oi || "-"}</TableCell>
+
+                    <TableCell className="text-right text-sm text-foreground">{averageData[row.del] || "-"}</TableCell>
+
+                    <TableCell className="text-right text-sm text-foreground">{averageData[row.act] || "-"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+
+        {/* OI TABLE */}
+        <Card className="bg-card border-border">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg font-medium text-foreground">OI Summary (Near / Next / Far)</CardTitle>
+          </CardHeader>
+
+          <CardContent className="pt-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-border hover:bg-transparent">
+                  <TableHead className="text-muted-foreground text-xs font-medium">PERIOD</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">EXPIRY</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">OI</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">CHNG IN OI</TableHead>
+                  <TableHead className="text-muted-foreground text-xs font-medium text-right">% COI</TableHead>
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {[
+                  { label: "Near Expiry", exp: "Near Expiry", oi: "Near OI", coi: "Near COI", pct: "Near COI %" },
+                  { label: "Next Expiry", exp: "Next Expiry", oi: "Next OI", coi: "Next COI", pct: "Next COI %" },
+                  { label: "Far Expiry", exp: "Far Expiry", oi: "Far OI", coi: "Far COI", pct: "Far COI %" },
+                ].map((row) => (
+                  <TableRow key={row.label} className="border-border hover:bg-muted/30">
+                    <TableCell className="font-medium text-sm text-foreground">{row.label}</TableCell>
+
+                    <TableCell className="text-right text-sm text-foreground">{oiData[row.exp] || "-"}</TableCell>
+
+                    <TableCell className="text-right text-sm text-foreground">{oiData[row.oi] || "-"}</TableCell>
+
                     <TableCell
                       className={`text-right text-sm ${
-                        parseFloat(String(oi.chngInOi).replace(/,/g, "")) < 0 ? "text-red-500" : "text-emerald-500"
+                        parseFloat(oiData[row.coi]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {oi.chngInOi || "-"}
+                      {oiData[row.coi] || "-"}
                     </TableCell>
+
                     <TableCell
                       className={`text-right text-sm ${
-                        parseFloat(String(oi.coiPercent)) < 0 ? "text-red-500" : "text-emerald-500"
+                        parseFloat(oiData[row.pct]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {oi.coiPercent || "-"}
+                      {oiData[row.pct] || "-"}
                     </TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Daily Options Chain Data */}
       <Card className="bg-card border-border">
