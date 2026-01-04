@@ -206,32 +206,32 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
 
       // Extract instrument key from display format "Display Name|InstrumentKey"
       extractInstrumentKey(symbolName) {
-          if (symbolName && symbolName.includes(':')) {
-              return symbolName.split(':')[0];
+        if (symbolName && symbolName.includes(":")) {
+          return symbolName.split(":")[0];
+        }
+        if (symbolName && symbolName.includes("|")) {
+          const parts = symbolName.split("|");
+          if (parts.length >= 2) {
+            // Return the instrument key part (everything after first |)
+            return parts.slice(1).join("|");
           }
-          if (symbolName && symbolName.includes('|')) {
-              const parts = symbolName.split('|');
-              if (parts.length >= 2) {
-                  // Return the instrument key part (everything after first |)
-                  return parts.slice(1).join('|');
-              }
-          }
-          return symbolName; // Return as-is if no pipe separator
-      }
+        }
+        return symbolName; // Return as-is if no pipe separator
+      },
 
       // Extract display name from format "Display Name|InstrumentKey"
       extractDisplayName(symbolName) {
-          // //console.log(symbolName)
-          if(symbolName && symbolName.includes('|') && symbolName.includes(':')){
-              return symbolName.split('|')[1].split(':')[1];
+        // //console.log(symbolName)
+        if (symbolName && symbolName.includes("|") && symbolName.includes(":")) {
+          return symbolName.split("|")[1].split(":")[1];
+        }
+        if (symbolName && symbolName.includes("|")) {
+          const parts = symbolName.split("|");
+          if (parts.length >= 2) {
+            return parts[0]; // Return the display name part
           }
-          if (symbolName && symbolName.includes('|')) {
-              const parts = symbolName.split('|');
-              if (parts.length >= 2) {
-                  return parts[0]; // Return the display name part
-              }
-          }
-          return symbolName; // Return as-is if no pipe separator
+        }
+        return symbolName; // Return as-is if no pipe separator
       },
       resolveSymbol(symbolName: string, onSymbolResolvedCallback: any, onResolveErrorCallback: any) {
         const instrumentKey = this.extractInstrumentKey(symbolName);
