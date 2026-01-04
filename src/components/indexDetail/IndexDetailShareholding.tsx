@@ -72,7 +72,7 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
   }, [indexSymbol, activeType]);
 
   const handleStockClick = (symbol: string) => {
-    navigate(`/jackpot-detail?symbol=${symbol}`);
+    navigate(`/stock-detail?symbol=${symbol}`);
   };
 
   const handleSort = (key: SortKey) => {

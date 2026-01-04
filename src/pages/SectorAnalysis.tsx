@@ -26,7 +26,11 @@ const findIndexByName = (sectorName: string): string | null => {
   for (const group of groupedIndices) {
     for (const idx of group.indices) {
       const normalizedDisplay = idx.displayName.toUpperCase().trim();
-      if (normalizedDisplay === normalizedSearch || normalizedSearch.includes(normalizedDisplay) || normalizedDisplay.includes(normalizedSearch)) {
+      if (
+        normalizedDisplay === normalizedSearch ||
+        normalizedSearch.includes(normalizedDisplay) ||
+        normalizedDisplay.includes(normalizedSearch)
+      ) {
         return idx.symbol;
       }
     }
@@ -38,7 +42,7 @@ const SectorAnalysis = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user, loading: authLoading } = useAuth();
-  
+
   // Get initial index from URL param if provided
   const getInitialIndex = (): string => {
     const sectorParam = searchParams.get("sector");
@@ -149,9 +153,7 @@ const SectorAnalysis = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = stocks.filter(
-        (s) =>
-          s.name.toLowerCase().includes(query) ||
-          s.description?.toLowerCase().includes(query)
+        (s) => s.name.toLowerCase().includes(query) || s.description?.toLowerCase().includes(query),
       );
     }
 
@@ -195,7 +197,7 @@ const SectorAnalysis = () => {
   }, [stocks, sortColumn, sortDirection, searchQuery]);
 
   const handleStockClick = (stockName: string) => {
-    navigate(`/jackpot-detail?symbol=${encodeURIComponent(stockName)}`);
+    navigate(`/stock-detail?symbol=${encodeURIComponent(stockName)}`);
   };
 
   const handleSort = (column: SortColumn) => {
@@ -381,9 +383,7 @@ const SectorAnalysis = () => {
                   <table className="w-full">
                     <thead>
                       <tr className="bg-[#0a3d2e] text-white">
-                        <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider w-12">
-                          #
-                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider w-12">#</th>
                         <th
                           onClick={() => handleSort("name")}
                           className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-wider cursor-pointer hover:bg-[#0d4a38] transition-colors"
@@ -414,9 +414,7 @@ const SectorAnalysis = () => {
                         >
                           Low {getSortIcon("low")}
                         </th>
-                        <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider">
-                          Trend
-                        </th>
+                        <th className="text-center py-3 px-4 text-xs font-semibold uppercase tracking-wider">Trend</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -449,11 +447,7 @@ const SectorAnalysis = () => {
                               <span
                                 className={`flex items-center justify-end gap-1 font-medium ${getChangeColor(stock.changePct)}`}
                               >
-                                {isPositive ? (
-                                  <TrendingUp className="h-3 w-3" />
-                                ) : (
-                                  <TrendingDown className="h-3 w-3" />
-                                )}
+                                {isPositive ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                                 {stock.changePct >= 0 ? "+" : ""}
                                 {formatNumber(stock.changePct)}%
                               </span>
