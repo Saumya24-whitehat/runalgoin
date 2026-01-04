@@ -111,7 +111,7 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                         parseFloat(averageData[row.chng]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {averageData[row.chng] || "-"}
+                      {parseFloat(averageData[row.chng]).toFixed(2) || "-"}
                     </TableCell>
 
                     <TableCell className="text-right text-sm text-foreground">
