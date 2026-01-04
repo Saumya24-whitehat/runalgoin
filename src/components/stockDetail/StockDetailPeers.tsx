@@ -142,17 +142,17 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
               <TableHead onClick={() => handleSort("Perf.1M")} className="text-xs font-medium text-right">
                 1M RETURN {sortKey === "Perf.1M" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
-              <TableHead onClick={() => handleSort("Perf_3M")} className="text-xs font-medium text-right">
-                3M RETURN {sortKey === "Perf_3M" ? (sortAsc ? "▲" : "▼") : ""}
+              <TableHead onClick={() => handleSort("Perf.3M")} className="text-xs font-medium text-right">
+                3M RETURN {sortKey === "Perf.3M" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
-              <TableHead onClick={() => handleSort("Perf_6M")} className="text-xs font-medium text-right">
-                6M RETURN {sortKey === "Perf_6M" ? (sortAsc ? "▲" : "▼") : ""}
+              <TableHead onClick={() => handleSort("Perf.6M")} className="text-xs font-medium text-right">
+                6M RETURN {sortKey === "Perf.6M" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
-              <TableHead onClick={() => handleSort("Perf_YTD")} className="text-xs font-medium text-right">
-                YTD RETURN {sortKey === "Perf_YTD" ? (sortAsc ? "▲" : "▼") : ""}
+              <TableHead onClick={() => handleSort("Perf.YTD")} className="text-xs font-medium text-right">
+                YTD RETURN {sortKey === "Perf.YTD" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
-              <TableHead onClick={() => handleSort("Perf_Y")} className="text-xs font-medium text-right">
-                52W RETURN {sortKey === "Perf_Y" ? (sortAsc ? "▲" : "▼") : ""}
+              <TableHead onClick={() => handleSort("Perf.Y")} className="text-xs font-medium text-right">
+                52W RETURN {sortKey === "Perf.Y" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
               <TableHead onClick={() => handleSort("RSI")} className="text-xs font-medium text-right">
                 RSI {sortKey === "RSI" ? (sortAsc ? "▲" : "▼") : ""}
@@ -170,8 +170,12 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
                 className="border-border hover:bg-muted/30 cursor-pointer transition-colors duration-150"
               >
                 <TableCell className="font-semibold text-sm text-foreground flex items-center gap-2">
-                  <img src={`/logos/${peer.logoid}.png`} alt={peer.company_name} className="w-5 h-5 rounded-full" />
-                  {peer.company_name}
+                  <img
+                    src={`https://runalgo.xyz/top/chart/data/svg/${peer.exchange.toLowerCase()}_${peer.name}.svg`}
+                    alt={peer.company_name}
+                    className="w-5 h-5 rounded-full"
+                  />
+                  {peer.name}
                 </TableCell>
                 <TableCell className="text-right text-sm text-foreground">₹{peer.close.toFixed(2)}</TableCell>
                 <TableCell className="text-right text-sm text-foreground">
