@@ -304,121 +304,119 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         return symbolName; // Return as-is if no pipe separator
       },
       resolveSymbol(symbolName: string, onSymbolResolvedCallback: any, onResolveErrorCallback: any) {
-        setTimeout(() => {
-          const instrumentKey = this.extractInstrumentKey(symbolName);
-          const displayName = this.extractDisplayName(symbolName);
+        const instrumentKey = this.extractInstrumentKey(symbolName);
+        const displayName = this.extractDisplayName(symbolName);
 
-          let symbolInfo: any = null;
+        let symbolInfo: any = null;
 
-          // Search NSE.json
-          if (this.csvLoaded && this.csvSymbols.length > 0) {
-            const foundSymbol = this.csvSymbols.find(
-              (s) =>
-                s.symbol === instrumentKey ||
-                s.ticker === instrumentKey ||
-                s.full_name === displayName ||
-                s.instrument_key === instrumentKey ||
-                s.symbol === symbolName ||
-                s.ticker === symbolName ||
-                s.full_name === symbolName ||
-                s.instrument_key === symbolName,
-            );
+        // Search NSE.json
+        if (this.csvLoaded && this.csvSymbols.length > 0) {
+          const foundSymbol = this.csvSymbols.find(
+            (s) =>
+              s.symbol === instrumentKey ||
+              s.ticker === instrumentKey ||
+              s.full_name === displayName ||
+              s.instrument_key === instrumentKey ||
+              s.symbol === symbolName ||
+              s.ticker === symbolName ||
+              s.full_name === symbolName ||
+              s.instrument_key === symbolName,
+          );
 
-            if (foundSymbol) {
-              symbolInfo = foundSymbol;
-            }
+          if (foundSymbol) {
+            symbolInfo = foundSymbol;
           }
-          console.log(this.csvLoaded);
+        }
+        console.log(this.csvLoaded);
 
-          // Handle NSE_INDEX| format
-          if (!symbolInfo && symbolName.includes("NSE_INDEX|")) {
-            const indexName = symbolName.replace("NSE_INDEX|", "");
+        // Handle NSE_INDEX| format
+        if (!symbolInfo && symbolName.includes("NSE_INDEX|")) {
+          const indexName = symbolName.replace("NSE_INDEX|", "");
 
-            symbolInfo = {
-              symbol: symbolName,
-              full_name: symbolName,
-              ticker: indexName,
-              name: indexName,
-              description: `${indexName} Index`,
-              type: "index",
-              session: "0915-1530",
-              timezone: "Asia/Kolkata",
-              exchange: "NSE",
-              minmov: 1,
-              pricescale: 100,
-              has_intraday: true,
-              has_weekly_and_monthly: true,
-              supported_resolutions: this.configuration.supported_resolutions,
-              volume_precision: 0,
-              data_status: "streaming",
-              instrument_key: symbolName,
-              logo_urls: [
-                this.getSymbolLogoFast({
-                  ticker: indexName,
-                  description: indexName,
-                  exchange: "NSE",
-                })[0],
-              ],
-            };
-          }
+          symbolInfo = {
+            symbol: symbolName,
+            full_name: symbolName,
+            ticker: indexName,
+            name: indexName,
+            description: `${indexName} Index`,
+            type: "index",
+            session: "0915-1530",
+            timezone: "Asia/Kolkata",
+            exchange: "NSE",
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_weekly_and_monthly: true,
+            supported_resolutions: this.configuration.supported_resolutions,
+            volume_precision: 0,
+            data_status: "streaming",
+            instrument_key: symbolName,
+            logo_urls: [
+              this.getSymbolLogoFast({
+                ticker: indexName,
+                description: indexName,
+                exchange: "NSE",
+              })[0],
+            ],
+          };
+        }
 
-          // Fallback if not found
-          if (!symbolInfo) {
-            let exchange, ticker, instrumentKeyParsed;
+        // Fallback if not found
+        if (!symbolInfo) {
+          let exchange, ticker, instrumentKeyParsed;
 
-            if (symbolName.includes("NSE_INDEX|")) {
-              exchange = "NSE";
-              ticker = symbolName.replace("NSE_INDEX|", "");
-              instrumentKeyParsed = symbolName;
-            } else if (symbolName.includes("|")) {
-              const parts = symbolName.split("|");
-              exchange = parts[0].split("_")[0] || "NSE";
-              ticker = parts[1] || parts[0];
-              instrumentKeyParsed = symbolName;
-            } else {
-              const exchangeMatch = symbolName.match(/^([A-Z]+):/);
-              exchange = exchangeMatch ? exchangeMatch[1] : "NSE";
-              ticker = symbolName.replace(/^[A-Z]+:/, "").replace(/-EQ$/, "");
-              instrumentKeyParsed = symbolName;
-            }
-
-            const [logoUrl] = this.getSymbolLogoFast({
-              ticker,
-              description: ticker,
-              exchange,
-            });
-
-            symbolInfo = {
-              symbol: instrumentKeyParsed,
-              full_name: displayName !== symbolName ? displayName : symbolName,
-              ticker,
-              name: displayName !== symbolName ? displayName : symbolName,
-              description: displayName !== symbolName ? displayName : ticker,
-              type: symbolName.includes("INDEX") ? "index" : "stock",
-              session: "0915-1530",
-              timezone: "Asia/Kolkata",
-              exchange,
-              minmov: 1,
-              pricescale: 100,
-              has_intraday: true,
-              has_weekly_and_monthly: true,
-              supported_resolutions: this.configuration.supported_resolutions,
-              volume_precision: 0,
-              data_status: "streaming",
-              instrument_key: instrumentKeyParsed,
-              logo_urls: [logoUrl],
-            };
-
-            window.bars = {};
+          if (symbolName.includes("NSE_INDEX|")) {
+            exchange = "NSE";
+            ticker = symbolName.replace("NSE_INDEX|", "");
+            instrumentKeyParsed = symbolName;
+          } else if (symbolName.includes("|")) {
+            const parts = symbolName.split("|");
+            exchange = parts[0].split("_")[0] || "NSE";
+            ticker = parts[1] || parts[0];
+            instrumentKeyParsed = symbolName;
+          } else {
+            const exchangeMatch = symbolName.match(/^([A-Z]+):/);
+            exchange = exchangeMatch ? exchangeMatch[1] : "NSE";
+            ticker = symbolName.replace(/^[A-Z]+:/, "").replace(/-EQ$/, "");
+            instrumentKeyParsed = symbolName;
           }
 
-          // Allow internal direct returns
-          if (onSymbolResolvedCallback === true) {
-            return symbolInfo;
-          }
+          const [logoUrl] = this.getSymbolLogoFast({
+            ticker,
+            description: ticker,
+            exchange,
+          });
 
-          setTimeout(() => onSymbolResolvedCallback(symbolInfo), 0);
-        }, 3000);
+          symbolInfo = {
+            symbol: instrumentKeyParsed,
+            full_name: displayName !== symbolName ? displayName : symbolName,
+            ticker,
+            name: displayName !== symbolName ? displayName : symbolName,
+            description: displayName !== symbolName ? displayName : ticker,
+            type: symbolName.includes("INDEX") ? "index" : "stock",
+            session: "0915-1530",
+            timezone: "Asia/Kolkata",
+            exchange,
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_weekly_and_monthly: true,
+            supported_resolutions: this.configuration.supported_resolutions,
+            volume_precision: 0,
+            data_status: "streaming",
+            instrument_key: instrumentKeyParsed,
+            logo_urls: [logoUrl],
+          };
+
+          window.bars = {};
+        }
+
+        // Allow internal direct returns
+        if (onSymbolResolvedCallback === true) {
+          return symbolInfo;
+        }
+
+        setTimeout(() => onSymbolResolvedCallback(symbolInfo), 0);
       },
 
       async getBars(
@@ -450,7 +448,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
             "1M": "1month",
             M: "1month",
           };
-
+          symbolInfo = this.resolveSymbol(symbolInfo.ticker, true);
           const interval = intervalMap[resolution] ?? "5minute";
           const fromDate = new Date(from * 1000).toISOString().split("T")[0];
           const toDate = new Date(to * 1000).toISOString().split("T")[0];
