@@ -51,7 +51,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
         const peersFromApi = data?.peers || [];
 
         // Remove the same symbol from the list
-        const filteredPeers = peersFromApi.filter((stock: any) => stock.symbol !== symbol);
+        const filteredPeers = peersFromApi.filter((stock: any) => stock.name !== symbol);
 
         setPeers(filteredPeers);
       } catch (error) {
