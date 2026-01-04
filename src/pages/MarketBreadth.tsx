@@ -361,7 +361,7 @@ export default function MarketBreadth() {
                 <Tooltip key={`${stock.name}-${idx}`}>
                   <TooltipTrigger asChild>
                     <div
-                      onClick={() => handleStockClick(item.symbol)}
+                      onClick={() => handleStockClick(stock.name)}
                       style={{ backgroundColor: getStockBgColor(stock.changePct) }}
                       className="text-black px-1 py-0.5 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[48px] flex flex-col justify-center items-center text-center"
                     >
