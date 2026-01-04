@@ -71,7 +71,7 @@ const Indices = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"major" | "gainers" | "losers">("major");
   const [exchange, setExchange] = useState<"NSE" | "BSE">("NSE");
-  const [timePeriod, setTimePeriod] = useState("5Y");
+  const [timePeriod, setTimePeriod] = useState("1W");
 
   // Fetch indices data
   useEffect(() => {
@@ -287,7 +287,9 @@ const Indices = () => {
                         <tr
                           key={idx}
                           className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
-                          onClick={() => navigate(`/index-detail?index=${encodeURIComponent(index.stock_column.get_full_name)}`)}
+                          onClick={() =>
+                            navigate(`/index-detail?index=${encodeURIComponent(index.stock_column.get_full_name)}`)
+                          }
                         >
                           <td className="py-4 px-6">
                             <span className="font-medium text-foreground">{index.stock_column.get_full_name}</span>
