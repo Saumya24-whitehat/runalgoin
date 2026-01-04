@@ -101,15 +101,30 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
           </TableHeader>
           <TableBody>
             {peers.map((peer, idx) => (
-              <TableRow key={idx} className="border-border hover:bg-muted/30 cursor-pointer">
-                <TableCell className="font-semibold text-sm text-foreground">{peer.name}</TableCell>
-                <TableCell className="text-right text-sm text-foreground">₹{peer.close}</TableCell>
+              <TableRow
+                key={idx}
+                className="border-border hover:bg-muted/30 cursor-pointer transition-colors duration-150"
+              >
+                {/* Stock Name */}
+                <TableCell className="font-semibold text-sm text-foreground flex items-center gap-2">
+                  <img src={`/logos/${peer.logoid}.png`} alt={peer.name} className="w-5 h-5 rounded-full" />
+                  {peer.name}
+                </TableCell>
+
+                {/* Close Price */}
+                <TableCell className="text-right text-sm text-foreground">₹{peer.close.toFixed(2)}</TableCell>
+
+                {/* P/E Ratio */}
                 <TableCell className="text-right text-sm text-foreground">
                   {peer.price_earnings_ttm.toFixed(2)}
                 </TableCell>
+
+                {/* Market Cap */}
                 <TableCell className="text-right text-sm text-foreground">
                   {formatMarketCap(peer.market_cap_basic)}
                 </TableCell>
+
+                {/* Yearly Performance */}
                 <TableCell
                   className={`text-right text-sm font-medium ${
                     peer["Perf.Y"] >= 0 ? "text-emerald-500" : "text-red-500"
@@ -118,6 +133,63 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
                   {peer["Perf.Y"] >= 0 ? "+" : ""}
                   {peer["Perf.Y"].toFixed(1)}%
                 </TableCell>
+
+                {/* 1 Month Performance */}
+                <TableCell
+                  className={`text-right text-sm font-medium ${
+                    peer["Perf.1M"] >= 0 ? "text-emerald-500" : "text-red-500"
+                  }`}
+                >
+                  {peer["Perf.1M"] >= 0 ? "+" : ""}
+                  {peer["Perf.1M"].toFixed(1)}%
+                </TableCell>
+
+                {/* 3 Month Performance */}
+                <TableCell
+                  className={`text-right text-sm font-medium ${
+                    peer["Perf.3M"] >= 0 ? "text-emerald-500" : "text-red-500"
+                  }`}
+                >
+                  {peer["Perf.3M"] >= 0 ? "+" : ""}
+                  {peer["Perf.3M"].toFixed(1)}%
+                </TableCell>
+
+                {/* 6 Month Performance */}
+                <TableCell
+                  className={`text-right text-sm font-medium ${
+                    peer["Perf.6M"] >= 0 ? "text-emerald-500" : "text-red-500"
+                  }`}
+                >
+                  {peer["Perf.6M"] >= 0 ? "+" : ""}
+                  {peer["Perf.6M"].toFixed(1)}%
+                </TableCell>
+
+                {/* YTD Performance */}
+                <TableCell
+                  className={`text-right text-sm font-medium ${
+                    peer["Perf.YTD"] >= 0 ? "text-emerald-500" : "text-red-500"
+                  }`}
+                >
+                  {peer["Perf.YTD"] >= 0 ? "+" : ""}
+                  {peer["Perf.YTD"].toFixed(1)}%
+                </TableCell>
+
+                {/* RSI */}
+                <TableCell
+                  className={`text-right text-sm font-medium ${
+                    peer.RSI >= 70 ? "text-red-500" : peer.RSI <= 30 ? "text-emerald-500" : "text-foreground"
+                  }`}
+                >
+                  {peer.RSI.toFixed(1)}
+                </TableCell>
+
+                {/* 52 Week High / Low */}
+                <TableCell className="text-right text-sm text-foreground">
+                  {peer.price_52_week_high.toFixed(2)} / {peer.price_52_week_low.toFixed(2)}
+                </TableCell>
+
+                {/* SMA20 */}
+                <TableCell className="text-right text-sm text-foreground">{peer.SMA20.toFixed(2)}</TableCell>
               </TableRow>
             ))}
           </TableBody>
