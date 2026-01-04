@@ -42,7 +42,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
 
           if (stockData) {
             // Build technicals from available data
-            const movingAverages: TechnicalData[] = [},
+            const movingAverages: TechnicalData[] = [
               {
                 indicator: "SMA 20",
                 value: stockData.SMA20 || "-",
@@ -91,12 +91,15 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
                 value: stockData.RSI || "-",
                 signal: (stockData.RSI || 50) > 70 ? "sell" : (stockData.RSI || 50) < 30 ? "buy" : "neutral",
               },
-              { indicator: "Stochastic", value: (stockData['Stoch.D_14_1_3'] || "-")+' / '+(stockData['Stoch.K_14_1_3'] || "-"), 
-                signal: stockData['Stoch.D_14_1_3']>stockData['Stoch.K_14_1_3']?'buy':"sell" },
+              {
+                indicator: "Stochastic",
+                value: (stockData["Stoch.D_14_1_3"] || "-") + " / " + (stockData["Stoch.K_14_1_3"] || "-"),
+                signal: stockData["Stoch.D_14_1_3"] > stockData["Stoch.K_14_1_3"] ? "buy" : "sell",
+              },
               { indicator: "CCI (20)", value: stockData.CCI20 || "-", signal: "neutral" },
               { indicator: "MFI", value: stockData.MoneyFlow || "-", signal: "neutral" },
               { indicator: "ROC", value: stockData.ROC || "-", signal: "neutral" },
-              { indicator: "Williams %R", value: stockData['W.R'] || "-", signal: "neutral" },
+              { indicator: "Williams %R", value: stockData["W.R"] || "-", signal: "neutral" },
             ];
 
             const pivots = [
