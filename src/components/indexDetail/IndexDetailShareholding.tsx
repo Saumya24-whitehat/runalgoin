@@ -33,16 +33,37 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
       const result = await fetchShareholdingData(indexSymbol, activeType);
       if (result) {
         console.log(activeType);
+
+        // var currentPercent=item
         // Transform the data into our format
         const transformed: ShareholdingItem[] = result.map((item: any) => ({
-          symbol: item.symbol || item.ticker || "",
-          name: item.name || item.company_name || "",
-          ltp: item.ltp || item.price || 0,
-          marketCap: item.market_cap || item.marketCap || 0,
-          currentPercent: item.current_percent || item.percent || 0,
-          qoq: item.qoq || 0,
-          yoy: item.yoy || 0,
+          symbol: item["NSE Symbol"] || item["NSE Symbol"] || "",
+          name: item["Stock"] || item["Stock"] || "",
+          ltp: item["Current Price"] || item["Current Price"] || 0,
+          marketCap: item["Market Capitalization"] || item["Market Capitalization"] || 0,
+          currentPercent:
+            {
+              promoter: item["Promoter holding latest %"],
+              fii: item["FII holding current Qtr %"],
+              mf: item["MF holding current Qtr %"],
+              public: item["Public holding current Qtr %"],
+            }[activeType as keyof typeof item] || 0,
+          qoq:
+            {
+              promoter: item["Promoter holding change QoQ %"],
+              fii: item["FII holding change QoQ %"],
+              mf: item["MF holding change QoQ %"],
+              public: item["Public holding change QoQ %"],
+            }[activeType as keyof typeof item] || 0,
+          yoy:
+            {
+              promoter: item["Promoter holding change 4Qtr %"],
+              fii: item["FII holding change 4Qtr %"],
+              mf: item["MF holding change 4Qtr %"],
+              public: item["Public holding change 4Qtr %"],
+            }[activeType as keyof typeof item] || 0,
         }));
+        console.log(transformed);
         setData(transformed);
       }
       setLoading(false);
