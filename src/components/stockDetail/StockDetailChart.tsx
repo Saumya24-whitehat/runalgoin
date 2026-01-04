@@ -1,5 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface StockDetailChartProps {
   symbol: string;
@@ -8,54 +10,299 @@ interface StockDetailChartProps {
 declare global {
   interface Window {
     TradingView: any;
+    tvWidget: any;
+    bars: Record<string, any>;
+    studies: Record<string, any>;
+    customIndicatorsGetter: any;
   }
 }
 
 export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const widgetRef = useRef<any>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    window.bars = window.bars || {};
+    window.studies = window.studies || {};
 
-    // Clear existing widget
-    containerRef.current.innerHTML = '';
+    const loadTradingViewScripts = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
 
-    const script = document.createElement('script');
-    script.src = 'https://s3.tradingview.com/tv.js';
-    script.async = true;
-    script.onload = () => {
-      if (window.TradingView && containerRef.current) {
-        new window.TradingView.widget({
-          width: '100%',
-          height: 500,
-          symbol: `NSE:${symbol}`,
-          interval: '5',
-          timezone: 'Asia/Kolkata',
-          theme: 'dark',
-          style: '1',
-          locale: 'en',
-          toolbar_bg: '#0f172a',
-          enable_publishing: false,
-          hide_top_toolbar: false,
-          hide_legend: false,
-          save_image: false,
-          container_id: 'tradingview_chart',
-          studies: ['Volume@tv-basicstudies'],
-        });
+        // Check if scripts already loaded
+        if (!document.querySelector('script[src="/chart/customIndicators.js"]')) {
+          const customIndicatorsScript = document.createElement("script");
+          customIndicatorsScript.src = "/chart/customIndicators.js";
+          customIndicatorsScript.async = true;
+          await new Promise<void>((resolve, reject) => {
+            customIndicatorsScript.onload = () => resolve();
+            customIndicatorsScript.onerror = () => reject(new Error("Failed to load custom indicators"));
+            document.head.appendChild(customIndicatorsScript);
+          });
+        }
+
+        if (!document.querySelector('script[src*="charting_library.standalone.js"]')) {
+          const mainScript = document.createElement("script");
+          mainScript.src = "https://runalgo.xyz/top/chart/charting_library/charting_library.standalone.js";
+          mainScript.async = true;
+          await new Promise<void>((resolve, reject) => {
+            mainScript.onload = () => resolve();
+            mainScript.onerror = () => reject(new Error("Failed to load TradingView library"));
+            document.head.appendChild(mainScript);
+          });
+        }
+
+        if (!document.querySelector('script[src*="tv-datafeed.js"]')) {
+          const datafeedScript = document.createElement("script");
+          datafeedScript.src = "https://runalgo.xyz/top/chart/datafeeds/tv-datafeed.js";
+          datafeedScript.async = true;
+          await new Promise<void>((resolve, reject) => {
+            datafeedScript.onload = () => resolve();
+            datafeedScript.onerror = () => reject(new Error("Failed to load datafeed"));
+            document.head.appendChild(datafeedScript);
+          });
+        }
+
+        let attempts = 0;
+        while (!window.TradingView && attempts < 50) {
+          await new Promise((resolve) => setTimeout(resolve, 100));
+          attempts++;
+        }
+
+        if (!window.TradingView) {
+          throw new Error("TradingView library not available");
+        }
+
+        initializeWidget();
+      } catch (err) {
+        console.error("Error loading TradingView:", err);
+        setError(err instanceof Error ? err.message : "Failed to load chart");
+        setIsLoading(false);
       }
     };
 
-    document.head.appendChild(script);
+    loadTradingViewScripts();
 
     return () => {
-      const existingScripts = document.querySelectorAll('script[src="https://s3.tradingview.com/tv.js"]');
-      existingScripts.forEach(s => s.remove());
+      if (widgetRef.current) {
+        try {
+          widgetRef.current.remove();
+        } catch (e) {
+          console.log("Widget cleanup error:", e);
+        }
+      }
     };
   }, [symbol]);
 
+  const initializeWidget = () => {
+    if (!containerRef.current || !window.TradingView) return;
+
+    // Cleanup previous widget
+    if (widgetRef.current) {
+      try {
+        widgetRef.current.remove();
+      } catch (e) {}
+    }
+
+    const isDark = document.documentElement.classList.contains("dark");
+    const chartSymbol = `NSE_EQ|${symbol}`;
+
+    const datafeed = {
+      onReady: (callback: Function) => {
+        setTimeout(() => callback({
+          supports_marks: false,
+          supports_timescale_marks: true,
+          supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
+          exchanges: [
+            { value: "", name: "All Exchanges", desc: "" },
+            { value: "NSE", name: "NSE", desc: "National Stock Exchange" },
+            { value: "NFO", name: "NFO", desc: "NSE F&O" },
+            { value: "BSE", name: "BSE", desc: "Bombay Stock Exchange" },
+          ],
+          symbols_types: [
+            { name: "All types", value: "" },
+            { name: "Stock", value: "stock" },
+            { name: "Index", value: "index" },
+          ],
+        }), 0);
+      },
+      searchSymbols: async (userInput: string, exchange: string, symbolType: string, onResultReadyCallback: Function) => {
+        try {
+          const response = await fetch(
+            `https://runalgo.xyz/top/chart/upstox_symbol_search.php?query=${encodeURIComponent(userInput)}&limit=50&symbolType=${symbolType}`
+          );
+          if (response.ok) {
+            const data = await response.json();
+            onResultReadyCallback(data);
+          } else {
+            onResultReadyCallback([]);
+          }
+        } catch (e) {
+          onResultReadyCallback([]);
+        }
+      },
+      resolveSymbol: (symbolName: string, onSymbolResolvedCallback: Function, onResolveErrorCallback: Function) => {
+        setTimeout(() => {
+          const parts = symbolName.split("|");
+          const ticker = parts.length > 1 ? parts[1] : symbolName;
+
+          onSymbolResolvedCallback({
+            symbol: symbolName,
+            full_name: symbolName,
+            ticker: ticker,
+            name: ticker,
+            description: ticker,
+            type: "stock",
+            session: "0915-1530",
+            timezone: "Asia/Kolkata",
+            exchange: "NSE",
+            minmov: 1,
+            pricescale: 100,
+            has_intraday: true,
+            has_no_volume: false,
+            has_weekly_and_monthly: true,
+            supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
+            volume_precision: 0,
+            data_status: "streaming",
+            instrument_key: symbolName,
+          });
+        }, 0);
+      },
+      getBars: async (symbolInfo: any, resolution: string, periodParams: any, onHistoryCallback: Function, onErrorCallback: Function) => {
+        try {
+          const { from, to } = periodParams;
+          const intervalMap: Record<string, string> = {
+            "1": "1minute", "3": "3minute", "5": "5minute", "10": "10minute",
+            "15": "15minute", "30": "30minute", "45": "30minute", "60": "1hour",
+            "120": "1hour", "180": "1hour", "240": "1hour",
+            "1D": "1day", "D": "1day", "1W": "1week", "W": "1week", "1M": "1month", "M": "1month",
+          };
+
+          const interval = intervalMap[resolution] || "5minute";
+          const fromDate = new Date(from * 1000).toISOString().split("T")[0];
+          const toDate = new Date(to * 1000).toISOString().split("T")[0];
+          const apiSymbol = symbolInfo.instrument_key || symbolInfo.symbol;
+
+          const url = `https://runalgo.xyz/top/chart/upstox_data_fetcher.php?symbol=${encodeURIComponent(apiSymbol)}&interval=${interval}&from=${fromDate}&to=${toDate}`;
+          const response = await fetch(url, {
+            headers: { Accept: "*/*", Referer: "https://runalgo.xyz/top/chart/" },
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data?.bars?.length > 0) {
+              const bars = data.bars.map((bar: any) => ({
+                time: bar.time, open: bar.open, high: bar.high,
+                low: bar.low, close: bar.close, volume: bar.volume,
+              }));
+              onHistoryCallback(bars, { noData: false });
+            } else {
+              onHistoryCallback([], { noData: true });
+            }
+          } else {
+            onHistoryCallback([], { noData: true });
+          }
+        } catch (e) {
+          onErrorCallback(e);
+        }
+      },
+      subscribeBars: () => {},
+      unsubscribeBars: () => {},
+    };
+
+    try {
+      const widget = new window.TradingView.widget({
+        debug: false,
+        fullscreen: false,
+        autosize: true,
+        symbol: chartSymbol,
+        interval: "5",
+        container: containerRef.current,
+        datafeed: datafeed,
+        library_path: "https://runalgo.xyz/top/chart/charting_library/",
+        locale: "en",
+        theme: isDark ? "dark" : "light",
+        disabled_features: ["use_localstorage_for_settings", "open_account_manager", "trading_account_manager"],
+        enabled_features: [
+          "study_templates", "show_symbol_logos", "show_exchange_logos",
+          "create_volume_indicator_by_default", "volume_force_overlay",
+          "left_toolbar", "header_indicators", "header_compare",
+          "header_undo_redo", "header_screenshot", "header_chart_type",
+          "header_resolutions", "header_settings", "legend_context_menu",
+          "display_market_status", "remove_library_container_border",
+          "timeframes_toolbar", "edit_buttons_in_legend", "context_menus",
+          "control_bar", "items_favoriting", "save_chart_properties_to_local_storage",
+        ],
+        custom_indicators_getter: window.customIndicatorsGetter,
+        overrides: {
+          "mainSeriesProperties.candleStyle.upColor": "#4CAF50",
+          "mainSeriesProperties.candleStyle.downColor": "#F44336",
+          "mainSeriesProperties.candleStyle.borderUpColor": "#4CAF50",
+          "mainSeriesProperties.candleStyle.borderDownColor": "#F44336",
+          "mainSeriesProperties.candleStyle.wickUpColor": "#4CAF50",
+          "mainSeriesProperties.candleStyle.wickDownColor": "#F44336",
+        },
+      });
+
+      widgetRef.current = widget;
+
+      widget.onChartReady(() => {
+        setIsLoading(false);
+      });
+    } catch (err) {
+      console.error("Widget initialization error:", err);
+      setError("Failed to initialize chart");
+      setIsLoading(false);
+    }
+  };
+
+  const toggleFullscreen = () => {
+    if (!containerRef.current?.parentElement) return;
+    if (!isFullscreen) {
+      containerRef.current.parentElement.requestFullscreen?.();
+    } else {
+      document.exitFullscreen?.();
+    }
+    setIsFullscreen(!isFullscreen);
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   return (
-    <Card className="p-0 overflow-hidden bg-card border-border">
-      <div id="tradingview_chart" ref={containerRef} className="w-full h-[500px]" />
+    <Card className="p-0 overflow-hidden bg-card border-border relative">
+      <div className="absolute top-2 right-2 z-10">
+        <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-1.5 bg-background/80 backdrop-blur-sm">
+          {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </Button>
+      </div>
+
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <div className="flex flex-col items-center gap-3">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <span className="text-sm text-muted-foreground">Loading Chart...</span>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+          <div className="flex flex-col items-center gap-3 text-center p-4">
+            <span className="text-destructive font-medium">{error}</span>
+            <Button onClick={() => window.location.reload()} variant="outline" size="sm">Retry</Button>
+          </div>
+        </div>
+      )}
+
+      <div ref={containerRef} className="w-full h-[500px]" />
     </Card>
   );
 };
