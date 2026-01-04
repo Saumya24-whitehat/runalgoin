@@ -61,24 +61,21 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
   }
 
   if (!data) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        No options data available for {symbol}
-      </div>
-    );
+    return <div className="text-center text-muted-foreground py-8">No options data available for {symbol}</div>;
   }
 
   const averageData = data.average || {};
   const oiData = data.oi || [];
   const historyData = data.history || [];
+  console.log(historyData);
 
   const getLogicStyle = (logic: string) => {
-    const lowerLogic = logic?.toLowerCase() || '';
-    if (lowerLogic.includes('long buildup')) return 'bg-emerald-500/20 text-emerald-500';
-    if (lowerLogic.includes('short buildup')) return 'bg-red-500/20 text-red-500';
-    if (lowerLogic.includes('long unwinding')) return 'bg-amber-500/20 text-amber-500';
-    if (lowerLogic.includes('short covering')) return 'bg-blue-500/20 text-blue-500';
-    return 'bg-muted text-muted-foreground';
+    const lowerLogic = logic?.toLowerCase() || "";
+    if (lowerLogic.includes("long buildup")) return "bg-emerald-500/20 text-emerald-500";
+    if (lowerLogic.includes("short buildup")) return "bg-red-500/20 text-red-500";
+    if (lowerLogic.includes("long unwinding")) return "bg-amber-500/20 text-amber-500";
+    if (lowerLogic.includes("short covering")) return "bg-blue-500/20 text-blue-500";
+    return "bg-muted text-muted-foreground";
   };
 
   return (
@@ -103,31 +100,37 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {['One Day', 'Three Days', 'Five Days'].map((period, idx) => {
+              {["One Day", "Three Days", "Five Days"].map((period, idx) => {
                 const avg = averageData[period] || {};
                 const oi = oiData[idx] || {};
-                
+
                 return (
                   <TableRow key={period} className="border-border hover:bg-muted/30">
                     <TableCell className="font-medium text-sm text-foreground">{period}</TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(avg.avgPriceChng) < 0 ? 'text-red-500' : 'text-emerald-500'
-                    }`}>
-                      {avg.avgPriceChng || '-'}
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(avg.avgPriceChng) < 0 ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
+                      {avg.avgPriceChng || "-"}
                     </TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{avg.avgDelivery || '-'}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{avg.avgAction || '-'}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{oi.expiry || '-'}</TableCell>
-                    <TableCell className="text-right text-sm text-foreground">{oi.oi || '-'}</TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(String(oi.chngInOi).replace(/,/g, '')) < 0 ? 'text-red-500' : 'text-emerald-500'
-                    }`}>
-                      {oi.chngInOi || '-'}
+                    <TableCell className="text-right text-sm text-foreground">{avg.avgDelivery || "-"}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">{avg.avgAction || "-"}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">{oi.expiry || "-"}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">{oi.oi || "-"}</TableCell>
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(String(oi.chngInOi).replace(/,/g, "")) < 0 ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
+                      {oi.chngInOi || "-"}
                     </TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(String(oi.coiPercent)) < 0 ? 'text-red-500' : 'text-emerald-500'
-                    }`}>
-                      {oi.coiPercent || '-'}
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(String(oi.coiPercent)) < 0 ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
+                      {oi.coiPercent || "-"}
                     </TableCell>
                   </TableRow>
                 );
@@ -167,14 +170,18 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                   <TableRow key={idx} className="border-border hover:bg-muted/30">
                     <TableCell className="font-medium text-sm text-foreground">{row.date}</TableCell>
                     <TableCell className="text-right text-sm text-foreground">{row.close}</TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(String(row.chng)) < 0 ? 'text-red-500' : 'text-foreground'
-                    }`}>
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(String(row.chng)) < 0 ? "text-red-500" : "text-foreground"
+                      }`}
+                    >
                       {row.chng}
                     </TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(String(row.priceChng)) < 0 ? 'text-red-500' : 'text-emerald-500'
-                    }`}>
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(String(row.priceChng)) < 0 ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
                       {row.priceChng}
                     </TableCell>
                     <TableCell className="text-right text-sm text-foreground">{row.delivery}</TableCell>
@@ -182,25 +189,25 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                     <TableCell className="text-right text-sm text-foreground">{row.action}</TableCell>
                     <TableCell className="text-right text-sm text-foreground">{row.avgDelivery}</TableCell>
                     <TableCell className="text-center">
-                      {row.jackpot && (
-                        <Badge className="bg-amber-500 text-black text-xs">{row.jackpot}</Badge>
-                      )}
+                      {row.jackpot && <Badge className="bg-amber-500 text-black text-xs">{row.jackpot}</Badge>}
                     </TableCell>
                     <TableCell className="text-right text-sm text-foreground">{row.oi}</TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(String(row.chngInOi)?.replace(/,/g, '')) < 0 ? 'text-red-500' : 'text-emerald-500'
-                    }`}>
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(String(row.chngInOi)?.replace(/,/g, "")) < 0 ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
                       {row.chngInOi}
                     </TableCell>
-                    <TableCell className={`text-right text-sm ${
-                      parseFloat(String(row.coiPercent)) < 0 ? 'text-red-500' : 'text-emerald-500'
-                    }`}>
+                    <TableCell
+                      className={`text-right text-sm ${
+                        parseFloat(String(row.coiPercent)) < 0 ? "text-red-500" : "text-emerald-500"
+                      }`}
+                    >
                       {row.coiPercent}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className={`text-xs ${getLogicStyle(row.logic)}`}>
-                        {row.logic || '-'}
-                      </Badge>
+                      <Badge className={`text-xs ${getLogicStyle(row.logic)}`}>{row.logic || "-"}</Badge>
                     </TableCell>
                   </TableRow>
                 ))}
