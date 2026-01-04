@@ -35,6 +35,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
         const { data, error } = await supabase.functions.invoke("market-breadth", {
           body: { index: "NIFTY 50" },
         });
+        console.log(data);
 
         if (data[0]?.content) {
           const stockData = data[0].content.find((s: any) => s.name === symbol);
