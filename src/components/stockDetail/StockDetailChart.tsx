@@ -123,6 +123,33 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         this.csvLoaded = false;
         this.logoCache = new Map();
         this.availableLogos = new Set();
+        this.configuration = {
+          supports_marks: false,
+          supports_timescale_marks: true,
+          supported_resolutions: ["1", "3", "5", "15", "30", "45", "60", "120", "180", "240", "1D", "1W", "1M"],
+          exchanges: [
+            { value: "", name: "All Exchanges", desc: "" },
+            { value: "NSE", name: "NSE", desc: "National Stock Exchange" },
+            { value: "BSE", name: "BSE", desc: "Bombay Stock Exchange" },
+            { value: "MCX", name: "MCX", desc: "Multi Commodity Exchange" },
+            { value: "NFO", name: "NFO", desc: "NSE F&O" },
+            { value: "BFO", name: "BFO", desc: "BSE F&O" },
+            { value: "CDS", name: "CDS", desc: "Currency Derivative Segment" },
+          ],
+          symbols_types: [
+            { name: "All types", value: "" },
+            { name: "Stock", value: "EQ" },
+            { name: "Stock Future", value: "FUTSTK" },
+            { name: "Stock Option", value: "OPTSTK" },
+            { name: "Index Future", value: "FUTIDX" },
+            { name: "Index Option", value: "OPTIDX" },
+            { name: "Commodity Future", value: "FUTCOM" },
+            { name: "Commodity Option", value: "OPTCOM" },
+            { name: "Currency Future", value: "FUTCUR" },
+            { name: "Currency Option", value: "OPTCUR" },
+            { name: "Index", value: "IDX" },
+          ],
+        };
 
         this.loadAvailableLogos();
         this.loadCSVSymbols();
