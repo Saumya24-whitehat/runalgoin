@@ -72,7 +72,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
     } else if (value >= 1e7) {
       return `₹${(value / 1e7).toFixed(1)} Cr`;
     }
-    return `₹${value.toLocaleString("en-IN")}`;
+    return `₹${value}`;
   };
 
   if (loading) {
