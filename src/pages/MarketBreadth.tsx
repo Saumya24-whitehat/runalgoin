@@ -48,8 +48,8 @@ export default function MarketBreadth() {
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(["Major Market Indices"]));
 
-  const handleStockClick = (symbol: string) => {
-    navigate(`/stock-detail?symbol=${symbol}`);
+  const handleStockClick = (ticker: string, sector: string) => {
+    navigate(`/stock-detail?symbol=${ticker}&sector=${sector}`);
   };
   // Fetch advance/decline data on mount
   useEffect(() => {
@@ -361,7 +361,7 @@ export default function MarketBreadth() {
                 <Tooltip key={`${stock.name}-${idx}`}>
                   <TooltipTrigger asChild>
                     <div
-                      onClick={() => handleStockClick(stock.name)}
+                      onClick={() => handleStockClick(stock.name, selectedIndex)}
                       style={{ backgroundColor: getStockBgColor(stock.changePct) }}
                       className="text-black px-1 py-0.5 rounded cursor-pointer hover:opacity-90 transition-opacity min-h-[48px] flex flex-col justify-center items-center text-center"
                     >

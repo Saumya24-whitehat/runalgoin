@@ -196,10 +196,9 @@ const SectorAnalysis = () => {
     return sorted;
   }, [stocks, sortColumn, sortDirection, searchQuery]);
 
-  const handleStockClick = (stockName: string) => {
-    navigate(`/stock-detail?symbol=${encodeURIComponent(stockName)}`);
+  const handleStockClick = (ticker: string, sector: string) => {
+    navigate(`/stock-detail?symbol=${ticker}&sector=${sector}`);
   };
-
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
@@ -424,7 +423,7 @@ const SectorAnalysis = () => {
                         return (
                           <tr
                             key={`${stock.name}-${idx}`}
-                            onClick={() => handleStockClick(stock.name)}
+                            onClick={() => handleStockClick(stock.name, selectedIndex)}
                             className="border-b border-border hover:bg-secondary/30 transition-colors cursor-pointer"
                           >
                             <td className="py-3 px-4 text-center">

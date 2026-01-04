@@ -117,8 +117,8 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
     loadData();
   }, [indexSymbol]);
 
-  const handleStockClick = (ticker: string) => {
-    navigate(`/stock-detail?symbol=${ticker}`);
+  const handleStockClick = (ticker: string, sector: string) => {
+    navigate(`/stock-detail?symbol=${ticker}&sector=${sector}`);
   };
 
   // Get current indicator config
@@ -198,7 +198,7 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
                 <TableRow
                   key={stock.name}
                   className="cursor-pointer hover:bg-muted/30"
-                  onClick={() => handleStockClick(stock.name)}
+                  onClick={() => handleStockClick(stock.name, indexSymbol)}
                 >
                   <TableCell className="py-3">
                     <div className="flex items-center gap-3">
