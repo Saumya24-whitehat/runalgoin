@@ -114,9 +114,13 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                       {averageData[row.chng] || "-"}
                     </TableCell>
 
-                    <TableCell className="text-right text-sm text-foreground">{averageData[row.del] || "-"}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">
+                      {averageData[row.del].toFixed(2) || "-"}
+                    </TableCell>
 
-                    <TableCell className="text-right text-sm text-foreground">{averageData[row.act] || "-"}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">
+                      {averageData[row.act].toFixed(2) || "-"}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -153,14 +157,16 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
 
                     <TableCell className="text-right text-sm text-foreground">{oiData[row.exp] || "-"}</TableCell>
 
-                    <TableCell className="text-right text-sm text-foreground">{oiData[row.oi] || "-"}</TableCell>
+                    <TableCell className="text-right text-sm text-foreground">
+                      {oiData[row.oi].toFixed(2) || "-"}
+                    </TableCell>
 
                     <TableCell
                       className={`text-right text-sm ${
                         parseFloat(oiData[row.coi]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {oiData[row.coi] || "-"}
+                      {oiData[row.coi].toFixed(2) || "-"}
                     </TableCell>
 
                     <TableCell
@@ -168,7 +174,7 @@ export const StockDetailOptions = ({ symbol }: StockDetailOptionsProps) => {
                         parseFloat(oiData[row.pct]) < 0 ? "text-red-500" : "text-emerald-500"
                       }`}
                     >
-                      {oiData[row.pct] || "-"}
+                      {oiData[row.pct].toFixed(2) || "-"}
                     </TableCell>
                   </TableRow>
                 ))}
