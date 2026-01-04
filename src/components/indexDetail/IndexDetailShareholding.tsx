@@ -72,7 +72,7 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
   }, [indexSymbol, activeType]);
 
   const handleStockClick = (symbol: string) => {
-    navigate(`/stock-detail?symbol=${symbol}`);
+    navigate(`/jackpot-detail?symbol=${symbol}`);
   };
 
   const handleSort = (key: SortKey) => {
@@ -155,6 +155,16 @@ export const IndexDetailShareholding = ({ indexSymbol }: IndexDetailShareholding
           value={filterText}
           onChange={(e) => setFilterText(e.target.value)}
           className="px-2 py-1 border rounded text-sm flex-1"
+          style={{
+            width: "100%",
+            padding: "6px 8px",
+            fontSize: "0.875rem", // text-sm
+            borderRadius: "6px",
+            border: "1px solid #4B5563", // dark gray border
+            backgroundColor: "#1F2937", // dark background
+            color: "#E5E7EB", // light text
+            outline: "none",
+          }}
         />
       </div>
 
