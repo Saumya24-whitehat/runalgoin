@@ -37,7 +37,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
         });
 
         if (data[0]?.content) {
-          const stockData = data[0].content.find((s: any) => s.symbol === symbol);
+          const stockData = data[0].content.find((s: any) => s.name === symbol);
 
           if (stockData) {
             // Build technicals from available data
