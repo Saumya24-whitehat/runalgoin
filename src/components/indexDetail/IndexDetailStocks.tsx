@@ -15,10 +15,10 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
   const [stocks, setStocks] = useState<IndexStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filter, setFilter] = useState<'all' | 'gainers' | 'losers'>('all');
-  const [sortConfig, setSortConfig] = useState<{ key: keyof IndexStock; direction: 'asc' | 'desc' }>({
-    key: 'market_cap',
-    direction: 'desc'
+  const [filter, setFilter] = useState<"all" | "gainers" | "losers">("all");
+  const [sortConfig, setSortConfig] = useState<{ key: keyof IndexStock; direction: "asc" | "desc" }>({
+    key: "market_cap",
+    direction: "desc",
   });
 
   useEffect(() => {
@@ -35,32 +35,32 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
   }, [indexSymbol]);
 
   const handleSort = (key: keyof IndexStock) => {
-    setSortConfig(prev => ({
+    setSortConfig((prev) => ({
       key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+      direction: prev.key === key && prev.direction === "asc" ? "desc" : "asc",
     }));
   };
 
   const filteredStocks = stocks
-    .filter(stock => {
-      const matchesSearch = stock.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           stock.ticker.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesFilter = filter === 'all' ? true :
-                           filter === 'gainers' ? stock.change_percent > 0 :
-                           stock.change_percent < 0;
+    .filter((stock) => {
+      const matchesSearch =
+        stock.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        stock.ticker.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesFilter =
+        filter === "all" ? true : filter === "gainers" ? stock.change_percent > 0 : stock.change_percent < 0;
       return matchesSearch && matchesFilter;
     })
     .sort((a, b) => {
       const aVal = a[sortConfig.key];
       const bVal = b[sortConfig.key];
-      if (typeof aVal === 'number' && typeof bVal === 'number') {
-        return sortConfig.direction === 'asc' ? aVal - bVal : bVal - aVal;
+      if (typeof aVal === "number" && typeof bVal === "number") {
+        return sortConfig.direction === "asc" ? aVal - bVal : bVal - aVal;
       }
       return 0;
     });
 
   const handleStockClick = (ticker: string) => {
-    navigate(`/jackpot-detail?symbol=${ticker}`);
+    navigate(`/stock-detail?symbol=${ticker}`);
   };
 
   if (loading) {
@@ -76,25 +76,13 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant={filter === 'all' ? 'default' : 'outline'}
-            onClick={() => setFilter('all')}
-          >
+          <Button size="sm" variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>
             All Stocks
           </Button>
-          <Button
-            size="sm"
-            variant={filter === 'gainers' ? 'default' : 'outline'}
-            onClick={() => setFilter('gainers')}
-          >
+          <Button size="sm" variant={filter === "gainers" ? "default" : "outline"} onClick={() => setFilter("gainers")}>
             Gainers
           </Button>
-          <Button
-            size="sm"
-            variant={filter === 'losers' ? 'default' : 'outline'}
-            onClick={() => setFilter('losers')}
-          >
+          <Button size="sm" variant={filter === "losers" ? "default" : "outline"} onClick={() => setFilter("losers")}>
             Losers
           </Button>
         </div>
@@ -116,33 +104,30 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
           <TableHeader>
             <TableRow className="bg-muted/30">
               <TableHead className="w-[300px]">Stock</TableHead>
-              <TableHead 
+              <TableHead
                 className="text-right cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('market_cap')}
+                onClick={() => handleSort("market_cap")}
               >
                 <div className="flex items-center justify-end gap-1">
                   Market Cap <ArrowUpDown className="h-3 w-3" />
                 </div>
               </TableHead>
-              <TableHead 
-                className="text-right cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('price')}
-              >
+              <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => handleSort("price")}>
                 <div className="flex items-center justify-end gap-1">
                   Price <ArrowUpDown className="h-3 w-3" />
                 </div>
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="text-right cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('change_percent')}
+                onClick={() => handleSort("change_percent")}
               >
                 <div className="flex items-center justify-end gap-1">
                   Change <ArrowUpDown className="h-3 w-3" />
                 </div>
               </TableHead>
-              <TableHead 
+              <TableHead
                 className="text-right cursor-pointer hover:bg-muted/50"
-                onClick={() => handleSort('change_percent')}
+                onClick={() => handleSort("change_percent")}
               >
                 <div className="flex items-center justify-end gap-1">
                   Change % <ArrowUpDown className="h-3 w-3" />
@@ -168,17 +153,19 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell className="text-right font-mono">
-                  {formatMarketCap(stock.market_cap)}
+                <TableCell className="text-right font-mono">{formatMarketCap(stock.market_cap)}</TableCell>
+                <TableCell className="text-right font-mono text-primary">₹{stock.price.toFixed(2)}</TableCell>
+                <TableCell
+                  className={`text-right font-mono ${stock.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                >
+                  {stock.change_percent >= 0 ? "+" : ""}
+                  {((stock.price * stock.change_percent) / 100).toFixed(2)}
                 </TableCell>
-                <TableCell className="text-right font-mono text-primary">
-                  ₹{stock.price.toFixed(2)}
-                </TableCell>
-                <TableCell className={`text-right font-mono ${stock.change_percent >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {stock.change_percent >= 0 ? '+' : ''}{(stock.price * stock.change_percent / 100).toFixed(2)}
-                </TableCell>
-                <TableCell className={`text-right font-mono ${stock.change_percent >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                  {stock.change_percent >= 0 ? '+' : ''}{stock.change_percent.toFixed(2)}%
+                <TableCell
+                  className={`text-right font-mono ${stock.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                >
+                  {stock.change_percent >= 0 ? "+" : ""}
+                  {stock.change_percent.toFixed(2)}%
                 </TableCell>
               </TableRow>
             ))}
@@ -187,9 +174,7 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
       </div>
 
       {filteredStocks.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          No stocks found matching your criteria
-        </div>
+        <div className="text-center py-8 text-muted-foreground">No stocks found matching your criteria</div>
       )}
     </div>
   );
