@@ -88,18 +88,21 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
             const oscillators: TechnicalData[] = [
               {
                 indicator: "RSI (14)",
-                value: stockData.RSI || "-",
+                value: stockData.RSI.toFixed(2) || "-",
                 signal: (stockData.RSI || 50) > 70 ? "sell" : (stockData.RSI || 50) < 30 ? "buy" : "neutral",
               },
               {
                 indicator: "Stochastic",
-                value: (stockData["Stoch.D_14_1_3"] || "-") + " / " + (stockData["Stoch.K_14_1_3"] || "-"),
+                value:
+                  (stockData["Stoch.D_14_1_3"].toFixed(2) || "-") +
+                  " / " +
+                  (stockData["Stoch.K_14_1_3"].toFixed(2) || "-"),
                 signal: stockData["Stoch.D_14_1_3"] > stockData["Stoch.K_14_1_3"] ? "buy" : "sell",
               },
-              { indicator: "CCI (20)", value: stockData.CCI20 || "-", signal: "neutral" },
-              { indicator: "MFI", value: stockData.MoneyFlow || "-", signal: "neutral" },
-              { indicator: "ROC", value: stockData.ROC || "-", signal: "neutral" },
-              { indicator: "Williams %R", value: stockData["W.R"] || "-", signal: "neutral" },
+              { indicator: "CCI (20)", value: stockData.CCI20.toFixed(2) || "-", signal: "neutral" },
+              { indicator: "MFI", value: stockData.MoneyFlow.toFixed(2) || "-", signal: "neutral" },
+              { indicator: "ROC", value: stockData.ROC.toFixed(2) || "-", signal: "neutral" },
+              { indicator: "Williams %R", value: stockData["W.R"].toFixed(2) || "-", signal: "neutral" },
             ];
 
             const pivots = [
@@ -220,7 +223,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
                 >
                   <span className="text-sm text-muted-foreground">{ma.indicator}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-foreground">{ma.value}</span>
+                    <span className="text-sm text-foreground">{ma.value.toFixed(2)}</span>
                     <span
                       className={`text-xs font-medium px-2 py-0.5 rounded ${getSignalBg(ma.signal)} ${getSignalColor(ma.signal)}`}
                     >
