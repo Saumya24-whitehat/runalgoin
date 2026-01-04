@@ -50,6 +50,7 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
         // Assuming API returns peer stocks under data.peers
         const peersFromApi = data[0].content || [];
 
+        console.log(peersFromApi);
         // Remove the same symbol from the list
         const filteredPeers = peersFromApi.filter((stock: any) => stock.name !== symbol);
 
