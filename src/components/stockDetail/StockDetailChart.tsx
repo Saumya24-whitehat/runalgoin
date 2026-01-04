@@ -400,7 +400,6 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
             minmov: 1,
             pricescale: 100,
             has_intraday: true,
-            has_no_volume: false,
             has_weekly_and_monthly: true,
             supported_resolutions: this.configuration.supported_resolutions,
             volume_precision: 0,
