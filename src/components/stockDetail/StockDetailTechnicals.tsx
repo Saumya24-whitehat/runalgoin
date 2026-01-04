@@ -42,70 +42,61 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
 
           if (stockData) {
             // Build technicals from available data
-            const movingAverages: TechnicalData[] = [
-              {
-                indicator: "SMA 5",
-                value: stockData.sma5 || "-",
-                signal: stockData.ltp > (stockData.sma5 || 0) ? "buy" : "sell",
-              },
-              {
-                indicator: "SMA 10",
-                value: stockData.sma10 || "-",
-                signal: stockData.ltp > (stockData.sma10 || 0) ? "buy" : "sell",
-              },
+            const movingAverages: TechnicalData[] = [},
               {
                 indicator: "SMA 20",
-                value: stockData.sma20 || "-",
-                signal: stockData.ltp > (stockData.sma20 || 0) ? "buy" : "sell",
+                value: stockData.SMA20 || "-",
+                signal: stockData.ltp > (stockData.SMA20 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "SMA 50",
-                value: stockData.sma50 || "-",
-                signal: stockData.ltp > (stockData.sma50 || 0) ? "buy" : "sell",
+                value: stockData.SMA50 || "-",
+                signal: stockData.ltp > (stockData.SMA50 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "SMA 100",
-                value: stockData.sma100 || "-",
-                signal: stockData.ltp > (stockData.sma100 || 0) ? "buy" : "sell",
+                value: stockData.SMA100 || "-",
+                signal: stockData.ltp > (stockData.SMA100 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "SMA 200",
-                value: stockData.sma200 || "-",
-                signal: stockData.ltp > (stockData.sma200 || 0) ? "buy" : "sell",
-              },
-              {
-                indicator: "EMA 5",
-                value: stockData.ema5 || "-",
-                signal: stockData.ltp > (stockData.ema5 || 0) ? "buy" : "sell",
-              },
-              {
-                indicator: "EMA 10",
-                value: stockData.ema10 || "-",
-                signal: stockData.ltp > (stockData.ema10 || 0) ? "buy" : "sell",
+                value: stockData.SMA200 || "-",
+                signal: stockData.ltp > (stockData.SMA200 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "EMA 20",
-                value: stockData.ema20 || "-",
-                signal: stockData.ltp > (stockData.ema20 || 0) ? "buy" : "sell",
+                value: stockData.EMA20 || "-",
+                signal: stockData.ltp > (stockData.EMA20 || 0) ? "buy" : "sell",
               },
               {
                 indicator: "EMA 50",
-                value: stockData.ema50 || "-",
-                signal: stockData.ltp > (stockData.ema50 || 0) ? "buy" : "sell",
+                value: stockData.EMA50 || "-",
+                signal: stockData.ltp > (stockData.EMA50 || 0) ? "buy" : "sell",
+              },
+              {
+                indicator: "EMA 100",
+                value: stockData.EMA100 || "-",
+                signal: stockData.ltp > (stockData.EMA100 || 0) ? "buy" : "sell",
+              },
+              {
+                indicator: "EMA 200",
+                value: stockData.EMA200 || "-",
+                signal: stockData.ltp > (stockData.EMA200 || 0) ? "buy" : "sell",
               },
             ];
 
             const oscillators: TechnicalData[] = [
               {
                 indicator: "RSI (14)",
-                value: stockData.rsi || "-",
-                signal: (stockData.rsi || 50) > 70 ? "sell" : (stockData.rsi || 50) < 30 ? "buy" : "neutral",
+                value: stockData.RSI || "-",
+                signal: (stockData.RSI || 50) > 70 ? "sell" : (stockData.RSI || 50) < 30 ? "buy" : "neutral",
               },
-              { indicator: "Stochastic", value: stockData.stoch || "-", signal: "neutral" },
-              { indicator: "CCI (20)", value: stockData.cci || "-", signal: "neutral" },
-              { indicator: "MFI", value: stockData.mfi || "-", signal: "neutral" },
-              { indicator: "ROC", value: stockData.roc || "-", signal: "neutral" },
-              { indicator: "Williams %R", value: stockData.wr || "-", signal: "neutral" },
+              { indicator: "Stochastic", value: (stockData['Stoch.D_14_1_3'] || "-")+' / '+(stockData['Stoch.K_14_1_3'] || "-"), 
+                signal: stockData['Stoch.D_14_1_3']>stockData['Stoch.K_14_1_3']?'buy':"sell" },
+              { indicator: "CCI (20)", value: stockData.CCI20 || "-", signal: "neutral" },
+              { indicator: "MFI", value: stockData.MoneyFlow || "-", signal: "neutral" },
+              { indicator: "ROC", value: stockData.ROC || "-", signal: "neutral" },
+              { indicator: "Williams %R", value: stockData['W.R'] || "-", signal: "neutral" },
             ];
 
             const pivots = [
