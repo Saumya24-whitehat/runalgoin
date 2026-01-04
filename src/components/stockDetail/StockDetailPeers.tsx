@@ -139,8 +139,8 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
               <TableHead onClick={() => handleSort("market_cap_basic")} className="text-xs font-medium text-right">
                 MARKET CAP {sortKey === "market_cap_basic" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
-              <TableHead onClick={() => handleSort("Perf_1M")} className="text-xs font-medium text-right">
-                1M RETURN {sortKey === "Perf_1M" ? (sortAsc ? "▲" : "▼") : ""}
+              <TableHead onClick={() => handleSort("Perf.1M")} className="text-xs font-medium text-right">
+                1M RETURN {sortKey === "Perf.1M" ? (sortAsc ? "▲" : "▼") : ""}
               </TableHead>
               <TableHead onClick={() => handleSort("Perf_3M")} className="text-xs font-medium text-right">
                 3M RETURN {sortKey === "Perf_3M" ? (sortAsc ? "▲" : "▼") : ""}
@@ -181,34 +181,34 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
                   {formatMarketCap(peer.market_cap_basic)}
                 </TableCell>
                 <TableCell
-                  className={`text-right text-sm font-medium ${peer.Perf_1M >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  className={`text-right text-sm font-medium ${peer["Perf.1M"] >= 0 ? "text-emerald-500" : "text-red-500"}`}
                 >
-                  {peer.Perf_1M >= 0 ? "+" : ""}
-                  {peer.Perf_1M.toFixed(1)}%
+                  {peer["Perf.1M"] >= 0 ? "+" : ""}
+                  {peer["Perf.1M"].toFixed(1)}%
                 </TableCell>
                 <TableCell
-                  className={`text-right text-sm font-medium ${peer.Perf_3M >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  className={`text-right text-sm font-medium ${peer["Perf.3M"] >= 0 ? "text-emerald-500" : "text-red-500"}`}
                 >
-                  {peer.Perf_3M >= 0 ? "+" : ""}
-                  {peer.Perf_3M.toFixed(1)}%
+                  {peer["Perf.3M"] >= 0 ? "+" : ""}
+                  {peer["Perf.3M"].toFixed(1)}%
                 </TableCell>
                 <TableCell
-                  className={`text-right text-sm font-medium ${peer.Perf_6M >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  className={`text-right text-sm font-medium ${peer["Perf.6M"] >= 0 ? "text-emerald-500" : "text-red-500"}`}
                 >
-                  {peer.Perf_6M >= 0 ? "+" : ""}
-                  {peer.Perf_6M.toFixed(1)}%
+                  {peer["Perf.6M"] >= 0 ? "+" : ""}
+                  {peer["Perf.6M"].toFixed(1)}%
                 </TableCell>
                 <TableCell
-                  className={`text-right text-sm font-medium ${peer.Perf_YTD >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  className={`text-right text-sm font-medium ${peer["Perf.YTD"] >= 0 ? "text-emerald-500" : "text-red-500"}`}
                 >
-                  {peer.Perf_YTD >= 0 ? "+" : ""}
-                  {peer.Perf_YTD.toFixed(1)}%
+                  {peer["Perf.YTD"] >= 0 ? "+" : ""}
+                  {peer["Perf.YTD"].toFixed(1)}%
                 </TableCell>
                 <TableCell
-                  className={`text-right text-sm font-medium ${peer.Perf_Y >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                  className={`text-right text-sm font-medium ${peer["Perf.Y"] >= 0 ? "text-emerald-500" : "text-red-500"}`}
                 >
-                  {peer.Perf_Y >= 0 ? "+" : ""}
-                  {peer.Perf_Y.toFixed(1)}%
+                  {peer["Perf.Y"] >= 0 ? "+" : ""}
+                  {peer["Perf.Y"].toFixed(1)}%
                 </TableCell>
                 <TableCell
                   className={`text-right text-sm font-medium ${peer.RSI >= 70 ? "text-red-500" : peer.RSI <= 30 ? "text-emerald-500" : "text-foreground"}`}
