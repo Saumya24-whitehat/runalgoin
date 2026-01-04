@@ -160,7 +160,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
 
       async loadCSVSymbols(): Promise<void> {
         try {
-          const response = await fetch("./NSE.json");
+          const response = await fetch("https://runalgo.xyz/top/chart/NSE.json");
 
           if (!response.ok) {
             const paths = ["./data/NSE.json", "../NSE.json", "./json/NSE.json", "./assets/NSE.json"];
