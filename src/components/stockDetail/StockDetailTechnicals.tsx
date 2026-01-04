@@ -36,8 +36,8 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           body: { index: "NIFTY 50" },
         });
 
-        if (data?.content) {
-          const stockData = data.content.find((s: any) => s.symbol === symbol);
+        if (data[0]?.content) {
+          const stockData = data[0].content.find((s: any) => s.symbol === symbol);
 
           if (stockData) {
             // Build technicals from available data
