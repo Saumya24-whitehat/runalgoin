@@ -294,14 +294,17 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-7 gap-2 text-center">
-              {["s3", "s2", "s1", "pivot", "r1", "r2", "r3"].map((key) => (
-                <div key={key}>
-                  <p className="text-xs text-muted-foreground uppercase">{key}</p>
-                  <p className="text-sm font-semibold">
-                    {technicals.pivots[0][key as keyof (typeof technicals.pivots)[0]]?.toFixed(2)}
-                  </p>
-                </div>
-              ))}
+              {["s3", "s2", "s1", "pivot", "r1", "r2", "r3"].map((key) => {
+                const value = technicals.pivots[0][key as keyof (typeof technicals.pivots)[0]];
+                return (
+                  <div key={key}>
+                    <p className="text-xs text-muted-foreground uppercase">{key}</p>
+                    <p className="text-sm font-semibold">
+                      {typeof value === "number" ? value.toFixed(2) : value}
+                    </p>
+                  </div>
+                );
+              })}
             </div>
           </CardContent>
         </Card>
