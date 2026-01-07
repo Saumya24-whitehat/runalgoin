@@ -7,6 +7,27 @@ interface StockDetailChartProps {
   symbol: string;
 }
 
+interface NseInstrument {
+  symbol: string;
+  ticker: string;
+  full_name: string;
+  name: string;
+  description: string;
+  type: string;
+  session: string;
+  timezone: string;
+  exchange: string;
+  minmov: number;
+  pricescale: number;
+  has_intraday: boolean;
+  has_weekly_and_monthly: boolean;
+  supported_resolutions: string[];
+  volume_precision: number;
+  data_status: string;
+  instrument_key: string;
+  logo_urls?: string[];
+}
+
 declare global {
   interface Window {
     TradingView: any;
