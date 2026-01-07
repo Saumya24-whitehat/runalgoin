@@ -278,6 +278,7 @@ const OptionBuilder = () => {
   const currentExpiryData: ExpiryData | null = optionChainData?.expiryWise?.[activeExpiry] || null;
 
   // Calculate chart data
+  console.log(currentPrice);
   const chartData = generatePLChartData(positions, currentPrice, 0.03);
   const breakevens = findBreakevenPoints(chartData.expiry);
   const greeks = calculateTotalGreeks(positions);
@@ -412,9 +413,7 @@ const OptionBuilder = () => {
         getOptionData: currentExpiryData
           ? (strike: number, optType: "CE" | "PE") => {
               // Find the strike data in the data array
-              const strikeData = currentExpiryData.data.find(
-                (d) => Math.abs(d.strike_price - strike) < 0.01
-              );
+              const strikeData = currentExpiryData.data.find((d) => Math.abs(d.strike_price - strike) < 0.01);
               if (!strikeData) return null;
 
               const optionData = optType === "CE" ? strikeData.call_options : strikeData.put_options;
