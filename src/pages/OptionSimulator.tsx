@@ -67,6 +67,7 @@ import {
   SimulatorData,
   getLotSizeForSymbol,
 } from "@/services/optionSimulatorApi";
+import { getStrategyPositions, StrategyContext } from "@/utils/optionStrategies";
 
 interface PLHistoryPoint {
   time: string;
@@ -632,121 +633,61 @@ const OptionSimulator = () => {
   }, []);
 
   const handleAddStrategy = useCallback(
-    (strategyType: string) => {
+    (strategyId: string) => {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       const strikeDiff = symbol.includes("Bank") ? 100 : 50;
       const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
-      switch (strategyType) {
-        case "buy-call":
-          addPosition({
-            action: "Buy",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm,
-            optType: "CE",
-            entryPrice: 250,
-            currentPrice: 250,
-            IV: 15,
-            lotSize,
-          });
-          break;
-        case "sell-put":
-          addPosition({
-            action: "Sell",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm,
-            optType: "PE",
-            entryPrice: 200,
-            currentPrice: 200,
-            IV: 15,
-            lotSize,
-          });
-          break;
-        case "bull-call-spread":
-          addPosition({
-            action: "Buy",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm,
-            optType: "CE",
-            entryPrice: 250,
-            currentPrice: 250,
-            IV: 15,
-            lotSize,
-          });
-          addPosition({
-            action: "Sell",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm + strikeDiff * 2,
-            optType: "CE",
-            entryPrice: 180,
-            currentPrice: 180,
-            IV: 14,
-            lotSize,
-          });
-          break;
-        case "iron-condor":
-          addPosition({
-            action: "Sell",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm - strikeDiff * 2,
-            optType: "PE",
-            entryPrice: 150,
-            currentPrice: 150,
-            IV: 14,
-            lotSize,
-          });
-          addPosition({
-            action: "Buy",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm - strikeDiff * 4,
-            optType: "PE",
-            entryPrice: 80,
-            currentPrice: 80,
-            IV: 15,
-            lotSize,
-          });
-          addPosition({
-            action: "Sell",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm + strikeDiff * 2,
-            optType: "CE",
-            entryPrice: 150,
-            currentPrice: 150,
-            IV: 14,
-            lotSize,
-          });
-          addPosition({
-            action: "Buy",
-            lots: 1,
-            date: dateStr,
-            expiry: activeExpiry,
-            strike: atm + strikeDiff * 4,
-            optType: "CE",
-            entryPrice: 80,
-            currentPrice: 80,
-            IV: 15,
-            lotSize,
-          });
-          break;
-        default:
-          toast.info("Strategy coming soon");
+      // Create strategy context with live simulator data integration
+      const ctx: StrategyContext = {
+        atmStrike: atm,
+        strikeDiff,
+        expiry: activeExpiry,
+        date: dateStr,
+        lotSize,
+        getOptionData: simulatorData
+          ? (strike: number, optType: "CE" | "PE") => {
+              const strikeData = simulatorData.strikes.find(
+                (s) => Math.abs(s.strike - strike) < 0.01
+              );
+              if (!strikeData) return null;
+
+              return {
+                price: optType === "CE" ? strikeData.cePrice : strikeData.pePrice,
+                iv: optType === "CE" ? strikeData.ceIV : strikeData.peIV,
+              };
+            }
+          : undefined,
+      };
+
+      // Get strategy positions
+      const strategyPositions = getStrategyPositions(strategyId, ctx);
+
+      if (strategyPositions.length === 0) {
+        toast.info("Strategy coming soon");
+        return;
       }
+
+      // Add all positions
+      strategyPositions.forEach((pos) => {
+        addPosition({
+          action: pos.action,
+          lots: pos.lots,
+          date: pos.date,
+          expiry: pos.expiry,
+          strike: pos.strike,
+          optType: pos.optType,
+          entryPrice: pos.entryPrice,
+          currentPrice: pos.currentPrice,
+          IV: pos.IV,
+          lotSize: pos.lotSize,
+          instrumentToken: pos.instrumentToken,
+        });
+      });
+
+      setShowStrategies(false);
     },
-    [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate],
+    [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData],
   );
 
   const handleSaveStrategy = (name: string, description: string, type: string) => {
