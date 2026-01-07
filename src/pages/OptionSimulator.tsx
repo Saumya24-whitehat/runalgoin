@@ -493,7 +493,7 @@ const OptionSimulator = () => {
   }, [simulatorData, positions, symbol]);
 
   // Calculate chart data
-  const chartData = generatePLChartData(positions, currentPrice, 0.03);
+  const chartData = generatePLChartData(positions, currentPrice, 0.1);
   const breakevens = findBreakevenPoints(chartData.expiry);
   const greeks = calculateTotalGreeks(positions);
 
@@ -647,9 +647,7 @@ const OptionSimulator = () => {
         lotSize,
         getOptionData: simulatorData
           ? (strike: number, optType: "CE" | "PE") => {
-              const strikeData = simulatorData.strikes.find(
-                (s) => Math.abs(s.strike - strike) < 0.01
-              );
+              const strikeData = simulatorData.strikes.find((s) => Math.abs(s.strike - strike) < 0.01);
               if (!strikeData) return null;
 
               return {

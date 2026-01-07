@@ -278,8 +278,7 @@ const OptionBuilder = () => {
   const currentExpiryData: ExpiryData | null = optionChainData?.expiryWise?.[activeExpiry] || null;
 
   // Calculate chart data
-  console.log(currentPrice);
-  const chartData = generatePLChartData(positions, currentPrice, 0.03);
+  const chartData = generatePLChartData(positions, currentPrice, 0.1);
   const breakevens = findBreakevenPoints(chartData.expiry);
   const greeks = calculateTotalGreeks(positions);
 
