@@ -323,7 +323,7 @@ export const calculatePriceRange = (
   daysToExpiry: number = 30,
 ): { startPrice: number; endPrice: number; step: number } => {
   const scaleFactor = Math.max(1, Math.sqrt(daysToExpiry));
-  const rangeWidth = Math.ceil(200 * scaleFactor);
+  const rangeWidth = Math.ceil(600 * scaleFactor);
 
   return {
     startPrice: Math.floor(currentPrice - rangeWidth),
