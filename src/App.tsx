@@ -27,6 +27,7 @@ import FutureOpenHighLow from "./pages/FutureOpenHighLow";
 import FutureRollover from "./pages/FutureRollover";
 import MarketBreadth from "./pages/MarketBreadth";
 import OptionsChart from "./pages/OptionsChart";
+import GreeksChart from "./pages/GreeksChart";
 import Indices from "./pages/Indices";
 import FII from "./pages/FII";
 import IPO from "./pages/IPO";
@@ -78,6 +79,7 @@ const App = () => (
               <Route path="/future-rollover" element={<FutureRollover />} />
               <Route path="/market-breadth" element={<MarketBreadth />} />
               <Route path="/options-chart" element={<OptionsChart />} />
+              <Route path="/greeks-chart" element={<GreeksChart />} />
               <Route path="/indices" element={<Indices />} />
               <Route path="/fii" element={<FII />} />
               <Route path="/ipo" element={<IPO />} />
