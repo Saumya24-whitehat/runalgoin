@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Position } from '@/services/optionBuilderApi';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,60 @@ interface OptionBuilderPositionsProps {
   onReEntry?: (id: string) => void;
   onPartialExit?: (id: string, lotsToExit: number, exitPrice: number) => void;
 }
+
+// Editable input that only syncs on blur to prevent focus loss
+interface EditableInputProps {
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  step?: string;
+  className?: string;
+  disabled?: boolean;
+  isDecimal?: boolean;
+}
+
+const EditableInput = ({ value, onChange, min = 0, step, className, disabled, isDecimal = false }: EditableInputProps) => {
+  const [localValue, setLocalValue] = useState(isDecimal ? value.toFixed(2) : value.toString());
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Sync local value when external value changes (but not while focused)
+  useEffect(() => {
+    if (document.activeElement !== inputRef.current) {
+      setLocalValue(isDecimal ? value.toFixed(2) : value.toString());
+    }
+  }, [value, isDecimal]);
+
+  const handleBlur = () => {
+    const parsed = isDecimal ? parseFloat(localValue) : parseInt(localValue);
+    if (!isNaN(parsed) && parsed >= min) {
+      onChange(parsed);
+    } else {
+      // Reset to original value if invalid
+      setLocalValue(isDecimal ? value.toFixed(2) : value.toString());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      inputRef.current?.blur();
+    }
+  };
+
+  return (
+    <Input
+      ref={inputRef}
+      type="number"
+      min={min}
+      step={step}
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      className={className}
+      disabled={disabled}
+    />
+  );
+};
 
 const OptionBuilderPositions = ({ 
   positions, 
@@ -153,11 +207,10 @@ const OptionBuilderPositions = ({
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      min="1"
+                    <EditableInput
                       value={position.lots}
-                      onChange={(e) => position.id && handleLotsChange(position.id, parseInt(e.target.value) || 1)}
+                      onChange={(lots) => position.id && handleLotsChange(position.id, lots)}
+                      min={1}
                       className="w-16 h-8"
                       disabled={isExited}
                     />
@@ -186,25 +239,25 @@ const OptionBuilderPositions = ({
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <Input
-                      type="number"
-                      min="0"
+                    <EditableInput
+                      value={position.entryPrice}
+                      onChange={(price) => position.id && handleEntryPriceChange(position.id, price)}
+                      min={0}
                       step="0.05"
-                      value={position.entryPrice.toFixed(2)}
-                      onChange={(e) => position.id && handleEntryPriceChange(position.id, parseFloat(e.target.value) || 0)}
                       className="w-20 h-8"
                       disabled={isExited}
+                      isDecimal
                     />
                   </TableCell>
                   <TableCell>
                     {isExited ? (
-                      <Input
-                        type="number"
-                        min="0"
+                      <EditableInput
+                        value={position.exitPrice!}
+                        onChange={(price) => position.id && handleExitPriceChange(position.id, price)}
+                        min={0}
                         step="0.05"
-                        value={position.exitPrice!.toFixed(2)}
-                        onChange={(e) => position.id && handleExitPriceChange(position.id, parseFloat(e.target.value) || 0)}
                         className="w-20 h-8"
+                        isDecimal
                       />
                     ) : (
                       <span className="text-muted-foreground">{formatCurrency(position.currentPrice)}</span>
