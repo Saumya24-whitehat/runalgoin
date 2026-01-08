@@ -86,3 +86,6 @@ verify_jwt = false
 
 [functions.stock-detail-data]
 verify_jwt = false
+
+[functions.greeks-data]
+verify_jwt = false
