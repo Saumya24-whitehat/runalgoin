@@ -18,7 +18,9 @@ serve(async (req) => {
       const params = new URLSearchParams();
       params.append("symbol", symbol);
       params.append("expiry", expiry);
-      params.append("date", date);
+      if (date) {
+        params.append("date", date);
+      }
 
       const url = `https://runalgo.xyz/data/strikes.php?${params.toString()}`;
       console.log("Fetching strikes from:", url);
