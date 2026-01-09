@@ -13,6 +13,7 @@ serve(async (req) => {
   try {
     const { endpoint, symbol, expiry, strike, date } = await req.json();
 
+    console.log(date);
     if (endpoint === "strikes") {
       // Fetch strikes for premium decay using strikes.php
       const params = new URLSearchParams();
@@ -31,7 +32,7 @@ serve(async (req) => {
       }
 
       const data = await response.json();
-      return new Response(JSON.stringify([url]), {
+      return new Response(JSON.stringify(data), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
