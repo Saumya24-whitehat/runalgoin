@@ -14,15 +14,12 @@ serve(async (req) => {
     const { endpoint, symbol, expiry, strike, date } = await req.json();
 
     if (endpoint === "strikes") {
-      // Fetch strikes for premium decay
+      // Fetch strikes for premium decay using strikes.php
       const params = new URLSearchParams();
       params.append("symbol", symbol);
       params.append("expiry", expiry);
-      if (date) {
-        params.append("date", date);
-      }
 
-      const url = `https://runalgo.xyz/data/getTOIStrikes.php?${params.toString()}`;
+      const url = `https://runalgo.xyz/data/strikes.php?${params.toString()}`;
       console.log("Fetching strikes from:", url);
 
       const response = await fetch(url);
