@@ -103,18 +103,10 @@ const PremiumDecay = () => {
 
         let dates: string[] = [];
         console.log(data);
-        if (Array.isArray(data)) {
-          dates = data;
-        } else if (data?.expiry_dates && Array.isArray(data.expiry_dates)) {
-          dates = data.expiry_dates;
-        } else if (data?.expiryDates && Array.isArray(data.expiryDates)) {
-          dates = data.expiryDates;
-        } else if (data?.data && Array.isArray(data.data)) {
-          dates = data.data;
-        }
 
         // Filter expiries that are on or after selected date
         const selectedDateStr = format(selectedDate, "yyyy-MM-dd");
+        dates = data.latestData[selectedDateStr]["expiries"];
         const filteredDates = dates.filter((d) => d >= selectedDateStr);
 
         setExpiryDates(filteredDates);
