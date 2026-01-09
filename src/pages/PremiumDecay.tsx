@@ -102,6 +102,7 @@ const PremiumDecay = () => {
         if (error) throw error;
 
         let dates: string[] = [];
+        console.log(data);
         if (Array.isArray(data)) {
           dates = data;
         } else if (data?.expiry_dates && Array.isArray(data.expiry_dates)) {
