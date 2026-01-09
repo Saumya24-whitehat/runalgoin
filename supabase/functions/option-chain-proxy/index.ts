@@ -26,7 +26,7 @@ serve(async (req) => {
       case "expiry":
         const symbol = encodeURIComponent(params.symbol);
         if (params.date) {
-          var date = "&date=" + encodeURIComponent(params.symbol);
+          var date = "&date=" + encodeURIComponent(params.date);
         } else {
           var date = "";
         }
