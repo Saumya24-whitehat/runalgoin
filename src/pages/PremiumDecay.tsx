@@ -93,7 +93,10 @@ const PremiumDecay = () => {
         const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
           body: {
             endpoint: "expiry",
-            params: { symbol: selectedSymbol, date: new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0]; },
+            params: {
+              symbol: selectedSymbol,
+              date: new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+            },
           },
         });
         if (error) throw error;
