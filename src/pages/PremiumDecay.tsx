@@ -91,7 +91,10 @@ const PremiumDecay = () => {
       setSelectedStrike(null);
       try {
         const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
-          body: { endpoint: "expiry", params: { symbol: selectedSymbol, date: selectedDate.split("T")[0] } },
+          body: {
+            endpoint: "expiry",
+            params: { symbol: selectedSymbol, date: selectedDate.toISOString().split("T")[0] },
+          },
         });
         if (error) throw error;
 
