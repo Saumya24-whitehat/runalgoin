@@ -91,7 +91,7 @@ const PremiumDecay = () => {
       setSelectedStrike(null);
       try {
         const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
-          body: { endpoint: "expiry", params: { symbol: selectedSymbol } },
+          body: { endpoint: "expiry", params: { symbol: selectedSymbol, date: selectedDate } },
         });
         if (error) throw error;
 
@@ -191,7 +191,7 @@ const PremiumDecay = () => {
         if (showLoader) setLoadingData(false);
       }
     },
-    [selectedSymbol, selectedExpiry, selectedStrike, selectedDate, toast]
+    [selectedSymbol, selectedExpiry, selectedStrike, selectedDate, toast],
   );
 
   // Auto-refresh interval
@@ -383,7 +383,12 @@ const PremiumDecay = () => {
                   >
                     {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
                   </Button>
-                  <Button variant="outline" size="icon" onClick={handleManualRefresh} disabled={loadingData || premiumData.length === 0}>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={handleManualRefresh}
+                    disabled={loadingData || premiumData.length === 0}
+                  >
                     <RefreshCw className={`h-4 w-4 ${loadingData ? "animate-spin" : ""}`} />
                   </Button>
                 </div>
