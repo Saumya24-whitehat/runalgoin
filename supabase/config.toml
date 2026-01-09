@@ -89,3 +89,6 @@ verify_jwt = false
 
 [functions.greeks-data]
 verify_jwt = false
+
+[functions.premium-decay-data]
+verify_jwt = false
