@@ -136,7 +136,7 @@ const PremiumDecay = () => {
       setSelectedStrike(null);
       try {
         const dateStr = format(selectedDate, "yyyy-MM-dd");
-        const response = await fetchPremiumDecayStrikes(selectedSymbol, "2026-01-13", dateStr);
+        const response = await fetchPremiumDecayStrikes(selectedSymbol, selectedExpiry, dateStr);
         setAvailableStrikes(response.strikes || []);
         setAtmStrike(response.MorningAtmStrike || 0);
 
