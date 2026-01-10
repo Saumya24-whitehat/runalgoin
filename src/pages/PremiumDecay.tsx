@@ -146,6 +146,7 @@ const PremiumDecay = () => {
         } else if (response.strikes.length > 0) {
           setSelectedStrike(response.strikes[Math.floor(response.strikes.length / 2)]);
         }
+        setTimeout(fetchData, 100);
       } catch (err) {
         console.error("Error fetching strikes:", err);
         toast({
