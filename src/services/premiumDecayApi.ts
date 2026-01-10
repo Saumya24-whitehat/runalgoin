@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+const BASE_URL = "https://runalgo.xyz/data";
 
 export interface PremiumDecayStrikesResponse {
   symbol: string;
@@ -36,21 +36,21 @@ export async function fetchPremiumDecayStrikes(
   expiry: string,
   date?: string
 ): Promise<PremiumDecayStrikesResponse> {
-  const { data, error } = await supabase.functions.invoke("premium-decay-data", {
-    body: {
-      endpoint: "strikes",
-      symbol,
-      expiry,
-      date,
-    },
-  });
-
-  if (error) {
-    console.error("Error fetching Premium Decay strikes:", error);
-    throw error;
+  const params = new URLSearchParams();
+  params.append("symbol", symbol);
+  params.append("expiry", expiry);
+  if (date) {
+    params.append("date", date);
   }
 
-  return data;
+  const url = `${BASE_URL}/strikes.php?${params.toString()}`;
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
 }
 
 export async function fetchPremiumDecayData(
@@ -59,20 +59,20 @@ export async function fetchPremiumDecayData(
   strike: number,
   date?: string
 ): Promise<PremiumDecayResponse> {
-  const { data, error } = await supabase.functions.invoke("premium-decay-data", {
-    body: {
-      endpoint: "data",
-      symbol,
-      expiry,
-      strike,
-      date,
-    },
-  });
-
-  if (error) {
-    console.error("Error fetching Premium Decay data:", error);
-    throw error;
+  const params = new URLSearchParams();
+  params.append("symbol", symbol);
+  params.append("expiry", expiry);
+  params.append("strike", strike.toString());
+  if (date) {
+    params.append("date", date);
   }
 
-  return data;
+  const url = `${BASE_URL}/getATMDeltaPremiumData.php?${params.toString()}`;
+  
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
 }
