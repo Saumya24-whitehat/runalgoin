@@ -262,11 +262,17 @@ const PremiumDecay = () => {
     return "";
   };
 
-  // Chart data
-  const chartData = premiumData.map((entry) => ({
+  // Chart data - Premium Decay
+  const premiumChartData = premiumData.map((entry) => ({
     time: formatTime(entry.Time),
     ce_delta_ltp_chg: entry.ce_delta_ltp_chg,
     pe_delta_ltp_chg: entry.pe_delta_ltp_chg,
+  }));
+
+  // Chart data - Nifty Spot Price
+  const spotChartData = premiumData.map((entry) => ({
+    time: formatTime(entry.Time),
+    spot: entry.Spot_Price,
   }));
 
   return (
@@ -409,50 +415,94 @@ const PremiumDecay = () => {
           </CardContent>
         </Card>
 
-        {/* Chart */}
+        {/* Charts - Side by Side */}
         {premiumData.length > 0 && (
-          <Card className="bg-card/50 border-border/50">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Premium Decay Chart</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[400px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "hsl(var(--card))",
-                        border: "1px solid hsl(var(--border))",
-                        borderRadius: "8px",
-                      }}
-                      labelStyle={{ color: "hsl(var(--foreground))" }}
-                    />
-                    <Legend />
-                    <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
-                    <Line
-                      type="monotone"
-                      dataKey="ce_delta_ltp_chg"
-                      name="CE Delta LTP Chg"
-                      stroke="hsl(142, 76%, 36%)"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                    <Line
-                      type="monotone"
-                      dataKey="pe_delta_ltp_chg"
-                      name="PE Delta LTP Chg"
-                      stroke="hsl(0, 84%, 60%)"
-                      strokeWidth={2}
-                      dot={false}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Premium Decay Chart */}
+            <Card className="bg-card/50 border-border/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Premium Decay Chart</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={premiumChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                        labelStyle={{ color: "hsl(var(--foreground))" }}
+                      />
+                      <Legend />
+                      <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" />
+                      <Line
+                        type="monotone"
+                        dataKey="ce_delta_ltp_chg"
+                        name="CE Delta LTP Chg"
+                        stroke="hsl(142, 76%, 36%)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="pe_delta_ltp_chg"
+                        name="PE Delta LTP Chg"
+                        stroke="hsl(0, 84%, 60%)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Nifty Spot Price Chart */}
+            <Card className="bg-card/50 border-border/50">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">{selectedSymbol} Spot Price</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[400px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={spotChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={12} />
+                      <YAxis 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12} 
+                        domain={['auto', 'auto']}
+                        tickFormatter={(value) => value.toLocaleString()}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          border: "1px solid hsl(var(--border))",
+                          borderRadius: "8px",
+                        }}
+                        labelStyle={{ color: "hsl(var(--foreground))" }}
+                        formatter={(value: number) => [value.toLocaleString('en-IN', { maximumFractionDigits: 2 }), 'Spot Price']}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="spot"
+                        name="Spot Price"
+                        stroke="hsl(220, 70%, 50%)"
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Data Table */}
