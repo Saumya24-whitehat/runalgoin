@@ -138,11 +138,11 @@ const PremiumDecay = () => {
         const dateStr = format(selectedDate, "yyyy-MM-dd");
         const response = await fetchPremiumDecayStrikes(selectedSymbol, "2026-01-13", dateStr);
         setAvailableStrikes(response.strikes || []);
-        setAtmStrike(response.atm || 0);
+        setAtmStrike(response.MorningAtmStrike || 0);
 
         // Auto-select ATM strike
-        if (response.atm && response.strikes.includes(response.atm)) {
-          setSelectedStrike(response.atm);
+        if (response.MorningAtmStrike && response.strikes.includes(response.MorningAtmStrike)) {
+          setSelectedStrike(response.MorningAtmStrike);
         } else if (response.strikes.length > 0) {
           setSelectedStrike(response.strikes[Math.floor(response.strikes.length / 2)]);
         }
@@ -473,10 +473,10 @@ const PremiumDecay = () => {
                     <LineChart data={spotChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis dataKey="time" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))" 
-                        fontSize={12} 
-                        domain={['auto', 'auto']}
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
+                        fontSize={12}
+                        domain={["auto", "auto"]}
                         tickFormatter={(value) => value.toLocaleString()}
                       />
                       <Tooltip
@@ -486,7 +486,10 @@ const PremiumDecay = () => {
                           borderRadius: "8px",
                         }}
                         labelStyle={{ color: "hsl(var(--foreground))" }}
-                        formatter={(value: number) => [value.toLocaleString('en-IN', { maximumFractionDigits: 2 }), 'Spot Price']}
+                        formatter={(value: number) => [
+                          value.toLocaleString("en-IN", { maximumFractionDigits: 2 }),
+                          "Spot Price",
+                        ]}
                       />
                       <Legend />
                       <Line
