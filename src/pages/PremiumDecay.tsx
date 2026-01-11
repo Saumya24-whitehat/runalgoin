@@ -35,9 +35,9 @@ const PremiumDecay = () => {
   const { toast } = useToast();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
-  const [selectedSymbol, setSelectedSymbol] = useState("");
+  const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState("");
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [availableStrikes, setAvailableStrikes] = useState<number[]>([]);
   const [atmStrike, setAtmStrike] = useState<number>(0);
   const [selectedStrike, setSelectedStrike] = useState<number | null>(null);
