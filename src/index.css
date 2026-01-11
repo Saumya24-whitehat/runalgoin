@@ -1,9 +1,9 @@
-@import '@fontsource/outfit/400.css';
-@import '@fontsource/outfit/500.css';
-@import '@fontsource/outfit/600.css';
-@import '@fontsource/outfit/700.css';
-@import '@fontsource/inter/400.css';
-@import '@fontsource/inter/500.css';
+@import "@fontsource/outfit/400.css";
+@import "@fontsource/outfit/500.css";
+@import "@fontsource/outfit/600.css";
+@import "@fontsource/outfit/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
 
 @tailwind base;
 @tailwind components;
@@ -74,7 +74,7 @@
     --call-color: 190 80% 45%;
     --put-color: 0 72% 51%;
     --atm-highlight: 45 93% 47% / 0.25;
-    
+
     /* Option Chain Table Design System */
     --oc-call-header-bg: 0 72% 51% / 0.1;
     --oc-put-header-bg: 142 76% 36% / 0.1;
@@ -95,6 +95,8 @@
     --oc-highlight-4: 220 10% 50%;
     --oc-strike-col-bg: 220 15% 95%;
     --oc-totals-row-bg: 220 15% 90%;
+
+    --itmRow-color: hsl(var(--muted) / 0.5);
   }
 
   .dark {
@@ -159,7 +161,7 @@
     --call-color: 190 80% 50%;
     --put-color: 0 62% 50%;
     --atm-highlight: 45 93% 50% / 0.3;
-    
+
     /* Option Chain Table Design System */
     --oc-call-header-bg: 0 62% 50% / 0.1;
     --oc-put-header-bg: 142 70% 45% / 0.1;
@@ -190,32 +192,35 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased text-[11px];
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
 
   h1 {
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     @apply text-xl;
   }
-  
+
   h2 {
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
     @apply text-lg;
   }
-  
-  h3, h4, h5, h6 {
-    font-family: 'Outfit', sans-serif;
+
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: "Outfit", sans-serif;
     @apply text-sm;
   }
 }
 
 @layer utilities {
   .font-heading {
-    font-family: 'Outfit', sans-serif;
+    font-family: "Outfit", sans-serif;
   }
 
   .font-body {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
   }
 
   .text-gradient {
