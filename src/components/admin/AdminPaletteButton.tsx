@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export function AdminPaletteButton() {
   const { user } = useAuth();
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
