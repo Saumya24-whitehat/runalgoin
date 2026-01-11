@@ -369,14 +369,20 @@ export function Navbar() {
                       </div>
                     )}
                   </>
-                ) : (
-                  <a
-                    href="#"
+                ) : item.path ? (
+                  <Link
+                    to={item.path}
+                    onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                   >
                     {item.icon && <item.icon className="h-5 w-5 text-primary" />}
                     <span className="font-medium">{item.label}</span>
-                  </a>
+                  </Link>
+                ) : (
+                  <span className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors opacity-60 cursor-not-allowed">
+                    {item.icon && <item.icon className="h-5 w-5 text-primary" />}
+                    <span className="font-medium">{item.label}</span>
+                  </span>
                 )}
               </div>
             ))}

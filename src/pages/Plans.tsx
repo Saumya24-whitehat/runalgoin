@@ -1,9 +1,14 @@
-import { Check, X, Crown, Zap, TrendingUp, BarChart3, PieChart, Activity, Target, Layers, LineChart, Sparkles, Shield, Clock } from "lucide-react";
+import { useState } from "react";
+import { Check, X, Crown, Zap, TrendingUp, BarChart3, PieChart, Activity, Target, Layers, LineChart, Sparkles, Shield, Clock, Settings } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useSubscription } from "@/hooks/useSubscription";
+import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionManager";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const features = [
   {
@@ -116,6 +121,22 @@ const plans = [
 ];
 
 export default function Plans() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+
+  const handlePlanAction = (planName: string) => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    // For now, just show a message - payment integration can be added later
+    if (planName === "Pro" && !isPro) {
+      // Could integrate with payment gateway here
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-50">
@@ -124,6 +145,61 @@ export default function Plans() {
       </div>
 
       <main>
+        {/* Admin Panel */}
+        {isAdmin && (
+          <div className="container mx-auto px-4 pt-6">
+            <div className="flex items-center justify-between bg-primary/10 border border-primary/30 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <Shield className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-semibold text-foreground">Admin Access</p>
+                  <p className="text-sm text-muted-foreground">Manage user subscriptions</p>
+                </div>
+              </div>
+              <Button onClick={() => setShowAdminPanel(true)} className="gap-2">
+                <Settings className="h-4 w-4" />
+                Manage Users
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Current Plan Status */}
+        {user && (
+          <div className="container mx-auto px-4 pt-6">
+            <div className={`flex items-center justify-between rounded-xl p-4 ${
+              isPro 
+                ? "bg-primary/10 border border-primary/30" 
+                : "bg-secondary border border-border"
+            }`}>
+              <div className="flex items-center gap-3">
+                {isPro ? (
+                  <Crown className="h-6 w-6 text-primary" />
+                ) : (
+                  <Zap className="h-6 w-6 text-muted-foreground" />
+                )}
+                <div>
+                  <p className="font-semibold text-foreground">
+                    {subLoading ? "Loading..." : `Your Plan: ${subscription?.plan_type?.toUpperCase() || "FREE"}`}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    {isPro 
+                      ? `Active until ${subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString() : "Forever"}`
+                      : "Upgrade to unlock all features"
+                    }
+                  </p>
+                </div>
+              </div>
+              {isPro && (
+                <Badge className="bg-primary/20 text-primary border-primary/30">
+                  <Crown className="h-3 w-3 mr-1" />
+                  Active
+                </Badge>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Hero Section */}
         <section className="relative py-20 overflow-hidden">
           {/* Background gradient */}
@@ -206,14 +282,30 @@ export default function Plans() {
                   <Button
                     variant={plan.ctaVariant}
                     size="lg"
+                    onClick={() => handlePlanAction(plan.name)}
+                    disabled={
+                      (plan.name === "Pro" && isPro) || 
+                      (plan.name === "Free" && !isPro)
+                    }
                     className={`w-full text-lg py-6 ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
                         : ""
+                    } ${
+                      (plan.name === "Pro" && isPro) ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
                     {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
-                    {plan.cta}
+                    {plan.name === "Pro" && isPro ? (
+                      <>
+                        <Check className="h-5 w-5 mr-2" />
+                        Current Plan
+                      </>
+                    ) : plan.name === "Free" && !isPro ? (
+                      "Current Plan"
+                    ) : (
+                      plan.cta
+                    )}
                   </Button>
                 </div>
               ))}
@@ -348,6 +440,12 @@ export default function Plans() {
       </main>
 
       <Footer />
+
+      {/* Admin Panel Modal */}
+      <UserSubscriptionManager
+        isOpen={showAdminPanel}
+        onClose={() => setShowAdminPanel(false)}
+      />
     </div>
   );
 }
