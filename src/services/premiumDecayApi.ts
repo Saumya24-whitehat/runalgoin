@@ -6,6 +6,7 @@ export interface PremiumDecayStrikesResponse {
   date: string;
   strikes: number[];
   atm: number;
+  MorningAtmStrike?: number;
 }
 
 export interface PremiumDecayDataEntry {

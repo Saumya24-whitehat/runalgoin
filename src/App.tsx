@@ -39,6 +39,7 @@ import AllSectors from "./pages/AllSectors";
 import SectorAnalysis from "./pages/SectorAnalysis";
 import IndexDetail from "./pages/IndexDetail";
 import StockDetail from "./pages/StockDetail";
+import Plans from "./pages/Plans";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -92,6 +93,7 @@ const App = () => (
               <Route path="/sector-analysis" element={<SectorAnalysis />} />
               <Route path="/index-detail" element={<IndexDetail />} />
               <Route path="/stock-detail" element={<StockDetail />} />
+              <Route path="/plans" element={<Plans />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
