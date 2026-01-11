@@ -93,6 +93,7 @@ const navItems: NavItem[] = [
           { icon: Calculator, label: "TOI", iconColor: "text-emerald-500", path: "/toi" },
           { icon: BarChart3, label: "PCR All Strikes", iconColor: "text-emerald-500", path: "/pcr-all-strikes" },
           { icon: Target, label: "Max Pain", iconColor: "text-red-500", path: "/max-pain" },
+          { icon: Target, label: "Premium Erosion", iconColor: "text-red-500", path: "/premium-decay" },
         ],
       },
       {
