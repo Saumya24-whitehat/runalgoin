@@ -96,7 +96,8 @@
     --oc-strike-col-bg: 220 15% 95%;
     --oc-totals-row-bg: 220 15% 90%;
 
-    --itmRow-color: hsl(var(--muted) / 0.5);
+    --itmCEColor: hsl(var(--muted) / 0.5);
+    --itmPEColor: hsl(var(--muted) / 0.5);
   }
 
   .dark {
@@ -182,6 +183,9 @@
     --oc-highlight-4: 220 10% 50%;
     --oc-strike-col-bg: 220 25% 12%;
     --oc-totals-row-bg: 220 20% 15%;
+
+    --itmCEColor: #450a0a4d;
+    --itmPEColor: #022c224d;
   }
 }
 

@@ -752,7 +752,7 @@ const OptionChain = () => {
                             {viewMode === "ltp_oi" && (
                               <>
                                 <TableCell
-                                  className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
+                                  className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
                                 >
                                   <span className={getCellColor(callOIChange)}>
                                     {formatOI(row.call_options.market_data.oi)}
@@ -762,11 +762,11 @@ const OptionChain = () => {
                                     {callOIChange.toFixed(2)}%
                                   </div>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   <span className={getCellColor(callCOI)}>{formatNumber(callCOI)}</span>
                                 </TableCell>
                                 <TableCell
-                                  className={`text-center text-xs py-2 font-medium ${callITM ? "bg-muted/50" : ""}`}
+                                  className={`text-center text-xs py-2 font-medium ${callITM ? "ceITMCell" : ""}`}
                                 >
                                   <span
                                     className={getCellColor(
@@ -776,7 +776,7 @@ const OptionChain = () => {
                                     {row.call_options.market_data.ltp.toFixed(2)}
                                   </span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   <span className={getCellColor(callLTPChange)}>
                                     {callLTPChange >= 0 ? "+" : ""}
                                     {callLTPChange.toFixed(2)}%
@@ -787,33 +787,33 @@ const OptionChain = () => {
                             {viewMode === "oi_iv" && (
                               <>
                                 <TableCell
-                                  className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
+                                  className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
                                 >
                                   {formatOI(row.call_options.market_data.oi)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   <span className={getCellColor(callCOI)}>{formatNumber(callCOI)}</span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {formatNumber(row.call_options.market_data.volume)}
                                 </TableCell>
                               </>
                             )}
                             {viewMode === "ltp_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.market_data.ltp.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.theta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.vega.toFixed(4)}
                                 </TableCell>
                               </>
@@ -821,17 +821,17 @@ const OptionChain = () => {
                             {viewMode === "oi_greeks" && (
                               <>
                                 <TableCell
-                                  className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
+                                  className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
                                 >
                                   {formatOI(row.call_options.market_data.oi)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.gamma.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${callITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
                               </>
@@ -850,14 +850,14 @@ const OptionChain = () => {
                             {/* Put Data */}
                             {viewMode === "ltp_oi" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   <span className={getCellColor(putLTPChange)}>
                                     {putLTPChange >= 0 ? "+" : ""}
                                     {putLTPChange.toFixed(2)}%
                                   </span>
                                 </TableCell>
                                 <TableCell
-                                  className={`text-center text-xs py-2 font-medium ${putITM ? "bg-muted/50" : ""}`}
+                                  className={`text-center text-xs py-2 font-medium ${putITM ? "peITMCell" : ""}`}
                                 >
                                   <span
                                     className={getCellColor(
@@ -867,11 +867,11 @@ const OptionChain = () => {
                                     {row.put_options.market_data.ltp.toFixed(2)}
                                   </span>
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   <span className={getCellColor(putCOI)}>{formatNumber(putCOI)}</span>
                                 </TableCell>
                                 <TableCell
-                                  className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
+                                  className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
                                 >
                                   <span className={getCellColor(putOIChange)}>
                                     {formatOI(row.put_options.market_data.oi)}
@@ -885,17 +885,17 @@ const OptionChain = () => {
                             )}
                             {viewMode === "oi_iv" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {formatNumber(row.put_options.market_data.volume)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   <span className={getCellColor(putCOI)}>{formatNumber(putCOI)}</span>
                                 </TableCell>
                                 <TableCell
-                                  className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
+                                  className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
                                 >
                                   {formatOI(row.put_options.market_data.oi)}
                                 </TableCell>
@@ -903,33 +903,33 @@ const OptionChain = () => {
                             )}
                             {viewMode === "ltp_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.vega.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.theta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.market_data.ltp.toFixed(2)}
                                 </TableCell>
                               </>
                             )}
                             {viewMode === "oi_greeks" && (
                               <>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.gamma.toFixed(4)}
                                 </TableCell>
-                                <TableCell className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""}`}>
+                                <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
                                   {row.put_options.option_greeks.delta.toFixed(4)}
                                 </TableCell>
                                 <TableCell
-                                  className={`text-center text-xs py-2 ${putITM ? "bg-muted/50" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
+                                  className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
                                 >
                                   {formatOI(row.put_options.market_data.oi)}
                                 </TableCell>
