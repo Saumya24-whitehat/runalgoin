@@ -211,17 +211,11 @@
     @apply text-sm;
   }
 
-  .dark.ceITMCell {
-    background-color: #450a0a4d;
+  .ceITMCell {
+    background-color: hsla(var(--oc-call-itm-bg));
   }
-  .dark.peITMCell {
-    background-color: #022c224d;
-  }
-  .light.ceITMCell {
-    background-color: hsl(var(--muted) / 0.5);
-  }
-  .light.peITMCell {
-    background-color: hsl(var(--muted) / 0.5);
+  .peITMCell {
+    background-color: hsla(var(--oc-call-itm-bg));
   }
 }
 
