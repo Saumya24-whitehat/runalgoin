@@ -78,8 +78,8 @@
     /* Option Chain Table Design System */
     --oc-call-header-bg: 0 72% 51% / 0.1;
     --oc-put-header-bg: 142 76% 36% / 0.1;
-    --oc-call-itm-bg: 220 15% 94% 0.3;
-    --oc-put-itm-bg: 220 15% 94% 0.3;
+    --oc-call-itm-bg: 220 15% 94%;
+    --oc-put-itm-bg: 220 15% 94%;
     --oc-atm-bg: 45 93% 47% / 0.2;
     --oc-atm-text: 45 93% 55%;
     --oc-header-bg: 220 15% 92%;
@@ -163,8 +163,8 @@
     /* Option Chain Table Design System */
     --oc-call-header-bg: 0 62% 50% / 0.1;
     --oc-put-header-bg: 142 70% 45% / 0.1;
-    --oc-call-itm-bg: 0 62% 30% 0.3;
-    --oc-put-itm-bg: 142 70% 25% 0.3;
+    --oc-call-itm-bg: 0 62% 30%;
+    --oc-put-itm-bg: 142 70% 25%;
     --oc-atm-bg: 45 93% 50% / 0.2;
     --oc-atm-text: 45 93% 60%;
     --oc-header-bg: 220 20% 15%;
