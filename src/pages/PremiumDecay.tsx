@@ -422,7 +422,7 @@ const PremiumDecay = () => {
             {/* Premium Decay Chart */}
             <Card className="bg-card/50 border-border/50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Premium Decay Chart</CardTitle>
+                <CardTitle className="text-lg">Premium Erosion Chart</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
