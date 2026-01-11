@@ -131,7 +131,7 @@ const GreeksChart = () => {
 
         // Select ATM strike (middle of the list)
         if (strikeList.length > 0) {
-          const midIndex = Math.floor(strikeList.length / 2);
+          const midIndex = strikeList.indexOf(data.MorningAtmStrike);
           setSelectedStrike(strikeList[midIndex]);
         }
       } catch (err) {
