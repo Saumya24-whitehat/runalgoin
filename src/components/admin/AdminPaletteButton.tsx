@@ -39,6 +39,7 @@ export function AdminPaletteButton() {
     checkAdminRole();
   }, [user]);
 
+  console.log(isAdmin);
   // Don't render anything if not admin or still loading
   if (loading || !isAdmin) {
     return null;
