@@ -1,5 +1,21 @@
 import { useState } from "react";
-import { Check, X, Crown, Zap, TrendingUp, BarChart3, PieChart, Activity, Target, Layers, LineChart, Sparkles, Shield, Clock, Settings } from "lucide-react";
+import {
+  Check,
+  X,
+  Crown,
+  Zap,
+  TrendingUp,
+  BarChart3,
+  PieChart,
+  Activity,
+  Target,
+  Layers,
+  LineChart,
+  Sparkles,
+  Shield,
+  Clock,
+  Settings,
+} from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
@@ -82,17 +98,8 @@ const plans = [
     description: "Get started with essential tools",
     highlight: false,
     badge: null,
-    features: [
-      "Option Chain data",
-      "Basic PCR Analysis",
-      "PCR All Strikes",
-      "Limited refreshes",
-    ],
-    limitations: [
-      "No advanced analytics",
-      "No screeners",
-      "Basic support",
-    ],
+    features: ["Option Chain data", "Basic PCR Analysis", "PCR All Strikes", "Limited refreshes"],
+    limitations: ["No advanced analytics", "No screeners", "Basic support"],
     cta: "Get Started",
     ctaVariant: "outline" as const,
   },
@@ -164,42 +171,6 @@ export default function Plans() {
           </div>
         )}
 
-        {/* Current Plan Status */}
-        {user && (
-          <div className="container mx-auto px-4 pt-6">
-            <div className={`flex items-center justify-between rounded-xl p-4 ${
-              isPro 
-                ? "bg-primary/10 border border-primary/30" 
-                : "bg-secondary border border-border"
-            }`}>
-              <div className="flex items-center gap-3">
-                {isPro ? (
-                  <Crown className="h-6 w-6 text-primary" />
-                ) : (
-                  <Zap className="h-6 w-6 text-muted-foreground" />
-                )}
-                <div>
-                  <p className="font-semibold text-foreground">
-                    {subLoading ? "Loading..." : `Your Plan: ${subscription?.plan_type?.toUpperCase() || "FREE"}`}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {isPro 
-                      ? `Active until ${subscription?.expires_at ? new Date(subscription.expires_at).toLocaleDateString() : "Forever"}`
-                      : "Upgrade to unlock all features"
-                    }
-                  </p>
-                </div>
-              </div>
-              {isPro && (
-                <Badge className="bg-primary/20 text-primary border-primary/30">
-                  <Crown className="h-3 w-3 mr-1" />
-                  Active
-                </Badge>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* Hero Section */}
         <section className="relative py-20 overflow-hidden">
           {/* Background gradient */}
@@ -218,8 +189,8 @@ export default function Plans() {
                 <span className="text-primary block mt-2">Trading Edge</span>
               </h1>
               <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-                Unlock powerful analytics tools designed for serious options traders. 
-                Start free and upgrade when you're ready.
+                Unlock powerful analytics tools designed for serious options traders. Start free and upgrade when you're
+                ready.
               </p>
             </div>
           </div>
@@ -248,13 +219,9 @@ export default function Plans() {
                   )}
 
                   <div className="text-center mb-8 pt-4">
-                    <h3 className="font-heading text-2xl font-bold text-foreground mb-2">
-                      {plan.name}
-                    </h3>
+                    <h3 className="font-heading text-2xl font-bold text-foreground mb-2">{plan.name}</h3>
                     <div className="flex items-baseline justify-center gap-1 mb-2">
-                      <span className="text-5xl font-bold text-foreground font-heading">
-                        {plan.price}
-                      </span>
+                      <span className="text-5xl font-bold text-foreground font-heading">{plan.price}</span>
                       <span className="text-muted-foreground text-lg">/{plan.period}</span>
                     </div>
                     <p className="text-muted-foreground">{plan.description}</p>
@@ -283,17 +250,12 @@ export default function Plans() {
                     variant={plan.ctaVariant}
                     size="lg"
                     onClick={() => handlePlanAction(plan.name)}
-                    disabled={
-                      (plan.name === "Pro" && isPro) || 
-                      (plan.name === "Free" && !isPro)
-                    }
+                    disabled={(plan.name === "Pro" && isPro) || (plan.name === "Free" && !isPro)}
                     className={`w-full text-lg py-6 ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
                         : ""
-                    } ${
-                      (plan.name === "Pro" && isPro) ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
+                    } ${plan.name === "Pro" && isPro ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
                     {plan.name === "Pro" && isPro ? (
@@ -332,9 +294,7 @@ export default function Plans() {
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                       <category.icon className="h-5 w-5 text-primary" />
                     </div>
-                    <h3 className="font-heading text-lg font-semibold text-foreground">
-                      {category.category}
-                    </h3>
+                    <h3 className="font-heading text-lg font-semibold text-foreground">{category.category}</h3>
                   </div>
 
                   <div className="divide-y divide-border">
@@ -391,27 +351,21 @@ export default function Plans() {
                   <Shield className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">Secure Payments</h3>
-                <p className="text-sm text-muted-foreground">
-                  256-bit SSL encryption for all transactions
-                </p>
+                <p className="text-sm text-muted-foreground">256-bit SSL encryption for all transactions</p>
               </div>
               <div className="text-center p-6">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <Clock className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">Instant Access</h3>
-                <p className="text-sm text-muted-foreground">
-                  Get immediate access to all Pro features
-                </p>
+                <p className="text-sm text-muted-foreground">Get immediate access to all Pro features</p>
               </div>
               <div className="text-center p-6">
                 <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                   <LineChart className="h-7 w-7 text-primary" />
                 </div>
                 <h3 className="font-heading font-semibold text-foreground mb-2">Real-time Data</h3>
-                <p className="text-sm text-muted-foreground">
-                  Live market data with auto-refresh
-                </p>
+                <p className="text-sm text-muted-foreground">Live market data with auto-refresh</p>
               </div>
             </div>
           </div>
@@ -420,9 +374,7 @@ export default function Plans() {
         {/* CTA Section */}
         <section className="py-16 bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10">
           <div className="container mx-auto px-4 text-center">
-            <h2 className="font-heading text-3xl font-bold text-foreground mb-4">
-              Ready to Level Up Your Trading?
-            </h2>
+            <h2 className="font-heading text-3xl font-bold text-foreground mb-4">Ready to Level Up Your Trading?</h2>
             <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join thousands of traders who are already using our advanced analytics tools
             </p>
@@ -442,10 +394,7 @@ export default function Plans() {
       <Footer />
 
       {/* Admin Panel Modal */}
-      <UserSubscriptionManager
-        isOpen={showAdminPanel}
-        onClose={() => setShowAdminPanel(false)}
-      />
+      <UserSubscriptionManager isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
     </div>
   );
 }
