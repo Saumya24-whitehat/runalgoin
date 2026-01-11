@@ -208,8 +208,9 @@ export function TableStyleSettings({ isOpen, onClose }: TableStyleSettingsProps)
             maxOiPut: "142 70% 40% / 0.2",
             negative: "0 72% 51%",
             positive: "142 76% 36%",
-            putItmBg: "142 70% 25% / 0.3",
-            callItmBg: "0 72% 30% / 0.3",
+
+            callItmBg: "220 15% 94% 0.3",
+            putItmBg: "220 15% 94% 0.3",
             maxOiCall: "190 80% 45% / 0.2",
             highlight2: "38 92% 50%",
             highlight3: "330 81% 60%",
@@ -227,8 +228,8 @@ export function TableStyleSettings({ isOpen, onClose }: TableStyleSettingsProps)
             maxOiPut: "142 70% 45% / 0.2",
             negative: "0 62% 50%",
             positive: "142 70% 45%",
-            putItmBg: "143 90% 47% / 0.3",
-            callItmBg: "0 62% 30% / 0.3",
+            callItmBg: "0 62% 30% 0.3",
+            putItmBg: "142 70% 25% 0.3",
             maxOiCall: "190 80% 50% / 0.2",
             highlight2: "38 92% 50%",
             highlight3: "330 81% 60%",
@@ -468,15 +469,16 @@ export function useTableStyles() {
   useEffect(() => {
     const loadAndApplyStyles = async () => {
       try {
-        var data = {
+        const data = {
           light_config: {
             atmBg: "45 93% 47% / 0.2",
             atmText: "45 93% 55%",
             maxOiPut: "142 70% 40% / 0.2",
             negative: "0 72% 51%",
             positive: "142 76% 36%",
-            putItmBg: "142 70% 25% / 0.3",
-            callItmBg: "0 72% 30% / 0.3",
+
+            callItmBg: "220 15% 94% 0.3",
+            putItmBg: "220 15% 94% 0.3",
             maxOiCall: "190 80% 45% / 0.2",
             highlight2: "38 92% 50%",
             highlight3: "330 81% 60%",
@@ -494,8 +496,8 @@ export function useTableStyles() {
             maxOiPut: "142 70% 45% / 0.2",
             negative: "0 62% 50%",
             positive: "142 70% 45%",
-            putItmBg: "143 90% 47% / 0.3",
-            callItmBg: "0 62% 30% / 0.3",
+            callItmBg: "0 62% 30% 0.3",
+            putItmBg: "142 70% 25% 0.3",
             maxOiCall: "190 80% 50% / 0.2",
             highlight2: "38 92% 50%",
             highlight3: "330 81% 60%",
