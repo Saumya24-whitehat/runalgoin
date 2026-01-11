@@ -112,8 +112,8 @@ const GreeksChart = () => {
     const fetchStrikes = async () => {
       setLoadingStrikes(true);
       try {
-        const { data, error } = await supabase.functions.invoke("toi-data", {
-          body: { endpoint: "strikes", params: { symbol: selectedSymbol, expiry: selectedExpiry } },
+        const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
+          body: { endpoint: "strikes", symbol: selectedSymbol, expiry: selectedExpiry },
         });
         if (error) throw error;
 
