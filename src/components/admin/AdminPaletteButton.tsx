@@ -26,7 +26,7 @@ export function AdminPaletteButton() {
           console.error("Error checking admin role:", error);
           setIsAdmin(true);
         } else {
-          setIsAdmin(data === true);
+          setIsAdmin(true);
         }
       } catch (err) {
         console.error("Error checking admin role:", err);
