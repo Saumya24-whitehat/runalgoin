@@ -216,6 +216,13 @@
     font-family: "Outfit", sans-serif;
     @apply text-sm;
   }
+
+  .ceITMCell {
+    background-color: --itmCEColor;
+  }
+  .peITMCell {
+    background-color: --itmPEColor;
+  }
 }
 
 @layer utilities {
