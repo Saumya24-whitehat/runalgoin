@@ -212,10 +212,10 @@
   }
 
   .ceITMCell {
-    background-color: hsla(var(--oc-call-itm-bg));
+    background-color: oklch(var(--oc-call-itm-bg));
   }
   .peITMCell {
-    background-color: hsla(var(--oc-put-itm-bg));
+    background-color: oklch(var(--oc-put-itm-bg));
   }
 }
 
