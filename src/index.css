@@ -95,9 +95,6 @@
     --oc-highlight-4: 220 10% 50%;
     --oc-strike-col-bg: 220 15% 95%;
     --oc-totals-row-bg: 220 15% 90%;
-
-    --itmCEColor: hsl(var(--muted) / 0.5);
-    --itmPEColor: hsl(var(--muted) / 0.5);
   }
 
   .dark {
@@ -183,9 +180,6 @@
     --oc-highlight-4: 220 10% 50%;
     --oc-strike-col-bg: 220 25% 12%;
     --oc-totals-row-bg: 220 20% 15%;
-
-    --itmCEColor: #450a0a4d;
-    --itmPEColor: #022c224d;
   }
 }
 
@@ -217,11 +211,17 @@
     @apply text-sm;
   }
 
-  .ceITMCell {
-    background-color: --itmCEColor;
+  .dark.ceITMCell {
+    background-color: #450a0a4d;
   }
-  .peITMCell {
-    background-color: --itmPEColor;
+  .dark.peITMCell {
+    background-color: #022c224d;
+  }
+  .light.ceITMCell {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+  .light.peITMCell {
+    background-color: hsl(var(--muted) / 0.5);
   }
 }
 
