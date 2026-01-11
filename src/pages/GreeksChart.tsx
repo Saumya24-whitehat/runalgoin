@@ -20,15 +20,15 @@ const GreeksChart = () => {
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [strikes, setStrikes] = useState<number[]>([]);
-  
+
   const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState("");
   const [selectedStrike, setSelectedStrike] = useState(0);
   const [selectedTimeframe, setSelectedTimeframe] = useState("3min");
   const [activeTab, setActiveTab] = useState("combined");
-  
+
   const [greeksData, setGreeksData] = useState<ParsedGreeksData | null>(null);
-  
+
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingStrikes, setLoadingStrikes] = useState(false);
@@ -42,7 +42,7 @@ const GreeksChart = () => {
           body: { endpoint: "symbols" },
         });
         if (error) throw error;
-        
+
         const indexSymbols = data?.["index symbols"] || [];
         const stockSymbols = data?.symbols || [];
         setSymbols({ indexSymbols, stockSymbols });
@@ -63,7 +63,7 @@ const GreeksChart = () => {
   // Fetch expiry dates when symbol changes
   useEffect(() => {
     if (!selectedSymbol) return;
-    
+
     const fetchExpiry = async () => {
       setLoadingExpiry(true);
       setSelectedExpiry("");
@@ -74,7 +74,7 @@ const GreeksChart = () => {
           body: { endpoint: "expiry", params: { symbol: selectedSymbol } },
         });
         if (error) throw error;
-        
+
         let dates: string[] = [];
         if (Array.isArray(data)) {
           dates = data;
@@ -85,9 +85,9 @@ const GreeksChart = () => {
         } else if (data?.data && Array.isArray(data.data)) {
           dates = data.data;
         }
-        
+
         setExpiryDates(dates);
-        
+
         if (dates.length > 0) {
           setSelectedExpiry(dates[0]);
         }
@@ -108,15 +108,15 @@ const GreeksChart = () => {
   // Fetch strikes when expiry changes
   useEffect(() => {
     if (!selectedSymbol || !selectedExpiry) return;
-    
+
     const fetchStrikes = async () => {
       setLoadingStrikes(true);
       try {
-        const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
+        const { data, error } = await supabase.functions.invoke("toi-data", {
           body: { endpoint: "strikes", params: { symbol: selectedSymbol, expiry: selectedExpiry } },
         });
         if (error) throw error;
-        
+
         let strikeList: number[] = [];
         if (Array.isArray(data)) {
           strikeList = data.map(Number).filter((n: number) => !isNaN(n));
@@ -125,10 +125,10 @@ const GreeksChart = () => {
         } else if (data?.data && Array.isArray(data.data)) {
           strikeList = data.data.map(Number).filter((n: number) => !isNaN(n));
         }
-        
+
         strikeList.sort((a, b) => a - b);
         setStrikes(strikeList);
-        
+
         // Select ATM strike (middle of the list)
         if (strikeList.length > 0) {
           const midIndex = Math.floor(strikeList.length / 2);
@@ -150,15 +150,10 @@ const GreeksChart = () => {
 
   const handleGo = useCallback(async () => {
     if (!selectedSymbol || !selectedExpiry || !selectedStrike) return;
-    
+
     setLoadingData(true);
     try {
-      const data = await fetchCombinedGreeksData(
-        selectedSymbol,
-        selectedExpiry,
-        selectedStrike,
-        selectedTimeframe
-      );
+      const data = await fetchCombinedGreeksData(selectedSymbol, selectedExpiry, selectedStrike, selectedTimeframe);
       setGreeksData(data);
     } catch (err) {
       console.error("Error fetching Greeks data:", err);
@@ -185,7 +180,7 @@ const GreeksChart = () => {
         <TickerRibbon />
         <Navbar />
       </div>
-      
+
       <main className="container py-6 space-y-6">
         {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
@@ -217,7 +212,7 @@ const GreeksChart = () => {
             <TabsTrigger value="combined">Combined Chart</TabsTrigger>
             <TabsTrigger value="individual">Individual Charts</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="combined" className="mt-4">
             <CombinedGreeksChart
               symbol={selectedSymbol}
@@ -227,7 +222,7 @@ const GreeksChart = () => {
               putData={greeksData?.putData || []}
             />
           </TabsContent>
-          
+
           <TabsContent value="individual" className="mt-4">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <IndividualGreeksChart
