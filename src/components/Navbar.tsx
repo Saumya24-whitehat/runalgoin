@@ -162,6 +162,7 @@ const navItems: NavItem[] = [
     label: "Plans",
     icon: Crown,
     hasDropdown: false,
+    path: "/plans",
   },
   {
     label: "Algo",
