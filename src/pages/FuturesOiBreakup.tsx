@@ -355,7 +355,7 @@ export default function FuturesOiBreakup() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {processedData.map((row, idx) => (
+                        {processedData.reverse().map((row, idx) => (
                           <TableRow key={idx}>
                             <TableCell className="font-medium">{format(new Date(row.time), "HH:mm")}</TableCell>
                             <TableCell className="text-right">{formatNumber(row.oi)}</TableCell>
