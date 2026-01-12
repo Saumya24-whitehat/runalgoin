@@ -25,19 +25,19 @@ export interface FutureOiBreakupResponse {
 
 export async function fetchFutureOiBreakup(symbol: string, expiryDate: string): Promise<FutureOiBreakupResponse> {
   const url = `https://runalgo.xyz/data/calculateFutureData.php?symbol=${encodeURIComponent(symbol)}&expiry_date=${encodeURIComponent(expiryDate)}`;
-  
+
   const response = await fetch(url);
-  
+
   if (!response.ok) {
     throw new Error(`Failed to fetch future OI data: ${response.statusText}`);
   }
-  
+
   const rawData = await response.json();
-  
+
   // Transform the data from the API format
   const dataWhole = rawData.dataWhole || {};
   const date = rawData.date || "";
-  
+
   const data: FutureOiDataPoint[] = Object.entries(dataWhole).map(([time, values]: [string, any]) => ({
     time,
     open: values.Open || 0,
@@ -55,10 +55,10 @@ export async function fetchFutureOiBreakup(symbol: string, expiryDate: string): 
     cumulativeVolume: values.Cumulative_Volume || 0,
     vwap: values.VWAP || 0,
   }));
-  
+
   // Sort by time
   data.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
-  
+
   return { data, date };
 }
 
@@ -75,39 +75,46 @@ export interface ProcessedFutureOiData extends FutureOiDataPoint {
 
 export function processFutureOiData(data: FutureOiDataPoint[]): ProcessedFutureOiData[] {
   if (data.length === 0) return [];
-  
+
   const firstRow = data[0];
   let runningDayHigh = firstRow.high;
   let runningDayLow = firstRow.low;
   const firstOi = firstRow.oi;
-  
+
   return data.map((row, index) => {
     const prevRow = index > 0 ? data[index - 1] : null;
-    
-    // Update running day high/low
-    runningDayHigh = Math.max(runningDayHigh, row.high);
-    runningDayLow = Math.min(runningDayLow, row.low);
-    
+
+    // Flags before updating running values
+    let isNewDayHigh = false;
+    let isNewDayLow = false;
+
+    // Check & update running Day High
+    if (row.high > runningDayHigh) {
+      runningDayHigh = row.high;
+      isNewDayHigh = true;
+    }
+
+    // Check & update running Day Low
+    if (row.low < runningDayLow) {
+      runningDayLow = row.low;
+      isNewDayLow = true;
+    }
+
     // Calculate OI changes
     const oiChange = prevRow ? row.oi - prevRow.oi : 0;
     const totalOiChange = row.oi - firstOi;
     const totalOiChangePercent = firstOi > 0 ? (totalOiChange / firstOi) * 100 : 0;
-    
-    // Calculate price change from previous close
+
+    // Price change
     const priceChange = row.close - row.previousClose;
-    
+
     // Determine buildup
     let buildup = "Neutral";
-    if (oiChange > 0 && priceChange > 0) {
-      buildup = "Long Buildup";
-    } else if (oiChange > 0 && priceChange < 0) {
-      buildup = "Short Buildup";
-    } else if (oiChange < 0 && priceChange > 0) {
-      buildup = "Short Covering";
-    } else if (oiChange < 0 && priceChange < 0) {
-      buildup = "Long Unwinding";
-    }
-    
+    if (oiChange > 0 && priceChange > 0) buildup = "Long Buildup";
+    else if (oiChange > 0 && priceChange < 0) buildup = "Short Buildup";
+    else if (oiChange < 0 && priceChange > 0) buildup = "Short Covering";
+    else if (oiChange < 0 && priceChange < 0) buildup = "Long Unwinding";
+
     return {
       ...row,
       totalOiChange,
@@ -117,6 +124,8 @@ export function processFutureOiData(data: FutureOiDataPoint[]): ProcessedFutureO
       priceChange,
       oiChange,
       buildup,
+      isNewDayHigh,
+      isNewDayLow,
     };
   });
 }
