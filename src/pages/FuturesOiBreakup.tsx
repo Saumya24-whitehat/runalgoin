@@ -230,106 +230,6 @@ export default function FuturesOiBreakup() {
                 </div>
               )}
 
-              {/* Charts */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                {/* Price & VWAP Chart */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <Activity className="h-5 w-5 text-primary" />
-                      {currentSymbolLabel} Price & VWAP
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis
-                            dataKey="time"
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                            axisLine={{ stroke: "hsl(var(--border))" }}
-                          />
-                          <YAxis
-                            domain={["auto", "auto"]}
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                            axisLine={{ stroke: "hsl(var(--border))" }}
-                            tickFormatter={(val) => val.toFixed(0)}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "8px",
-                            }}
-                            labelStyle={{ color: "hsl(var(--foreground))" }}
-                          />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="price"
-                            stroke="hsl(var(--primary))"
-                            strokeWidth={2}
-                            dot={false}
-                            name="Price"
-                          />
-                          <Line
-                            type="monotone"
-                            dataKey="vwap"
-                            stroke="hsl(var(--warning))"
-                            strokeWidth={2}
-                            dot={false}
-                            name="VWAP"
-                            strokeDasharray="5 5"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* OI Chart */}
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-primary" />
-                      Open Interest
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[300px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <ComposedChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis
-                            dataKey="time"
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                            axisLine={{ stroke: "hsl(var(--border))" }}
-                          />
-                          <YAxis
-                            domain={["auto", "auto"]}
-                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
-                            axisLine={{ stroke: "hsl(var(--border))" }}
-                            tickFormatter={(val) => formatNumber(val, 1)}
-                          />
-                          <Tooltip
-                            contentStyle={{
-                              backgroundColor: "hsl(var(--card))",
-                              border: "1px solid hsl(var(--border))",
-                              borderRadius: "8px",
-                            }}
-                            labelStyle={{ color: "hsl(var(--foreground))" }}
-                            formatter={(value: number) => [formatNumber(value), "OI"]}
-                          />
-                          <Legend />
-                          <Bar dataKey="oi" fill="hsl(var(--primary) / 0.6)" name="Open Interest" />
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
               {/* Data Table */}
               <Card>
                 <CardHeader className="pb-2">
@@ -403,6 +303,106 @@ export default function FuturesOiBreakup() {
                   </ScrollArea>
                 </CardContent>
               </Card>
+
+              {/* Charts */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* Price & VWAP Chart */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <Activity className="h-5 w-5 text-primary" />
+                      {currentSymbolLabel} Price & VWAP
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis
+                            dataKey="time"
+                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                            axisLine={{ stroke: "hsl(var(--border))" }}
+                          />
+                          <YAxis
+                            domain={["auto", "auto"]}
+                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                            axisLine={{ stroke: "hsl(var(--border))" }}
+                            tickFormatter={(val) => val.toFixed(0)}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--card))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                            }}
+                            labelStyle={{ color: "hsl(var(--foreground))" }}
+                          />
+                          <Legend />
+                          <Line
+                            type="monotone"
+                            dataKey="price"
+                            stroke="hsl(var(--primary))"
+                            strokeWidth={2}
+                            dot={false}
+                            name="Price"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="vwap"
+                            stroke="blue"
+                            strokeWidth={2}
+                            dot={false}
+                            name="VWAP"
+                            strokeDasharray="5 5"
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* OI Chart */}
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <BarChart3 className="h-5 w-5 text-primary" />
+                      Open Interest
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px]">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <ComposedChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis
+                            dataKey="time"
+                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                            axisLine={{ stroke: "hsl(var(--border))" }}
+                          />
+                          <YAxis
+                            domain={["auto", "auto"]}
+                            tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
+                            axisLine={{ stroke: "hsl(var(--border))" }}
+                            tickFormatter={(val) => formatNumber(val, 1)}
+                          />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "hsl(var(--card))",
+                              border: "1px solid hsl(var(--border))",
+                              borderRadius: "8px",
+                            }}
+                            labelStyle={{ color: "hsl(var(--foreground))" }}
+                            formatter={(value: number) => [formatNumber(value), "OI"]}
+                          />
+                          <Legend />
+                          <Bar dataKey="oi" fill="hsl(var(--primary) / 0.6)" name="Open Interest" />
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             </>
           )}
         </ProFeatureGate>
