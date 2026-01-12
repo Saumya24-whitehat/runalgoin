@@ -91,9 +91,9 @@ export default function FuturesOiBreakup() {
       case "Short Buildup":
         return <Badge className="bg-destructive/20 text-destructive border-destructive/30">{buildup}</Badge>;
       case "Short Covering":
-        return <Badge className="bg-primary/20 text-primary border-primary/30">{buildup}</Badge>;
+        return <Badge className="bg-success/50 text-success border-success/30">{buildup}</Badge>;
       case "Long Unwinding":
-        return <Badge className="bg-warning/20 text-warning border-warning/30">{buildup}</Badge>;
+        return <Badge className="bg-destructive/50 text-destructive border-destructive/30">{buildup}</Badge>;
       default:
         return <Badge variant="secondary">{buildup}</Badge>;
     }
