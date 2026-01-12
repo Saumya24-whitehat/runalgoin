@@ -41,6 +41,7 @@ import IndexDetail from "./pages/IndexDetail";
 import StockDetail from "./pages/StockDetail";
 import Plans from "./pages/Plans";
 import NotFound from "./pages/NotFound";
+import FuturesOiBreakup from "./pages/FuturesOiBreakup";
 
 const queryClient = new QueryClient();
 
@@ -79,6 +80,7 @@ const App = () => (
               <Route path="/future-buildup" element={<FutureBuildup />} />
               <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
               <Route path="/future-rollover" element={<FutureRollover />} />
+              <Route path="/futures-oi-breakup" element={<FuturesOiBreakup />} />
               <Route path="/market-breadth" element={<MarketBreadth />} />
               <Route path="/options-chart" element={<OptionsChart />} />
               <Route path="/greeks-chart" element={<GreeksChart />} />
