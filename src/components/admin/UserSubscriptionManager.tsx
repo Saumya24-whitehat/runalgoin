@@ -25,7 +25,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Crown, Search, Users, Shield, Loader2 } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { Crown, Search, Users, Shield, Loader2, Calendar, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
 
 interface UserWithSubscription {
@@ -49,6 +50,9 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
   const [searchQuery, setSearchQuery] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
   const [updating, setUpdating] = useState<string | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithSubscription | null>(null);
+  const [showExtendDialog, setShowExtendDialog] = useState(false);
+  const [extendDays, setExtendDays] = useState(30);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -110,9 +114,14 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
     }
   };
 
-  const updateUserPlan = async (userId: string, newPlan: string) => {
+  const updateUserPlan = async (userId: string, newPlan: string, customExpiryDays?: number) => {
     setUpdating(userId);
     try {
+      const expiryDays = customExpiryDays ?? 365;
+      const newExpiry = newPlan === "free" 
+        ? null 
+        : new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000).toISOString();
+
       // Check if subscription exists
       const { data: existing } = await supabase
         .from("subscriptions")
@@ -127,7 +136,7 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
           .update({
             plan_type: newPlan,
             status: "active",
-            expires_at: newPlan === "free" ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+            expires_at: newExpiry,
           })
           .eq("user_id", userId);
 
@@ -138,7 +147,7 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
           user_id: userId,
           plan_type: newPlan,
           status: "active",
-          expires_at: newPlan === "free" ? null : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+          expires_at: newExpiry,
         });
 
         if (error) throw error;
@@ -152,19 +161,57 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
                 ...u,
                 plan_type: newPlan,
                 status: "active",
-                expires_at:
-                  newPlan === "free"
-                    ? null
-                    : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(),
+                expires_at: newExpiry,
               }
             : u
         )
       );
 
-      toast.success(`User upgraded to ${newPlan.toUpperCase()} plan`);
+      toast.success(`User upgraded to ${newPlan.toUpperCase()} plan${customExpiryDays ? ` for ${customExpiryDays} days` : ""}`);
     } catch (error) {
       console.error("Error updating plan:", error);
       toast.error("Failed to update user plan");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const extendSubscription = async (userId: string, days: number) => {
+    setUpdating(userId);
+    try {
+      const userSub = users.find(u => u.user_id === userId);
+      if (!userSub) throw new Error("User not found");
+
+      // Calculate new expiry
+      const currentExpiry = userSub.expires_at ? new Date(userSub.expires_at) : new Date();
+      const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+      const newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({
+          expires_at: newExpiry,
+          status: "active",
+        })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === userId
+            ? { ...u, expires_at: newExpiry, status: "active" }
+            : u
+        )
+      );
+
+      toast.success(`Extended subscription by ${days} days`);
+      setShowExtendDialog(false);
+      setSelectedUser(null);
+    } catch (error) {
+      console.error("Error extending subscription:", error);
+      toast.error("Failed to extend subscription");
     } finally {
       setUpdating(null);
     }
@@ -201,6 +248,21 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
     }
   };
 
+  const getExpiryStatus = (expiresAt: string | null) => {
+    if (!expiresAt) return { text: "-", isExpiringSoon: false, isExpired: false };
+    
+    const expiry = new Date(expiresAt);
+    const now = new Date();
+    const daysLeft = Math.ceil((expiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    
+    return {
+      text: expiry.toLocaleDateString(),
+      daysLeft,
+      isExpiringSoon: daysLeft > 0 && daysLeft <= 7,
+      isExpired: daysLeft <= 0,
+    };
+  };
+
   if (!isAdmin) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -217,96 +279,207 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            User Subscription Manager
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-5xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              User Subscription Manager
+            </DialogTitle>
+          </DialogHeader>
 
-        <div className="flex items-center gap-4 mb-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by email or name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Badge variant="outline" className="text-sm">
-            {filteredUsers.length} users
-          </Badge>
-        </div>
-
-        <div className="flex-1 overflow-auto border rounded-lg">
-          {loading ? (
-            <div className="flex items-center justify-center h-40">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
+          <div className="flex items-center gap-4 mb-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by email or name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>User</TableHead>
-                  <TableHead>Current Plan</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Expires</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map((u) => (
-                  <TableRow key={u.user_id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-foreground">{u.name}</p>
-                        <p className="text-sm text-muted-foreground">{u.email}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>{getPlanBadge(u.plan_type)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={u.status === "active" ? "default" : "destructive"}
-                        className={u.status === "active" ? "bg-success/20 text-success border-success/30" : ""}
-                      >
-                        {u.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground text-sm">
-                      {u.expires_at
-                        ? new Date(u.expires_at).toLocaleDateString()
-                        : "-"}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={u.plan_type}
-                        onValueChange={(value) => updateUserPlan(u.user_id, value)}
-                        disabled={updating === u.user_id}
-                      >
-                        <SelectTrigger className="w-32">
-                          {updating === u.user_id ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <SelectValue />
-                          )}
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="free">Free</SelectItem>
-                          <SelectItem value="pro">Pro</SelectItem>
-                          <SelectItem value="enterprise">Enterprise</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
+            <Badge variant="outline" className="text-sm">
+              {filteredUsers.length} users
+            </Badge>
+          </div>
+
+          <div className="flex-1 overflow-auto border rounded-lg">
+            {loading ? (
+              <div className="flex items-center justify-center h-40">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>User</TableHead>
+                    <TableHead>Current Plan</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Expires</TableHead>
+                    <TableHead>Change Plan</TableHead>
+                    <TableHead>Extend</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((u) => {
+                    const expiryStatus = getExpiryStatus(u.expires_at);
+                    return (
+                      <TableRow key={u.user_id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium text-foreground">{u.name}</p>
+                            <p className="text-sm text-muted-foreground">{u.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{getPlanBadge(u.plan_type)}</TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={u.status === "active" ? "default" : "destructive"}
+                            className={u.status === "active" ? "bg-success/20 text-success border-success/30" : ""}
+                          >
+                            {u.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className={`text-sm ${expiryStatus.isExpired ? "text-destructive" : expiryStatus.isExpiringSoon ? "text-warning" : "text-muted-foreground"}`}>
+                              {expiryStatus.text}
+                            </span>
+                            {expiryStatus.daysLeft !== undefined && expiryStatus.daysLeft > 0 && (
+                              <span className="text-xs text-muted-foreground">
+                                {expiryStatus.daysLeft} days left
+                              </span>
+                            )}
+                            {expiryStatus.isExpired && (
+                              <span className="text-xs text-destructive">Expired</span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Select
+                            value={u.plan_type}
+                            onValueChange={(value) => updateUserPlan(u.user_id, value)}
+                            disabled={updating === u.user_id}
+                          >
+                            <SelectTrigger className="w-32">
+                              {updating === u.user_id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <SelectValue />
+                              )}
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="free">Free</SelectItem>
+                              <SelectItem value="pro">Pro</SelectItem>
+                              <SelectItem value="enterprise">Enterprise</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell>
+                          {u.plan_type !== "free" && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedUser(u);
+                                setShowExtendDialog(true);
+                              }}
+                              disabled={updating === u.user_id}
+                              className="gap-1"
+                            >
+                              <Calendar className="h-3 w-3" />
+                              Extend
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Extend Subscription Dialog */}
+      <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Extend Subscription</DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div>
+                <p className="font-medium">{selectedUser.name}</p>
+                <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>Extend by (days)</Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setExtendDays(Math.max(1, extendDays - 30))}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={extendDays}
+                    onChange={(e) => setExtendDays(Math.max(1, parseInt(e.target.value) || 0))}
+                    className="text-center"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setExtendDays(extendDays + 30)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setExtendDays(30)}
+                >
+                  30 days
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setExtendDays(90)}
+                >
+                  90 days
+                </Button>
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => setExtendDays(365)}
+                >
+                  1 year
+                </Button>
+              </div>
+
+              <Button
+                className="w-full"
+                onClick={() => extendSubscription(selectedUser.user_id, extendDays)}
+                disabled={updating === selectedUser.user_id}
+              >
+                {updating === selectedUser.user_id ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Extend by {extendDays} days
+              </Button>
+            </div>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

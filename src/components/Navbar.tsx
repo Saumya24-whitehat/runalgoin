@@ -122,6 +122,7 @@ const navItems: NavItem[] = [
             path: "/future-open-high-low",
           },
           { icon: Activity, label: "Future Rollover", iconColor: "text-emerald-500", path: "/future-rollover" },
+          { icon: BarChart2, label: "Futures OI Breakup", iconColor: "text-primary", path: "/futures-oi-breakup" },
         ],
       },
     ],
