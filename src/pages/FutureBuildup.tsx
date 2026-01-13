@@ -15,6 +15,7 @@ import {
   Info,
 } from "lucide-react";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import {
   PieChart,
   Pie,

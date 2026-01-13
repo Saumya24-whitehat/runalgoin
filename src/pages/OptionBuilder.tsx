@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -545,9 +546,10 @@ const OptionBuilder = () => {
         <TickerRibbon />
         <Navbar />
       </div>
-      {/* Header */}
-      <div className="border-b border-border">
-        <div className="container mx-auto px-4 py-3">
+      <ProFeatureGate featureName="Option Builder">
+        {/* Header */}
+        <div className="border-b border-border">
+          <div className="container mx-auto px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
@@ -825,6 +827,7 @@ const OptionBuilder = () => {
         onLoad={handleLoadStrategy}
         onDelete={handleDeleteStrategy}
       />
+      </ProFeatureGate>
     </div>
   );
 };

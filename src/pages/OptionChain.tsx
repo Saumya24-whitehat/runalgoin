@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 
@@ -379,10 +380,11 @@ const OptionChain = () => {
         <Navbar />
       </div>
 
-      <div className="container mx-auto px-2 sm:px-4 py-4">
-        <Card className="bg-card border-border/30 shadow-xl">
-          <CardContent className="p-3 sm:p-6">
-            {/* Controls */}
+      <ProFeatureGate featureName="Option Chain">
+        <div className="container mx-auto px-2 sm:px-4 py-4">
+          <Card className="bg-card border-border/30 shadow-xl">
+            <CardContent className="p-3 sm:p-6">
+              {/* Controls */}
             <div className="flex flex-wrap gap-3 mb-4 items-end">
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium">Symbol</label>
@@ -947,7 +949,8 @@ const OptionChain = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </ProFeatureGate>
     </div>
   );
 };
