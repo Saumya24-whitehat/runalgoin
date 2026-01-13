@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -424,8 +425,9 @@ const OTR = () => {
           <Navbar />
         </div>
         
-        <main className="container py-6 space-y-6">
-          {/* Controls Card */}
+        <ProFeatureGate featureName="OTR Analysis">
+          <main className="container py-6 space-y-6">
+            {/* Controls Card */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-end">
@@ -807,7 +809,8 @@ const OTR = () => {
               </CardContent>
             </Card>
           )}
-        </main>
+          </main>
+        </ProFeatureGate>
       </div>
     </>
   );

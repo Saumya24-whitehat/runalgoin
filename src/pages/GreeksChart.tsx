@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GreeksChartControls } from "@/components/greeksChart/GreeksChartControls";
@@ -181,8 +182,9 @@ const GreeksChart = () => {
         <Navbar />
       </div>
 
-      <main className="container py-6 space-y-6">
-        {/* Controls Card */}
+      <ProFeatureGate featureName="Greeks Chart">
+        <main className="container py-6 space-y-6">
+          {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4">
             <GreeksChartControls
@@ -242,7 +244,8 @@ const GreeksChart = () => {
             </div>
           </TabsContent>
         </Tabs>
-      </main>
+        </main>
+      </ProFeatureGate>
     </div>
   );
 };

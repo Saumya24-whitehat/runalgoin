@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search, Download, ChevronUp, ChevronDown, ChevronsUpDown, RefreshCw, Pause, Info } from "lucide-react";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

@@ -71,6 +71,8 @@ export interface ProcessedFutureOiData extends FutureOiDataPoint {
   priceChange: number;
   oiChange: number;
   buildup: string;
+  isNewDayHigh: boolean;
+  isNewDayLow: boolean;
 }
 
 export function processFutureOiData(data: FutureOiDataPoint[]): ProcessedFutureOiData[] {

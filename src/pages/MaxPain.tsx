@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -316,8 +317,9 @@ const MaxPain = () => {
         <Navbar />
       </div>
 
-      <main className="container py-4 space-y-4">
-        {/* Controls Card */}
+      <ProFeatureGate featureName="Max Pain Analysis">
+        <main className="container py-4 space-y-4">
+          {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-3">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 items-end">
@@ -780,7 +782,8 @@ const MaxPain = () => {
             </Card>
           </div>
         </div>
-      </main>
+        </main>
+      </ProFeatureGate>
     </div>
   );
 };
