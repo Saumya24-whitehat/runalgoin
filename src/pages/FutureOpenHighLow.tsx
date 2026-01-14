@@ -337,8 +337,9 @@ export default function FutureOpenHighLow() {
         <Navbar />
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Header */}
+      <ProFeatureGate featureName="Future Open High/Low Analysis">
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold">Future Open-High / Open-Low</h1>
@@ -492,8 +493,9 @@ export default function FutureOpenHighLow() {
               "border-emerald-500/30 bg-emerald-500/5",
             )}
           </div>
-        )}
-      </div>
+          )}
+        </div>
+      </ProFeatureGate>
     </div>
   );
 }

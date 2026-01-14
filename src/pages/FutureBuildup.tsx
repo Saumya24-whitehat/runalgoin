@@ -419,8 +419,9 @@ export default function FutureBuildup() {
         <Navbar />
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Header Controls */}
+      <ProFeatureGate featureName="Future Buildup Analysis">
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          {/* Header Controls */}
         <div className="flex flex-wrap items-center gap-4">
           <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
             <SelectTrigger className="w-[180px]">
@@ -607,8 +608,9 @@ export default function FutureBuildup() {
             variant="unwinding"
             searchFilter={searchFilter}
           />
+          </div>
         </div>
-      </div>
+      </ProFeatureGate>
     </div>
   );
 }

@@ -200,8 +200,9 @@ export default function FutureRollover() {
         <Navbar />
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
-        {/* Header Controls */}
+      <ProFeatureGate featureName="Future Rollover Analysis">
+        <div className="container mx-auto px-4 py-6 space-y-6">
+          {/* Header Controls */}
         <div className="flex flex-wrap items-center gap-4">
           <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
             <SelectTrigger className="w-[180px]">
@@ -399,7 +400,8 @@ export default function FutureRollover() {
             Last updated: {new Date(rolloverData.lastUpdated).toLocaleString()}
           </p>
         )}
-      </div>
+        </div>
+      </ProFeatureGate>
     </div>
   );
 }

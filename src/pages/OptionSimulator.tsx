@@ -867,8 +867,9 @@ const OptionSimulator = () => {
         <Navbar />
       </div>
 
-      <main className="flex-1 container mx-auto px-2 py-3">
-        {/* Simulator Toolbar - Responsive */}
+      <ProFeatureGate featureName="Option Simulator">
+        <main className="flex-1 container mx-auto px-2 py-3">
+          {/* Simulator Toolbar - Responsive */}
         <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">
           {/* Mobile: Simplified controls */}
           {isMobile ? (
@@ -1614,6 +1615,7 @@ const OptionSimulator = () => {
         adjustmentRules={adjustmentRules}
         onSaveRules={setAdjustmentRules}
       />
+    </ProFeatureGate>
     </div>
   );
 };

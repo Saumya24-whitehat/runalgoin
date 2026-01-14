@@ -510,8 +510,9 @@ const SupportResistance = () => {
         <Navbar />
       </div>
 
-      <main className="flex-1 p-2 md:p-4">
-        {/* Header Controls */}
+      <ProFeatureGate featureName="Support & Resistance Analysis">
+        <main className="flex-1 p-2 md:p-4">
+          {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">
           <CardContent className="p-3">
             <div className="flex flex-wrap items-center gap-2 md:gap-4">
@@ -1325,6 +1326,7 @@ const SupportResistance = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+    </ProFeatureGate>
     </div>
   );
 };

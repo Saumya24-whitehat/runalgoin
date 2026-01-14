@@ -427,8 +427,9 @@ const OptionsChart = () => {
       <TickerRibbon />
       <Navbar />
 
-      <div className="flex-1 flex flex-col p-4">
-        <div className="flex items-center justify-between mb-4">
+      <ProFeatureGate featureName="Options Chart">
+        <div className="flex-1 flex flex-col p-4">
+          <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-foreground">Options Chart</h1>
             <p className="text-sm text-muted-foreground">Advanced TradingView charting with NSE/NFO data</p>
@@ -478,8 +479,9 @@ const OptionsChart = () => {
             className="w-full  min-h-[600px]"
             style={{ height: "100vh" }}
           />
+          </div>
         </div>
-      </div>
+      </ProFeatureGate>
     </div>
   );
 };
