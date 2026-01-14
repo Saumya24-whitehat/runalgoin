@@ -24,10 +24,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Crown, Search, Users, Shield, Loader2, Calendar, Plus, Minus } from "lucide-react";
+import { Crown, Search, Users, Shield, Loader2, CalendarIcon, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface UserWithSubscription {
   user_id: string;
@@ -53,6 +61,8 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
   const [selectedUser, setSelectedUser] = useState<UserWithSubscription | null>(null);
   const [showExtendDialog, setShowExtendDialog] = useState(false);
   const [extendDays, setExtendDays] = useState(30);
+  const [customEndDate, setCustomEndDate] = useState<Date | undefined>(undefined);
+  const [useCustomDate, setUseCustomDate] = useState(false);
 
   useEffect(() => {
     if (isOpen && user) {
@@ -182,10 +192,17 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
       const userSub = users.find(u => u.user_id === userId);
       if (!userSub) throw new Error("User not found");
 
-      // Calculate new expiry
-      const currentExpiry = userSub.expires_at ? new Date(userSub.expires_at) : new Date();
-      const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
-      const newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+      let newExpiry: string;
+      
+      if (useCustomDate && customEndDate) {
+        // Use the custom date directly
+        newExpiry = customEndDate.toISOString();
+      } else {
+        // Calculate new expiry based on days
+        const currentExpiry = userSub.expires_at ? new Date(userSub.expires_at) : new Date();
+        const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+        newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
+      }
 
       const { error } = await supabase
         .from("subscriptions")
@@ -206,12 +223,54 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
         )
       );
 
-      toast.success(`Extended subscription by ${days} days`);
+      const message = useCustomDate && customEndDate 
+        ? `Set expiry to ${format(customEndDate, "PPP")}`
+        : `Extended subscription by ${days} days`;
+      toast.success(message);
       setShowExtendDialog(false);
       setSelectedUser(null);
+      setUseCustomDate(false);
+      setCustomEndDate(undefined);
     } catch (error) {
       console.error("Error extending subscription:", error);
       toast.error("Failed to extend subscription");
+    } finally {
+      setUpdating(null);
+    }
+  };
+
+  const setExactDate = async (userId: string, date: Date) => {
+    setUpdating(userId);
+    try {
+      const newExpiry = date.toISOString();
+
+      const { error } = await supabase
+        .from("subscriptions")
+        .update({
+          expires_at: newExpiry,
+          status: "active",
+        })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+
+      // Update local state
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.user_id === userId
+            ? { ...u, expires_at: newExpiry, status: "active" }
+            : u
+        )
+      );
+
+      toast.success(`Set expiry to ${format(date, "PPP")}`);
+      setShowExtendDialog(false);
+      setSelectedUser(null);
+      setUseCustomDate(false);
+      setCustomEndDate(undefined);
+    } catch (error) {
+      console.error("Error setting expiry date:", error);
+      toast.error("Failed to set expiry date");
     } finally {
       setUpdating(null);
     }
@@ -384,11 +443,17 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
                               onClick={() => {
                                 setSelectedUser(u);
                                 setShowExtendDialog(true);
+                                // Set initial custom date to current expiry or 30 days from now
+                                if (u.expires_at) {
+                                  setCustomEndDate(new Date(u.expires_at));
+                                } else {
+                                  setCustomEndDate(new Date(Date.now() + 30 * 24 * 60 * 60 * 1000));
+                                }
                               }}
                               disabled={updating === u.user_id}
                               className="gap-1"
                             >
-                              <Calendar className="h-3 w-3" />
+                              <CalendarIcon className="h-3 w-3" />
                               Extend
                             </Button>
                           )}
@@ -404,7 +469,13 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
       </Dialog>
 
       {/* Extend Subscription Dialog */}
-      <Dialog open={showExtendDialog} onOpenChange={setShowExtendDialog}>
+      <Dialog open={showExtendDialog} onOpenChange={(open) => {
+        setShowExtendDialog(open);
+        if (!open) {
+          setUseCustomDate(false);
+          setCustomEndDate(undefined);
+        }
+      }}>
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Extend Subscription</DialogTitle>
@@ -414,68 +485,138 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
               <div>
                 <p className="font-medium">{selectedUser.name}</p>
                 <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label>Extend by (days)</Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setExtendDays(Math.max(1, extendDays - 30))}
-                  >
-                    <Minus className="h-4 w-4" />
-                  </Button>
-                  <Input
-                    type="number"
-                    value={extendDays}
-                    onChange={(e) => setExtendDays(Math.max(1, parseInt(e.target.value) || 0))}
-                    className="text-center"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setExtendDays(extendDays + 30)}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
+                {selectedUser.expires_at && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Current expiry: {format(new Date(selectedUser.expires_at), "PPP")}
+                  </p>
+                )}
               </div>
 
-              <div className="flex gap-2 pt-2">
+              {/* Toggle between extend days and pick date */}
+              <div className="flex gap-2">
                 <Button
-                  variant="outline"
+                  variant={!useCustomDate ? "default" : "outline"}
+                  size="sm"
                   className="flex-1"
-                  onClick={() => setExtendDays(30)}
+                  onClick={() => setUseCustomDate(false)}
                 >
-                  30 days
+                  Extend Days
                 </Button>
                 <Button
-                  variant="outline"
+                  variant={useCustomDate ? "default" : "outline"}
+                  size="sm"
                   className="flex-1"
-                  onClick={() => setExtendDays(90)}
+                  onClick={() => setUseCustomDate(true)}
                 >
-                  90 days
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => setExtendDays(365)}
-                >
-                  1 year
+                  Pick Date
                 </Button>
               </div>
 
-              <Button
-                className="w-full"
-                onClick={() => extendSubscription(selectedUser.user_id, extendDays)}
-                disabled={updating === selectedUser.user_id}
-              >
-                {updating === selectedUser.user_id ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                ) : null}
-                Extend by {extendDays} days
-              </Button>
+              {!useCustomDate ? (
+                <>
+                  <div className="space-y-2">
+                    <Label>Extend by (days)</Label>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setExtendDays(Math.max(1, extendDays - 30))}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <Input
+                        type="number"
+                        value={extendDays}
+                        onChange={(e) => setExtendDays(Math.max(1, parseInt(e.target.value) || 0))}
+                        className="text-center"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setExtendDays(extendDays + 30)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setExtendDays(30)}
+                    >
+                      30 days
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setExtendDays(90)}
+                    >
+                      90 days
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => setExtendDays(365)}
+                    >
+                      1 year
+                    </Button>
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    onClick={() => extendSubscription(selectedUser.user_id, extendDays)}
+                    disabled={updating === selectedUser.user_id}
+                  >
+                    {updating === selectedUser.user_id ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    Extend by {extendDays} days
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-2">
+                    <Label>Set End Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className={cn(
+                            "w-full justify-start text-left font-normal",
+                            !customEndDate && "text-muted-foreground"
+                          )}
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {customEndDate ? format(customEndDate, "PPP") : "Pick a date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={customEndDate}
+                          onSelect={setCustomEndDate}
+                          disabled={(date) => date < new Date()}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  <Button
+                    className="w-full"
+                    onClick={() => customEndDate && setExactDate(selectedUser.user_id, customEndDate)}
+                    disabled={updating === selectedUser.user_id || !customEndDate}
+                  >
+                    {updating === selectedUser.user_id ? (
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    ) : null}
+                    Set End Date
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </DialogContent>
