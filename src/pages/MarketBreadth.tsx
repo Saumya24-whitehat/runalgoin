@@ -175,8 +175,9 @@ export default function MarketBreadth() {
         <Navbar />
       </div>
 
-      <div className="flex">
-        {/* Sidebar */}
+      <ProFeatureGate featureName="Market Breadth Analysis">
+        <div className="flex">
+          {/* Sidebar */}
         <div className="w-80 border-r border-border bg-card min-h-[calc(100vh-8rem)]">
           {/* Exchange Tabs */}
           <div className="border-b border-border p-2">
@@ -407,8 +408,9 @@ export default function MarketBreadth() {
               ))}
             </div>
           )}
+          </div>
         </div>
-      </div>
+      </ProFeatureGate>
     </div>
   );
 }

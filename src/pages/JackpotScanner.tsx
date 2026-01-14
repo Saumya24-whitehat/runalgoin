@@ -112,8 +112,9 @@ const JackpotScanner = () => {
       <TickerRibbon />
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-6">
-        <div className="mb-6">
+      <ProFeatureGate featureName="Jackpot Scanner">
+        <main className="flex-1 container mx-auto px-4 py-6">
+          <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
           <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
         </div>
@@ -123,8 +124,9 @@ const JackpotScanner = () => {
           {renderTable(data?.longUnwinding || [], "Long Unwinding", "#4a90a4")}
           {renderTable(data?.shortBuildup || [], "Short Buildup", "#d4837a")}
           {renderTable(data?.shortCovering || [], "Short Covering", "#7cb987")}
-        </div>
-      </main>
+          </div>
+        </main>
+      </ProFeatureGate>
 
       <Footer />
     </div>
