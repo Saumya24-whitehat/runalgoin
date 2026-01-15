@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+
 import { useNavigate, Link } from "react-router-dom";
 import {
   ChevronDown,
