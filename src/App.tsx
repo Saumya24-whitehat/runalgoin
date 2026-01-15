@@ -42,6 +42,8 @@ import StockDetail from "./pages/StockDetail";
 import Plans from "./pages/Plans";
 import NotFound from "./pages/NotFound";
 import FuturesOiBreakup from "./pages/FuturesOiBreakup";
+import Admin from "./pages/Admin";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -96,6 +98,8 @@ const App = () => (
               <Route path="/index-detail" element={<IndexDetail />} />
               <Route path="/stock-detail" element={<StockDetail />} />
               <Route path="/plans" element={<Plans />} />
+              <Route path="/admin" element={<Admin />} />
+              <Route path="/profile" element={<Profile />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>

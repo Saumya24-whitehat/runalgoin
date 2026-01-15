@@ -24,10 +24,20 @@ import {
   PieChart,
   Activity,
   Play,
+  User,
+  Shield,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
+import { useSubscription } from "@/hooks/useSubscription";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface NavDropdownItem {
   icon: React.ElementType;
@@ -222,6 +232,7 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [expandedMobileItem, setExpandedMobileItem] = useState<string | null>(null);
   const { user, signOut } = useAuth();
+  const { isAdmin } = useSubscription();
   const navigate = useNavigate();
 
   const toggleMobileDropdown = (label: string) => {
@@ -290,10 +301,36 @@ export function Navbar() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             {user ? (
-              <Button variant="ghost" onClick={handleLogout} className="hidden sm:flex items-center gap-2">
-                <LogOut className="h-4 w-4" />
-                <span>Logout</span>
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>{user.user_metadata?.name?.split(" ")[0] || "Account"}</span>
+                    <ChevronDown className="h-3 w-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onClick={() => navigate("/plans")}>
+                    <Crown className="h-4 w-4 mr-2" />
+                    Plans
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
               <Button variant="default" onClick={() => navigate("/auth")} className="hidden sm:flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
@@ -388,13 +425,41 @@ export function Navbar() {
             ))}
             <hr className="border-border my-2" />
             {user ? (
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
-              >
-                <LogOut className="h-5 w-5" />
-                <span className="font-medium">Logout</span>
-              </button>
+              <>
+                <Link
+                  to="/profile"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                >
+                  <User className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Profile</span>
+                </Link>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                  >
+                    <Shield className="h-5 w-5 text-primary" />
+                    <span className="font-medium">Admin Panel</span>
+                  </Link>
+                )}
+                <Link
+                  to="/plans"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                >
+                  <Crown className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Plans</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span className="font-medium">Logout</span>
+                </button>
+              </>
             ) : (
               <button
                 onClick={() => navigate("/auth")}
