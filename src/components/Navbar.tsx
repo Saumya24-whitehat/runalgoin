@@ -246,13 +246,9 @@ export function Navbar() {
     function updateColors() {
       const keys = Object.keys(bars) as Array<keyof typeof bars>;
       const shuffled = [...keys].sort(() => Math.random() - 0.5);
-
-      // First 2 => GREEN
-      bars[shuffled[0]].current!.setAttribute("fill", "green");
-      bars[shuffled[1]].current!.setAttribute("fill", "green");
-
-      // Last 1 => RED
-      bars[shuffled[2]].current!.setAttribute("fill", "red");
+      bars[shuffled[0]]?.current?.setAttribute("fill", "green");
+      bars[shuffled[1]]?.current?.setAttribute("fill", "green");
+      bars[shuffled[2]]?.current?.setAttribute("fill", "red");
     }
 
     updateColors(); // Run once
