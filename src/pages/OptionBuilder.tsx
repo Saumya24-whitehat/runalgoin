@@ -36,7 +36,8 @@ import OptionBuilderSettings, {
   DEFAULT_SETTINGS,
 } from "@/components/optionBuilder/OptionBuilderSettings";
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
-import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
+import LoadStrategyDialog from "@/components/optionBuilder/LoadStrategyDialog";
+import { useSavedStrategies, SavedStrategy } from "@/hooks/useSavedStrategies";
 import {
   Position,
   OptionChainResponse,
@@ -57,11 +58,13 @@ interface SymbolsData {
 }
 
 const STORAGE_KEY_SETTINGS = "optionBuilder_settings";
-const STORAGE_KEY_STRATEGIES = "optionBuilder_strategies";
 
 const OptionBuilder = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  
+  // Database-backed strategies
+  const { strategies: savedStrategies, saveStrategy, deleteStrategy, loading: strategiesLoading } = useSavedStrategies({ source: "builder" });
 
   const [symbol, setSymbol] = useState("Nifty 50");
   const [optionChainData, setOptionChainData] = useState<OptionChainResponse | null>(null);
@@ -91,14 +94,6 @@ const OptionBuilder = () => {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
-  const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_STRATEGIES);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
 
   // WebSocket state
   const [wsConnected, setWsConnected] = useState(false);
@@ -208,11 +203,6 @@ const OptionBuilder = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
   }, [settings]);
-
-  // Save strategies to localStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_STRATEGIES, JSON.stringify(savedStrategies));
-  }, [savedStrategies]);
 
   // Fetch option chain data when symbol changes
   useEffect(() => {
@@ -473,20 +463,10 @@ const OptionBuilder = () => {
   }, [symbol, currentPrice]);
 
   const handleSaveStrategy = useCallback(
-    (name: string, description: string, type: string) => {
-      const newStrategy: SavedStrategy = {
-        id: Math.random().toString(36).substr(2, 9),
-        name,
-        description,
-        type,
-        positions: [...positions],
-        symbol,
-        createdAt: new Date().toISOString(),
-      };
-      setSavedStrategies((prev) => [...prev, newStrategy]);
-      toast.success("Strategy saved");
+    async (name: string, description: string, type: string) => {
+      await saveStrategy(name, description, type, positions, symbol);
     },
-    [positions, symbol],
+    [positions, symbol, saveStrategy],
   );
 
   const handleLoadStrategy = useCallback((strategy: SavedStrategy) => {
@@ -500,10 +480,9 @@ const OptionBuilder = () => {
     toast.success(`Loaded: ${strategy.name}`);
   }, []);
 
-  const handleDeleteStrategy = useCallback((id: string) => {
-    setSavedStrategies((prev) => prev.filter((s) => s.id !== id));
-    toast.success("Strategy deleted");
-  }, []);
+  const handleDeleteStrategy = useCallback(async (id: string) => {
+    await deleteStrategy(id);
+  }, [deleteStrategy]);
 
   const handleCopyToClipboard = useCallback(() => {
     const strategyData = {

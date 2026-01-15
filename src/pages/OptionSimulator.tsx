@@ -47,7 +47,8 @@ import OptionBuilderGreeks from "@/components/optionBuilder/OptionBuilderGreeks"
 import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetrics";
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
-import LoadStrategyDialog, { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
+import LoadStrategyDialog from "@/components/optionBuilder/LoadStrategyDialog";
+import { useSavedStrategies, SavedStrategy } from "@/hooks/useSavedStrategies";
 import AdjustmentModal, {
   AdjustmentRule,
   TriggerCondition,
@@ -96,12 +97,13 @@ const SKIP_INTERVALS = [
   { value: 60, label: "1h" },
 ];
 
-const STORAGE_KEY_STRATEGIES = "optionSimulator_strategies";
-
 const OptionSimulator = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  
+  // Database-backed strategies
+  const { strategies: savedStrategies, saveStrategy, deleteStrategy, loading: strategiesLoading } = useSavedStrategies({ source: "simulator" });
 
   // Simulator controls
   const [symbol, setSymbol] = useState("Nifty 50");
@@ -136,14 +138,6 @@ const OptionSimulator = () => {
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
   const [adjustmentRules, setAdjustmentRules] = useState<AdjustmentRule[]>([]);
-  const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY_STRATEGIES);
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
 
   // Computed selected time as string
   const selectedTime = useMemo(() => {
@@ -268,11 +262,6 @@ const OptionSimulator = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
-
-  // Save strategies to localStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_STRATEGIES, JSON.stringify(savedStrategies));
-  }, [savedStrategies]);
 
   // Set lot size when symbol changes
   useEffect(() => {
@@ -689,18 +678,8 @@ const OptionSimulator = () => {
     [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData],
   );
 
-  const handleSaveStrategy = (name: string, description: string, type: string) => {
-    const strategy: SavedStrategy = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      description,
-      type: type as "bullish" | "bearish" | "neutral",
-      positions,
-      symbol,
-      createdAt: new Date().toISOString(),
-    };
-    setSavedStrategies((prev) => [...prev, strategy]);
-    toast.success("Strategy saved");
+  const handleSaveStrategy = async (name: string, description: string, type: string) => {
+    await saveStrategy(name, description, type, positions, symbol);
   };
 
   const handleLoadStrategy = (strategy: SavedStrategy) => {
@@ -709,9 +688,8 @@ const OptionSimulator = () => {
     toast.success(`Loaded: ${strategy.name}`);
   };
 
-  const handleDeleteStrategy = (id: string) => {
-    setSavedStrategies((prev) => prev.filter((s) => s.id !== id));
-    toast.success("Strategy deleted");
+  const handleDeleteStrategy = async (id: string) => {
+    await deleteStrategy(id);
   };
 
   const handleCopyStrategy = () => {

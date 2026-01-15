@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { useAllSavedStrategies } from "@/hooks/useSavedStrategies";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import {
   User,
   Crown,
@@ -24,18 +24,12 @@ import {
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { Position, formatIndianNumber } from "@/services/optionBuilderApi";
-import { SavedStrategy } from "@/components/optionBuilder/LoadStrategyDialog";
-import { toast } from "sonner";
-
-const STORAGE_KEY_STRATEGIES = "option_builder_strategies";
-const STORAGE_KEY_SIMULATOR_STRATEGIES = "option_simulator_strategies";
 
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const { subscription, loading: subLoading, isPro, isEnterprise, isAdmin } = useSubscription();
+  const { strategies: allStrategies, loading: strategiesLoading, deleteStrategy } = useAllSavedStrategies();
   const navigate = useNavigate();
-  const [savedStrategies, setSavedStrategies] = useState<SavedStrategy[]>([]);
-  const [simulatorStrategies, setSimulatorStrategies] = useState<SavedStrategy[]>([]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -43,36 +37,9 @@ const Profile = () => {
     }
   }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    // Load strategies from localStorage
-    try {
-      const builderStrategies = localStorage.getItem(STORAGE_KEY_STRATEGIES);
-      if (builderStrategies) {
-        setSavedStrategies(JSON.parse(builderStrategies));
-      }
-
-      const simStrategies = localStorage.getItem(STORAGE_KEY_SIMULATOR_STRATEGIES);
-      if (simStrategies) {
-        setSimulatorStrategies(JSON.parse(simStrategies));
-      }
-    } catch (error) {
-      console.error("Error loading strategies:", error);
-    }
-  }, []);
-
-  const handleDeleteStrategy = (id: string, type: "builder" | "simulator") => {
+  const handleDeleteStrategy = async (id: string) => {
     if (!confirm("Are you sure you want to delete this strategy?")) return;
-
-    if (type === "builder") {
-      const updated = savedStrategies.filter((s) => s.id !== id);
-      setSavedStrategies(updated);
-      localStorage.setItem(STORAGE_KEY_STRATEGIES, JSON.stringify(updated));
-    } else {
-      const updated = simulatorStrategies.filter((s) => s.id !== id);
-      setSimulatorStrategies(updated);
-      localStorage.setItem(STORAGE_KEY_SIMULATOR_STRATEGIES, JSON.stringify(updated));
-    }
-    toast.success("Strategy deleted");
+    await deleteStrategy(id);
   };
 
   const handleLoadStrategy = (strategyId: string, type: "builder" | "simulator") => {
@@ -139,7 +106,7 @@ const Profile = () => {
 
   const daysRemaining = getDaysRemaining();
 
-  if (authLoading || subLoading) {
+  if (authLoading || subLoading || strategiesLoading) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -150,10 +117,8 @@ const Profile = () => {
     );
   }
 
-  const allStrategies = [
-    ...savedStrategies.map((s) => ({ ...s, source: "builder" as const })),
-    ...simulatorStrategies.map((s) => ({ ...s, source: "simulator" as const })),
-  ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const builderStrategies = allStrategies.filter((s) => s.source === "builder");
+  const simulatorStrategies = allStrategies.filter((s) => s.source === "simulator");
 
   return (
     <div className="min-h-screen bg-background">
@@ -332,7 +297,7 @@ const Profile = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleDeleteStrategy(strategy.id, strategy.source)}
+                                onClick={() => handleDeleteStrategy(strategy.id)}
                                 className="text-destructive hover:text-destructive"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -353,7 +318,7 @@ const Profile = () => {
             <Card>
               <CardContent className="pt-6">
                 <div className="text-center">
-                  <p className="text-3xl font-bold text-primary">{savedStrategies.length}</p>
+                  <p className="text-3xl font-bold text-primary">{builderStrategies.length}</p>
                   <p className="text-sm text-muted-foreground">Builder Strategies</p>
                 </div>
               </CardContent>
