@@ -101,9 +101,14 @@ const OptionSimulator = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
-  
+
   // Database-backed strategies
-  const { strategies: savedStrategies, saveStrategy, deleteStrategy, loading: strategiesLoading } = useSavedStrategies({ source: "simulator" });
+  const {
+    strategies: savedStrategies,
+    saveStrategy,
+    deleteStrategy,
+    loading: strategiesLoading,
+  } = useSavedStrategies({ source: "simulator" });
 
   // Simulator controls
   const [symbol, setSymbol] = useState("Nifty 50");
@@ -848,685 +853,686 @@ const OptionSimulator = () => {
       <ProFeatureGate featureName="Option Simulator">
         <main className="flex-1 container mx-auto px-2 py-3">
           {/* Simulator Toolbar - Responsive */}
-        <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">
-          {/* Mobile: Simplified controls */}
-          {isMobile ? (
-            <>
-              {/* Day Navigation */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  let prevDate = subDays(selectedDate, 1);
-                  while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
-                    prevDate = subDays(prevDate, 1);
-                  }
-                  setSelectedDate(prevDate);
-                }}
-              >
-                <ChevronLeft className="h-3 w-3" />
-                Day
-              </Button>
-
-              {/* -3m */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(-skipInterval)}
-              >
-                -{skipInterval}m
-              </Button>
-
-              {/* Date & Time Display */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="flex-1 justify-center text-xs h-8">
-                    {format(selectedDate, "dd/MM")} {selectedHour.toString().padStart(2, "0")}:
-                    {selectedMinute.toString().padStart(2, "0")}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="center">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    disabled={(date) => !isTradingDay(date)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                  <div className="flex gap-2 p-3 border-t">
-                    <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
-                      <SelectTrigger className="w-16 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[9, 10, 11, 12, 13, 14, 15].map((h) => (
-                          <SelectItem key={h} value={h.toString()}>
-                            {h}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
-                      <SelectTrigger className="w-16 h-8">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
-                          <SelectItem key={m} value={m.toString()}>
-                            {m.toString().padStart(2, "0")}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              {/* +3m */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(skipInterval)}
-              >
-                +{skipInterval}m
-              </Button>
-
-              {/* Day Navigation */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  let nextDate = addDays(selectedDate, 1);
-                  while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
-                    nextDate = addDays(nextDate, 1);
-                  }
-                  setSelectedDate(nextDate);
-                }}
-              >
-                Day
-                <ChevronRight className="h-3 w-3" />
-              </Button>
-
-              {/* Auto Play */}
-              <Button
-                variant={autoPlay ? "destructive" : "default"}
-                size="sm"
-                className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
-                onClick={() => setAutoPlay(!autoPlay)}
-              >
-                {autoPlay ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
-              </Button>
-            </>
-          ) : (
-            <>
-              {/* Desktop: Full controls */}
-              {/* Day Navigation Buttons */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  let prevDate = subDays(selectedDate, 1);
-                  while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
-                    prevDate = subDays(prevDate, 1);
-                  }
-                  setSelectedDate(prevDate);
-                }}
-              >
-                <ChevronLeft className="h-3 w-3 mr-1" />
-                Day
-              </Button>
-
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  setSelectedHour(9);
-                  setSelectedMinute(15);
-                }}
-              >
-                SOD
-              </Button>
-
-              {/* Time Adjustment Buttons */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(-120)}
-              >
-                -2h
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(-30)}
-              >
-                -30m
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(-15)}
-              >
-                -15m
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(-3)}
-              >
-                -3m
-              </Button>
-
-              {/* Date Picker */}
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-32 justify-start text-left font-normal text-sm h-8">
-                    {format(selectedDate, "dd/MM/yyyy")}
-                    <CalendarIcon className="ml-2 h-4 w-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={(date) => date && setSelectedDate(date)}
-                    disabled={(date) => !isTradingDay(date)}
-                    initialFocus
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
-
-              {/* Hour Selector */}
-              <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
-                <SelectTrigger className="w-16 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[9, 10, 11, 12, 13, 14, 15].map((h) => (
-                    <SelectItem key={h} value={h.toString()}>
-                      {h}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Minute Selector */}
-              <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
-                <SelectTrigger className="w-16 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
-                    <SelectItem key={m} value={m.toString()}>
-                      {m.toString().padStart(2, "0")}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Time Forward Buttons */}
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(3)}
-              >
-                3m+
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(15)}
-              >
-                15m+
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(30)}
-              >
-                30m+
-              </Button>
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => adjustTime(120)}
-              >
-                2h+
-              </Button>
-
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  setSelectedHour(15);
-                  setSelectedMinute(30);
-                }}
-              >
-                EOD
-              </Button>
-
-              <Button
-                variant="default"
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  let nextDate = addDays(selectedDate, 1);
-                  while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
-                    nextDate = addDays(nextDate, 1);
-                  }
-                  setSelectedDate(nextDate);
-                }}
-              >
-                Day
-                <ChevronRight className="h-3 w-3 ml-1" />
-              </Button>
-
-              <div className="h-6 w-px bg-border mx-1" />
-
-              {/* Auto Play Controls */}
-              <Button
-                variant={autoPlay ? "destructive" : "default"}
-                size="sm"
-                className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
-                onClick={() => setAutoPlay(!autoPlay)}
-              >
-                {autoPlay ? <Pause className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
-                Auto
-              </Button>
-
-              {/* Playback Speed Selector */}
-              <Select value={playbackSpeed.toString()} onValueChange={(v) => setPlaybackSpeed(parseInt(v))}>
-                <SelectTrigger className="w-16 h-8" title="Playback Speed">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLAYBACK_SPEEDS.map((speed) => (
-                    <SelectItem key={speed.value} value={speed.value.toString()}>
-                      {speed.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Skip Interval Selector */}
-              <Select value={skipInterval.toString()} onValueChange={(v) => setSkipInterval(parseInt(v))}>
-                <SelectTrigger className="w-16 h-8" title="Skip Interval">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {SKIP_INTERVALS.map((interval) => (
-                    <SelectItem key={interval.value} value={interval.value.toString()}>
-                      {interval.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          )}
-        </div>
-
-        {/* Second Row - Symbol, Expiry, Load Data */}
-        <div className="flex flex-wrap items-center gap-3 mb-4">
-          <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder={loadingSymbols ? "Loading..." : "Select Symbol"} />
-            </SelectTrigger>
-            <SelectContent>
-              {symbols.indexSymbols.length > 0 && (
-                <>
-                  <SelectItem value="__index_header" disabled className="font-semibold text-xs text-muted-foreground">
-                    INDEX
-                  </SelectItem>
-                  {symbols.indexSymbols.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </>
-              )}
-              {symbols.stockSymbols.length > 0 && (
-                <>
-                  <SelectItem
-                    value="__stock_header"
-                    disabled
-                    className="font-semibold text-xs text-muted-foreground mt-2"
-                  >
-                    STOCKS
-                  </SelectItem>
-                  {symbols.stockSymbols.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </>
-              )}
-              {symbols.indexSymbols.length === 0 && symbols.stockSymbols.length === 0 && (
-                <>
-                  <SelectItem value="Nifty 50">NIFTY</SelectItem>
-                  <SelectItem value="Nifty Bank">BANKNIFTY</SelectItem>
-                  <SelectItem value="Nifty Fin Service">FINNIFTY</SelectItem>
-                  <SelectItem value="Nifty Mid Select">MIDCPNIFTY</SelectItem>
-                </>
-              )}
-            </SelectContent>
-          </Select>
-
-          {/* Expiry Selector */}
-          <Select value={activeExpiry} onValueChange={setActiveExpiry} disabled={isLoadingExpiries}>
-            <SelectTrigger className="w-36">
-              <SelectValue placeholder={isLoadingExpiries ? "Loading..." : "Select Expiry"} />
-            </SelectTrigger>
-            <SelectContent>
-              {expiries.map((exp) => (
-                <SelectItem key={exp} value={exp}>
-                  {exp}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Load Data Button */}
-          <Button onClick={loadStrikesData} disabled={isLoading || !activeExpiry} variant="default">
-            <Play className="h-4 w-4 mr-2" />
-            {isLoading ? "Loading..." : "Load Data"}
-          </Button>
-
-          <div className="flex-1" />
-
-          {/* Spot Price Display */}
-          {currentPrice > 0 && (
-            <div className="text-sm font-medium">
-              Spot: <span className="text-primary">{formatIndianNumber(currentPrice)}</span>
-            </div>
-          )}
-
-          {/* Action Buttons */}
-          <Button
-            variant={adjustmentRules.filter((r) => r.isActive).length > 0 ? "default" : "outline"}
-            size="icon"
-            onClick={() => setAdjustmentDialogOpen(true)}
-            disabled={positions.length === 0}
-            title={`Position Adjustments${adjustmentRules.filter((r) => r.isActive).length > 0 ? ` (${adjustmentRules.filter((r) => r.isActive).length} active)` : ""}`}
-            className={
-              adjustmentRules.filter((r) => r.isActive).length > 0 ? "bg-amber-500 hover:bg-amber-600 relative" : ""
-            }
-          >
-            <Settings className="h-4 w-4" />
-            {adjustmentRules.filter((r) => r.isActive).length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
-                {adjustmentRules.filter((r) => r.isActive).length}
-              </span>
-            )}
-          </Button>
-          <Button variant="outline" size="icon" onClick={() => setLoadDialogOpen(true)}>
-            <Download className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setSaveDialogOpen(true)}
-            disabled={positions.length === 0}
-          >
-            <Save className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleCopyStrategy} disabled={positions.length === 0}>
-            <Copy className="h-4 w-4" />
-          </Button>
-
-          {/* Export Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" disabled={positions.length === 0} title="Export Results">
-                <FileDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={exportToJSON}>
-                <FileJson className="h-4 w-4 mr-2" />
-                Export as JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={exportToCSV}>
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                Export as CSV
-              </DropdownMenuItem>
-              {plHistory.length > 0 && (
-                <DropdownMenuItem onClick={clearPlHistory} className="text-destructive">
-                  Clear P&L History
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Left Side - Option Chain */}
-          <Card>
-            <CardContent className="p-3">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-sm">Historical Option Chain</h3>
-                <Button variant="ghost" size="sm" onClick={() => setShowChain(!showChain)}>
-                  {showChain ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">
+            {/* Mobile: Simplified controls */}
+            {isMobile ? (
+              <>
+                {/* Day Navigation */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    let prevDate = subDays(selectedDate, 1);
+                    while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
+                      prevDate = subDays(prevDate, 1);
+                    }
+                    setSelectedDate(prevDate);
+                  }}
+                >
+                  <ChevronLeft className="h-3 w-3" />
+                  Day
                 </Button>
-              </div>
 
-              {showChain && (
-                <div className="max-h-[500px] overflow-auto">
-                  {isLoading ? (
-                    <div className="flex items-center justify-center py-10">
-                      <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                {/* -3m */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(-skipInterval)}
+                >
+                  -{skipInterval}m
+                </Button>
+
+                {/* Date & Time Display */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="flex-1 justify-center text-xs h-8">
+                      {format(selectedDate, "dd/MM")} {selectedHour.toString().padStart(2, "0")}:
+                      {selectedMinute.toString().padStart(2, "0")}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="center">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      disabled={(date) => !isTradingDay(date)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                    <div className="flex gap-2 p-3 border-t">
+                      <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
+                        <SelectTrigger className="w-16 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[9, 10, 11, 12, 13, 14, 15].map((h) => (
+                            <SelectItem key={h} value={h.toString()}>
+                              {h}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
+                        <SelectTrigger className="w-16 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
+                            <SelectItem key={m} value={m.toString()}>
+                              {m.toString().padStart(2, "0")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  ) : simulatorData && simulatorData.strikes.length > 0 ? (
-                    <Table>
-                      <TableHeader className="sticky top-0 bg-background z-10">
-                        <TableRow>
-                          <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
-                          <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
-                          <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
-                          <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
-                          <TableHead className="text-center font-bold text-xs">Strike</TableHead>
-                          <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
-                          <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
-                          <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
-                          <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {simulatorData.strikes.map((strike) => {
-                          const strikeDiff = symbol.includes("Bank") ? 100 : 50;
-                          const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
-                          const isATM = Math.abs(strike.strike - atmStrike) < strikeDiff / 2;
-                          const isITMCall = strike.strike < currentPrice;
-                          const isITMPut = strike.strike > currentPrice;
+                  </PopoverContent>
+                </Popover>
 
-                          return (
-                            <TableRow
-                              key={strike.strike}
-                              className={`relative cursor-pointer transition-colors group ${isATM ? "bg-oc-atm font-medium" : ""}`}
-                            >
-                              {/* Call Side */}
-                              <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                {formatNumber(strike.ceOI)}
-                              </TableCell>
-                              <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                {formatNumber(strike.ceVolume)}
-                              </TableCell>
-                              <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                {strike.ceIV.toFixed(1)}
-                              </TableCell>
-                              <TableCell className={`text-center relative ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                <span className="text-xs font-medium">{strike.cePrice.toFixed(2)}</span>
-                                <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    size="sm"
-                                    className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                                    onClick={() =>
-                                      addPosition({
-                                        action: "Buy",
-                                        lots: 1,
-                                        date: format(selectedDate, "yyyy-MM-dd"),
-                                        expiry: activeExpiry,
-                                        strike: strike.strike,
-                                        optType: "CE",
-                                        entryPrice: strike.cePrice,
-                                        currentPrice: strike.cePrice,
-                                        IV: strike.ceIV,
-                                        lotSize,
-                                      })
-                                    }
-                                  >
-                                    B
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={() =>
-                                      addPosition({
-                                        action: "Sell",
-                                        lots: 1,
-                                        date: format(selectedDate, "yyyy-MM-dd"),
-                                        expiry: activeExpiry,
-                                        strike: strike.strike,
-                                        optType: "CE",
-                                        entryPrice: strike.cePrice,
-                                        currentPrice: strike.cePrice,
-                                        IV: strike.ceIV,
-                                        lotSize,
-                                      })
-                                    }
-                                  >
-                                    S
-                                  </Button>
-                                </div>
-                              </TableCell>
+                {/* +3m */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(skipInterval)}
+                >
+                  +{skipInterval}m
+                </Button>
 
-                              {/* Strike */}
-                              <TableCell
-                                className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}
-                              >
-                                {strike.strike}
-                              </TableCell>
+                {/* Day Navigation */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    let nextDate = addDays(selectedDate, 1);
+                    while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
+                      nextDate = addDays(nextDate, 1);
+                    }
+                    setSelectedDate(nextDate);
+                  }}
+                >
+                  Day
+                  <ChevronRight className="h-3 w-3" />
+                </Button>
 
-                              {/* Put Side */}
-                              <TableCell className={`text-center relative ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                <span className="text-xs font-medium">{strike.pePrice.toFixed(2)}</span>
-                                <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
-                                  <Button
-                                    size="sm"
-                                    className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                                    onClick={() =>
-                                      addPosition({
-                                        action: "Buy",
-                                        lots: 1,
-                                        date: format(selectedDate, "yyyy-MM-dd"),
-                                        expiry: activeExpiry,
-                                        strike: strike.strike,
-                                        optType: "PE",
-                                        entryPrice: strike.pePrice,
-                                        currentPrice: strike.pePrice,
-                                        IV: strike.peIV,
-                                        lotSize,
-                                      })
-                                    }
-                                  >
-                                    B
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="destructive"
-                                    className="h-6 px-2 text-xs"
-                                    onClick={() =>
-                                      addPosition({
-                                        action: "Sell",
-                                        lots: 1,
-                                        date: format(selectedDate, "yyyy-MM-dd"),
-                                        expiry: activeExpiry,
-                                        strike: strike.strike,
-                                        optType: "PE",
-                                        entryPrice: strike.pePrice,
-                                        currentPrice: strike.pePrice,
-                                        IV: strike.peIV,
-                                        lotSize,
-                                      })
-                                    }
-                                  >
-                                    S
-                                  </Button>
-                                </div>
-                              </TableCell>
-                              <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                {strike.peIV.toFixed(1)}
-                              </TableCell>
-                              <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                {formatNumber(strike.peVolume)}
-                              </TableCell>
-                              <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                {formatNumber(strike.peOI)}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <div className="text-center text-muted-foreground py-10">
-                      Select date, time, and expiry, then click "Load Data"
-                    </div>
-                  )}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Right Side - Chart and Metrics */}
-          <div className="space-y-3">
-            {/* Strategies or Chart */}
-            {positions.length === 0 && showStrategies ? (
-              <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} />
+                {/* Auto Play */}
+                <Button
+                  variant={autoPlay ? "destructive" : "default"}
+                  size="sm"
+                  className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
+                  onClick={() => setAutoPlay(!autoPlay)}
+                >
+                  {autoPlay ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+                </Button>
+              </>
             ) : (
               <>
-                <OptionBuilderMetrics
-                  maxProfit={maxProfit === -Infinity ? 0 : maxProfit}
-                  maxLoss={maxLoss === Infinity ? 0 : maxLoss}
-                  breakevens={breakevens}
-                  currentPL={currentPL}
-                  riskReward={
-                    typeof maxProfit === "number" && typeof maxLoss === "number" && maxLoss !== 0
-                      ? Math.abs(maxProfit / maxLoss)
-                      : null
-                  }
-                />
-                <Card>
-                  <CardContent className="p-3">
-                    <OptionBuilderChart
-                      expiryData={chartData.expiry}
-                      todayData={chartData.today}
-                      currentPrice={currentPrice}
-                    />
-                  </CardContent>
-                </Card>
+                {/* Desktop: Full controls */}
+                {/* Day Navigation Buttons */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    let prevDate = subDays(selectedDate, 1);
+                    while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
+                      prevDate = subDays(prevDate, 1);
+                    }
+                    setSelectedDate(prevDate);
+                  }}
+                >
+                  <ChevronLeft className="h-3 w-3 mr-1" />
+                  Day
+                </Button>
 
-                {/* P&L History Chart */}
-                <PLHistoryChart history={plHistory} />
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    setSelectedHour(9);
+                    setSelectedMinute(15);
+                  }}
+                >
+                  SOD
+                </Button>
+
+                {/* Time Adjustment Buttons */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(-120)}
+                >
+                  -2h
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(-30)}
+                >
+                  -30m
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(-15)}
+                >
+                  -15m
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(-3)}
+                >
+                  -3m
+                </Button>
+
+                {/* Date Picker */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-32 justify-start text-left font-normal text-sm h-8">
+                      {format(selectedDate, "dd/MM/yyyy")}
+                      <CalendarIcon className="ml-2 h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={(date) => date && setSelectedDate(date)}
+                      disabled={(date) => !isTradingDay(date)}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
+
+                {/* Hour Selector */}
+                <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
+                  <SelectTrigger className="w-16 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[9, 10, 11, 12, 13, 14, 15].map((h) => (
+                      <SelectItem key={h} value={h.toString()}>
+                        {h}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Minute Selector */}
+                <Select value={selectedMinute.toString()} onValueChange={(v) => setSelectedMinute(parseInt(v))}>
+                  <SelectTrigger className="w-16 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 20 }, (_, i) => i * 3).map((m) => (
+                      <SelectItem key={m} value={m.toString()}>
+                        {m.toString().padStart(2, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Time Forward Buttons */}
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(3)}
+                >
+                  3m+
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(15)}
+                >
+                  15m+
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(30)}
+                >
+                  30m+
+                </Button>
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => adjustTime(120)}
+                >
+                  2h+
+                </Button>
+
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    setSelectedHour(15);
+                    setSelectedMinute(30);
+                  }}
+                >
+                  EOD
+                </Button>
+
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="bg-primary hover:bg-primary/90"
+                  onClick={() => {
+                    let nextDate = addDays(selectedDate, 1);
+                    while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
+                      nextDate = addDays(nextDate, 1);
+                    }
+                    setSelectedDate(nextDate);
+                  }}
+                >
+                  Day
+                  <ChevronRight className="h-3 w-3 ml-1" />
+                </Button>
+
+                <div className="h-6 w-px bg-border mx-1" />
+
+                {/* Auto Play Controls */}
+                <Button
+                  variant={autoPlay ? "destructive" : "default"}
+                  size="sm"
+                  className={autoPlay ? "" : "bg-emerald-500 hover:bg-emerald-600"}
+                  onClick={() => setAutoPlay(!autoPlay)}
+                >
+                  {autoPlay ? <Pause className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
+                  Auto
+                </Button>
+
+                {/* Playback Speed Selector */}
+                <Select value={playbackSpeed.toString()} onValueChange={(v) => setPlaybackSpeed(parseInt(v))}>
+                  <SelectTrigger className="w-16 h-8" title="Playback Speed">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PLAYBACK_SPEEDS.map((speed) => (
+                      <SelectItem key={speed.value} value={speed.value.toString()}>
+                        {speed.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                {/* Skip Interval Selector */}
+                <Select value={skipInterval.toString()} onValueChange={(v) => setSkipInterval(parseInt(v))}>
+                  <SelectTrigger className="w-16 h-8" title="Skip Interval">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SKIP_INTERVALS.map((interval) => (
+                      <SelectItem key={interval.value} value={interval.value.toString()}>
+                        {interval.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </>
             )}
+          </div>
+
+          {/* Second Row - Symbol, Expiry, Load Data */}
+          <div className="flex flex-wrap items-center gap-3 mb-4">
+            <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder={loadingSymbols ? "Loading..." : "Select Symbol"} />
+              </SelectTrigger>
+              <SelectContent>
+                {symbols.indexSymbols.length > 0 && (
+                  <>
+                    <SelectItem value="__index_header" disabled className="font-semibold text-xs text-muted-foreground">
+                      INDEX
+                    </SelectItem>
+                    {symbols.indexSymbols.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {symbols.stockSymbols.length > 0 && (
+                  <>
+                    <SelectItem
+                      value="__stock_header"
+                      disabled
+                      className="font-semibold text-xs text-muted-foreground mt-2"
+                    >
+                      STOCKS
+                    </SelectItem>
+                    {symbols.stockSymbols.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
+                {symbols.indexSymbols.length === 0 && symbols.stockSymbols.length === 0 && (
+                  <>
+                    <SelectItem value="Nifty 50">NIFTY</SelectItem>
+                    <SelectItem value="Nifty Bank">BANKNIFTY</SelectItem>
+                    <SelectItem value="Nifty Fin Service">FINNIFTY</SelectItem>
+                    <SelectItem value="Nifty Mid Select">MIDCPNIFTY</SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+
+            {/* Expiry Selector */}
+            <Select value={activeExpiry} onValueChange={setActiveExpiry} disabled={isLoadingExpiries}>
+              <SelectTrigger className="w-36">
+                <SelectValue placeholder={isLoadingExpiries ? "Loading..." : "Select Expiry"} />
+              </SelectTrigger>
+              <SelectContent>
+                {expiries.map((exp) => (
+                  <SelectItem key={exp} value={exp}>
+                    {exp}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Load Data Button */}
+            <Button onClick={loadStrikesData} disabled={isLoading || !activeExpiry} variant="default">
+              <Play className="h-4 w-4 mr-2" />
+              {isLoading ? "Loading..." : "Load Data"}
+            </Button>
+
+            <div className="flex-1" />
+
+            {/* Spot Price Display */}
+            {currentPrice > 0 && (
+              <div className="text-sm font-medium">
+                Spot: <span className="text-primary">{formatIndianNumber(currentPrice)}</span>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <Button
+              variant={adjustmentRules.filter((r) => r.isActive).length > 0 ? "default" : "outline"}
+              size="icon"
+              onClick={() => setAdjustmentDialogOpen(true)}
+              disabled={positions.length === 0}
+              title={`Position Adjustments${adjustmentRules.filter((r) => r.isActive).length > 0 ? ` (${adjustmentRules.filter((r) => r.isActive).length} active)` : ""}`}
+              className={
+                adjustmentRules.filter((r) => r.isActive).length > 0 ? "bg-amber-500 hover:bg-amber-600 relative" : ""
+              }
+            >
+              <Settings className="h-4 w-4" />
+              {adjustmentRules.filter((r) => r.isActive).length > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] text-white flex items-center justify-center">
+                  {adjustmentRules.filter((r) => r.isActive).length}
+                </span>
+              )}
+            </Button>
+            <Button variant="outline" size="icon" onClick={() => setLoadDialogOpen(true)}>
+              <Download className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setSaveDialogOpen(true)}
+              disabled={positions.length === 0}
+            >
+              <Save className="h-4 w-4" />
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleCopyStrategy} disabled={positions.length === 0}>
+              <Copy className="h-4 w-4" />
+            </Button>
+
+            {/* Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" disabled={positions.length === 0} title="Export Results">
+                  <FileDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToJSON}>
+                  <FileJson className="h-4 w-4 mr-2" />
+                  Export as JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToCSV}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Export as CSV
+                </DropdownMenuItem>
+                {plHistory.length > 0 && (
+                  <DropdownMenuItem onClick={clearPlHistory} className="text-destructive">
+                    Clear P&L History
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          {/* Main Content */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Left Side - Option Chain */}
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-sm">Historical Option Chain</h3>
+                  <Button variant="ghost" size="sm" onClick={() => setShowChain(!showChain)}>
+                    {showChain ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
+                </div>
+
+                {showChain && (
+                  <div className="max-h-[500px] overflow-auto">
+                    {isLoading ? (
+                      <div className="flex items-center justify-center py-10">
+                        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : simulatorData && simulatorData.strikes.length > 0 ? (
+                      <Table>
+                        <TableHeader className="sticky top-0 bg-background z-10">
+                          <TableRow>
+                            <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
+                            <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
+                            <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
+                            <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
+                            <TableHead className="text-center font-bold text-xs">Strike</TableHead>
+                            <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
+                            <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
+                            <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
+                            <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {simulatorData.strikes.map((strike) => {
+                            const strikeDiff = symbol.includes("Bank") ? 100 : 50;
+                            const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
+                            const isATM = Math.abs(strike.strike - atmStrike) < strikeDiff / 2;
+                            const isITMCall = strike.strike < currentPrice;
+                            const isITMPut = strike.strike > currentPrice;
+
+                            return (
+                              <TableRow
+                                key={strike.strike}
+                                className={`relative cursor-pointer transition-colors group ${isATM ? "bg-oc-atm font-medium" : ""}`}
+                              >
+                                {/* Call Side */}
+                                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                  {formatNumber(strike.ceOI)}
+                                </TableCell>
+                                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                  {formatNumber(strike.ceVolume)}
+                                </TableCell>
+                                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                  {strike.ceIV.toFixed(1)}
+                                </TableCell>
+                                <TableCell className={`text-center relative ${isITMCall ? "bg-oc-call-itm" : ""}`}>
+                                  <span className="text-xs font-medium">{strike.cePrice.toFixed(2)}</span>
+                                  <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      size="sm"
+                                      className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
+                                      onClick={() =>
+                                        addPosition({
+                                          action: "Buy",
+                                          lots: 1,
+                                          date: format(selectedDate, "yyyy-MM-dd"),
+                                          expiry: activeExpiry,
+                                          strike: strike.strike,
+                                          optType: "CE",
+                                          entryPrice: strike.cePrice,
+                                          currentPrice: strike.cePrice,
+                                          IV: strike.ceIV,
+                                          lotSize,
+                                        })
+                                      }
+                                    >
+                                      B
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-6 px-2 text-xs"
+                                      onClick={() =>
+                                        addPosition({
+                                          action: "Sell",
+                                          lots: 1,
+                                          date: format(selectedDate, "yyyy-MM-dd"),
+                                          expiry: activeExpiry,
+                                          strike: strike.strike,
+                                          optType: "CE",
+                                          entryPrice: strike.cePrice,
+                                          currentPrice: strike.cePrice,
+                                          IV: strike.ceIV,
+                                          lotSize,
+                                        })
+                                      }
+                                    >
+                                      S
+                                    </Button>
+                                  </div>
+                                </TableCell>
+
+                                {/* Strike */}
+                                <TableCell
+                                  className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}
+                                >
+                                  {strike.strike}
+                                </TableCell>
+
+                                {/* Put Side */}
+                                <TableCell className={`text-center relative ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                  <span className="text-xs font-medium">{strike.pePrice.toFixed(2)}</span>
+                                  <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button
+                                      size="sm"
+                                      className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
+                                      onClick={() =>
+                                        addPosition({
+                                          action: "Buy",
+                                          lots: 1,
+                                          date: format(selectedDate, "yyyy-MM-dd"),
+                                          expiry: activeExpiry,
+                                          strike: strike.strike,
+                                          optType: "PE",
+                                          entryPrice: strike.pePrice,
+                                          currentPrice: strike.pePrice,
+                                          IV: strike.peIV,
+                                          lotSize,
+                                        })
+                                      }
+                                    >
+                                      B
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="h-6 px-2 text-xs"
+                                      onClick={() =>
+                                        addPosition({
+                                          action: "Sell",
+                                          lots: 1,
+                                          date: format(selectedDate, "yyyy-MM-dd"),
+                                          expiry: activeExpiry,
+                                          strike: strike.strike,
+                                          optType: "PE",
+                                          entryPrice: strike.pePrice,
+                                          currentPrice: strike.pePrice,
+                                          IV: strike.peIV,
+                                          lotSize,
+                                        })
+                                      }
+                                    >
+                                      S
+                                    </Button>
+                                  </div>
+                                </TableCell>
+                                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                  {strike.peIV.toFixed(1)}
+                                </TableCell>
+                                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                  {formatNumber(strike.peVolume)}
+                                </TableCell>
+                                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
+                                  {formatNumber(strike.peOI)}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <div className="text-center text-muted-foreground py-10">
+                        Select date, time, and expiry, then click "Load Data"
+                      </div>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Right Side - Chart and Metrics */}
+            <div className="space-y-3">
+              {/* Strategies or Chart */}
+              {positions.length === 0 && showStrategies ? (
+                <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} />
+              ) : (
+                <>
+                  <OptionBuilderMetrics
+                    maxProfit={maxProfit === -Infinity ? 0 : maxProfit}
+                    maxLoss={maxLoss === Infinity ? 0 : maxLoss}
+                    breakevens={breakevens}
+                    currentPL={currentPL}
+                    riskReward={
+                      typeof maxProfit === "number" && typeof maxLoss === "number" && maxLoss !== 0
+                        ? Math.abs(maxProfit / maxLoss)
+                        : null
+                    }
+                  />
+                  <Card>
+                    <CardContent className="p-3">
+                      <OptionBuilderChart
+                        expiryData={chartData.expiry}
+                        todayData={chartData.today}
+                        currentPrice={currentPrice}
+                      />
+                    </CardContent>
+                  </Card>
+
+                  {/* P&L History Chart */}
+                  <PLHistoryChart history={plHistory} />
+                </>
+              )}
+            </div>
 
             {/* Positions */}
             {positions.length > 0 && (
@@ -1565,35 +1571,34 @@ const OptionSimulator = () => {
               </Card>
             )}
           </div>
-        </div>
-      </main>
+        </main>
 
-      <Footer />
+        <Footer />
 
-      {/* Dialogs */}
-      <SaveStrategyDialog
-        isOpen={saveDialogOpen}
-        onClose={() => setSaveDialogOpen(false)}
-        onSave={handleSaveStrategy}
-        positions={positions}
-      />
+        {/* Dialogs */}
+        <SaveStrategyDialog
+          isOpen={saveDialogOpen}
+          onClose={() => setSaveDialogOpen(false)}
+          onSave={handleSaveStrategy}
+          positions={positions}
+        />
 
-      <LoadStrategyDialog
-        isOpen={loadDialogOpen}
-        onClose={() => setLoadDialogOpen(false)}
-        strategies={savedStrategies}
-        onLoad={handleLoadStrategy}
-        onDelete={handleDeleteStrategy}
-      />
+        <LoadStrategyDialog
+          isOpen={loadDialogOpen}
+          onClose={() => setLoadDialogOpen(false)}
+          strategies={savedStrategies}
+          onLoad={handleLoadStrategy}
+          onDelete={handleDeleteStrategy}
+        />
 
-      <AdjustmentModal
-        open={adjustmentDialogOpen}
-        onOpenChange={setAdjustmentDialogOpen}
-        positions={positions}
-        adjustmentRules={adjustmentRules}
-        onSaveRules={setAdjustmentRules}
-      />
-    </ProFeatureGate>
+        <AdjustmentModal
+          open={adjustmentDialogOpen}
+          onOpenChange={setAdjustmentDialogOpen}
+          positions={positions}
+          adjustmentRules={adjustmentRules}
+          onSaveRules={setAdjustmentRules}
+        />
+      </ProFeatureGate>
     </div>
   );
 };
