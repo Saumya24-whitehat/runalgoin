@@ -269,7 +269,7 @@ export function IndicesSection() {
           {/* Mini Line Chart */}
           <svg className="w-24 h-12" viewBox="0 0 100 40">
             <polyline
-              points="0,30 15,28 25,32 35,25 45,22 55,28 65,15 75,12 85,18 100,10"
+              points="0,30 15,28 25,32 35,25 45,22 55,28 65,15 75,12 85,18 10,10"
               fill="none"
               stroke="#EAB308"
               strokeWidth="2"
