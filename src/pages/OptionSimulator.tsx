@@ -1533,44 +1533,44 @@ const OptionSimulator = () => {
                 </>
               )}
             </div>
-
-            {/* Positions */}
-            {positions.length > 0 && (
-              <Card>
-                <CardContent className="p-3">
-                  <Tabs defaultValue="legs">
-                    <div className="flex items-center justify-between mb-2">
-                      <TabsList className="h-8">
-                        <TabsTrigger value="legs" className="text-xs">
-                          Legs
-                        </TabsTrigger>
-                        <TabsTrigger value="greeks" className="text-xs">
-                          Greeks
-                        </TabsTrigger>
-                      </TabsList>
-                      <Button variant="ghost" size="sm" onClick={clearAllPositions}>
-                        Clear All
-                      </Button>
-                    </div>
-                    <TabsContent value="legs" className="mt-0">
-                      <OptionBuilderPositions
-                        positions={positions}
-                        onToggle={togglePosition}
-                        onExit={exitPosition}
-                        onRemove={removePosition}
-                        onUpdatePosition={updatePosition}
-                        onReEntry={reEntryPosition}
-                        onPartialExit={partialExitPosition}
-                      />
-                    </TabsContent>
-                    <TabsContent value="greeks" className="mt-0">
-                      <OptionBuilderGreeks positions={positions} totalGreeks={greeks} />
-                    </TabsContent>
-                  </Tabs>
-                </CardContent>
-              </Card>
-            )}
           </div>
+
+          {/* Positions */}
+          {positions.length > 0 && (
+            <Card>
+              <CardContent className="p-3">
+                <Tabs defaultValue="legs">
+                  <div className="flex items-center justify-between mb-2">
+                    <TabsList className="h-8">
+                      <TabsTrigger value="legs" className="text-xs">
+                        Legs
+                      </TabsTrigger>
+                      <TabsTrigger value="greeks" className="text-xs">
+                        Greeks
+                      </TabsTrigger>
+                    </TabsList>
+                    <Button variant="ghost" size="sm" onClick={clearAllPositions}>
+                      Clear All
+                    </Button>
+                  </div>
+                  <TabsContent value="legs" className="mt-0">
+                    <OptionBuilderPositions
+                      positions={positions}
+                      onToggle={togglePosition}
+                      onExit={exitPosition}
+                      onRemove={removePosition}
+                      onUpdatePosition={updatePosition}
+                      onReEntry={reEntryPosition}
+                      onPartialExit={partialExitPosition}
+                    />
+                  </TabsContent>
+                  <TabsContent value="greeks" className="mt-0">
+                    <OptionBuilderGreeks positions={positions} totalGreeks={greeks} />
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          )}
         </main>
 
         <Footer />
