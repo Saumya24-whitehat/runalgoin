@@ -235,6 +235,31 @@ export function Navbar() {
   const { isAdmin } = useSubscription();
   const navigate = useNavigate();
 
+  const bars = {
+    Bar1: useRef<SVGPathElement | null>(null),
+    Bar2: useRef<SVGPathElement | null>(null),
+    Bar3: useRef<SVGPathElement | null>(null),
+  };
+
+  useEffect(() => {
+    function updateColors() {
+      const keys = Object.keys(bars) as Array<keyof typeof bars>;
+      const shuffled = [...keys].sort(() => Math.random() - 0.5);
+
+      // First 2 => GREEN
+      bars[shuffled[0]].current!.setAttribute("fill", "green");
+      bars[shuffled[1]].current!.setAttribute("fill", "green");
+
+      // Last 1 => RED
+      bars[shuffled[2]].current!.setAttribute("fill", "red");
+    }
+
+    updateColors(); // Run once
+
+    const interval = setInterval(updateColors, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
   const toggleMobileDropdown = (label: string) => {
     setExpandedMobileItem(expandedMobileItem === label ? null : label);
   };
