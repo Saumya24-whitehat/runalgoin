@@ -31,9 +31,14 @@ interface FIIDataItem {
   Value: number;
 }
 
+interface ClosePrice {
+  C: number;
+}
+
 interface FIIRecord {
   Date: string;
   FIIDIIData: FIIDataItem[];
+  ClosePrice?: ClosePrice[];
 }
 
 interface AdvanceDeclineItem {
@@ -178,9 +183,8 @@ export function IndicesSection() {
       .map((record) => {
         const fiiCM = record.FIIDIIData?.find((item) => item.ShortName === "FII CM*");
         const date = new Date(record.Date);
-        // console.log(record);
         return {
-          nifty: record.ClosePrice[0].C,
+          nifty: record.ClosePrice?.[0]?.C || 0,
           day: date.getDate(),
           value: fiiCM?.Value || 0,
           isPositive: (fiiCM?.Value || 0) >= 0,
@@ -269,21 +273,52 @@ export function IndicesSection() {
             </div>
             <div className="text-xs text-muted-foreground mt-1">{latestFii.date}</div>
           </div>
-          {/* Mini Line Chart */}
-          <svg className="w-24 h-12" viewBox="0 0 100 40">
-            <polyline
-              points="0,30 15,28 25,32 35,25 45,22 55,28 65,15 75,12 85,18 100,10"
-              fill="none"
-              stroke="#EAB308"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            {[0, 15, 25, 35, 45, 55, 65, 75, 85, 100].map((x, i) => {
-              const y = [30, 28, 32, 25, 22, 28, 15, 12, 18, 10][i];
-              return <circle key={i} cx={x} cy={y} r="2.5" fill="#EAB308" />;
-            })}
-          </svg>
+          {/* Mini Line Chart with real Nifty data */}
+          {(() => {
+            const niftyPrices = fiiCalendarData.map((d) => d.nifty).filter((p) => p > 0);
+            if (niftyPrices.length < 2) {
+              return (
+                <svg className="w-24 h-12" viewBox="0 0 100 40">
+                  <text x="50" y="25" textAnchor="middle" fill="currentColor" fontSize="8">Loading...</text>
+                </svg>
+              );
+            }
+            const minPrice = Math.min(...niftyPrices);
+            const maxPrice = Math.max(...niftyPrices);
+            const priceRange = maxPrice - minPrice || 1;
+            const chartWidth = 100;
+            const chartHeight = 36;
+            const padding = 2;
+            
+            const points = niftyPrices
+              .map((price, i) => {
+                const x = (i / (niftyPrices.length - 1)) * chartWidth;
+                const y = padding + ((maxPrice - price) / priceRange) * chartHeight;
+                return `${x},${y}`;
+              })
+              .join(" ");
+            
+            const isPositive = niftyPrices[niftyPrices.length - 1] >= niftyPrices[0];
+            const strokeColor = isPositive ? "hsl(var(--success))" : "hsl(var(--destructive))";
+            
+            return (
+              <svg className="w-24 h-12" viewBox="0 0 100 40">
+                <polyline
+                  points={points}
+                  fill="none"
+                  stroke={strokeColor}
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                {niftyPrices.map((price, i) => {
+                  const x = (i / (niftyPrices.length - 1)) * chartWidth;
+                  const y = padding + ((maxPrice - price) / priceRange) * chartHeight;
+                  return <circle key={i} cx={x} cy={y} r="2" fill={strokeColor} />;
+                })}
+              </svg>
+            );
+          })()}
         </div>
 
         {/* Divider */}
