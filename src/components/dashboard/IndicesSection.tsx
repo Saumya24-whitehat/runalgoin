@@ -178,6 +178,7 @@ export function IndicesSection() {
       .map((record) => {
         const fiiCM = record.FIIDIIData?.find((item) => item.ShortName === "FII CM*");
         const date = new Date(record.Date);
+        console.log(fiiCM);
         return {
           day: date.getDate(),
           value: fiiCM?.Value || 0,
