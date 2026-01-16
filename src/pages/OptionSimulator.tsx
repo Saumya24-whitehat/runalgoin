@@ -268,6 +268,58 @@ const OptionSimulator = () => {
     }
   }, [user, loading, navigate]);
 
+  // Load strategy from profile page (if navigated with loadStrategy in sessionStorage)
+  useEffect(() => {
+    const storedStrategy = sessionStorage.getItem("loadStrategy");
+    if (storedStrategy) {
+      try {
+        const strategy = JSON.parse(storedStrategy);
+        if (strategy.source === "simulator") {
+          // Set symbol first
+          if (strategy.symbol) {
+            setSymbol(strategy.symbol);
+          }
+          
+          // Try to extract date from first position's date or expiry
+          const firstPosition = strategy.positions[0];
+          if (firstPosition?.date) {
+            const dateObj = parse(firstPosition.date, "yyyy-MM-dd", new Date());
+            if (isValid(dateObj)) {
+              setSelectedDate(dateObj);
+            }
+          }
+          
+          // Extract time from the first position if available (from the expiry or a stored time)
+          // Positions don't store time, so we default to market open
+          setSelectedHour(9);
+          setSelectedMinute(15);
+          
+          // Set expiry if available
+          if (firstPosition?.expiry) {
+            // We'll set the expiry after expiries are loaded
+            setTimeout(() => {
+              setActiveExpiry(firstPosition.expiry);
+            }, 1000);
+          }
+          
+          // Load positions with new IDs
+          setPositions(
+            strategy.positions.map((p: Position) => ({
+              ...p,
+              id: Math.random().toString(36).substr(2, 9),
+            }))
+          );
+          setShowStrategies(false);
+          toast.success(`Loaded: ${strategy.name}`);
+        }
+      } catch (e) {
+        console.error("Error loading strategy from session:", e);
+      } finally {
+        sessionStorage.removeItem("loadStrategy");
+      }
+    }
+  }, []);
+
   // Set lot size when symbol changes
   useEffect(() => {
     setLotSize(getLotSizeForSymbol(symbol));
