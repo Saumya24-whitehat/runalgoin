@@ -1,13 +1,23 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
-import { useAllSavedStrategies } from "@/hooks/useSavedStrategies";
+import { useAllSavedStrategies, SavedStrategy } from "@/hooks/useSavedStrategies";
 import { Navbar } from "@/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   User,
   Crown,
@@ -21,6 +31,7 @@ import {
   Loader2,
   TrendingUp,
   TrendingDown,
+  Pencil,
 } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { Position, formatIndianNumber } from "@/services/optionBuilderApi";
@@ -28,8 +39,14 @@ import { Position, formatIndianNumber } from "@/services/optionBuilderApi";
 const Profile = () => {
   const { user, loading: authLoading } = useAuth();
   const { subscription, loading: subLoading, isPro, isEnterprise, isAdmin } = useSubscription();
-  const { strategies: allStrategies, loading: strategiesLoading, deleteStrategy } = useAllSavedStrategies();
+  const { strategies: allStrategies, loading: strategiesLoading, deleteStrategy, updateStrategy } = useAllSavedStrategies();
   const navigate = useNavigate();
+
+  // Edit dialog state
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editingStrategy, setEditingStrategy] = useState<SavedStrategy | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editDescription, setEditDescription] = useState("");
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -42,8 +59,25 @@ const Profile = () => {
     await deleteStrategy(id);
   };
 
-  const handleLoadStrategy = (strategyId: string, type: "builder" | "simulator") => {
-    if (type === "builder") {
+  const handleEditStrategy = (strategy: SavedStrategy) => {
+    setEditingStrategy(strategy);
+    setEditName(strategy.name);
+    setEditDescription(strategy.description);
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingStrategy) return;
+    await updateStrategy(editingStrategy.id, editName, editDescription);
+    setEditDialogOpen(false);
+    setEditingStrategy(null);
+  };
+
+  const handleLoadStrategy = (strategy: SavedStrategy) => {
+    // Store strategy data in sessionStorage for the target page to load
+    sessionStorage.setItem("loadStrategy", JSON.stringify(strategy));
+    
+    if (strategy.source === "builder") {
       navigate("/option-builder");
     } else {
       navigate("/option-simulator");
@@ -288,11 +322,19 @@ const Profile = () => {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleLoadStrategy(strategy.id, strategy.source)}
+                                onClick={() => handleLoadStrategy(strategy)}
                                 className="gap-1"
                               >
                                 <ExternalLink className="h-4 w-4" />
-                                Open
+                                Load
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleEditStrategy(strategy)}
+                                className="gap-1"
+                              >
+                                <Pencil className="h-4 w-4" />
                               </Button>
                               <Button
                                 variant="ghost"
@@ -357,6 +399,43 @@ const Profile = () => {
           </div>
         </div>
       </main>
+
+      {/* Edit Strategy Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Strategy</DialogTitle>
+            <DialogDescription>Update the name and description of your strategy.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Name</label>
+              <Input
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Strategy name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Description</label>
+              <Textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Optional description"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={!editName.trim()}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

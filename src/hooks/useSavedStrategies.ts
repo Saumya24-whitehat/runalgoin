@@ -217,10 +217,36 @@ export const useAllSavedStrategies = () => {
     [user]
   );
 
+  const updateStrategy = useCallback(
+    async (id: string, name: string, description: string) => {
+      if (!user) return;
+
+      try {
+        const { error } = await supabase
+          .from("saved_strategies")
+          .update({ name, description, updated_at: new Date().toISOString() })
+          .eq("id", id)
+          .eq("user_id", user.id);
+
+        if (error) throw error;
+
+        setStrategies((prev) =>
+          prev.map((s) => (s.id === id ? { ...s, name, description } : s))
+        );
+        toast.success("Strategy updated");
+      } catch (error) {
+        console.error("Error updating strategy:", error);
+        toast.error("Failed to update strategy");
+      }
+    },
+    [user]
+  );
+
   return {
     strategies,
     loading,
     deleteStrategy,
+    updateStrategy,
     refetch: fetchAllStrategies,
   };
 };

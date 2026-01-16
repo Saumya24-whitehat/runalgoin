@@ -106,6 +106,35 @@ const OptionBuilder = () => {
     }
   }, [user, loading, navigate]);
 
+  // Load strategy from profile page (if navigated with loadStrategy in sessionStorage)
+  useEffect(() => {
+    const storedStrategy = sessionStorage.getItem("loadStrategy");
+    if (storedStrategy) {
+      try {
+        const strategy = JSON.parse(storedStrategy);
+        if (strategy.source === "builder") {
+          // Set symbol first
+          if (strategy.symbol) {
+            setSymbol(strategy.symbol);
+          }
+          // Load positions with new IDs
+          setPositions(
+            strategy.positions.map((p: Position) => ({
+              ...p,
+              id: Math.random().toString(36).substr(2, 9),
+            }))
+          );
+          setShowStrategies(false);
+          toast.success(`Loaded: ${strategy.name}`);
+        }
+      } catch (e) {
+        console.error("Error loading strategy from session:", e);
+      } finally {
+        sessionStorage.removeItem("loadStrategy");
+      }
+    }
+  }, []);
+
   // Fetch symbols on mount
   useEffect(() => {
     const fetchSymbols = async () => {
