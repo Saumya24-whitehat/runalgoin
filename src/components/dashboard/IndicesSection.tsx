@@ -178,8 +178,9 @@ export function IndicesSection() {
       .map((record) => {
         const fiiCM = record.FIIDIIData?.find((item) => item.ShortName === "FII CM*");
         const date = new Date(record.Date);
-        console.log(record);
+        // console.log(record);
         return {
+          nifty: record.ClosePrice[0].C,
           day: date.getDate(),
           value: fiiCM?.Value || 0,
           isPositive: (fiiCM?.Value || 0) >= 0,
