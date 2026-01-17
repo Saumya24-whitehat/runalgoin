@@ -284,10 +284,7 @@ export function ChartPatternsSection() {
               {filteredPatterns.slice(0, 50).map((pattern) => (
                 <div key={pattern.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
                   {/* Pattern Icon */}
-                  <div
-                    className="w-10 h-10 flex-shrink-0 rounded"
-                    style={{ "background-color": "rgba(255,255,255,0.3)" }}
-                  >
+                  <div className="w-10 h-10 flex-shrink-0 rounded" style={{ backgroundColor: "rgba(255,255,255,0.3)" }}>
                     <img
                       src={getPatternIcon(pattern.conditionName)}
                       alt={pattern.conditionName}
