@@ -319,7 +319,7 @@ export function ChartPatternsSection() {
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
-                      fill="yellow"
+                      fill="#19c3e6"
                       class="bi bi-graph-up-arrow"
                       viewBox="0 0 16 16"
                     >
