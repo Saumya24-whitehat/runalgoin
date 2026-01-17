@@ -65,8 +65,8 @@ const SimulatorOptionChain = ({
     switch (columnId) {
       case "oi":
         return formatNumber(strike.ceOI);
-      case "oi":
-        return formatNumber(strike.ceOI);
+      case "coi":
+        return formatNumber(strike.ceCOI);
       case "volume":
         return formatNumber(strike.ceVolume);
       case "iv":
@@ -90,6 +90,8 @@ const SimulatorOptionChain = ({
     switch (columnId) {
       case "oi":
         return formatNumber(strike.peOI);
+      case "coi":
+        return formatNumber(strike.ceCOI);
       case "volume":
         return formatNumber(strike.peVolume);
       case "iv":

@@ -28,6 +28,7 @@ export interface OptionBuilderSettingsConfig {
 
 const DEFAULT_CALL_COLUMNS: ColumnConfig[] = [
   { id: "oi", label: "OI", enabled: true },
+  { id: "coi", label: "COI", enabled: true },
   { id: "volume", label: "Volume", enabled: true },
   { id: "iv", label: "IV", enabled: true },
   { id: "ltp", label: "LTP", enabled: true },
@@ -42,6 +43,7 @@ const DEFAULT_PUT_COLUMNS: ColumnConfig[] = [
   { id: "iv", label: "IV", enabled: true },
   { id: "volume", label: "Volume", enabled: true },
   { id: "oi", label: "OI", enabled: true },
+  { id: "coi", label: "COI", enabled: true },
   { id: "delta", label: "Delta", enabled: false },
   { id: "gamma", label: "Gamma", enabled: false },
   { id: "theta", label: "Theta", enabled: false },
@@ -63,12 +65,7 @@ interface OptionBuilderSettingsProps {
   onSave: (settings: OptionBuilderSettingsConfig) => void;
 }
 
-const OptionBuilderSettings = ({
-  isOpen,
-  onClose,
-  settings,
-  onSave,
-}: OptionBuilderSettingsProps) => {
+const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuilderSettingsProps) => {
   const [localSettings, setLocalSettings] = useState<OptionBuilderSettingsConfig>(settings);
 
   useEffect(() => {
@@ -81,9 +78,7 @@ const OptionBuilderSettings = ({
     const key = side === "call" ? "callColumns" : "putColumns";
     setLocalSettings((prev) => ({
       ...prev,
-      [key]: prev[key].map((col) =>
-        col.id === columnId ? { ...col, enabled: !col.enabled } : col
-      ),
+      [key]: prev[key].map((col) => (col.id === columnId ? { ...col, enabled: !col.enabled } : col)),
     }));
   };
 
@@ -101,9 +96,7 @@ const OptionBuilderSettings = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Option Builder Settings</DialogTitle>
-          <DialogDescription>
-            Customize the option chain display and behavior
-          </DialogDescription>
+          <DialogDescription>Customize the option chain display and behavior</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="columns" className="mt-4">
@@ -125,10 +118,7 @@ const OptionBuilderSettings = ({
                         checked={col.enabled}
                         onCheckedChange={() => handleColumnToggle("call", col.id)}
                       />
-                      <label
-                        htmlFor={`call-${col.id}`}
-                        className="text-sm cursor-pointer"
-                      >
+                      <label htmlFor={`call-${col.id}`} className="text-sm cursor-pointer">
                         {col.label}
                       </label>
                     </div>
@@ -147,10 +137,7 @@ const OptionBuilderSettings = ({
                         checked={col.enabled}
                         onCheckedChange={() => handleColumnToggle("put", col.id)}
                       />
-                      <label
-                        htmlFor={`put-${col.id}`}
-                        className="text-sm cursor-pointer"
-                      >
+                      <label htmlFor={`put-${col.id}`} className="text-sm cursor-pointer">
                         {col.label}
                       </label>
                     </div>
