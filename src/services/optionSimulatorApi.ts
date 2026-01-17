@@ -93,7 +93,7 @@ export async function fetchSimulatorStrikesData(
   symbol: string,
   date: string,
   time: string,
-  expiry: string
+  expiry: string,
 ): Promise<SimulatorData> {
   const { data, error } = await supabase.functions.invoke("option-simulator-data", {
     body: {
@@ -125,7 +125,7 @@ export async function fetchSimulatorStrikesData(
     // Parse expiryWise data format
     // Format: { expiryWise: { "2025-12-30": { strikes: [...], data: [...] } } }
     const expiryData = data.expiryWise?.[expiry];
-    
+
     if (expiryData && Array.isArray(expiryData.data)) {
       expiryData.data.forEach((item: any) => {
         // Get spot price from first item
@@ -140,6 +140,9 @@ export async function fetchSimulatorStrikesData(
         const callGreeks = callOptions.option_greeks || {};
         const putGreeks = putOptions.option_greeks || {};
 
+        console.log(putGreeks);
+        console.log(callGreeks);
+        // consol
         strikes.push({
           strike: parseFloat(item.strike_price),
           cePrice: parseFloat(callMarket.ltp) || 0,
@@ -199,7 +202,7 @@ export function getMarketTimeSlots(): { value: string; label: string }[] {
     for (let min = 0; min < 60; min += 3) {
       if (hour === 9 && min < 15) continue; // Market opens at 9:15
       if (hour === 15 && min > 30) continue; // Market closes at 15:30
-      
+
       const h = hour.toString().padStart(2, "0");
       const m = min.toString().padStart(2, "0");
       slots.push({
@@ -214,7 +217,7 @@ export function getMarketTimeSlots(): { value: string; label: string }[] {
 // Get time slots for quick selection buttons
 export function getQuickTimeSlots(currentTime: string): { label: string; value: string }[] {
   const currentMinutes = parseInt(currentTime.slice(0, 2)) * 60 + parseInt(currentTime.slice(2));
-  
+
   const adjustments = [
     { label: "-2h", minutes: -120 },
     { label: "-30m", minutes: -30 },
@@ -225,16 +228,16 @@ export function getQuickTimeSlots(currentTime: string): { label: string; value: 
     { label: "30m+", minutes: 30 },
     { label: "2h+", minutes: 120 },
   ];
-  
-  return adjustments.map(adj => {
+
+  return adjustments.map((adj) => {
     let newMinutes = currentMinutes + adj.minutes;
     // Clamp to market hours (9:15 = 555 to 15:30 = 930)
     newMinutes = Math.max(555, Math.min(930, newMinutes));
-    
+
     const hours = Math.floor(newMinutes / 60);
     const mins = newMinutes % 60;
     const value = hours.toString().padStart(2, "0") + mins.toString().padStart(2, "0");
-    
+
     return { label: adj.label, value };
   });
 }

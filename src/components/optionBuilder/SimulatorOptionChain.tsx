@@ -63,29 +63,35 @@ const SimulatorOptionChain = ({
 
   const getCallCellValue = (strike: SimulatorData["strikes"][0], columnId: string) => {
     switch (columnId) {
-      case "oi": return formatNumber(strike.ceOI);
-      case "volume": return formatNumber(strike.ceVolume);
-      case "iv": return strike.ceIV.toFixed(1);
-      case "ltp": return strike.cePrice.toFixed(2);
-      default: return "";
+      case "oi":
+        return formatNumber(strike.ceOI);
+      case "volume":
+        return formatNumber(strike.ceVolume);
+      case "iv":
+        return strike.ceIV.toFixed(1);
+      case "ltp":
+        return strike.cePrice.toFixed(2);
+      default:
+        return "";
     }
   };
 
   const getPutCellValue = (strike: SimulatorData["strikes"][0], columnId: string) => {
     switch (columnId) {
-      case "oi": return formatNumber(strike.peOI);
-      case "volume": return formatNumber(strike.peVolume);
-      case "iv": return strike.peIV.toFixed(1);
-      case "ltp": return strike.pePrice.toFixed(2);
-      default: return "";
+      case "oi":
+        return formatNumber(strike.peOI);
+      case "volume":
+        return formatNumber(strike.peVolume);
+      case "iv":
+        return strike.peIV.toFixed(1);
+      case "ltp":
+        return strike.pePrice.toFixed(2);
+      default:
+        return "";
     }
   };
 
-  const handleAddPosition = (
-    strike: SimulatorData["strikes"][0],
-    optType: "CE" | "PE",
-    action: "Buy" | "Sell"
-  ) => {
+  const handleAddPosition = (strike: SimulatorData["strikes"][0], optType: "CE" | "PE", action: "Buy" | "Sell") => {
     const price = optType === "CE" ? strike.cePrice : strike.pePrice;
     const iv = optType === "CE" ? strike.ceIV : strike.peIV;
 
@@ -121,9 +127,7 @@ const SimulatorOptionChain = ({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {
-          console.log(simulatorData)
-          simulatorData.strikes.map((strike) => {
+        {simulatorData.strikes.map((strike) => {
           const isATM = Math.abs(strike.strike - atmStrike) < strikeDiff / 2;
           const isITMCall = strike.strike < currentPrice;
           const isITMPut = strike.strike > currentPrice;

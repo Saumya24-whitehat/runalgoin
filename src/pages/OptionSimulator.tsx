@@ -150,7 +150,7 @@ const OptionSimulator = () => {
   const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [adjustmentRules, setAdjustmentRules] = useState<AdjustmentRule[]>([]);
-  
+
   // Settings
   const STORAGE_KEY_SETTINGS = "optionSimulator_settings";
   const [settings, setSettings] = useState<OptionBuilderSettingsConfig>(() => {
@@ -307,7 +307,7 @@ const OptionSimulator = () => {
           if (strategy.symbol) {
             setSymbol(strategy.symbol);
           }
-          
+
           // Try to extract date from first position's date or expiry
           const firstPosition = strategy.positions[0];
           if (firstPosition?.date) {
@@ -316,12 +316,12 @@ const OptionSimulator = () => {
               setSelectedDate(dateObj);
             }
           }
-          
+
           // Extract time from the first position if available (from the expiry or a stored time)
           // Positions don't store time, so we default to market open
           setSelectedHour(9);
           setSelectedMinute(15);
-          
+
           // Set expiry if available
           if (firstPosition?.expiry) {
             // We'll set the expiry after expiries are loaded
@@ -329,13 +329,13 @@ const OptionSimulator = () => {
               setActiveExpiry(firstPosition.expiry);
             }, 1000);
           }
-          
+
           // Load positions with new IDs
           setPositions(
             strategy.positions.map((p: Position) => ({
               ...p,
               id: Math.random().toString(36).substr(2, 9),
-            }))
+            })),
           );
           setShowStrategies(false);
           toast.success(`Loaded: ${strategy.name}`);
@@ -383,6 +383,7 @@ const OptionSimulator = () => {
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       const data = await fetchSimulatorStrikesData(symbol, dateStr, selectedTime, activeExpiry);
+      console.log(gata);
       setSimulatorData(data);
       setCurrentPrice(data.spotPrice);
       setLotSize(data.lotSize || getLotSizeForSymbol(symbol));
