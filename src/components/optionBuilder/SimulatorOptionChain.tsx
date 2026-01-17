@@ -72,13 +72,13 @@ const SimulatorOptionChain = ({
       case "ltp":
         return strike.cePrice.toFixed(2);
       case "delta":
-        return row.callDelta.toFixed(2);
+        return strike.callDelta.toFixed(2);
       case "gamma":
-        return row.callGamma.toFixed(4);
+        return strike.callGamma.toFixed(4);
       case "theta":
-        return row.callTheta.toFixed(2);
+        return strike.callTheta.toFixed(2);
       case "vega":
-        return row.callVega.toFixed(2);
+        return strike.callVega.toFixed(2);
       default:
         return "";
     }
@@ -95,13 +95,13 @@ const SimulatorOptionChain = ({
       case "ltp":
         return strike.pePrice.toFixed(2);
       case "delta":
-        return row.putDelta.toFixed(2);
+        return strike.putDelta.toFixed(2);
       case "gamma":
-        return row.putGamma.toFixed(4);
+        return strike.putGamma.toFixed(4);
       case "theta":
-        return row.putTheta.toFixed(2);
+        return strike.putTheta.toFixed(2);
       case "vega":
-        return row.putVega.toFixed(2);
+        return strike.putVega.toFixed(2);
       default:
         return "";
     }
