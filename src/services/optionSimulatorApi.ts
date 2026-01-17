@@ -151,6 +151,8 @@ export async function fetchSimulatorStrikesData(
           peIV: parseFloat(putGreeks.iv) || 0,
           ceOI: parseFloat(callMarket.oi) || 0,
           peOI: parseFloat(putMarket.oi) || 0,
+          ceCOI: parseFloat(callMarket.oi) - parseFloat(callMarket.prev_oi) || 0,
+          peCOI: parseFloat(putMarket.oi) - parseFloat(callMarket.prev_oi) || 0,
           ceVolume: parseFloat(callMarket.volume) || 0,
           peVolume: parseFloat(putMarket.volume) || 0,
           ceDelta: callGreeks.delta || 0,
