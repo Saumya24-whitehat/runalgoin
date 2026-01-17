@@ -60,6 +60,7 @@ import AdjustmentModal, {
   ExitAction,
 } from "@/components/optionBuilder/AdjustmentModal";
 import PLHistoryChart from "@/components/optionBuilder/PLHistoryChart";
+import SimulatorOptionChain from "@/components/optionBuilder/SimulatorOptionChain";
 import {
   Position,
   generatePLChartData,
