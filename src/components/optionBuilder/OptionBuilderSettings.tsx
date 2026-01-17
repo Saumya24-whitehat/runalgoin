@@ -142,16 +142,16 @@ const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuil
                 <Label className="text-red-500 font-medium">Put Side</Label>
                 <div className="space-y-2">
                   {[
-                      { id: "oi", label: "OI`", enabled: true },
-                      { id: "coi", label: "COI", enabled: true },
-                      { id: "volume", label: "Volume", enabled: true },
-                      { id: "iv", label: "IV", enabled: true },
-                      { id: "ltp", label: "LTP", enabled: true },
-                      { id: "delta", label: "Delta", enabled: false },
-                      { id: "gamma", label: "Gamma", enabled: false },
-                      { id: "theta", label: "Theta", enabled: false },
-                      { id: "vega", label: "Vega", enabled: false },
-                    ]`.map((col) => (
+                    { id: "oi", label: "OI`", enabled: true },
+                    { id: "coi", label: "COI", enabled: true },
+                    { id: "volume", label: "Volume", enabled: true },
+                    { id: "iv", label: "IV", enabled: true },
+                    { id: "ltp", label: "LTP", enabled: true },
+                    { id: "delta", label: "Delta", enabled: false },
+                    { id: "gamma", label: "Gamma", enabled: false },
+                    { id: "theta", label: "Theta", enabled: false },
+                    { id: "vega", label: "Vega", enabled: false },
+                  ].map((col) => (
                     <div key={col.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`put-${col.id}`}
