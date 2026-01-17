@@ -99,7 +99,7 @@ export function ChartPatternsSection() {
   const getPatternIcon = (conditionName: string) => {
     // Use pattern name to construct URL from runalgo.xyz
     const encodedName = encodeURIComponent(conditionName);
-    return `https://runalgo.xyz/chartpatterns/svg/${encodedName} Dark.svg`;
+    return `https://runalgo.xyz/chartpatterns/svg/${encodedName}.svg`;
   };
 
   const formatTimeFrame = (tf: string) => {
