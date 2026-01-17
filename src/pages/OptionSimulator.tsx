@@ -48,6 +48,11 @@ import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetric
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import SaveStrategyDialog from "@/components/optionBuilder/SaveStrategyDialog";
 import LoadStrategyDialog from "@/components/optionBuilder/LoadStrategyDialog";
+import OptionBuilderSettings, {
+  OptionBuilderSettingsConfig,
+  DEFAULT_SETTINGS,
+  ColumnConfig,
+} from "@/components/optionBuilder/OptionBuilderSettings";
 import { useSavedStrategies, SavedStrategy } from "@/hooks/useSavedStrategies";
 import AdjustmentModal, {
   AdjustmentRule,
@@ -142,7 +147,29 @@ const OptionSimulator = () => {
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
   const [adjustmentDialogOpen, setAdjustmentDialogOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [adjustmentRules, setAdjustmentRules] = useState<AdjustmentRule[]>([]);
+  
+  // Settings
+  const STORAGE_KEY_SETTINGS = "optionSimulator_settings";
+  const [settings, setSettings] = useState<OptionBuilderSettingsConfig>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
+      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
+  // Ref for auto-scroll
+  const chainContainerRef = useRef<HTMLDivElement>(null);
+  const atmRowRef = useRef<HTMLTableRowElement>(null);
+  const hasScrolledRef = useRef(false);
+
+  // Save settings
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
+  }, [settings]);
 
   // Computed selected time as string
   const selectedTime = useMemo(() => {
@@ -1378,175 +1405,37 @@ const OptionSimulator = () => {
               <CardContent className="p-3">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-semibold text-sm">Historical Option Chain</h3>
-                  <Button variant="ghost" size="sm" onClick={() => setShowChain(!showChain)}>
-                    {showChain ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => setSettingsOpen(true)}>
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setShowChain(!showChain)}>
+                      {showChain ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    </Button>
+                  </div>
                 </div>
 
                 {showChain && (
-                  <div className="max-h-[500px] overflow-auto">
-                    {isLoading ? (
-                      <div className="flex items-center justify-center py-10">
-                        <RefreshCw className="h-6 w-6 animate-spin text-muted-foreground" />
-                      </div>
-                    ) : simulatorData && simulatorData.strikes.length > 0 ? (
-                      <Table>
-                        <TableHeader className="sticky top-0 bg-background z-10">
-                          <TableRow>
-                            <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
-                            <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
-                            <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
-                            <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
-                            <TableHead className="text-center font-bold text-xs">Strike</TableHead>
-                            <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
-                            <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
-                            <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
-                            <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {simulatorData.strikes.map((strike) => {
-                            const strikeDiff = symbol.includes("Bank") ? 100 : 50;
-                            const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
-                            const isATM = Math.abs(strike.strike - atmStrike) < strikeDiff / 2;
-                            const isITMCall = strike.strike < currentPrice;
-                            const isITMPut = strike.strike > currentPrice;
-
-                            return (
-                              <TableRow
-                                key={strike.strike}
-                                className={`relative cursor-pointer transition-colors group ${isATM ? "bg-oc-atm font-medium" : ""}`}
-                              >
-                                {/* Call Side */}
-                                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                  {formatNumber(strike.ceOI)}
-                                </TableCell>
-                                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                  {formatNumber(strike.ceVolume)}
-                                </TableCell>
-                                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                  {strike.ceIV.toFixed(1)}
-                                </TableCell>
-                                <TableCell className={`text-center relative ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                                  <span className="text-xs font-medium">{strike.cePrice.toFixed(2)}</span>
-                                  <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      size="sm"
-                                      className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                                      onClick={() =>
-                                        addPosition({
-                                          action: "Buy",
-                                          lots: 1,
-                                          date: format(selectedDate, "yyyy-MM-dd"),
-                                          expiry: activeExpiry,
-                                          strike: strike.strike,
-                                          optType: "CE",
-                                          entryPrice: strike.cePrice,
-                                          currentPrice: strike.cePrice,
-                                          IV: strike.ceIV,
-                                          lotSize,
-                                        })
-                                      }
-                                    >
-                                      B
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      className="h-6 px-2 text-xs"
-                                      onClick={() =>
-                                        addPosition({
-                                          action: "Sell",
-                                          lots: 1,
-                                          date: format(selectedDate, "yyyy-MM-dd"),
-                                          expiry: activeExpiry,
-                                          strike: strike.strike,
-                                          optType: "CE",
-                                          entryPrice: strike.cePrice,
-                                          currentPrice: strike.cePrice,
-                                          IV: strike.ceIV,
-                                          lotSize,
-                                        })
-                                      }
-                                    >
-                                      S
-                                    </Button>
-                                  </div>
-                                </TableCell>
-
-                                {/* Strike */}
-                                <TableCell
-                                  className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}
-                                >
-                                  {strike.strike}
-                                </TableCell>
-
-                                {/* Put Side */}
-                                <TableCell className={`text-center relative ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                  <span className="text-xs font-medium">{strike.pePrice.toFixed(2)}</span>
-                                  <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Button
-                                      size="sm"
-                                      className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                                      onClick={() =>
-                                        addPosition({
-                                          action: "Buy",
-                                          lots: 1,
-                                          date: format(selectedDate, "yyyy-MM-dd"),
-                                          expiry: activeExpiry,
-                                          strike: strike.strike,
-                                          optType: "PE",
-                                          entryPrice: strike.pePrice,
-                                          currentPrice: strike.pePrice,
-                                          IV: strike.peIV,
-                                          lotSize,
-                                        })
-                                      }
-                                    >
-                                      B
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      className="h-6 px-2 text-xs"
-                                      onClick={() =>
-                                        addPosition({
-                                          action: "Sell",
-                                          lots: 1,
-                                          date: format(selectedDate, "yyyy-MM-dd"),
-                                          expiry: activeExpiry,
-                                          strike: strike.strike,
-                                          optType: "PE",
-                                          entryPrice: strike.pePrice,
-                                          currentPrice: strike.pePrice,
-                                          IV: strike.peIV,
-                                          lotSize,
-                                        })
-                                      }
-                                    >
-                                      S
-                                    </Button>
-                                  </div>
-                                </TableCell>
-                                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                  {strike.peIV.toFixed(1)}
-                                </TableCell>
-                                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                  {formatNumber(strike.peVolume)}
-                                </TableCell>
-                                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                                  {formatNumber(strike.peOI)}
-                                </TableCell>
-                              </TableRow>
-                            );
-                          })}
-                        </TableBody>
-                      </Table>
-                    ) : (
+                  <div ref={chainContainerRef} className="max-h-[500px] overflow-auto">
+                    {simulatorData && simulatorData.strikes.length > 0 ? (
+                      <SimulatorOptionChain
+                        simulatorData={simulatorData}
+                        symbol={symbol}
+                        currentPrice={currentPrice}
+                        lotSize={lotSize}
+                        selectedDate={selectedDate}
+                        activeExpiry={activeExpiry}
+                        addPosition={addPosition}
+                        callColumns={settings.callColumns}
+                        putColumns={settings.putColumns}
+                        atmRowRef={atmRowRef}
+                        hasScrolledRef={hasScrolledRef}
+                      />
+                    ) : !isLoading ? (
                       <div className="text-center text-muted-foreground py-10">
-                        Select date, time, and expiry, then click "Load Data"
+                        Select date, time, and expiry to load data
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </CardContent>
@@ -1649,6 +1538,13 @@ const OptionSimulator = () => {
           positions={positions}
           adjustmentRules={adjustmentRules}
           onSaveRules={setAdjustmentRules}
+        />
+
+        <OptionBuilderSettings
+          isOpen={settingsOpen}
+          onClose={() => setSettingsOpen(false)}
+          settings={settings}
+          onSave={setSettings}
         />
       </ProFeatureGate>
     </div>
