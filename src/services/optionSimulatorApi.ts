@@ -153,14 +153,14 @@ export async function fetchSimulatorStrikesData(
           peOI: parseFloat(putMarket.oi) || 0,
           ceVolume: parseFloat(callMarket.volume) || 0,
           peVolume: parseFloat(putMarket.volume) || 0,
-          ceDelta: parseFloat(callGreeks.delta) || undefined,
-          peDelta: parseFloat(putGreeks.delta) || undefined,
-          ceGamma: parseFloat(callGreeks.gamma) || undefined,
-          peGamma: parseFloat(putGreeks.gamma) || undefined,
-          ceTheta: parseFloat(callGreeks.theta) || undefined,
-          peTheta: parseFloat(putGreeks.theta) || undefined,
-          ceVega: parseFloat(callGreeks.vega) || undefined,
-          peVega: parseFloat(putGreeks.vega) || undefined,
+          ceDelta: callGreeks.delta || undefined,
+          peDelta: putGreeks.delta || undefined,
+          ceGamma: callGreeks.gamma || undefined,
+          peGamma: putGreeks.gamma || undefined,
+          ceTheta: callGreeks.theta || undefined,
+          peTheta: putGreeks.theta || undefined,
+          ceVega: callGreeks.vega || undefined,
+          peVega: putGreeks.vega || undefined,
         });
       });
     }
