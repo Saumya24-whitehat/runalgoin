@@ -728,6 +728,8 @@ const OptionBuilder = () => {
                     expiryData={currentExpiryData}
                     isLoading={isLoading}
                     onAddPosition={addPosition}
+                    callColumns={settings.callColumns}
+                    putColumns={settings.putColumns}
                   />
                 )}
               </CardContent>

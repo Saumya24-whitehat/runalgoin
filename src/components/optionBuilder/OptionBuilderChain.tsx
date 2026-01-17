@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Position, ExpiryData, formatIndianNumber } from "@/services/optionBuilderApi";
-import { Skeleton } from "@/components/ui/skeleton";
+import { ColumnConfig } from "./OptionBuilderSettings";
 
 interface OptionBuilderChainProps {
   symbol: string;
@@ -12,6 +12,8 @@ interface OptionBuilderChainProps {
   expiryData: ExpiryData | null;
   isLoading: boolean;
   onAddPosition: (position: Omit<Position, "id" | "enabled">) => void;
+  callColumns?: ColumnConfig[];
+  putColumns?: ColumnConfig[];
 }
 
 interface StrikeData {
@@ -36,6 +38,20 @@ interface StrikeData {
   putToken: string;
 }
 
+const DEFAULT_CALL_COLUMNS: ColumnConfig[] = [
+  { id: "oi", label: "OI", enabled: true },
+  { id: "volume", label: "Vol", enabled: true },
+  { id: "iv", label: "IV", enabled: true },
+  { id: "ltp", label: "LTP", enabled: true },
+];
+
+const DEFAULT_PUT_COLUMNS: ColumnConfig[] = [
+  { id: "ltp", label: "LTP", enabled: true },
+  { id: "iv", label: "IV", enabled: true },
+  { id: "volume", label: "Vol", enabled: true },
+  { id: "oi", label: "OI", enabled: true },
+];
+
 const OptionBuilderChain = ({
   symbol,
   expiry,
@@ -44,8 +60,16 @@ const OptionBuilderChain = ({
   expiryData,
   isLoading,
   onAddPosition,
+  callColumns = DEFAULT_CALL_COLUMNS,
+  putColumns = DEFAULT_PUT_COLUMNS,
 }: OptionBuilderChainProps) => {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const atmRowRef = useRef<HTMLTableRowElement>(null);
+  const hasScrolledRef = useRef(false);
+
+  const strikeDiff = symbol.includes("Bank") ? 100 : 50;
+  const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
   // Transform expiry data into strike data array
   const strikeData: StrikeData[] = useMemo(() => {
@@ -80,6 +104,21 @@ const OptionBuilderChain = ({
       };
     });
   }, [expiryData]);
+
+  // Auto-scroll to ATM when data loads
+  useEffect(() => {
+    if (strikeData.length > 0 && atmRowRef.current && containerRef.current && !hasScrolledRef.current) {
+      setTimeout(() => {
+        atmRowRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        hasScrolledRef.current = true;
+      }, 100);
+    }
+  }, [strikeData.length]);
+
+  // Reset scroll flag when symbol or expiry changes
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [symbol, expiry]);
 
   const handleAddPosition = (strike: number, optType: "CE" | "PE", action: "Buy" | "Sell") => {
     const data = strikeData.find((s) => s.strike === strike);
@@ -126,37 +165,57 @@ const OptionBuilderChain = ({
     return num.toString();
   };
 
-  const strikeDiff = symbol.includes("Bank") ? 100 : 50;
-  const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
+  const enabledCallColumns = callColumns.filter((c) => c.enabled);
+  const enabledPutColumns = putColumns.filter((c) => c.enabled);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-2">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <Skeleton key={i} className="h-10 w-full" />
-        ))}
-      </div>
-    );
-  }
+  const getCallCellValue = (row: StrikeData, columnId: string) => {
+    switch (columnId) {
+      case "oi": return formatNumber(row.callOI);
+      case "volume": return formatNumber(row.callVolume);
+      case "iv": return row.callIV.toFixed(1);
+      case "ltp": return row.callLTP.toFixed(2);
+      case "delta": return row.callDelta.toFixed(2);
+      case "gamma": return row.callGamma.toFixed(4);
+      case "theta": return row.callTheta.toFixed(2);
+      case "vega": return row.callVega.toFixed(2);
+      default: return "";
+    }
+  };
 
-  if (strikeData.length === 0) {
+  const getPutCellValue = (row: StrikeData, columnId: string) => {
+    switch (columnId) {
+      case "oi": return formatNumber(row.putOI);
+      case "volume": return formatNumber(row.putVolume);
+      case "iv": return row.putIV.toFixed(1);
+      case "ltp": return row.putLTP.toFixed(2);
+      case "delta": return row.putDelta.toFixed(2);
+      case "gamma": return row.putGamma.toFixed(4);
+      case "theta": return row.putTheta.toFixed(2);
+      case "vega": return row.putVega.toFixed(2);
+      default: return "";
+    }
+  };
+
+  if (strikeData.length === 0 && !isLoading) {
     return <div className="text-center py-8 text-muted-foreground">No option chain data available for {expiry}</div>;
   }
 
   return (
-    <div className="relative w-full overflow-auto max-h-[400px]">
+    <div ref={containerRef} className="relative w-full overflow-auto max-h-[400px]">
       <Table>
         <TableHeader className="sticky top-0 bg-background z-20">
           <TableRow>
-            <TableHead className="text-center text-emerald-500 text-xs">OI</TableHead>
-            <TableHead className="text-center text-emerald-500 text-xs">Vol</TableHead>
-            <TableHead className="text-center text-emerald-500 text-xs">IV</TableHead>
-            <TableHead className="text-center text-emerald-500 text-xs">LTP</TableHead>
+            {enabledCallColumns.map((col) => (
+              <TableHead key={`call-${col.id}`} className="text-center text-emerald-500 text-xs">
+                {col.label}
+              </TableHead>
+            ))}
             <TableHead className="text-center font-bold text-xs">Strike</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">LTP</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">IV</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">Vol</TableHead>
-            <TableHead className="text-center text-red-500 text-xs">OI</TableHead>
+            {enabledPutColumns.map((col) => (
+              <TableHead key={`put-${col.id}`} className="text-center text-red-500 text-xs">
+                {col.label}
+              </TableHead>
+            ))}
           </TableRow>
         </TableHeader>
 
@@ -170,6 +229,7 @@ const OptionBuilderChain = ({
             return (
               <TableRow
                 key={row.strike}
+                ref={isATM ? atmRowRef : undefined}
                 className={`
                   relative cursor-pointer transition-colors
                   ${isATM ? "bg-oc-atm font-medium" : ""}
@@ -179,37 +239,42 @@ const OptionBuilderChain = ({
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 {/* Call Side */}
-                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                  {formatNumber(row.callOI)}
-                </TableCell>
-                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                  {formatNumber(row.callVolume)}
-                </TableCell>
-                <TableCell className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                  {row.callIV.toFixed(1)}
-                </TableCell>
-                <TableCell className={`text-center relative ${isITMCall ? "bg-oc-call-itm" : ""}`}>
-                  <span className="text-xs font-medium">{row.callLTP.toFixed(2)}</span>
-                  {isHovered && (
-                    <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
-                      <Button
-                        size="sm"
-                        className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() => handleAddPosition(row.strike, "CE", "Buy")}
-                      >
-                        B
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-6 px-2 text-xs"
-                        onClick={() => handleAddPosition(row.strike, "CE", "Sell")}
-                      >
-                        S
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
+                {enabledCallColumns.map((col, idx) => {
+                  const isLtpColumn = col.id === "ltp";
+                  return (
+                    <TableCell
+                      key={`call-${col.id}`}
+                      className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""} ${isLtpColumn ? "relative" : ""}`}
+                    >
+                      {isLtpColumn ? (
+                        <>
+                          <span className="text-xs font-medium">{getCallCellValue(row, col.id)}</span>
+                          {isHovered && (
+                            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
+                              <Button
+                                size="sm"
+                                className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
+                                onClick={() => handleAddPosition(row.strike, "CE", "Buy")}
+                              >
+                                B
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleAddPosition(row.strike, "CE", "Sell")}
+                              >
+                                S
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        getCallCellValue(row, col.id)
+                      )}
+                    </TableCell>
+                  );
+                })}
 
                 {/* Strike */}
                 <TableCell className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}>
@@ -217,37 +282,42 @@ const OptionBuilderChain = ({
                 </TableCell>
 
                 {/* Put Side */}
-                <TableCell className={`text-center relative ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                  <span className="text-xs font-medium">{row.putLTP.toFixed(2)}</span>
-                  {isHovered && (
-                    <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
-                      <Button
-                        size="sm"
-                        className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
-                        onClick={() => handleAddPosition(row.strike, "PE", "Buy")}
-                      >
-                        B
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-6 px-2 text-xs"
-                        onClick={() => handleAddPosition(row.strike, "PE", "Sell")}
-                      >
-                        S
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                  {row.putIV.toFixed(1)}
-                </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                  {formatNumber(row.putVolume)}
-                </TableCell>
-                <TableCell className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""}`}>
-                  {formatNumber(row.putOI)}
-                </TableCell>
+                {enabledPutColumns.map((col, idx) => {
+                  const isLtpColumn = col.id === "ltp";
+                  return (
+                    <TableCell
+                      key={`put-${col.id}`}
+                      className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""} ${isLtpColumn ? "relative" : ""}`}
+                    >
+                      {isLtpColumn ? (
+                        <>
+                          <span className="text-xs font-medium">{getPutCellValue(row, col.id)}</span>
+                          {isHovered && (
+                            <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
+                              <Button
+                                size="sm"
+                                className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
+                                onClick={() => handleAddPosition(row.strike, "PE", "Buy")}
+                              >
+                                B
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="destructive"
+                                className="h-6 px-2 text-xs"
+                                onClick={() => handleAddPosition(row.strike, "PE", "Sell")}
+                              >
+                                S
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        getPutCellValue(row, col.id)
+                      )}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             );
           })}
