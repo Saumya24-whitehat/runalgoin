@@ -61,31 +61,53 @@ const SimulatorOptionChain = ({
     hasScrolledRef.current = false;
   }, [symbol, activeExpiry, hasScrolledRef]);
 
-  const getCallCellValue = (strike: SimulatorData["strikes"][0], columnId: string) => {
+  const getCallCellValue = (row: StrikeData, columnId: string) => {
     switch (columnId) {
-      case "oi": return formatNumber(strike.ceOI);
-      case "volume": return formatNumber(strike.ceVolume);
-      case "iv": return strike.ceIV.toFixed(1);
-      case "ltp": return strike.cePrice.toFixed(2);
-      default: return "";
+      case "oi":
+        return formatNumber(row.callOI);
+      case "volume":
+        return formatNumber(row.callVolume);
+      case "iv":
+        return row.callIV.toFixed(1);
+      case "ltp":
+        return row.callLTP.toFixed(2);
+      case "delta":
+        return row.callDelta.toFixed(2);
+      case "gamma":
+        return row.callGamma.toFixed(4);
+      case "theta":
+        return row.callTheta.toFixed(2);
+      case "vega":
+        return row.callVega.toFixed(2);
+      default:
+        return "";
     }
   };
 
-  const getPutCellValue = (strike: SimulatorData["strikes"][0], columnId: string) => {
+  const getPutCellValue = (row: StrikeData, columnId: string) => {
     switch (columnId) {
-      case "oi": return formatNumber(strike.peOI);
-      case "volume": return formatNumber(strike.peVolume);
-      case "iv": return strike.peIV.toFixed(1);
-      case "ltp": return strike.pePrice.toFixed(2);
-      default: return "";
+      case "oi":
+        return formatNumber(row.putOI);
+      case "volume":
+        return formatNumber(row.putVolume);
+      case "iv":
+        return row.putIV.toFixed(1);
+      case "ltp":
+        return row.putLTP.toFixed(2);
+      case "delta":
+        return row.putDelta.toFixed(2);
+      case "gamma":
+        return row.putGamma.toFixed(4);
+      case "theta":
+        return row.putTheta.toFixed(2);
+      case "vega":
+        return row.putVega.toFixed(2);
+      default:
+        return "";
     }
   };
 
-  const handleAddPosition = (
-    strike: SimulatorData["strikes"][0],
-    optType: "CE" | "PE",
-    action: "Buy" | "Sell"
-  ) => {
+  const handleAddPosition = (strike: SimulatorData["strikes"][0], optType: "CE" | "PE", action: "Buy" | "Sell") => {
     const price = optType === "CE" ? strike.cePrice : strike.pePrice;
     const iv = optType === "CE" ? strike.ceIV : strike.peIV;
 
