@@ -314,12 +314,12 @@ export function ChartPatternsSection() {
                     <div className="text-xs text-muted-foreground">{formatTimeFrame(pattern.timeFrame)}</div>
                     <div className="text-xs text-muted-foreground">{formatTime(pattern.timestamp)}</div>
                   </div>
-                  <div className="text-right flex-shrink-0">
+                  <div className="text-right flex-shrink-0" style={{ marginRight: "10px" }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
                       height="16"
-                      fill="#ffffff"
+                      fill="yellow"
                       class="bi bi-graph-up-arrow"
                       viewBox="0 0 16 16"
                     >
