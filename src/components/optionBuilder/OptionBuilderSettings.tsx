@@ -91,6 +91,7 @@ const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuil
     setLocalSettings(DEFAULT_SETTINGS);
   };
 
+  console.log(localSettings.callColumns);
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
