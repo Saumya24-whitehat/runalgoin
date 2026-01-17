@@ -383,7 +383,7 @@ const OptionSimulator = () => {
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       const data = await fetchSimulatorStrikesData(symbol, dateStr, selectedTime, activeExpiry);
-      console.log(gata);
+      console.log(data);
       setSimulatorData(data);
       setCurrentPrice(data.spotPrice);
       setLotSize(data.lotSize || getLotSizeForSymbol(symbol));
