@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/components/ThemeProvider";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -38,7 +38,15 @@ export function ChartPatternsSection() {
   const [data, setData] = useState<ChartPatternsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
-  const { resolvedTheme } = useTheme();
+  const { theme } = useTheme();
+
+  // Resolve the actual theme (handle "system" preference)
+  const resolvedTheme = useMemo(() => {
+    if (theme === "system") {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+    return theme;
+  }, [theme]);
 
   const [mainTab, setMainTab] = useState<MainTab>("stocks");
   const [stocksSubTab, setStocksSubTab] = useState<StocksSubTab>("candlesticks");
