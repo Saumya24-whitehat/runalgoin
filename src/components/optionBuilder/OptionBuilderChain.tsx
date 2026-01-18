@@ -25,6 +25,7 @@ interface StrikeData {
   callGamma: number;
   callVega: number;
   callOI: number;
+  callCOI: number;
   callVolume: number;
   callToken: string;
   putLTP: number;
@@ -34,6 +35,7 @@ interface StrikeData {
   putGamma: number;
   putVega: number;
   putOI: number;
+  putCOI: number;
   putVolume: number;
   putToken: string;
 }
@@ -81,6 +83,9 @@ const OptionBuilderChain = ({
       const callData = item.call_options;
       const putData = item.put_options;
 
+      const callPrevOI = callData?.market_data?.prev_oi || callData?.market_data?.oi || 0;
+      const putPrevOI = putData?.market_data?.prev_oi || putData?.market_data?.oi || 0;
+      
       return {
         strike: item.strike_price,
         callLTP: callData?.market_data?.ltp || 0,
@@ -90,6 +95,7 @@ const OptionBuilderChain = ({
         callGamma: callData?.option_greeks?.gamma || 0,
         callVega: callData?.option_greeks?.vega || 0,
         callOI: callData?.market_data?.oi || 0,
+        callCOI: (callData?.market_data?.oi || 0) - callPrevOI,
         callVolume: callData?.market_data?.volume || 0,
         callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || "",
         putLTP: putData?.market_data?.ltp || 0,
@@ -99,6 +105,7 @@ const OptionBuilderChain = ({
         putGamma: putData?.option_greeks?.gamma || 0,
         putVega: putData?.option_greeks?.vega || 0,
         putOI: putData?.market_data?.oi || 0,
+        putCOI: (putData?.market_data?.oi || 0) - putPrevOI,
         putVolume: putData?.market_data?.volume || 0,
         putToken: expiryData.peToken?.[idx] || putData?.instrument_key || "",
       };
@@ -172,6 +179,8 @@ const OptionBuilderChain = ({
     switch (columnId) {
       case "oi":
         return formatNumber(row.callOI);
+      case "coi":
+        return formatNumber(row.callCOI);
       case "volume":
         return formatNumber(row.callVolume);
       case "iv":
@@ -195,6 +204,8 @@ const OptionBuilderChain = ({
     switch (columnId) {
       case "oi":
         return formatNumber(row.putOI);
+      case "coi":
+        return formatNumber(row.putCOI);
       case "volume":
         return formatNumber(row.putVolume);
       case "iv":
