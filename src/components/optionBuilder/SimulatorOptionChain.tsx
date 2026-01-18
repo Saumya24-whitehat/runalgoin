@@ -66,7 +66,7 @@ const SimulatorOptionChain = ({
       case "oi":
         return formatNumber(strike.ceOI);
       case "coi":
-        return formatNumber(strike.ceCOI);
+        return formatNumber(strike.ceCOI || 0);
       case "volume":
         return formatNumber(strike.ceVolume);
       case "iv":
@@ -74,13 +74,13 @@ const SimulatorOptionChain = ({
       case "ltp":
         return strike.cePrice.toFixed(2);
       case "delta":
-        return strike.ceDelta.toFixed(2);
+        return (strike.ceDelta || 0).toFixed(2);
       case "gamma":
-        return strike.ceGamma.toFixed(4);
+        return (strike.ceGamma || 0).toFixed(4);
       case "theta":
-        return strike.ceTheta.toFixed(2);
+        return (strike.ceTheta || 0).toFixed(2);
       case "vega":
-        return strike.ceVega.toFixed(2);
+        return (strike.ceVega || 0).toFixed(2);
       default:
         return "";
     }
@@ -91,7 +91,7 @@ const SimulatorOptionChain = ({
       case "oi":
         return formatNumber(strike.peOI);
       case "coi":
-        return formatNumber(strike.ceCOI);
+        return formatNumber(strike.peCOI || 0);
       case "volume":
         return formatNumber(strike.peVolume);
       case "iv":
@@ -99,13 +99,13 @@ const SimulatorOptionChain = ({
       case "ltp":
         return strike.pePrice.toFixed(2);
       case "delta":
-        return strike.peDelta.toFixed(2);
+        return (strike.peDelta || 0).toFixed(2);
       case "gamma":
-        return strike.peGamma.toFixed(4);
+        return (strike.peGamma || 0).toFixed(4);
       case "theta":
-        return strike.peTheta.toFixed(2);
+        return (strike.peTheta || 0).toFixed(2);
       case "vega":
-        return strike.peVega.toFixed(2);
+        return (strike.peVega || 0).toFixed(2);
       default:
         return "";
     }

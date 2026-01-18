@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GripVertical } from "lucide-react";
 
 export interface ColumnConfig {
   id: string;
@@ -42,8 +43,8 @@ const DEFAULT_PUT_COLUMNS: ColumnConfig[] = [
   { id: "ltp", label: "LTP", enabled: true },
   { id: "iv", label: "IV", enabled: true },
   { id: "volume", label: "Volume", enabled: true },
-  { id: "oi", label: "OI", enabled: true },
   { id: "coi", label: "COI", enabled: true },
+  { id: "oi", label: "OI", enabled: true },
   { id: "delta", label: "Delta", enabled: false },
   { id: "gamma", label: "Gamma", enabled: false },
   { id: "theta", label: "Theta", enabled: false },
@@ -67,6 +68,7 @@ interface OptionBuilderSettingsProps {
 
 const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuilderSettingsProps) => {
   const [localSettings, setLocalSettings] = useState<OptionBuilderSettingsConfig>(settings);
+  const [draggedItem, setDraggedItem] = useState<{ side: "call" | "put"; index: number } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -82,6 +84,30 @@ const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuil
     }));
   };
 
+  const handleDragStart = (side: "call" | "put", index: number) => {
+    setDraggedItem({ side, index });
+  };
+
+  const handleDragOver = (e: React.DragEvent, side: "call" | "put", index: number) => {
+    e.preventDefault();
+    if (!draggedItem || draggedItem.side !== side) return;
+
+    const key = side === "call" ? "callColumns" : "putColumns";
+    if (draggedItem.index === index) return;
+
+    setLocalSettings((prev) => {
+      const columns = [...prev[key]];
+      const [removed] = columns.splice(draggedItem.index, 1);
+      columns.splice(index, 0, removed);
+      setDraggedItem({ side, index });
+      return { ...prev, [key]: columns };
+    });
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
   const handleSave = () => {
     onSave(localSettings);
     onClose();
@@ -91,13 +117,39 @@ const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuil
     setLocalSettings(DEFAULT_SETTINGS);
   };
 
-  console.log(localSettings.callColumns);
+  const renderColumnList = (side: "call" | "put", columns: ColumnConfig[]) => (
+    <div className="space-y-1">
+      {columns.map((col, index) => (
+        <div
+          key={col.id}
+          draggable
+          onDragStart={() => handleDragStart(side, index)}
+          onDragOver={(e) => handleDragOver(e, side, index)}
+          onDragEnd={handleDragEnd}
+          className={`flex items-center space-x-2 p-1.5 rounded-md border border-transparent hover:border-border hover:bg-muted/50 cursor-grab active:cursor-grabbing transition-colors ${
+            draggedItem?.side === side && draggedItem?.index === index ? "opacity-50 bg-muted" : ""
+          }`}
+        >
+          <GripVertical className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <Checkbox
+            id={`${side}-${col.id}`}
+            checked={col.enabled}
+            onCheckedChange={() => handleColumnToggle(side, col.id)}
+          />
+          <label htmlFor={`${side}-${col.id}`} className="text-sm cursor-pointer flex-1">
+            {col.label}
+          </label>
+        </div>
+      ))}
+    </div>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Option Builder Settings</DialogTitle>
-          <DialogDescription>Customize the option chain display and behavior</DialogDescription>
+          <DialogDescription>Customize the option chain display and behavior. Drag to reorder columns.</DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="columns" className="mt-4">
@@ -111,39 +163,13 @@ const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuil
               {/* Call Columns */}
               <div className="space-y-3">
                 <Label className="text-emerald-500 font-medium">Call Side</Label>
-                <div className="space-y-2">
-                  {localSettings.callColumns.map((col) => (
-                    <div key={col.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`call-${col.id}`}
-                        checked={col.enabled}
-                        onCheckedChange={() => handleColumnToggle("call", col.id)}
-                      />
-                      <label htmlFor={`call-${col.id}`} className="text-sm cursor-pointer">
-                        {col.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                {renderColumnList("call", localSettings.callColumns)}
               </div>
 
               {/* Put Columns */}
               <div className="space-y-3">
                 <Label className="text-red-500 font-medium">Put Side</Label>
-                <div className="space-y-2">
-                  {localSettings.putColumns.map((col) => (
-                    <div key={col.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`put-${col.id}`}
-                        checked={col.enabled}
-                        onCheckedChange={() => handleColumnToggle("put", col.id)}
-                      />
-                      <label htmlFor={`put-${col.id}`} className="text-sm cursor-pointer">
-                        {col.label}
-                      </label>
-                    </div>
-                  ))}
-                </div>
+                {renderColumnList("put", localSettings.putColumns)}
               </div>
             </div>
           </TabsContent>

@@ -13,6 +13,8 @@ export interface SimulatorStrikeData {
   peIV: number;
   ceOI: number;
   peOI: number;
+  ceCOI: number;
+  peCOI: number;
   ceVolume: number;
   peVolume: number;
   ceDelta?: number;
