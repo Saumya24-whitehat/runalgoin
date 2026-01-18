@@ -1,4 +1,6 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,6 +36,8 @@ type FnoSubTab = "candlesticks" | "chartPatterns" | "priceAction";
 export function ChartPatternsSection() {
   const [data, setData] = useState<ChartPatternsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
   const [mainTab, setMainTab] = useState<MainTab>("stocks");
   const [stocksSubTab, setStocksSubTab] = useState<StocksSubTab>("candlesticks");
   const [fnoSubTab, setFnoSubTab] = useState<FnoSubTab>("candlesticks");
@@ -54,6 +58,10 @@ export function ChartPatternsSection() {
     };
     fetchPatterns();
   }, []);
+
+  const handleStockClick = (symbol: string) => {
+    navigate(`/jackpot-detail?symbol=${symbol}`);
+  };
 
   const getCurrentPatterns = (): PatternItem[] => {
     if (!data) return [];
@@ -314,7 +322,11 @@ export function ChartPatternsSection() {
                     <div className="text-xs text-muted-foreground">{formatTimeFrame(pattern.timeFrame)}</div>
                     <div className="text-xs text-muted-foreground">{formatTime(pattern.timestamp)}</div>
                   </div>
-                  <div className="text-right flex-shrink-0" style={{ marginRight: "10px" }}>
+                  <div
+                    className="text-right flex-shrink-0"
+                    style={{ marginRight: "10px" }}
+                    onClick={() => handleStockClick(item.tradingSymbol)}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
