@@ -311,9 +311,9 @@ const Dashboard = () => {
               <div className={`font-medium ${isPositive ? "text-success" : "text-destructive"}`}>
                 {isPositive ? "▲" : "▼"} {Math.abs(change).toFixed(2)}%
               </div>
-              <div className="text-primary font-medium" onClick={() => handleStockClick(pattern.nseScriptCode)}>
+              <span className="text-primary font-medium" onClick={() => handleStockClick(pattern.nseScriptCode)}>
                 ₹{ltp.toLocaleString()}
-              </div>
+              </span>
             </div>
           );
         })}
