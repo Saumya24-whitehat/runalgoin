@@ -322,11 +322,7 @@ export function ChartPatternsSection() {
                     <div className="text-xs text-muted-foreground">{formatTimeFrame(pattern.timeFrame)}</div>
                     <div className="text-xs text-muted-foreground">{formatTime(pattern.timestamp)}</div>
                   </div>
-                  <div
-                    className="text-right flex-shrink-0"
-                    style={{ marginRight: "10px" }}
-                    onClick={() => handleStockClick(item.tradingSymbol)}
-                  >
+                  <div className="text-right flex-shrink-0" style={{ marginRight: "10px" }}>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       width="16"
@@ -334,6 +330,7 @@ export function ChartPatternsSection() {
                       fill="#19c3e6"
                       class="bi bi-graph-up-arrow"
                       viewBox="0 0 16 16"
+                      onClick={() => handleStockClick(item.tradingSymbol)}
                     >
                       <path
                         fill-rule="evenodd"
