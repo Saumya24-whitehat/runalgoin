@@ -155,9 +155,6 @@ const Dashboard = () => {
     fetchFiiData();
   }, []);
 
-  const handleStockClick = (symbol: string) => {
-    navigate(`/stock-detail?symbol=${symbol}`);
-  };
   // Fetch deals data
   useEffect(() => {
     const fetchDealsData = async () => {
@@ -267,6 +264,9 @@ const Dashboard = () => {
     fetchTrendingStocks();
   }, []);
 
+  const handleStockClick = (symbol: string) => {
+    navigate(`/stock-detail?symbol=${symbol}`);
+  };
   // Helper to render stock list
   const renderStockList = (stocks: TrendingStock[] | undefined, isGainer: boolean = true) => {
     if (trendingLoading) {
