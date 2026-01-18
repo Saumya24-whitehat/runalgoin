@@ -319,7 +319,6 @@ const Dashboard = () => {
                   fill="#19c3e6"
                   className="bi bi-graph-up-arrow cursor-pointer hover:opacity-80"
                   viewBox="0 0 16 16"
-                  onClick={() => handleStockClick(pattern.tradingSymbol)}
                 >
                   <path
                     fillRule="evenodd"
