@@ -155,6 +155,9 @@ const Dashboard = () => {
     fetchFiiData();
   }, []);
 
+  const handleStockClick = (symbol: string) => {
+    navigate(`/stock-detail?symbol=${symbol}`);
+  };
   // Fetch deals data
   useEffect(() => {
     const fetchDealsData = async () => {
