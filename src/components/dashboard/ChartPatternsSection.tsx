@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -37,6 +38,7 @@ export function ChartPatternsSection() {
   const [data, setData] = useState<ChartPatternsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const { resolvedTheme } = useTheme();
 
   const [mainTab, setMainTab] = useState<MainTab>("stocks");
   const [stocksSubTab, setStocksSubTab] = useState<StocksSubTab>("candlesticks");
@@ -106,7 +108,9 @@ export function ChartPatternsSection() {
 
   const getPatternIcon = (conditionName: string) => {
     // Use pattern name to construct URL from runalgo.xyz
-    const encodedName = encodeURIComponent(conditionName);
+    // Append " Dark" if the theme is dark
+    const patternName = resolvedTheme === "dark" ? `${conditionName} Dark` : conditionName;
+    const encodedName = encodeURIComponent(patternName);
     return `https://runalgo.xyz/chartpatterns/svg/${encodedName}.svg`;
   };
 
@@ -328,12 +332,12 @@ export function ChartPatternsSection() {
                       width="16"
                       height="16"
                       fill="#19c3e6"
-                      class="bi bi-graph-up-arrow"
+                      className="bi bi-graph-up-arrow cursor-pointer hover:opacity-80"
                       viewBox="0 0 16 16"
-                      onClick={() => handleStockClick(item.tradingSymbol)}
+                      onClick={() => handleStockClick(pattern.tradingSymbol)}
                     >
                       <path
-                        fill-rule="evenodd"
+                        fillRule="evenodd"
                         d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"
                       />
                     </svg>
