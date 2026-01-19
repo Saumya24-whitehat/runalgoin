@@ -203,7 +203,7 @@ export const IndexDetailTechnicals = ({ indexSymbol }: IndexDetailTechnicalsProp
                   <TableCell className="py-3">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
-                        <img src={`https://runalgo.xyz/top/chart/data/svg/nse_${item.symbol}.svg`} />
+                        <img src={`https://runalgo.xyz/top/chart/data/svg/nse_${stock.name}.svg`} />
                       </div>
                       <div className="font-medium text-primary truncate">{stock.description || stock.name}</div>
                     </div>
