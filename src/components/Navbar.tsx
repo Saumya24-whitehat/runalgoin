@@ -331,7 +331,7 @@ export function Navbar() {
                 d="M303.597656 78.089844V310.285156H172.855469V339.574219H332.886719V48.800781H303.597656Z"
               />
             </svg>
-            <span className="font-heading font-bold text-xl text-foreground"></span>
+            <span className="font-heading font-bold text-xl text-foreground">Runalgo</span>
           </Link>
 
           {/* Desktop Navigation */}
