@@ -24,7 +24,7 @@ const StockDetail = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const symbol = searchParams.get("symbol") || "ITC";
-  const sector = searchParams.get("sector") || "ITC";
+  const sector = searchParams.get("sector") || "All";
   const [activeTab, setActiveTab] = useState("chart");
   const [stockData, setStockData] = useState<StockOverview | null>(null);
   const [loading, setLoading] = useState(true);
