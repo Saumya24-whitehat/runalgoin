@@ -64,7 +64,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
     const fetchTechnicals = async () => {
       setLoading(true);
       try {
-        const { data } = await supabase.functions.invoke("market-breadth", {
+        const { data } = await supabase.functions.invoke("market-breadth?index=All", {
           body: { index: "All" },
         });
 
