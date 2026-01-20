@@ -13,7 +13,20 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const index = url.searchParams.get('index') || 'SYML:NSE;NIFTY';
+    
+    // Get index from query parameter (GET) or body (POST)
+    let index = url.searchParams.get('index');
+    
+    if (!index && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        index = body.index;
+      } catch {
+        // Body parsing failed, use default
+      }
+    }
+    
+    index = index || 'SYML:NSE;NIFTY';
     
     // Encode the index parameter properly for the URL
     const encodedIndex = encodeURIComponent(index);
