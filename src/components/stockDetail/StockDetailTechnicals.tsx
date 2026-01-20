@@ -65,7 +65,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
       setLoading(true);
       try {
         const { data } = await supabase.functions.invoke("market-breadth", {
-          body: { index: "NIFTY 50" },
+          body: { index: "All" },
         });
 
         const stockData = data?.[0]?.content?.find((s: any) => s.name === symbol);
@@ -74,14 +74,46 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
         const close = stockData.close || 0;
 
         const movingAverages: TechnicalData[] = [
-          { indicator: "SMA 20", value: stockData.SMA20 || "-", signal: close > (stockData.SMA20 || 0) ? "buy" : "sell" },
-          { indicator: "SMA 50", value: stockData.SMA50 || "-", signal: close > (stockData.SMA50 || 0) ? "buy" : "sell" },
-          { indicator: "SMA 100", value: stockData.SMA100 || "-", signal: close > (stockData.SMA100 || 0) ? "buy" : "sell" },
-          { indicator: "SMA 200", value: stockData.SMA200 || "-", signal: close > (stockData.SMA200 || 0) ? "buy" : "sell" },
-          { indicator: "EMA 20", value: stockData.EMA20 || "-", signal: close > (stockData.EMA20 || 0) ? "buy" : "sell" },
-          { indicator: "EMA 50", value: stockData.EMA50 || "-", signal: close > (stockData.EMA50 || 0) ? "buy" : "sell" },
-          { indicator: "EMA 100", value: stockData.EMA100 || "-", signal: close > (stockData.EMA100 || 0) ? "buy" : "sell" },
-          { indicator: "EMA 200", value: stockData.EMA200 || "-", signal: close > (stockData.EMA200 || 0) ? "buy" : "sell" },
+          {
+            indicator: "SMA 20",
+            value: stockData.SMA20 || "-",
+            signal: close > (stockData.SMA20 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "SMA 50",
+            value: stockData.SMA50 || "-",
+            signal: close > (stockData.SMA50 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "SMA 100",
+            value: stockData.SMA100 || "-",
+            signal: close > (stockData.SMA100 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "SMA 200",
+            value: stockData.SMA200 || "-",
+            signal: close > (stockData.SMA200 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "EMA 20",
+            value: stockData.EMA20 || "-",
+            signal: close > (stockData.EMA20 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "EMA 50",
+            value: stockData.EMA50 || "-",
+            signal: close > (stockData.EMA50 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "EMA 100",
+            value: stockData.EMA100 || "-",
+            signal: close > (stockData.EMA100 || 0) ? "buy" : "sell",
+          },
+          {
+            indicator: "EMA 200",
+            value: stockData.EMA200 || "-",
+            signal: close > (stockData.EMA200 || 0) ? "buy" : "sell",
+          },
         ];
 
         const rsi = stockData.RSI;
@@ -92,13 +124,37 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
         const wr = stockData["W.R"];
 
         const oscillators: TechnicalData[] = [
-          { indicator: "RSI (14)", value: rsi?.toFixed(2) || "-", signal: rsi > 70 ? "sell" : rsi < 30 ? "buy" : "neutral" },
-          { indicator: "Stochastic %K", value: stochK?.toFixed(2) || "-", signal: stochK > 80 ? "sell" : stochK < 20 ? "buy" : "neutral" },
-          { indicator: "Stochastic %D", value: stochD?.toFixed(2) || "-", signal: stochD > 80 ? "sell" : stochD < 20 ? "buy" : "neutral" },
-          { indicator: "CCI (20)", value: cci?.toFixed(2) || "-", signal: cci > 100 ? "sell" : cci < -100 ? "buy" : "neutral" },
+          {
+            indicator: "RSI (14)",
+            value: rsi?.toFixed(2) || "-",
+            signal: rsi > 70 ? "sell" : rsi < 30 ? "buy" : "neutral",
+          },
+          {
+            indicator: "Stochastic %K",
+            value: stochK?.toFixed(2) || "-",
+            signal: stochK > 80 ? "sell" : stochK < 20 ? "buy" : "neutral",
+          },
+          {
+            indicator: "Stochastic %D",
+            value: stochD?.toFixed(2) || "-",
+            signal: stochD > 80 ? "sell" : stochD < 20 ? "buy" : "neutral",
+          },
+          {
+            indicator: "CCI (20)",
+            value: cci?.toFixed(2) || "-",
+            signal: cci > 100 ? "sell" : cci < -100 ? "buy" : "neutral",
+          },
           { indicator: "MFI", value: mfi?.toFixed(2) || "-", signal: mfi > 80 ? "sell" : mfi < 20 ? "buy" : "neutral" },
-          { indicator: "ROC", value: stockData.ROC?.toFixed(2) || "-", signal: stockData.ROC > 0 ? "buy" : stockData.ROC < 0 ? "sell" : "neutral" },
-          { indicator: "Williams %R", value: wr?.toFixed(2) || "-", signal: wr > -20 ? "sell" : wr < -80 ? "buy" : "neutral" },
+          {
+            indicator: "ROC",
+            value: stockData.ROC?.toFixed(2) || "-",
+            signal: stockData.ROC > 0 ? "buy" : stockData.ROC < 0 ? "sell" : "neutral",
+          },
+          {
+            indicator: "Williams %R",
+            value: wr?.toFixed(2) || "-",
+            signal: wr > -20 ? "sell" : wr < -80 ? "buy" : "neutral",
+          },
         ];
 
         const pivots: PivotData[] = [
@@ -153,12 +209,12 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           { period: "1 Year", value: stockData["Perf.Y"] },
           { period: "5 Years", value: stockData["Perf.5Y"] },
           { period: "10 Years", value: stockData["Perf.10Y"] },
-        ].filter(p => p.value !== undefined);
+        ].filter((p) => p.value !== undefined);
 
         const volatility = [
           { period: "Weekly", value: stockData["Volatility.W"] },
           { period: "Monthly", value: stockData["Volatility.M"] },
-        ].filter(v => v.value !== undefined);
+        ].filter((v) => v.value !== undefined);
 
         const priceRanges = [
           { period: "1 Month", high: stockData["High.1M"], low: stockData["Low.1M"] },
@@ -166,20 +222,24 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           { period: "6 Months", high: stockData["High.6M"], low: stockData["Low.6M"] },
           { period: "52 Week", high: stockData.price_52_week_high, low: stockData.price_52_week_low },
           { period: "All Time", high: stockData["High.All"], low: stockData["Low.All"] },
-        ].filter(r => r.high && r.low);
+        ].filter((r) => r.high && r.low);
 
-        const bollingerBands = stockData["BB.upper"] ? {
-          upper: stockData["BB.upper"],
-          basis: stockData["BB.basis"],
-          lower: stockData["BB.lower"],
-        } : null;
+        const bollingerBands = stockData["BB.upper"]
+          ? {
+              upper: stockData["BB.upper"],
+              basis: stockData["BB.basis"],
+              lower: stockData["BB.lower"],
+            }
+          : null;
 
-        const ichimoku = stockData["Ichimoku.BLine"] ? {
-          bLine: stockData["Ichimoku.BLine"],
-          cLine: stockData["Ichimoku.CLine"],
-          lead1: stockData["Ichimoku.Lead1"],
-          lead2: stockData["Ichimoku.Lead2"],
-        } : null;
+        const ichimoku = stockData["Ichimoku.BLine"]
+          ? {
+              bLine: stockData["Ichimoku.BLine"],
+              cLine: stockData["Ichimoku.CLine"],
+              lead1: stockData["Ichimoku.Lead1"],
+              lead2: stockData["Ichimoku.Lead2"],
+            }
+          : null;
 
         setTechnicals({
           movingAverages,
@@ -235,10 +295,10 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
     const total = sell + neutral + buy;
     const buyPercent = total ? (buy / total) * 100 : 50;
     const sellPercent = total ? (sell / total) * 100 : 50;
-    
+
     // Calculate needle position: 0% = full sell, 100% = full buy
     const needlePercent = total ? ((buy - sell + total) / (2 * total)) * 100 : 50;
-    
+
     const getSignalText = () => {
       if (buy > sell + neutral) return "Strong Buy";
       if (buy > sell) return "Buy";
@@ -260,37 +320,37 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
         <div className="relative w-36 h-[72px]">
           <svg viewBox="0 0 100 55" className="w-full h-full">
             {/* Background arc */}
-            <path 
-              d="M10 50 A40 40 0 0 1 90 50" 
-              fill="none" 
-              stroke="hsl(var(--muted))" 
-              strokeWidth="8" 
-              strokeLinecap="round" 
+            <path
+              d="M10 50 A40 40 0 0 1 90 50"
+              fill="none"
+              stroke="hsl(var(--muted))"
+              strokeWidth="8"
+              strokeLinecap="round"
             />
             {/* Sell zone (red) */}
-            <path 
-              d="M10 50 A40 40 0 0 1 30 15" 
-              fill="none" 
-              stroke="hsl(var(--destructive))" 
-              strokeWidth="8" 
+            <path
+              d="M10 50 A40 40 0 0 1 30 15"
+              fill="none"
+              stroke="hsl(var(--destructive))"
+              strokeWidth="8"
               strokeLinecap="round"
               opacity="0.7"
             />
             {/* Neutral zone (gray) */}
-            <path 
-              d="M30 15 A40 40 0 0 1 70 15" 
-              fill="none" 
-              stroke="hsl(var(--muted-foreground))" 
-              strokeWidth="8" 
+            <path
+              d="M30 15 A40 40 0 0 1 70 15"
+              fill="none"
+              stroke="hsl(var(--muted-foreground))"
+              strokeWidth="8"
               strokeLinecap="round"
               opacity="0.5"
             />
             {/* Buy zone (green) */}
-            <path 
-              d="M70 15 A40 40 0 0 1 90 50" 
-              fill="none" 
-              stroke="hsl(142 76% 36%)" 
-              strokeWidth="8" 
+            <path
+              d="M70 15 A40 40 0 0 1 90 50"
+              fill="none"
+              stroke="hsl(142 76% 36%)"
+              strokeWidth="8"
               strokeLinecap="round"
               opacity="0.7"
             />
@@ -299,18 +359,16 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           {/* Needle */}
           <div
             className="absolute bottom-0 left-1/2 w-0.5 h-10 bg-foreground origin-bottom rounded-full"
-            style={{ 
+            style={{
               transform: `translateX(-50%) rotate(${(needlePercent / 100) * 180 - 90}deg)`,
-              transition: "transform 0.5s ease-out"
+              transition: "transform 0.5s ease-out",
             }}
           />
           {/* Needle center dot */}
           <div className="absolute bottom-0 left-1/2 w-3 h-3 bg-foreground rounded-full -translate-x-1/2 translate-y-1/2" />
         </div>
 
-        <p className={`text-center text-base mt-2 font-semibold ${getSignalColor()}`}>
-          {getSignalText()}
-        </p>
+        <p className={`text-center text-base mt-2 font-semibold ${getSignalColor()}`}>{getSignalText()}</p>
 
         <div className="flex gap-4 mt-2 text-xs">
           <div className="text-center">
@@ -353,7 +411,8 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
     const isPositive = num > 0;
     return (
       <span className={isPositive ? "text-emerald-500" : "text-red-500"}>
-        {isPositive ? "+" : ""}{formatted}%
+        {isPositive ? "+" : ""}
+        {formatted}%
       </span>
     );
   };
@@ -381,34 +440,24 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <Gauge 
-              label="Oscillators" 
-              sell={oscillatorCounts.sell} 
-              neutral={oscillatorCounts.neutral} 
-              buy={oscillatorCounts.buy} 
+            <Gauge
+              label="Oscillators"
+              sell={oscillatorCounts.sell}
+              neutral={oscillatorCounts.neutral}
+              buy={oscillatorCounts.buy}
             />
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <Gauge 
-              label="Summary" 
-              sell={summaryCounts.sell} 
-              neutral={summaryCounts.neutral} 
-              buy={summaryCounts.buy} 
-            />
+            <Gauge label="Summary" sell={summaryCounts.sell} neutral={summaryCounts.neutral} buy={summaryCounts.buy} />
           </CardContent>
         </Card>
 
         <Card className="bg-card border-border">
           <CardContent className="p-4">
-            <Gauge 
-              label="Moving Averages" 
-              sell={maCounts.sell} 
-              neutral={maCounts.neutral} 
-              buy={maCounts.buy} 
-            />
+            <Gauge label="Moving Averages" sell={maCounts.sell} neutral={maCounts.neutral} buy={maCounts.buy} />
           </CardContent>
         </Card>
       </div>
@@ -459,7 +508,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
                     </div>
                     <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-r from-red-500/50 via-muted-foreground/30 to-emerald-500/50" />
-                      <div 
+                      <div
                         className="absolute top-0 bottom-0 w-1 bg-foreground rounded-full"
                         style={{ left: `${Math.min(Math.max(currentPos, 2), 98)}%` }}
                       />
@@ -544,7 +593,9 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
               {technicals.sar && (
                 <div className="flex justify-between py-1">
                   <span className="text-xs text-muted-foreground">Parabolic SAR</span>
-                  <span className={`text-sm ${technicals.close > technicals.sar ? "text-emerald-500" : "text-red-500"}`}>
+                  <span
+                    className={`text-sm ${technicals.close > technicals.sar ? "text-emerald-500" : "text-red-500"}`}
+                  >
                     {formatNumber(technicals.sar)}
                   </span>
                 </div>
@@ -564,7 +615,10 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           <CardContent className="pt-0">
             <div className="space-y-1">
               {technicals.oscillators.map((osc, idx) => (
-                <div key={idx} className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0">
+                <div
+                  key={idx}
+                  className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0"
+                >
                   <span className="text-xs text-muted-foreground">{osc.indicator}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm tabular-nums">{osc.value}</span>
@@ -588,10 +642,15 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
           <CardContent className="pt-0">
             <div className="space-y-1">
               {technicals.movingAverages.map((ma, idx) => (
-                <div key={idx} className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0">
+                <div
+                  key={idx}
+                  className="flex justify-between items-center py-1.5 border-b border-border/50 last:border-0"
+                >
                   <span className="text-xs text-muted-foreground">{ma.indicator}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm tabular-nums">{typeof ma.value === "number" ? formatNumber(ma.value) : ma.value}</span>
+                    <span className="text-sm tabular-nums">
+                      {typeof ma.value === "number" ? formatNumber(ma.value) : ma.value}
+                    </span>
                     <span
                       className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${getSignalBg(ma.signal)} ${getSignalColor(ma.signal)}`}
                     >
@@ -629,19 +688,19 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
                       const isResistance = key.startsWith("r");
                       const isPivot = key === "pivot";
                       return (
-                        <div 
-                          key={key} 
+                        <div
+                          key={key}
                           className={`text-center p-2 rounded ${
-                            isSupport ? "bg-emerald-500/10" : 
-                            isResistance ? "bg-red-500/10" : 
-                            "bg-primary/10"
+                            isSupport ? "bg-emerald-500/10" : isResistance ? "bg-red-500/10" : "bg-primary/10"
                           }`}
                         >
-                          <p className={`text-[10px] uppercase font-medium ${
-                            isSupport ? "text-emerald-500" :
-                            isResistance ? "text-red-500" :
-                            "text-primary"
-                          }`}>{key}</p>
+                          <p
+                            className={`text-[10px] uppercase font-medium ${
+                              isSupport ? "text-emerald-500" : isResistance ? "text-red-500" : "text-primary"
+                            }`}
+                          >
+                            {key}
+                          </p>
                           <p className="text-xs font-semibold mt-0.5">
                             {typeof value === "number" ? formatNumber(value) : value}
                           </p>
