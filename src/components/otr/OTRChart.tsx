@@ -144,6 +144,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     });
     spotSeriesRef.current = spotSeries;
 
+    console.log(data);
     // Prepare data - using index as time
     const toiData = data.map((item, idx) => ({
       time: idx as unknown as any,
@@ -214,9 +215,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
 
   if (data.length === 0) {
     return (
-      <div className="h-[500px] flex items-center justify-center text-muted-foreground text-sm">
-        No data available
-      </div>
+      <div className="h-[500px] flex items-center justify-center text-muted-foreground text-sm">No data available</div>
     );
   }
 
