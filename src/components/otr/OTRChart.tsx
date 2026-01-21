@@ -29,6 +29,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
   const ema10SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema30SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const spotSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const lastDataHashRef = useRef<string>("");
   const getDataHash = (data: ChartDataPoint[]) =>
     data.map((d) => `${d.displayTime}|${d.toi}|${d.ema10}|${d.ema30}|${d.spotPrice}`).join(",");
 
