@@ -28,27 +28,29 @@ export interface OptionBuilderSettingsConfig {
 }
 
 const DEFAULT_CALL_COLUMNS: ColumnConfig[] = [
-  { id: "oi", label: "OI", enabled: true },
-  { id: "coi", label: "COI", enabled: true },
-  { id: "volume", label: "Volume", enabled: true },
+  { id: "vega", label: "Vega", enabled: true },
+  { id: "gamma", label: "Gamma", enabled: true },
+  { id: "theta", label: "Theta", enabled: true },
+  { id: "delta", label: "Delta", enabled: true },
   { id: "iv", label: "IV", enabled: true },
+  { id: "coi", label: "COI", enabled: true },
+  { id: "oi", label: "OI", enabled: true },
+  { id: "volume", label: "Volume", enabled: true },
+  { id: "ltp_chg", label: "LTP Chg", enabled: true },
   { id: "ltp", label: "LTP", enabled: true },
-  { id: "delta", label: "Delta", enabled: false },
-  { id: "gamma", label: "Gamma", enabled: false },
-  { id: "theta", label: "Theta", enabled: false },
-  { id: "vega", label: "Vega", enabled: false },
 ];
 
 const DEFAULT_PUT_COLUMNS: ColumnConfig[] = [
   { id: "ltp", label: "LTP", enabled: true },
-  { id: "iv", label: "IV", enabled: true },
+  { id: "ltp_chg", label: "LTP Chg", enabled: true },
   { id: "volume", label: "Volume", enabled: true },
-  { id: "coi", label: "COI", enabled: true },
   { id: "oi", label: "OI", enabled: true },
-  { id: "delta", label: "Delta", enabled: false },
-  { id: "gamma", label: "Gamma", enabled: false },
-  { id: "theta", label: "Theta", enabled: false },
-  { id: "vega", label: "Vega", enabled: false },
+  { id: "coi", label: "COI", enabled: true },
+  { id: "iv", label: "IV", enabled: true },
+  { id: "delta", label: "Delta", enabled: true },
+  { id: "theta", label: "Theta", enabled: true },
+  { id: "gamma", label: "Gamma", enabled: true },
+  { id: "vega", label: "Vega", enabled: true },
 ];
 
 export const DEFAULT_SETTINGS: OptionBuilderSettingsConfig = {
