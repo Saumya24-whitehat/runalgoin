@@ -95,7 +95,7 @@ const PremiumDecay = () => {
             endpoint: "expiry",
             params: {
               symbol: selectedSymbol,
-              date: new Date(selectedDate.getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+              date: new Date(selectedDate.getTime()).toISOString().split("T")[0],
             },
           },
         });
