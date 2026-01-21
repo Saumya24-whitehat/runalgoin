@@ -183,7 +183,7 @@ const StockDetail = () => {
           </TabsContent>
 
           <TabsContent value="peers" className="mt-4">
-            <StockDetailPeers symbol={symbol} sector={sector || ""} />
+            <StockDetailPeers symbol={symbol} sector={stockData?.sector || ""} />
           </TabsContent>
 
           <TabsContent value="technicals" className="mt-4">
