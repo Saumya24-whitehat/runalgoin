@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
@@ -82,8 +83,15 @@ const OptionBuilder = () => {
   const [symbols, setSymbols] = useState<SymbolsData>({ indexSymbols: [], stockSymbols: [] });
   const [loadingSymbols, setLoadingSymbols] = useState(false);
 
-  // Settings and dialogs
-  const [settings, setSettings] = useState<OptionBuilderSettingsConfig>(() => {
+  // Settings with database persistence
+  const defaultSettings = useMemo(() => DEFAULT_SETTINGS, []);
+  const { value: dbSettings, setValue: saveDbSettings, isLoading: settingsLoading } = useUserPreferences<OptionBuilderSettingsConfig>({
+    key: "optionBuilder_settings",
+    defaultValue: defaultSettings,
+  });
+  
+  // Use local state for immediate updates, sync with database
+  const [settings, setSettingsLocal] = useState<OptionBuilderSettingsConfig>(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY_SETTINGS);
       return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
@@ -91,6 +99,23 @@ const OptionBuilder = () => {
       return DEFAULT_SETTINGS;
     }
   });
+
+  // Sync from database when loaded
+  useEffect(() => {
+    if (!settingsLoading && user && dbSettings) {
+      setSettingsLocal(dbSettings);
+    }
+  }, [dbSettings, settingsLoading, user]);
+
+  // Save settings function that updates both local and database
+  const setSettings = useCallback((newSettings: OptionBuilderSettingsConfig) => {
+    setSettingsLocal(newSettings);
+    localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(newSettings));
+    if (user) {
+      saveDbSettings(newSettings);
+    }
+  }, [user, saveDbSettings]);
+
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
   const [loadDialogOpen, setLoadDialogOpen] = useState(false);
@@ -228,10 +253,7 @@ const OptionBuilder = () => {
     }
   }, [wsConnected, optionChainData]);
 
-  // Save settings to localStorage
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY_SETTINGS, JSON.stringify(settings));
-  }, [settings]);
+  // Settings are now saved in the setSettings callback
 
   // Fetch option chain data when symbol changes
   useEffect(() => {

@@ -19,6 +19,7 @@ interface OptionBuilderChainProps {
 interface StrikeData {
   strike: number;
   callLTP: number;
+  callLTPChg: number;
   callIV: number;
   callDelta: number;
   callTheta: number;
@@ -29,6 +30,7 @@ interface StrikeData {
   callVolume: number;
   callToken: string;
   putLTP: number;
+  putLTPChg: number;
   putIV: number;
   putDelta: number;
   putTheta: number;
@@ -86,9 +88,15 @@ const OptionBuilderChain = ({
       const callPrevOI = callData?.market_data?.prev_oi || callData?.market_data?.oi || 0;
       const putPrevOI = putData?.market_data?.prev_oi || putData?.market_data?.oi || 0;
       
+      const callLTP = callData?.market_data?.ltp || 0;
+      const callClose = (callData?.market_data as { close?: number })?.close || callLTP;
+      const putLTP = putData?.market_data?.ltp || 0;
+      const putClose = (putData?.market_data as { close?: number })?.close || putLTP;
+      
       return {
         strike: item.strike_price,
-        callLTP: callData?.market_data?.ltp || 0,
+        callLTP,
+        callLTPChg: callLTP - callClose,
         callIV: (callData?.option_greeks?.iv || 0) * 100,
         callDelta: callData?.option_greeks?.delta || 0,
         callTheta: callData?.option_greeks?.theta || 0,
@@ -98,7 +106,8 @@ const OptionBuilderChain = ({
         callCOI: (callData?.market_data?.oi || 0) - callPrevOI,
         callVolume: callData?.market_data?.volume || 0,
         callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || "",
-        putLTP: putData?.market_data?.ltp || 0,
+        putLTP,
+        putLTPChg: putLTP - putClose,
         putIV: (putData?.option_greeks?.iv || 0) * 100,
         putDelta: putData?.option_greeks?.delta || 0,
         putTheta: putData?.option_greeks?.theta || 0,
@@ -187,6 +196,8 @@ const OptionBuilderChain = ({
         return row.callIV.toFixed(1);
       case "ltp":
         return row.callLTP.toFixed(2);
+      case "ltp_chg":
+        return row.callLTPChg.toFixed(2);
       case "delta":
         return row.callDelta.toFixed(2);
       case "gamma":
@@ -212,6 +223,8 @@ const OptionBuilderChain = ({
         return row.putIV.toFixed(1);
       case "ltp":
         return row.putLTP.toFixed(2);
+      case "ltp_chg":
+        return row.putLTPChg.toFixed(2);
       case "delta":
         return row.putDelta.toFixed(2);
       case "gamma":
@@ -225,6 +238,12 @@ const OptionBuilderChain = ({
     }
   };
 
+  const getLTPChgColor = (value: number) => {
+    if (value > 0) return "text-oc-positive";
+    if (value < 0) return "text-oc-negative";
+    return "";
+  };
+
   if (strikeData.length === 0 && !isLoading) {
     return <div className="text-center py-8 text-muted-foreground">No option chain data available for {expiry}</div>;
   }
@@ -235,13 +254,13 @@ const OptionBuilderChain = ({
         <TableHeader className="sticky top-0 bg-background z-20">
           <TableRow>
             {enabledCallColumns.map((col) => (
-              <TableHead key={`call-${col.id}`} className="text-center text-emerald-500 text-xs">
+              <TableHead key={`call-${col.id}`} className="text-center text-call-color text-xs">
                 {col.label}
               </TableHead>
             ))}
             <TableHead className="text-center font-bold text-xs">Strike</TableHead>
             {enabledPutColumns.map((col) => (
-              <TableHead key={`put-${col.id}`} className="text-center text-red-500 text-xs">
+              <TableHead key={`put-${col.id}`} className="text-center text-put-color text-xs">
                 {col.label}
               </TableHead>
             ))}
@@ -268,12 +287,13 @@ const OptionBuilderChain = ({
                 onMouseLeave={() => setHoveredRow(null)}
               >
                 {/* Call Side */}
-                {enabledCallColumns.map((col, idx) => {
+                {enabledCallColumns.map((col) => {
                   const isLtpColumn = col.id === "ltp";
+                  const isLtpChgColumn = col.id === "ltp_chg";
                   return (
                     <TableCell
                       key={`call-${col.id}`}
-                      className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""} ${isLtpColumn ? "relative" : ""}`}
+                      className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""} ${isLtpColumn ? "relative" : ""} ${isLtpChgColumn ? getLTPChgColor(row.callLTPChg) : ""}`}
                     >
                       {isLtpColumn ? (
                         <>
@@ -282,7 +302,7 @@ const OptionBuilderChain = ({
                             <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                               <Button
                                 size="sm"
-                                className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
+                                className="h-6 px-2 text-xs bg-call-color hover:bg-call-color/80"
                                 onClick={() => handleAddPosition(row.strike, "CE", "Buy")}
                               >
                                 B
@@ -311,12 +331,13 @@ const OptionBuilderChain = ({
                 </TableCell>
 
                 {/* Put Side */}
-                {enabledPutColumns.map((col, idx) => {
+                {enabledPutColumns.map((col) => {
                   const isLtpColumn = col.id === "ltp";
+                  const isLtpChgColumn = col.id === "ltp_chg";
                   return (
                     <TableCell
                       key={`put-${col.id}`}
-                      className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""} ${isLtpColumn ? "relative" : ""}`}
+                      className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""} ${isLtpColumn ? "relative" : ""} ${isLtpChgColumn ? getLTPChgColor(row.putLTPChg) : ""}`}
                     >
                       {isLtpColumn ? (
                         <>
@@ -325,7 +346,7 @@ const OptionBuilderChain = ({
                             <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                               <Button
                                 size="sm"
-                                className="h-6 px-2 text-xs bg-emerald-600 hover:bg-emerald-700"
+                                className="h-6 px-2 text-xs bg-call-color hover:bg-call-color/80"
                                 onClick={() => handleAddPosition(row.strike, "PE", "Buy")}
                               >
                                 B
