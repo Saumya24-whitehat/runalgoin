@@ -29,6 +29,8 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
   const ema10SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema30SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const spotSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const getDataHash = (data: ChartDataPoint[]) =>
+    data.map((d) => `${d.displayTime}|${d.toi}|${d.ema10}|${d.ema30}|${d.spotPrice}`).join(",");
 
   const formatTOI = (value: number) => {
     if (Math.abs(value) >= 10000000) {
@@ -42,6 +44,15 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
   useEffect(() => {
     if (!containerRef.current || data.length === 0) return;
 
+    const newHash = getDataHash(data);
+
+    // ⛔ Skip update if data is identical
+    if (lastDataHashRef.current === newHash) {
+      return;
+    }
+
+    // ✅ Update hash
+    lastDataHashRef.current = newHash;
     // Cleanup previous chart
     if (chartRef.current) {
       chartRef.current.remove();
