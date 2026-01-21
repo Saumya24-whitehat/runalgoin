@@ -144,10 +144,10 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     });
     spotSeriesRef.current = spotSeries;
 
-    console.log(data);
+    // console.log(data);
     // Prepare data - using index as time
     const toiData = data.map((item, idx) => ({
-      time: idx as unknown as any,
+      time: item.displayTime,
       value: item.toi,
     }));
 
@@ -157,7 +157,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     data.forEach((item, idx) => {
       if (item.ema10 !== null) {
         ema10Data.push({
-          time: idx as unknown as any,
+          time: item.displayTime,
           value: item.ema10,
         });
       }
@@ -167,14 +167,14 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     data.forEach((item, idx) => {
       if (item.ema30 !== null) {
         ema30Data.push({
-          time: idx as unknown as any,
+          time: item.displayTime,
           value: item.ema30,
         });
       }
     });
 
     const spotData = data.map((item, idx) => ({
-      time: idx as unknown as any,
+      time: item.displayTime,
       value: item.spotPrice,
     }));
 
