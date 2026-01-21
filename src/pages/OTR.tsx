@@ -176,6 +176,7 @@ const OTR = () => {
         clearInterval(refreshIntervalRef.current);
       }
 
+      console.log(AUTO_REFRESH_INTERVAL);
       refreshIntervalRef.current = setInterval(() => {
         fetchData(false);
       }, AUTO_REFRESH_INTERVAL);
