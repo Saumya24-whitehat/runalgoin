@@ -164,13 +164,13 @@ const OptionBuilderSettings = ({ isOpen, onClose, settings, onSave }: OptionBuil
             <div className="grid grid-cols-2 gap-6">
               {/* Call Columns */}
               <div className="space-y-3">
-                <Label className="text-emerald-500 font-medium">Call Side</Label>
+                <Label className="text-call-color font-medium">Call Side</Label>
                 {renderColumnList("call", localSettings.callColumns)}
               </div>
 
               {/* Put Columns */}
               <div className="space-y-3">
-                <Label className="text-red-500 font-medium">Put Side</Label>
+                <Label className="text-put-color font-medium">Put Side</Label>
                 {renderColumnList("put", localSettings.putColumns)}
               </div>
             </div>
