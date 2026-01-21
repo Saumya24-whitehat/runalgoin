@@ -44,7 +44,7 @@ interface TechnicalState {
   close: number;
 }
 
-export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) => {
+export const StockDetailTechnicals = ({ symbol, sector }: StockDetailTechnicalsProps) => {
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<"D" | "W" | "M">("D");
   const [technicals, setTechnicals] = useState<TechnicalState>({
@@ -64,7 +64,7 @@ export const StockDetailTechnicals = ({ symbol }: StockDetailTechnicalsProps) =>
     const fetchTechnicals = async () => {
       setLoading(true);
       try {
-        const { data } = await supabase.functions.invoke("market-breadth?index=All", {
+        const { data } = await supabase.functions.invoke("market-breadth?index=" + sector, {
           method: "GET",
         });
 

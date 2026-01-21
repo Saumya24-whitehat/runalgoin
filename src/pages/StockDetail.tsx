@@ -187,7 +187,7 @@ const StockDetail = () => {
           </TabsContent>
 
           <TabsContent value="technicals" className="mt-4">
-            <StockDetailTechnicals symbol={symbol} />
+            <StockDetailTechnicals symbol={symbol} sector={stockData?.sector || ""} />
           </TabsContent>
         </Tabs>
       </div>
