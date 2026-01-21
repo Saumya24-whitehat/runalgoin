@@ -206,20 +206,6 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     });
 
     chart.timeScale().fitContent();
-    // Handle resize
-    const handleResize = () => {
-      if (containerRef.current && chartRef.current) {
-        chartRef.current.applyOptions({ width: containerRef.current.clientWidth });
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      if (chartRef.current) {
-        chartRef.current.remove();
-        chartRef.current = null;
-      }
-    };
   }, [data, crossoverPoints]);
 
   if (data.length === 0) {
