@@ -77,6 +77,8 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
       timeScale: {
         borderColor: "rgba(255, 255, 255, 0.1)",
         visible: true,
+        timeVisible: true,
+        secondsVisible: true,
       },
       crosshair: {
         mode: 1,
@@ -147,7 +149,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     console.log(data);
     // Prepare data - using index as time
     const toiData = data.map((item, idx) => ({
-      time: Math.floor(new Date(item.time).getTime() / 1000),
+      time: item.time,
       value: item.toi,
     }));
 
@@ -157,7 +159,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     data.forEach((item, idx) => {
       if (item.ema10 !== null) {
         ema10Data.push({
-          time: Math.floor(new Date(item.time).getTime() / 1000),
+          time: item.time,
           value: item.ema10,
         });
       }
@@ -167,14 +169,14 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
     data.forEach((item, idx) => {
       if (item.ema30 !== null) {
         ema30Data.push({
-          time: Math.floor(new Date(item.time).getTime() / 1000),
+          time: item.time,
           value: item.ema30,
         });
       }
     });
 
     const spotData = data.map((item, idx) => ({
-      time: Math.floor(new Date(item.time).getTime() / 1000),
+      time: item.time,
       value: item.spotPrice,
     }));
 
