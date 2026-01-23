@@ -3,6 +3,7 @@ import { createChart, IChartApi, ISeriesApi, ColorType, LineSeries, LineStyle } 
 
 interface ChartDataPoint {
   time: string;
+  displayTime: number;
   toi: number;
   ema10: number | null;
   ema30: number | null;

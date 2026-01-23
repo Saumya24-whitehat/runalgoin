@@ -248,7 +248,7 @@ const OTR = () => {
 
     const rawData: {
       time: string;
-      displayTime: string;
+      displayTime: number;
       toi: number;
       spotPrice: number;
       isToday: boolean;
