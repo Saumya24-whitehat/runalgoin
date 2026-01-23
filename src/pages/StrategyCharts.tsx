@@ -44,24 +44,24 @@ const TIMEFRAME_OPTIONS = [
 
 const StrategyCharts = () => {
   const { toast } = useToast();
-  
+
   // Symbol and expiry state
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("1min");
-  
+
   // Option chain state
   const [optionChain, setOptionChain] = useState<OptionChainRow[]>([]);
   const [atmStrike, setAtmStrike] = useState<number>(0);
-  
+
   // Selected positions
   const [positions, setPositions] = useState<SelectedPosition[]>([]);
-  
+
   // Chart data
   const [chartData, setChartData] = useState<OHLCDataPoint[]>([]);
-  
+
   // Loading states
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
@@ -104,7 +104,7 @@ const StrategyCharts = () => {
       setOptionChain([]);
       setPositions([]);
       setChartData([]);
-      
+
       try {
         const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
           body: { endpoint: "expiry", params: { symbol: selectedSymbol } },
@@ -147,10 +147,11 @@ const StrategyCharts = () => {
     const fetchOptionChain = async () => {
       setLoadingChain(true);
       try {
-        const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
-          body: { 
-            endpoint: "optionchain", 
-            params: { symbol: selectedSymbol, expiry: selectedExpiry } 
+        const { data, error } = await supabase.functions.invoke("option-chain", {
+          body: {
+            action: "getOptionChain",
+            expiry_date: selectedExpiry,
+            symbol: selectedSymbol,
           },
         });
         if (error) throw error;
@@ -158,29 +159,31 @@ const StrategyCharts = () => {
         // Parse option chain data
         const chainData = data?.data || data?.optionChain || data || [];
         const spotPrice = data?.spotPrice || data?.spot_price || 0;
-        
+
         // Find ATM strike
         let nearestStrike = 0;
         let minDiff = Infinity;
-        
-        const parsedChain: OptionChainRow[] = chainData.map((row: any) => {
-          const strike = row.strike || row.strikePrice || 0;
-          const diff = Math.abs(strike - spotPrice);
-          if (diff < minDiff) {
-            minDiff = diff;
-            nearestStrike = strike;
-          }
-          
-          return {
-            strike,
-            callLTP: row.callLTP || row.CE?.lastPrice || row.call_ltp || 0,
-            callOI: row.callOI || row.CE?.openInterest || row.call_oi || 0,
-            callIV: row.callIV || row.CE?.impliedVolatility || row.call_iv || 0,
-            putLTP: row.putLTP || row.PE?.lastPrice || row.put_ltp || 0,
-            putOI: row.putOI || row.PE?.openInterest || row.put_oi || 0,
-            putIV: row.putIV || row.PE?.impliedVolatility || row.put_iv || 0,
-          };
-        }).sort((a: OptionChainRow, b: OptionChainRow) => a.strike - b.strike);
+
+        const parsedChain: OptionChainRow[] = chainData
+          .map((row: any) => {
+            const strike = row.strike || row.strikePrice || 0;
+            const diff = Math.abs(strike - spotPrice);
+            if (diff < minDiff) {
+              minDiff = diff;
+              nearestStrike = strike;
+            }
+
+            return {
+              strike,
+              callLTP: row.callLTP || row.CE?.lastPrice || row.call_ltp || 0,
+              callOI: row.callOI || row.CE?.openInterest || row.call_oi || 0,
+              callIV: row.callIV || row.CE?.impliedVolatility || row.call_iv || 0,
+              putLTP: row.putLTP || row.PE?.lastPrice || row.put_ltp || 0,
+              putOI: row.putOI || row.PE?.openInterest || row.put_oi || 0,
+              putIV: row.putIV || row.PE?.impliedVolatility || row.put_iv || 0,
+            };
+          })
+          .sort((a: OptionChainRow, b: OptionChainRow) => a.strike - b.strike);
 
         setOptionChain(parsedChain);
         setAtmStrike(nearestStrike);
@@ -215,11 +218,7 @@ const StrategyCharts = () => {
 
   // Update lots
   const updateLots = (id: string, delta: number) => {
-    setPositions((prev) =>
-      prev.map((p) =>
-        p.id === id ? { ...p, lots: Math.max(1, p.lots + delta) } : p
-      )
-    );
+    setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, lots: Math.max(1, p.lots + delta) } : p)));
   };
 
   // Remove position
@@ -252,13 +251,13 @@ const StrategyCharts = () => {
     setLoadingChart(true);
     try {
       const response = await fetchStrategyChartData(selectedSymbol, selectedTimeframe, longs, shorts);
-      
+
       if (response.error) {
         throw new Error(response.error);
       }
 
       setChartData(response.data);
-      
+
       if (response.data.length === 0) {
         toast({
           title: "No Data",
@@ -281,10 +280,10 @@ const StrategyCharts = () => {
   // Display strikes around ATM (10 above and 10 below)
   const displayedStrikes = useMemo(() => {
     if (optionChain.length === 0 || atmStrike === 0) return optionChain;
-    
+
     const atmIndex = optionChain.findIndex((row) => row.strike === atmStrike);
     if (atmIndex === -1) return optionChain.slice(0, 21);
-    
+
     const startIndex = Math.max(0, atmIndex - 10);
     const endIndex = Math.min(optionChain.length, atmIndex + 11);
     return optionChain.slice(startIndex, endIndex);
@@ -332,7 +331,9 @@ const StrategyCharts = () => {
                         )}
                         {symbols.stockSymbols.length > 0 && (
                           <>
-                            <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">
+                              STOCKS
+                            </div>
                             {symbols.stockSymbols.map((sym) => (
                               <SelectItem key={sym} value={sym}>
                                 {sym}
@@ -385,11 +386,7 @@ const StrategyCharts = () => {
                   {/* View Chart Button */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground invisible">Action</label>
-                    <Button
-                      onClick={fetchChart}
-                      disabled={loadingChart || positions.length === 0}
-                      className="w-full"
-                    >
+                    <Button onClick={fetchChart} disabled={loadingChart || positions.length === 0} className="w-full">
                       {loadingChart ? (
                         <Loader2 className="h-4 w-4 animate-spin mr-2" />
                       ) : (
@@ -473,9 +470,7 @@ const StrategyCharts = () => {
                               <TableCell className="text-right font-mono text-call-color">
                                 {row.callLTP.toFixed(2)}
                               </TableCell>
-                              <TableCell className="text-center font-bold bg-muted/30">
-                                {row.strike}
-                              </TableCell>
+                              <TableCell className="text-center font-bold bg-muted/30">{row.strike}</TableCell>
                               <TableCell className="text-left font-mono text-put-color">
                                 {row.putLTP.toFixed(2)}
                               </TableCell>
@@ -547,10 +542,7 @@ const StrategyCharts = () => {
                           }`}
                         >
                           <div className="flex items-center gap-2">
-                            <Badge
-                              variant={pos.side === "Long" ? "default" : "destructive"}
-                              className="text-xs"
-                            >
+                            <Badge variant={pos.side === "Long" ? "default" : "destructive"} className="text-xs">
                               {pos.side}
                             </Badge>
                             <span className="text-xs font-medium">
