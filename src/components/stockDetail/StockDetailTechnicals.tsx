@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface StockDetailTechnicalsProps {
   symbol: string;
+  sector: string;
 }
 
 interface TechnicalData {
