@@ -157,8 +157,8 @@ const StrategyCharts = () => {
         if (error) throw error;
 
         // Parse option chain data
-        const chainData = data?.data || data?.optionChain || data || [];
-        const spotPrice = data?.spotPrice || data?.spot_price || 0;
+        const chainData = data?.option_chain.data;
+        const spotPrice = data?.option_chain.data[0].underlying_spot_price;
 
         // Find ATM strike
         let nearestStrike = 0;
@@ -166,7 +166,7 @@ const StrategyCharts = () => {
 
         const parsedChain: OptionChainRow[] = chainData
           .map((row: any) => {
-            const strike = row.strike || row.strikePrice || 0;
+            const strike = row.strike_price;
             const diff = Math.abs(strike - spotPrice);
             if (diff < minDiff) {
               minDiff = diff;
@@ -175,12 +175,12 @@ const StrategyCharts = () => {
 
             return {
               strike,
-              callLTP: row.callLTP || row.CE?.lastPrice || row.call_ltp || 0,
-              callOI: row.callOI || row.CE?.openInterest || row.call_oi || 0,
-              callIV: row.callIV || row.CE?.impliedVolatility || row.call_iv || 0,
-              putLTP: row.putLTP || row.PE?.lastPrice || row.put_ltp || 0,
-              putOI: row.putOI || row.PE?.openInterest || row.put_oi || 0,
-              putIV: row.putIV || row.PE?.impliedVolatility || row.put_iv || 0,
+              callLTP: row.call_options.market_data.ltp,
+              callOI: row.call_options.market_data.oi,
+              callIV: row.call_options.option_greeks.iv,
+              putLTP: row.put_options.market_data.ltp,
+              putOI: row.put_options.market_data.oi,
+              putIV: row.put_options.option_greeks.iv,
             };
           })
           .sort((a: OptionChainRow, b: OptionChainRow) => a.strike - b.strike);
