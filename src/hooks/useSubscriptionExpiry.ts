@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "./useSubscription";
@@ -6,10 +6,12 @@ import { toast } from "sonner";
 
 const EXPIRY_WARNING_DAYS = 7;
 const NOTIFICATION_KEY = "subscription_expiry_notified";
+const EXPIRED_NOTIFICATION_KEY = "subscription_expired_notified";
 
 export function useSubscriptionExpiry() {
   const { user } = useAuth();
   const { subscription, refetch } = useSubscription();
+  const hasShownExpiredToast = useRef(false);
 
   // Check and auto-downgrade expired subscriptions
   const checkAndDowngradeExpired = useCallback(async () => {
@@ -23,6 +25,27 @@ export function useSubscriptionExpiry() {
 
     // If expired, downgrade to free
     if (expiryDate < now && subscription.status === "active") {
+      // Check if we already notified this session
+      const sessionKey = `${EXPIRED_NOTIFICATION_KEY}_${user.id}`;
+      const lastNotified = sessionStorage.getItem(sessionKey);
+      
+      if (lastNotified || hasShownExpiredToast.current) {
+        // Still downgrade silently if needed, but don't show toast again
+        try {
+          await supabase
+            .from("subscriptions")
+            .update({
+              status: "expired",
+              plan_type: "free",
+            })
+            .eq("user_id", user.id);
+          refetch();
+        } catch (error) {
+          console.error("Error downgrading subscription:", error);
+        }
+        return;
+      }
+
       try {
         const { error } = await supabase
           .from("subscriptions")
@@ -33,6 +56,10 @@ export function useSubscriptionExpiry() {
           .eq("user_id", user.id);
 
         if (error) throw error;
+
+        // Mark as notified for this session
+        sessionStorage.setItem(sessionKey, "true");
+        hasShownExpiredToast.current = true;
 
         toast.error("Your subscription has expired", {
           description: "You've been downgraded to the Free plan. Upgrade to continue using Pro features.",
