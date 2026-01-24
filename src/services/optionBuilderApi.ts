@@ -210,7 +210,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
 
     const CloseExpiry = new Date(closestExpiry);
     const daysToExpiry = getDaysUntilExpiry(position.expiry, CloseExpiry);
-    const T = Math.max(daysToExpiry, 0.01) / (365 - 52 * 2);
+    const T = Math.max(daysToExpiry, 0.01) / 365;
 
     // FIXED IV SCALING
     const ivPercent = position.IV ? position.IV / 100 : 0.15;
@@ -266,7 +266,7 @@ export const parseExpiryDate = (expiry: string): Date => {
 export const getDaysUntilExpiry = (expiry: string, today: Date): number => {
   const expiryDate = parseExpiryDate(expiry);
   const diffTime = expiryDate.getTime() - today.getTime();
-  return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24))) - 2;
+  return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 };
 
 // Calculate P&L for today using Black-Scholes
