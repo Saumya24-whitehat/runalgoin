@@ -208,7 +208,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
     // CASE B — Black-Scholes P&L (other expiries)
     // ---------------------------------------------------
 
-    const CloseExpiry = new Date(closestExpiry);
+    const CloseExpiry = new Date();
     const daysToExpiry = getDaysUntilExpiry(position.expiry, CloseExpiry);
     const T = Math.max(daysToExpiry, 0.01) / 365;
 
