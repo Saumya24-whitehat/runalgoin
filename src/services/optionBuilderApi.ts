@@ -210,7 +210,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
 
     const CloseExpiry = new Date(closestExpiry);
     const daysToExpiry = getDaysUntilExpiry(position.expiry, CloseExpiry);
-    console.log(daysToExpiry);
+    // console.log(daysToExpiry);
     const T = Math.max(daysToExpiry, 0.01) / 300;
 
     // FIXED IV SCALING
@@ -299,7 +299,7 @@ export const calculatePLToday = (positions: Position[], spotPrice: number): numb
     const T = Math.max(daysToExpiry, 0.01) / 365; // Minimum 0.01 to avoid division by zero
 
     // Use position's IV or default to 15%
-    const volatility = Math.max(position.IV / 100 || 15, 5) / 100;
+    const volatility = Math.max(position.IV / 100 || 15, 5);
 
     let theoreticalPrice = 0;
 
