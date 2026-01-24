@@ -87,17 +87,17 @@ const OptionBuilderChain = ({
 
       const callPrevOI = callData?.market_data?.prev_oi || callData?.market_data?.oi || 0;
       const putPrevOI = putData?.market_data?.prev_oi || putData?.market_data?.oi || 0;
-      
+
       const callLTP = callData?.market_data?.ltp || 0;
       const callClose = (callData?.market_data as { close?: number })?.close || callLTP;
       const putLTP = putData?.market_data?.ltp || 0;
       const putClose = (putData?.market_data as { close?: number })?.close || putLTP;
-      
+
       return {
         strike: item.strike_price,
         callLTP,
         callLTPChg: callLTP - callClose,
-        callIV: (callData?.option_greeks?.iv || 0) * 100,
+        callIV: callData?.option_greeks?.iv || 0,
         callDelta: callData?.option_greeks?.delta || 0,
         callTheta: callData?.option_greeks?.theta || 0,
         callGamma: callData?.option_greeks?.gamma || 0,
@@ -108,7 +108,7 @@ const OptionBuilderChain = ({
         callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || "",
         putLTP,
         putLTPChg: putLTP - putClose,
-        putIV: (putData?.option_greeks?.iv || 0) * 100,
+        putIV: putData?.option_greeks?.iv || 0,
         putDelta: putData?.option_greeks?.delta || 0,
         putTheta: putData?.option_greeks?.theta || 0,
         putGamma: putData?.option_greeks?.gamma || 0,
