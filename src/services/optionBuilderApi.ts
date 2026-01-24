@@ -210,7 +210,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
 
     const CloseExpiry = new Date(closestExpiry);
     const daysToExpiry = getDaysUntilExpiry(position.expiry, CloseExpiry);
-    const T = Math.max(daysToExpiry, 0.01) / 365;
+    const T = Math.max(daysToExpiry, 0.01) / (365 - 52 * 2);
 
     // FIXED IV SCALING
     const ivPercent = position.IV ? position.IV / 100 : 0.15;
