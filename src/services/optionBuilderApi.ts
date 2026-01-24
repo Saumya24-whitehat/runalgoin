@@ -212,7 +212,7 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
     const T = Math.max(daysToExpiry, 0.01) / 365;
 
     // FIXED IV SCALING
-    const ivPercent = position.IV ? position.IV / 10000 : 0.15;
+    const ivPercent = position.IV ? position.IV / 100 : 0.15;
     const volatility = Math.max(ivPercent, 0.05);
 
     let theoreticalPrice = 0;
