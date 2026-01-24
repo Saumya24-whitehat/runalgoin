@@ -302,7 +302,7 @@ const OptionBuilderChain = ({
                             <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                               <Button
                                 size="sm"
-                                className="h-6 px-2 text-xs bg-call-color hover:bg-call-color/80"
+                                className="h-6 px-2 text-xs"
                                 onClick={() => handleAddPosition(row.strike, "CE", "Buy")}
                               >
                                 B
