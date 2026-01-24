@@ -208,7 +208,8 @@ export const calculatePLAtExpiry = (positions: Position[], spotPrice: number): n
     // CASE B — Black-Scholes P&L (other expiries)
     // ---------------------------------------------------
 
-    const daysToExpiry = getDaysUntilExpiry(position.expiry);
+    const CloseExpiry = new Date(closestExpiry);
+    const daysToExpiry = getDaysUntilExpiry(position.expiry, CloseExpiry);
     const T = Math.max(daysToExpiry, 0.01) / 365;
 
     // FIXED IV SCALING
@@ -262,9 +263,8 @@ export const parseExpiryDate = (expiry: string): Date => {
 };
 
 // Calculate days until expiry
-export const getDaysUntilExpiry = (expiry: string): number => {
+export const getDaysUntilExpiry = (expiry: string, today: Date): number => {
   const expiryDate = parseExpiryDate(expiry);
-  const today = new Date();
   const diffTime = expiryDate.getTime() - today.getTime();
   return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 };
@@ -292,7 +292,9 @@ export const calculatePLToday = (positions: Position[], spotPrice: number): numb
     const quantity = position.lots * position.lotSize;
 
     // Get days to expiry for this specific position
-    const daysToExpiry = getDaysUntilExpiry(position.expiry);
+    const today = new Date();
+
+    const daysToExpiry = getDaysUntilExpiry(position.expiry, today);
     const T = Math.max(daysToExpiry, 0.01) / 365; // Minimum 0.01 to avoid division by zero
 
     // Use position's IV or default to 15%
@@ -345,11 +347,13 @@ export const generatePLChartData = (
     return { expiry: [], today: [] };
   }
 
+  const today = new Date();
+
   // Find the nearest expiry for the P/L at expiry calculation
   const expiries = [...new Set(enabledPositions.map((p) => p.expiry))];
-  const sortedExpiries = expiries.sort((a, b) => getDaysUntilExpiry(a) - getDaysUntilExpiry(b));
+  const sortedExpiries = expiries.sort((a, b) => getDaysUntilExpiry(a, today) - getDaysUntilExpiry(b, today));
   const nearestExpiry = sortedExpiries[0];
-  const daysToExpiry = getDaysUntilExpiry(nearestExpiry);
+  const daysToExpiry = getDaysUntilExpiry(nearestExpiry, today);
 
   const { startPrice, endPrice, step } = calculatePriceRange(currentPrice, daysToExpiry);
 
