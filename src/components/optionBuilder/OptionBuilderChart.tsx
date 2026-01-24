@@ -56,6 +56,8 @@ const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuild
           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
           <XAxis 
             dataKey="price" 
+            type="number"
+            domain={['dataMin', 'dataMax']}
             stroke="hsl(var(--muted-foreground))"
             tickFormatter={(value) => value.toFixed(0)}
             fontSize={11}
