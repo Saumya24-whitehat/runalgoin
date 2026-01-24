@@ -266,7 +266,7 @@ export const parseExpiryDate = (expiry: string): Date => {
 export const getDaysUntilExpiry = (expiry: string, today: Date): number => {
   const expiryDate = parseExpiryDate(expiry);
   const diffTime = expiryDate.getTime() - today.getTime();
-  return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  return Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24))) - 2;
 };
 
 // Calculate P&L for today using Black-Scholes
