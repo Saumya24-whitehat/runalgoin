@@ -83,16 +83,16 @@ const OptionBuilderChart = ({ expiryData, todayData, currentPrice }: OptionBuild
           />
           {/* Zero reference line */}
           <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeWidth={1} strokeOpacity={0.7} />
-          {/* Current price reference line - orange dashed */}
+          {/* Current spot price reference line - orange dashed, updates dynamically */}
           <ReferenceLine 
             x={currentPrice} 
-            stroke="#f97316"
+            stroke="hsl(var(--primary))"
             strokeWidth={2}
             strokeDasharray="5 5"
             label={{ 
-              value: `Spot LTP: ${currentPrice}`, 
+              value: `Spot: ₹${currentPrice.toLocaleString('en-IN')}`, 
               position: 'top',
-              fill: '#f97316',
+              fill: 'hsl(var(--primary))',
               fontSize: 11,
               fontWeight: 600
             }}
