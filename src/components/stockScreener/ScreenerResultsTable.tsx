@@ -38,8 +38,8 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
-  const [sectorFilter, setSectorFilter] = useState("");
-  const [exchangeFilter, setExchangeFilter] = useState("");
+  const [sectorFilter, setSectorFilter] = useState("all");
+  const [exchangeFilter, setExchangeFilter] = useState("all");
 
   // Get column indices
   const sectorIndex = result.columns.findIndex((c) => c.name === "sector");
@@ -88,12 +88,12 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
     }
 
     // Apply sector filter
-    if (sectorFilter && sectorIndex >= 0) {
+    if (sectorFilter && sectorFilter !== "all" && sectorIndex >= 0) {
       data = data.filter((item) => item.d[sectorIndex] === sectorFilter);
     }
 
     // Apply exchange filter
-    if (exchangeFilter && exchangeIndex >= 0) {
+    if (exchangeFilter && exchangeFilter !== "all" && exchangeIndex >= 0) {
       data = data.filter((item) => item.d[exchangeIndex] === exchangeFilter);
     }
 
@@ -178,8 +178,8 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
 
   const clearFilters = () => {
     setSearchQuery("");
-    setSectorFilter("");
-    setExchangeFilter("");
+    setSectorFilter("all");
+    setExchangeFilter("all");
     setSortColumn(null);
     setCurrentPage(1);
   };
@@ -208,7 +208,7 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
                 <SelectValue placeholder="All Sectors" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sectors</SelectItem>
+                <SelectItem value="all">All Sectors</SelectItem>
                 {sectors.map((sector) => (
                   <SelectItem key={sector} value={sector}>
                     {sector}
@@ -224,7 +224,7 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
                 <SelectValue placeholder="All Exchanges" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Exchanges</SelectItem>
+                <SelectItem value="all">All Exchanges</SelectItem>
                 {exchanges.map((exchange) => (
                   <SelectItem key={exchange} value={exchange}>
                     {exchange}
