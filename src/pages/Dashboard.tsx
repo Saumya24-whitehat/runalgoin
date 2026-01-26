@@ -552,7 +552,12 @@ const Dashboard = () => {
                           {event.company.charAt(0)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{event.company}</div>
+                          <div 
+                            className="font-medium text-sm truncate cursor-pointer hover:text-primary transition-colors"
+                            onClick={() => navigate(`/stock-detail?symbol=${encodeURIComponent(event.company)}`)}
+                          >
+                            {event.company}
+                          </div>
                           <div className="text-xs text-muted-foreground">{event.ratio || event.amount}</div>
                         </div>
                         <Badge
@@ -598,7 +603,12 @@ const Dashboard = () => {
                               {result.symbol.charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">{result.company}</div>
+                              <div 
+                                className="font-medium text-sm truncate cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => navigate(`/stock-detail?symbol=${encodeURIComponent(result.symbol)}`)}
+                              >
+                                {result.company}
+                              </div>
                               <div className="text-xs text-muted-foreground">
                                 {result.date} • ₹{result.price.toLocaleString()}
                               </div>
@@ -650,7 +660,12 @@ const Dashboard = () => {
                               {result.symbol.charAt(0)}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm truncate">{result.company}</div>
+                              <div 
+                                className="font-medium text-sm truncate cursor-pointer hover:text-primary transition-colors"
+                                onClick={() => navigate(`/stock-detail?symbol=${encodeURIComponent(result.symbol)}`)}
+                              >
+                                {result.company}
+                              </div>
                               <div className="text-xs text-muted-foreground">
                                 {result.date} • ₹{result.price.toLocaleString()}
                               </div>
@@ -738,7 +753,7 @@ const Dashboard = () => {
                                   {deal.type}
                                 </Badge>
                               </td>
-                              <td className="py-2">{deal.company}</td>
+                              <td className="py-2 cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/stock-detail?symbol=${encodeURIComponent(deal.company)}`)}>{deal.company}</td>
                               <td className="py-2 text-right">
                                 {typeof deal.qty === "number" ? deal.qty.toLocaleString() : deal.qty}
                               </td>
@@ -780,7 +795,7 @@ const Dashboard = () => {
                                   {deal.type}
                                 </Badge>
                               </td>
-                              <td className="py-2">{deal.company}</td>
+                              <td className="py-2 cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/stock-detail?symbol=${encodeURIComponent(deal.company)}`)}>{deal.company}</td>
                               <td className="py-2 text-right">
                                 {typeof deal.qty === "number" ? deal.qty.toLocaleString() : deal.qty}
                               </td>
@@ -822,7 +837,7 @@ const Dashboard = () => {
                                   {deal.type}
                                 </Badge>
                               </td>
-                              <td className="py-2">{deal.company}</td>
+                              <td className="py-2 cursor-pointer hover:text-primary transition-colors" onClick={() => navigate(`/stock-detail?symbol=${encodeURIComponent(deal.company)}`)}>{deal.company}</td>
                               <td className="py-2 text-right">
                                 {typeof deal.qty === "number" ? deal.qty.toLocaleString() : deal.qty}
                               </td>
