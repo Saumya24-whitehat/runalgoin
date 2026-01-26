@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
@@ -101,6 +102,7 @@ const symbolNameMap: Record<string, string> = {
 const prioritySymbols = ["SYML:NSE;NIFTY", "SYML:NSE;CNX500", "SYML:NSE;BANKNIFTY"];
 
 export function IndicesSection() {
+  const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState<"nifty" | "sensex">("nifty");
   const [activeChart, setActiveChart] = useState<"nifty50" | "nifty500" | "niftybank">("nifty50");
   const [activeSlide, setActiveSlide] = useState(0);
@@ -607,15 +609,24 @@ export function IndicesSection() {
       </CardContent>
     </Card>
   );
-  const AdvanceDeclineBar = ({ item }: { item: { name: string; advance: number; decline: number } }) => {
+  const AdvanceDeclineBar = ({ item }: { item: { key: string; name: string; advance: number; decline: number } }) => {
     const total = item.advance + item.decline;
     const advancePercent = total > 0 ? (item.advance / total) * 100 : 50;
     const declinePercent = total > 0 ? (item.decline / total) * 100 : 50;
 
+    const handleIndexClick = () => {
+      navigate(`/market-breadth?index=${encodeURIComponent(item.key)}`);
+    };
+
     return (
       <div className="flex items-center gap-3">
         {/* Index Name */}
-        <span className="w-24 text-foreground font-medium">{item.name}</span>
+        <span 
+          className="w-24 text-foreground font-medium cursor-pointer hover:text-primary transition-colors"
+          onClick={handleIndexClick}
+        >
+          {item.name}
+        </span>
 
         {/* Fixed-width container for counts + bars */}
         <div className="flex items-center gap-1 w-[260px]">
