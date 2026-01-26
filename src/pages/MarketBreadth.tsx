@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import {
   groupedIndices,
@@ -38,7 +38,21 @@ const indexToAdvDeclineKey: Record<string, string> = {
 
 export default function MarketBreadth() {
   const navigate = useNavigate();
-  const [selectedIndex, setSelectedIndex] = useState<string>("SYML:NSE;NIFTY");
+  const [searchParams] = useSearchParams();
+  
+  // Get index from URL or default to Nifty 50
+  const getInitialIndex = () => {
+    const urlIndex = searchParams.get("index");
+    if (urlIndex) {
+      // Check if it's a valid index symbol
+      const allIndices = groupedIndices.flatMap((g) => g.indices);
+      const found = allIndices.find((i) => i.symbol === urlIndex);
+      if (found) return urlIndex;
+    }
+    return "SYML:NSE;NIFTY";
+  };
+  
+  const [selectedIndex, setSelectedIndex] = useState<string>(getInitialIndex);
   const [selectedExchange, setSelectedExchange] = useState<"NSE" | "BSE">("NSE");
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
