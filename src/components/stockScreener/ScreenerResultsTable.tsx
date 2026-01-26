@@ -1,30 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Download, Search, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  ScanResult,
-  ScanColumn,
-  formatCellValue,
-  formatColumnTitle,
-} from "@/services/stockScreenerApi";
+import { ScanResult, ScanColumn, formatCellValue, formatColumnTitle } from "@/services/stockScreenerApi";
 import { cn } from "@/lib/utils";
 
 interface ScreenerResultsTableProps {
@@ -78,12 +60,10 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
         item.d.some((cell) => {
           if (cell === null || cell === undefined) return false;
           if (Array.isArray(cell)) {
-            return cell.some((idx) =>
-              idx.name?.toLowerCase().includes(query)
-            );
+            return cell.some((idx) => idx.name?.toLowerCase().includes(query));
           }
           return String(cell).toLowerCase().includes(query);
-        })
+        }),
       );
     }
 
@@ -118,23 +98,11 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
     }
 
     return data;
-  }, [
-    result.data,
-    searchQuery,
-    sectorFilter,
-    exchangeFilter,
-    sortColumn,
-    sortDirection,
-    sectorIndex,
-    exchangeIndex,
-  ]);
+  }, [result.data, searchQuery, sectorFilter, exchangeFilter, sortColumn, sortDirection, sectorIndex, exchangeIndex]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
-  const paginatedData = filteredData.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
+  const paginatedData = filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const handleSort = (columnIndex: number) => {
     if (sortColumn === columnIndex) {
@@ -158,7 +126,7 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
           return val.map((idx) => idx.name).join("; ");
         }
         return val ?? "";
-      })
+      }),
     );
 
     const csvContent = [
@@ -203,7 +171,13 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
           </div>
 
           {sectors.length > 0 && (
-            <Select value={sectorFilter} onValueChange={(v) => { setSectorFilter(v); setCurrentPage(1); }}>
+            <Select
+              value={sectorFilter}
+              onValueChange={(v) => {
+                setSectorFilter(v);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="w-[150px] h-9 text-xs">
                 <SelectValue placeholder="All Sectors" />
               </SelectTrigger>
@@ -219,7 +193,13 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
           )}
 
           {exchanges.length > 0 && (
-            <Select value={exchangeFilter} onValueChange={(v) => { setExchangeFilter(v); setCurrentPage(1); }}>
+            <Select
+              value={exchangeFilter}
+              onValueChange={(v) => {
+                setExchangeFilter(v);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="w-[120px] h-9 text-xs">
                 <SelectValue placeholder="All Exchanges" />
               </SelectTrigger>
@@ -234,21 +214,11 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
             </Select>
           )}
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearFilters}
-            className="h-9 text-xs"
-          >
+          <Button variant="outline" size="sm" onClick={clearFilters} className="h-9 text-xs">
             Clear
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={exportToCSV}
-            className="h-9 text-xs ml-auto"
-          >
+          <Button variant="outline" size="sm" onClick={exportToCSV} className="h-9 text-xs ml-auto">
             <Download className="h-4 w-4 mr-1" />
             Export
           </Button>
@@ -257,8 +227,7 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
             Showing {paginatedData.length} of {filteredData.length} stocks
-            {filteredData.length !== result.data.length &&
-              ` (filtered from ${result.data.length})`}
+            {filteredData.length !== result.data.length && ` (filtered from ${result.data.length})`}
           </span>
           <code className="text-primary/80 font-mono">{result.condition}</code>
         </div>
@@ -278,12 +247,7 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
                   <div className="flex items-center gap-1">
                     {formatColumnTitle(col)}
                     {sortColumn === index && (
-                      <ArrowUpDown
-                        className={cn(
-                          "h-3 w-3",
-                          sortDirection === "desc" && "rotate-180"
-                        )}
-                      />
+                      <ArrowUpDown className={cn("h-3 w-3", sortDirection === "desc" && "rotate-180")} />
                     )}
                   </div>
                 </TableHead>
@@ -303,22 +267,17 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
                       key={colIndex}
                       className={cn(
                         "whitespace-nowrap",
-                        isSymbol &&
-                          "cursor-pointer font-medium text-primary hover:underline"
+                        isSymbol && "cursor-pointer font-medium text-primary hover:underline",
                       )}
-                      onClick={() =>
-                        isSymbol &&
-                        typeof value === "string" &&
-                        handleStockClick(value)
-                      }
+                      onClick={() => isSymbol && typeof value === "string" && handleStockClick(value)}
                     >
                       {isSymbol ? (
                         <div className="flex items-center gap-2">
                           <img
-                            src={`https://runalgo.xyz/static/svg2/bse_${value}.svg`}
+                            src={`https://runalgo.xyz/top/chart/data/svg/nse_${value}.svg`}
                             onError={(e) => {
                               (e.target as HTMLImageElement).src =
-                                "https://runalgo.xyz/static/svg2/bse.svg";
+                                "https://runalgo.xyz/livescreener/static/svg2/bse.svg";
                             }}
                             className="w-5 h-5 rounded"
                             alt=""
@@ -336,10 +295,7 @@ export function ScreenerResultsTable({ result }: ScreenerResultsTableProps) {
 
             {paginatedData.length === 0 && (
               <TableRow>
-                <TableCell
-                  colSpan={result.columns.length}
-                  className="text-center py-8 text-muted-foreground"
-                >
+                <TableCell colSpan={result.columns.length} className="text-center py-8 text-muted-foreground">
                   No stocks found matching your criteria
                 </TableCell>
               </TableRow>
