@@ -6,11 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScanCategoryList } from "@/components/stockScreener/ScanCategoryList";
 import { ScreenerResultsTable } from "@/components/stockScreener/ScreenerResultsTable";
 import { ConditionInput } from "@/components/stockScreener/ConditionInput";
-import {
-  scanStocks,
-  ScanResult,
-  ScanExample,
-} from "@/services/stockScreenerApi";
+import { scanStocks, ScanResult, ScanExample } from "@/services/stockScreenerApi";
 import { Loader2, Search, FileText, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
@@ -109,15 +105,13 @@ export default function StockScreeners() {
         }
       }, 100);
     },
-    [toast]
+    [toast],
   );
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <TickerRibbon />
       <Navbar />
-      <AdminPaletteButton />
-
       <main className="flex-1 container mx-auto px-4 py-6">
         <div className="mb-6">
           <h1 className="text-2xl font-bold flex items-center gap-2">
@@ -134,10 +128,7 @@ export default function StockScreeners() {
           <div className="lg:col-span-4 xl:col-span-3">
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-2">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={(v) => setActiveTab(v as "presets" | "custom")}
-                >
+                <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "presets" | "custom")}>
                   <TabsList className="w-full">
                     <TabsTrigger value="presets" className="flex-1">
                       <FileText className="h-4 w-4 mr-1" />
@@ -174,14 +165,10 @@ export default function StockScreeners() {
                 <CardTitle className="text-lg flex items-center gap-2">
                   Scan Results
                   {result && (
-                    <span className="text-sm font-normal text-muted-foreground">
-                      ({result.data.length} stocks)
-                    </span>
+                    <span className="text-sm font-normal text-muted-foreground">({result.data.length} stocks)</span>
                   )}
                 </CardTitle>
-                {isLoading && (
-                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                )}
+                {isLoading && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
               </CardHeader>
               <CardContent className="flex-1 p-0 overflow-hidden">
                 {isLoading ? (
@@ -196,9 +183,7 @@ export default function StockScreeners() {
                     <div className="flex flex-col items-center justify-center h-full gap-4 text-muted-foreground">
                       <AlertCircle className="h-12 w-12" />
                       <p>No stocks matched your scan criteria</p>
-                      <code className="text-sm text-primary/80 bg-accent px-3 py-1 rounded">
-                        {result.condition}
-                      </code>
+                      <code className="text-sm text-primary/80 bg-accent px-3 py-1 rounded">{result.condition}</code>
                     </div>
                   )
                 ) : (
@@ -206,10 +191,7 @@ export default function StockScreeners() {
                     <Search className="h-12 w-12" />
                     <div className="text-center">
                       <p className="font-medium">No Scan Results Yet</p>
-                      <p className="text-sm mt-1">
-                        Select a preset scan or create a custom condition to get
-                        started
-                      </p>
+                      <p className="text-sm mt-1">Select a preset scan or create a custom condition to get started</p>
                     </div>
                   </div>
                 )}
