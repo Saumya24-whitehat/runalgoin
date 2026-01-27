@@ -37,6 +37,9 @@ serve(async (req) => {
       case 'peers':
         url = `https://runalgo.xyz/navbar/detailed/peers.php?symbol=${encodeURIComponent(symbol)}`;
         break;
+      case 'mapping':
+        url = `https://runalgo.xyz/navbar/detailed/detailedMapping.php?symbol=${encodeURIComponent(symbol)}`;
+        break;
       case 'additional_financial':
         if (!company_id || !parent || !section) {
           return new Response(
