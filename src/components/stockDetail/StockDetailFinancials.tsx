@@ -3,13 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
-import { 
-  fetchStockConsolidated, 
+import {
+  fetchStockConsolidated,
   fetchAdditionalFinancialInfo,
   fetchCompanyId,
-  ConsolidatedData, 
+  ConsolidatedData,
   FinancialRow,
-  AdditionalFinancialData 
+  AdditionalFinancialData,
 } from "@/services/stockDetailApi";
 import { cn } from "@/lib/utils";
 
@@ -24,16 +24,16 @@ interface ExpandedRows {
   };
 }
 
-const FinancialTable = ({ 
-  tableData, 
-  title, 
+const FinancialTable = ({
+  tableData,
+  title,
   subtitle,
   resultType,
   onResultTypeChange,
   showResultTypeToggle = false,
   companyId,
-  section
-}: { 
+  section,
+}: {
   tableData: FinancialRow[];
   title: string;
   subtitle?: string;
@@ -41,22 +41,21 @@ const FinancialTable = ({
   onResultTypeChange?: (type: "quarterly" | "yearly") => void;
   showResultTypeToggle?: boolean;
   companyId?: string;
-  section?: 'quarters' | 'years';
+  section?: "quarters" | "years";
 }) => {
   const [expandedRows, setExpandedRows] = useState<ExpandedRows>({});
 
-  const columns = tableData && tableData.length > 0 
-    ? Object.keys(tableData[0]).filter(key => key !== 'Unnamed: 0')
-    : [];
+  const columns =
+    tableData && tableData.length > 0 ? Object.keys(tableData[0]).filter((key) => key !== "Unnamed: 0") : [];
 
   const handleRowClick = async (rowLabel: string, hasPlus: boolean) => {
     if (!hasPlus || !companyId || !section) return;
 
     const rowKey = rowLabel;
-    
+
     // If already expanded, collapse it
     if (expandedRows[rowKey]?.data) {
-      setExpandedRows(prev => {
+      setExpandedRows((prev) => {
         const newState = { ...prev };
         delete newState[rowKey];
         return newState;
@@ -65,18 +64,18 @@ const FinancialTable = ({
     }
 
     // Start loading
-    setExpandedRows(prev => ({
+    setExpandedRows((prev) => ({
       ...prev,
-      [rowKey]: { loading: true, data: null }
+      [rowKey]: { loading: true, data: null },
     }));
 
     // Fetch data - use the original label with the space before +
-    const parentParam = rowLabel + " +";
+    const parentParam = rowLabel.replaceAll(" +", "");
     const data = await fetchAdditionalFinancialInfo(companyId, parentParam, section);
 
-    setExpandedRows(prev => ({
+    setExpandedRows((prev) => ({
       ...prev,
-      [rowKey]: { loading: false, data }
+      [rowKey]: { loading: false, data },
     }));
   };
 
@@ -90,16 +89,16 @@ const FinancialTable = ({
           </div>
           {showResultTypeToggle && onResultTypeChange && (
             <TabsList className="h-8">
-              <TabsTrigger 
-                value="quarterly" 
+              <TabsTrigger
+                value="quarterly"
                 className="text-xs h-7 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 onClick={() => onResultTypeChange("quarterly")}
                 data-state={resultType === "quarterly" ? "active" : "inactive"}
               >
                 Quarterly
               </TabsTrigger>
-              <TabsTrigger 
-                value="yearly" 
+              <TabsTrigger
+                value="yearly"
                 className="text-xs h-7 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
                 onClick={() => onResultTypeChange("yearly")}
                 data-state={resultType === "yearly" ? "active" : "inactive"}
@@ -119,94 +118,101 @@ const FinancialTable = ({
                   PARTICULARS
                 </TableHead>
                 {columns.map((col) => (
-                  <TableHead key={col} className="text-muted-foreground text-xs font-medium text-right min-w-[90px] whitespace-nowrap">
+                  <TableHead
+                    key={col}
+                    className="text-muted-foreground text-xs font-medium text-right min-w-[90px] whitespace-nowrap"
+                  >
                     {col}
                   </TableHead>
                 ))}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {tableData?.filter(row => row['Unnamed: 0'] !== 'Raw PDF').map((row, idx) => {
-                const rawLabel = String(row['Unnamed: 0']);
-                const hasPlus = rawLabel.includes('+');
-                const label = rawLabel.replace(' +', '').trim();
-                const isExpanded = !!expandedRows[label]?.data;
-                const isLoading = expandedRows[label]?.loading;
-                const childData = expandedRows[label]?.data;
-                
-                return (
-                  <>
-                    <TableRow key={idx} className="border-border hover:bg-muted/30">
-                      <TableCell 
-                        className={cn(
-                          "font-medium text-sm text-foreground sticky left-0 bg-card z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
-                          hasPlus && "cursor-pointer hover:text-primary"
-                        )}
-                        onClick={() => handleRowClick(label, hasPlus)}
-                      >
-                        <div className="flex items-center gap-2">
-                          {hasPlus && (
-                            <span className="flex-shrink-0">
-                              {isLoading ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : isExpanded ? (
-                                <ChevronDown className="h-3 w-3" />
-                              ) : (
-                                <ChevronRight className="h-3 w-3" />
-                              )}
-                            </span>
+              {tableData
+                ?.filter((row) => row["Unnamed: 0"] !== "Raw PDF")
+                .map((row, idx) => {
+                  const rawLabel = String(row["Unnamed: 0"]);
+                  const hasPlus = rawLabel.includes("+");
+                  const label = rawLabel.replace(" +", "").trim();
+                  const isExpanded = !!expandedRows[label]?.data;
+                  const isLoading = expandedRows[label]?.loading;
+                  const childData = expandedRows[label]?.data;
+
+                  return (
+                    <>
+                      <TableRow key={idx} className="border-border hover:bg-muted/30">
+                        <TableCell
+                          className={cn(
+                            "font-medium text-sm text-foreground sticky left-0 bg-card z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
+                            hasPlus && "cursor-pointer hover:text-primary",
                           )}
-                          <span>{label}</span>
-                        </div>
-                      </TableCell>
-                      {columns.map((col) => {
-                        const value = row[col];
-                        const isNegative = String(value).startsWith('-');
-                        
-                        return (
-                          <TableCell 
-                            key={col} 
-                            className={cn(
-                              "text-right text-sm whitespace-nowrap",
-                              isNegative ? 'text-destructive' : 'text-foreground'
+                          onClick={() => handleRowClick(label, hasPlus)}
+                        >
+                          <div className="flex items-center gap-2">
+                            {hasPlus && (
+                              <span className="flex-shrink-0">
+                                {isLoading ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : isExpanded ? (
+                                  <ChevronDown className="h-3 w-3" />
+                                ) : (
+                                  <ChevronRight className="h-3 w-3" />
+                                )}
+                              </span>
                             )}
-                          >
-                            {value ?? '-'}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                    
-                    {/* Child rows when expanded */}
-                    {isExpanded && childData && Object.entries(childData).map(([childLabel, childValues], childIdx) => (
-                      <TableRow 
-                        key={`${idx}-child-${childIdx}`} 
-                        className="border-border bg-muted/20 hover:bg-muted/40"
-                      >
-                        <TableCell className="font-normal text-sm text-muted-foreground sticky left-0 bg-muted/20 z-10 pl-8 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                          {childLabel}
+                            <span>{label}</span>
+                          </div>
                         </TableCell>
                         {columns.map((col) => {
-                          const value = childValues[col] ?? '-';
-                          const isNegative = String(value).startsWith('-');
-                          
+                          const value = row[col];
+                          const isNegative = String(value).startsWith("-");
+
                           return (
-                            <TableCell 
-                              key={col} 
+                            <TableCell
+                              key={col}
                               className={cn(
                                 "text-right text-sm whitespace-nowrap",
-                                isNegative ? 'text-destructive' : 'text-muted-foreground'
+                                isNegative ? "text-destructive" : "text-foreground",
                               )}
                             >
-                              {value}
+                              {value ?? "-"}
                             </TableCell>
                           );
                         })}
                       </TableRow>
-                    ))}
-                  </>
-                );
-              })}
+
+                      {/* Child rows when expanded */}
+                      {isExpanded &&
+                        childData &&
+                        Object.entries(childData).map(([childLabel, childValues], childIdx) => (
+                          <TableRow
+                            key={`${idx}-child-${childIdx}`}
+                            className="border-border bg-muted/20 hover:bg-muted/40"
+                          >
+                            <TableCell className="font-normal text-sm text-muted-foreground sticky left-0 bg-muted/20 z-10 pl-8 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                              {childLabel}
+                            </TableCell>
+                            {columns.map((col) => {
+                              const value = childValues[col] ?? "-";
+                              const isNegative = String(value).startsWith("-");
+
+                              return (
+                                <TableCell
+                                  key={col}
+                                  className={cn(
+                                    "text-right text-sm whitespace-nowrap",
+                                    isNegative ? "text-destructive" : "text-muted-foreground",
+                                  )}
+                                >
+                                  {value}
+                                </TableCell>
+                              );
+                            })}
+                          </TableRow>
+                        ))}
+                    </>
+                  );
+                })}
             </TableBody>
           </Table>
         </div>
@@ -224,18 +230,15 @@ export const StockDetailFinancials = ({ symbol }: StockDetailFinancialsProps) =>
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      
+
       // Fetch consolidated data and company_id in parallel
-      const [result, mappedCompanyId] = await Promise.all([
-        fetchStockConsolidated(symbol),
-        fetchCompanyId(symbol)
-      ]);
-      
+      const [result, mappedCompanyId] = await Promise.all([fetchStockConsolidated(symbol), fetchCompanyId(symbol)]);
+
       setData(result);
       if (mappedCompanyId) {
         setCompanyId(mappedCompanyId);
       }
-      
+
       setLoading(false);
     };
     fetchData();
@@ -250,11 +253,7 @@ export const StockDetailFinancials = ({ symbol }: StockDetailFinancialsProps) =>
   }
 
   if (!data) {
-    return (
-      <div className="text-center text-muted-foreground py-8">
-        No financial data available for {symbol}
-      </div>
-    );
+    return <div className="text-center text-muted-foreground py-8">No financial data available for {symbol}</div>;
   }
 
   const tableData = resultType === "quarterly" ? data.Table_1 : data.Table_2;
@@ -263,8 +262,8 @@ export const StockDetailFinancials = ({ symbol }: StockDetailFinancialsProps) =>
   return (
     <div className="space-y-4">
       <Tabs value={resultType} onValueChange={(v) => setResultType(v as "quarterly" | "yearly")}>
-        <FinancialTable 
-          tableData={tableData} 
+        <FinancialTable
+          tableData={tableData}
           title={resultType === "quarterly" ? "Quarterly Results" : "Yearly Results"}
           subtitle="Consolidated Figures in Rs. Crores"
           resultType={resultType}
@@ -277,7 +276,7 @@ export const StockDetailFinancials = ({ symbol }: StockDetailFinancialsProps) =>
 
       {/* Balance Sheet */}
       {data.Table_7 && (
-        <FinancialTable 
+        <FinancialTable
           tableData={data.Table_7}
           title="Balance Sheet"
           subtitle="Figures in Rs. Crores"
@@ -288,7 +287,7 @@ export const StockDetailFinancials = ({ symbol }: StockDetailFinancialsProps) =>
 
       {/* Cash Flow */}
       {data.Table_8 && (
-        <FinancialTable 
+        <FinancialTable
           tableData={data.Table_8}
           title="Cash Flow"
           subtitle="Figures in Rs. Crores"
