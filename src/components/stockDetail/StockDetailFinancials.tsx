@@ -70,7 +70,7 @@ const FinancialTable = ({
     }));
 
     // Use the original label which already contains " +"
-    const data = await fetchAdditionalFinancialInfo(companyId, rawLabel, section);
+    const data = await fetchAdditionalFinancialInfo(companyId, rawLabel.replaceAll(" +", ""), section);
 
     setExpandedRows((prev) => ({
       ...prev,
