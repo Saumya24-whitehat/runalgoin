@@ -70,7 +70,7 @@ const FinancialTable = ({
     }));
 
     // Fetch data - use the original label with the space before +
-    const parentParam = rowLabel.replaceAll(" +", "");
+    const parentParam = rowLabel + " +";
     const data = await fetchAdditionalFinancialInfo(companyId, parentParam, section);
 
     setExpandedRows((prev) => ({
