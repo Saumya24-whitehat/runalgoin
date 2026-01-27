@@ -69,8 +69,8 @@ const FinancialTable = ({
       [rowKey]: { loading: true, data: null },
     }));
 
-    // Use the original label which already contains " +"
-    const data = await fetchAdditionalFinancialInfo(companyId, rawLabel.replaceAll(" +", ""), section);
+    // Remove " +" from the label before sending to API
+    const data = await fetchAdditionalFinancialInfo(companyId, rawLabel.replace(" +", ""), section);
 
     setExpandedRows((prev) => ({
       ...prev,
