@@ -48,10 +48,10 @@ const FinancialTable = ({
   const columns =
     tableData && tableData.length > 0 ? Object.keys(tableData[0]).filter((key) => key !== "Unnamed: 0") : [];
 
-  const handleRowClick = async (rowLabel: string, hasPlus: boolean) => {
+  const handleRowClick = async (rawLabel: string, displayLabel: string, hasPlus: boolean) => {
     if (!hasPlus || !companyId || !section) return;
 
-    const rowKey = rowLabel;
+    const rowKey = displayLabel;
 
     // If already expanded, collapse it
     if (expandedRows[rowKey]?.data) {
@@ -69,9 +69,8 @@ const FinancialTable = ({
       [rowKey]: { loading: true, data: null },
     }));
 
-    // Fetch data - use the original label with the space before +
-    const parentParam = rowLabel + " +";
-    const data = await fetchAdditionalFinancialInfo(companyId, parentParam, section);
+    // Use the original label which already contains " +"
+    const data = await fetchAdditionalFinancialInfo(companyId, rawLabel, section);
 
     setExpandedRows((prev) => ({
       ...prev,
@@ -146,7 +145,7 @@ const FinancialTable = ({
                             "font-medium text-sm text-foreground sticky left-0 bg-card z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]",
                             hasPlus && "cursor-pointer hover:text-primary",
                           )}
-                          onClick={() => handleRowClick(label, hasPlus)}
+                          onClick={() => handleRowClick(rawLabel, label, hasPlus)}
                         >
                           <div className="flex items-center gap-2">
                             {hasPlus && (
