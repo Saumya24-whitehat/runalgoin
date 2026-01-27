@@ -6,6 +6,7 @@ import { Loader2, ChevronDown, ChevronRight } from "lucide-react";
 import { 
   fetchStockConsolidated, 
   fetchAdditionalFinancialInfo,
+  fetchCompanyId,
   ConsolidatedData, 
   FinancialRow,
   AdditionalFinancialData 
@@ -223,18 +224,16 @@ export const StockDetailFinancials = ({ symbol }: StockDetailFinancialsProps) =>
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      const result = await fetchStockConsolidated(symbol);
-      setData(result);
       
-      // Extract company_id from the data if available (you may need to adjust based on actual API response)
-      // For now, we'll use a mapping or fetch it from the overview endpoint
-      // The company_id is typically available in the overview data
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { data: overviewData } = await supabase.functions.invoke('stock-detail-data', {
-        body: { symbol, endpoint: 'overview' }
-      });
-      if (overviewData?.company_id) {
-        setCompanyId(String(overviewData.company_id));
+      // Fetch consolidated data and company_id in parallel
+      const [result, mappedCompanyId] = await Promise.all([
+        fetchStockConsolidated(symbol),
+        fetchCompanyId(symbol)
+      ]);
+      
+      setData(result);
+      if (mappedCompanyId) {
+        setCompanyId(mappedCompanyId);
       }
       
       setLoading(false);

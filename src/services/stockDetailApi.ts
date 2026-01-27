@@ -113,6 +113,20 @@ export const fetchStockOverview = async (symbol: string): Promise<StockOverview 
   }
 };
 
+export const fetchCompanyId = async (symbol: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('stock-detail-data', {
+      body: { symbol, endpoint: 'mapping' }
+    });
+
+    if (error) throw error;
+    return data ? String(data) : null;
+  } catch (error) {
+    console.error('Error fetching company ID:', error);
+    return null;
+  }
+};
+
 export const fetchStockConsolidated = async (symbol: string): Promise<ConsolidatedData | null> => {
   try {
     const { data, error } = await supabase.functions.invoke('stock-detail-data', {
