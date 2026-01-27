@@ -93,6 +93,12 @@ export interface PeerData {
   return_52w: number;
 }
 
+export interface AdditionalFinancialData {
+  [key: string]: {
+    [period: string]: string;
+  };
+}
+
 export const fetchStockOverview = async (symbol: string): Promise<StockOverview | null> => {
   try {
     const { data, error } = await supabase.functions.invoke('stock-detail-data', {
@@ -131,6 +137,30 @@ export const fetchStockOptions = async (symbol: string): Promise<any> => {
     return data;
   } catch (error) {
     console.error('Error fetching stock options data:', error);
+    return null;
+  }
+};
+
+export const fetchAdditionalFinancialInfo = async (
+  company_id: string,
+  parent: string,
+  section: 'quarters' | 'years'
+): Promise<AdditionalFinancialData | null> => {
+  try {
+    const { data, error } = await supabase.functions.invoke('stock-detail-data', {
+      body: { 
+        symbol: '', 
+        endpoint: 'additional_financial',
+        company_id,
+        parent,
+        section
+      }
+    });
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching additional financial info:', error);
     return null;
   }
 };

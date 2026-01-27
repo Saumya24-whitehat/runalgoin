@@ -11,16 +11,16 @@ serve(async (req) => {
   }
 
   try {
-    const { symbol, endpoint } = await req.json();
+    const { symbol, endpoint, company_id, parent, section } = await req.json();
     
-    if (!symbol) {
+    if (!symbol && !company_id) {
       return new Response(
-        JSON.stringify({ error: "Symbol is required" }),
+        JSON.stringify({ error: "Symbol or company_id is required" }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log(`Fetching ${endpoint} data for symbol: ${symbol}`);
+    console.log(`Fetching ${endpoint} data for symbol: ${symbol}, company_id: ${company_id}`);
 
     let url = '';
     
@@ -36,6 +36,15 @@ serve(async (req) => {
         break;
       case 'peers':
         url = `https://runalgo.xyz/navbar/detailed/peers.php?symbol=${encodeURIComponent(symbol)}`;
+        break;
+      case 'additional_financial':
+        if (!company_id || !parent || !section) {
+          return new Response(
+            JSON.stringify({ error: "company_id, parent, and section are required for additional_financial" }),
+            { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        url = `https://runalgo.xyz/navbar/detailed/getAdditionalFinancialInfo.php?company_id=${encodeURIComponent(company_id)}&parent=${encodeURIComponent(parent)}&section=${encodeURIComponent(section)}`;
         break;
       default:
         url = `https://runalgo.xyz/navbar/detailed/data1stock.php?symbol=${encodeURIComponent(symbol)}`;
@@ -56,7 +65,7 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    console.log(`Successfully fetched ${endpoint} data for ${symbol}`);
+    console.log(`Successfully fetched ${endpoint} data for ${symbol || company_id}`);
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
