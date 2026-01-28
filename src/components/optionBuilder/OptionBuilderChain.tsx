@@ -4,6 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Position, ExpiryData, formatIndianNumber } from "@/services/optionBuilderApi";
 import { ColumnConfig } from "./OptionBuilderSettings";
 
+interface LiveOptionData {
+  ltp: number;
+  iv?: number;
+  oi?: number;
+  volume?: number;
+}
+
 interface OptionBuilderChainProps {
   symbol: string;
   expiry: string;
@@ -14,6 +21,7 @@ interface OptionBuilderChainProps {
   onAddPosition: (position: Omit<Position, "id" | "enabled">) => void;
   callColumns?: ColumnConfig[];
   putColumns?: ColumnConfig[];
+  liveData?: Record<string, LiveOptionData>;
 }
 
 interface StrikeData {
@@ -66,6 +74,7 @@ const OptionBuilderChain = ({
   onAddPosition,
   callColumns = DEFAULT_CALL_COLUMNS,
   putColumns = DEFAULT_PUT_COLUMNS,
+  liveData = {},
 }: OptionBuilderChainProps) => {
   const [hoveredRow, setHoveredRow] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,7 +84,7 @@ const OptionBuilderChain = ({
   const strikeDiff = symbol.includes("Bank") ? 100 : 50;
   const atmStrike = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
-  // Transform expiry data into strike data array
+  // Transform expiry data into strike data array with live updates
   const strikeData: StrikeData[] = useMemo(() => {
     if (!expiryData || !expiryData.data || expiryData.data.length === 0) {
       return [];
@@ -88,38 +97,59 @@ const OptionBuilderChain = ({
       const callPrevOI = callData?.market_data?.prev_oi || callData?.market_data?.oi || 0;
       const putPrevOI = putData?.market_data?.prev_oi || putData?.market_data?.oi || 0;
 
-      const callLTP = callData?.market_data?.ltp || 0;
-      const callClose = (callData?.market_data as { close?: number })?.close || callLTP;
-      const putLTP = putData?.market_data?.ltp || 0;
-      const putClose = (putData?.market_data as { close?: number })?.close || putLTP;
+      // Get tokens for live data lookup
+      const callToken = expiryData.ceToken?.[idx] || callData?.instrument_key || "";
+      const putToken = expiryData.peToken?.[idx] || putData?.instrument_key || "";
+
+      // Check for live data using multiple token formats
+      const callLiveData = liveData[callToken] || liveData[`NSE_FO|${callToken}`];
+      const putLiveData = liveData[putToken] || liveData[`NSE_FO|${putToken}`];
+
+      // Use live LTP if available, otherwise use static data
+      const callLTP = callLiveData?.ltp ?? callData?.market_data?.ltp ?? 0;
+      const callClose = (callData?.market_data as { close?: number })?.close || callData?.market_data?.ltp || 0;
+      const putLTP = putLiveData?.ltp ?? putData?.market_data?.ltp ?? 0;
+      const putClose = (putData?.market_data as { close?: number })?.close || putData?.market_data?.ltp || 0;
+
+      // Use live IV if available
+      const callIV = callLiveData?.iv ?? callData?.option_greeks?.iv ?? 0;
+      const putIV = putLiveData?.iv ?? putData?.option_greeks?.iv ?? 0;
+
+      // Use live OI if available
+      const callOI = callLiveData?.oi ?? callData?.market_data?.oi ?? 0;
+      const putOI = putLiveData?.oi ?? putData?.market_data?.oi ?? 0;
+
+      // Use live volume if available
+      const callVolume = callLiveData?.volume ?? callData?.market_data?.volume ?? 0;
+      const putVolume = putLiveData?.volume ?? putData?.market_data?.volume ?? 0;
 
       return {
         strike: item.strike_price,
         callLTP,
         callLTPChg: callLTP - callClose,
-        callIV: callData?.option_greeks?.iv || 0,
+        callIV,
         callDelta: callData?.option_greeks?.delta || 0,
         callTheta: callData?.option_greeks?.theta || 0,
         callGamma: callData?.option_greeks?.gamma || 0,
         callVega: callData?.option_greeks?.vega || 0,
-        callOI: callData?.market_data?.oi || 0,
-        callCOI: (callData?.market_data?.oi || 0) - callPrevOI,
-        callVolume: callData?.market_data?.volume || 0,
-        callToken: expiryData.ceToken?.[idx] || callData?.instrument_key || "",
+        callOI,
+        callCOI: callOI - callPrevOI,
+        callVolume,
+        callToken,
         putLTP,
         putLTPChg: putLTP - putClose,
-        putIV: putData?.option_greeks?.iv || 0,
+        putIV,
         putDelta: putData?.option_greeks?.delta || 0,
         putTheta: putData?.option_greeks?.theta || 0,
         putGamma: putData?.option_greeks?.gamma || 0,
         putVega: putData?.option_greeks?.vega || 0,
-        putOI: putData?.market_data?.oi || 0,
-        putCOI: (putData?.market_data?.oi || 0) - putPrevOI,
-        putVolume: putData?.market_data?.volume || 0,
-        putToken: expiryData.peToken?.[idx] || putData?.instrument_key || "",
+        putOI,
+        putCOI: putOI - putPrevOI,
+        putVolume,
+        putToken,
       };
     });
-  }, [expiryData]);
+  }, [expiryData, liveData]);
 
   // Auto-scroll to ATM when data loads
   useEffect(() => {
