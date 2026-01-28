@@ -45,6 +45,8 @@ import NotFound from "./pages/NotFound";
 import FuturesOiBreakup from "./pages/FuturesOiBreakup";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+// Development pages
+import CandlestickPatternChart from "./pages/dev/CandlestickPatternChart";
 
 const queryClient = new QueryClient();
 
@@ -102,6 +104,8 @@ const App = () => (
               <Route path="/plans" element={<Plans />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/profile" element={<Profile />} />
+              {/* Development pages */}
+              <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </TooltipProvider>
