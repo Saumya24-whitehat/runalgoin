@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, Maximize2, Loader2, MoreVertical, Wifi, WifiOff } from "lucide-react";
+import { ArrowLeft, Star, Maximize2, Loader2, MoreVertical } from "lucide-react";
 import {
   StockOverview,
   fetchStockOverview,
@@ -19,7 +19,6 @@ import { StockDetailFinancials } from "@/components/stockDetail/StockDetailFinan
 import { StockDetailOptions } from "@/components/stockDetail/StockDetailOptions";
 import { StockDetailPeers } from "@/components/stockDetail/StockDetailPeers";
 import { StockDetailTechnicals } from "@/components/stockDetail/StockDetailTechnicals";
-import { upstoxWebSocket } from "@/services/upstoxWebSocket";
 
 const StockDetail = () => {
   const [searchParams] = useSearchParams();
@@ -30,15 +29,6 @@ const StockDetail = () => {
   const [stockData, setStockData] = useState<StockOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<string>("");
-
-  // Live data state
-  const [livePrice, setLivePrice] = useState<number | null>(null);
-  const [liveChange, setLiveChange] = useState<number | null>(null);
-  const [liveChangePct, setLiveChangePct] = useState<number | null>(null);
-  const [tickDirection, setTickDirection] = useState<'up' | 'down' | null>(null);
-  const [wsConnected, setWsConnected] = useState(false);
-  const wsInitialized = useRef(false);
-  const prevLtpRef = useRef<number | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,79 +47,9 @@ const StockDetail = () => {
     };
 
     fetchData();
-    // Only poll every 5 minutes as backup when WebSocket is connected
-    const interval = setInterval(fetchData, 300000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [symbol]);
-
-  // Initialize WebSocket for live data
-  useEffect(() => {
-    if (wsInitialized.current) return;
-
-    const initWebSocket = async () => {
-      try {
-        wsInitialized.current = true;
-
-        // Set up feed callback
-        upstoxWebSocket.setFeedCallback((updates) => {
-          updates.forEach((update) => {
-            const token = update.token;
-            // Check if this update is for our stock (NSE_EQ format)
-            if (token.includes(`NSE_EQ|${symbol}`) || token === `NSE_EQ|${symbol}`) {
-              const newLtp = update.data.ltp;
-              const prevClose = update.data.prev_close || stockData?.price || 0;
-              
-              // Determine tick direction
-              if (prevLtpRef.current !== null && newLtp !== prevLtpRef.current) {
-                setTickDirection(newLtp > prevLtpRef.current ? 'up' : 'down');
-                // Reset tick direction after animation
-                setTimeout(() => setTickDirection(null), 500);
-              }
-              prevLtpRef.current = newLtp;
-
-              setLivePrice(newLtp);
-              if (prevClose > 0) {
-                const change = newLtp - prevClose;
-                const changePct = (change / prevClose) * 100;
-                setLiveChange(change);
-                setLiveChangePct(changePct);
-              }
-              setLastUpdated(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " IST");
-            }
-          });
-        });
-
-        const connected = await upstoxWebSocket.connect();
-        setWsConnected(connected);
-
-        if (connected) {
-          // Subscribe to stock token (NSE equity format)
-          upstoxWebSocket.subscribe([`NSE_EQ|${symbol}`]);
-        }
-      } catch (error) {
-        console.error("WebSocket initialization error:", error);
-        setWsConnected(false);
-      }
-    };
-
-    initWebSocket();
-
-    return () => {
-      // Don't disconnect - keep connection persistent
-    };
-  }, [symbol, stockData?.price]);
-
-  // Re-subscribe when symbol changes
-  useEffect(() => {
-    if (wsConnected) {
-      upstoxWebSocket.subscribe([`NSE_EQ|${symbol}`]);
-    }
-  }, [symbol, wsConnected]);
-
-  // Use live data if available, otherwise use static data
-  const displayPrice = livePrice ?? stockData?.price ?? 0;
-  const displayChange = liveChange ?? (stockData ? stockData.price - (stockData.price / (1 + stockData.change_percent / 100)) : 0);
-  const displayChangePct = liveChangePct ?? stockData?.change_percent ?? 0;
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -165,32 +85,19 @@ const StockDetail = () => {
               </div>
             </div>
 
-            {loading && !livePrice ? (
+            {loading ? (
               <div className="flex items-center gap-2 ml-4">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              (stockData || livePrice) && (
+              stockData && (
                 <div className="flex items-center gap-2 ml-4">
-                  <span 
-                    className={`text-2xl font-bold transition-colors duration-300 ${
-                      tickDirection === 'up' ? 'text-emerald-500' : 
-                      tickDirection === 'down' ? 'text-red-500' : 
-                      'text-foreground'
-                    }`}
-                  >
-                    {formatPrice(displayPrice)}
-                  </span>
+                  <span className="text-2xl font-bold text-foreground">{formatPrice(stockData.price)}</span>
                   <span
-                    className={`text-sm font-medium ${displayChangePct >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                    className={`text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
                   >
-                    {displayChangePct >= 0 ? '+' : ''}{displayChange.toFixed(2)} ({displayChangePct >= 0 ? '+' : ''}{displayChangePct.toFixed(2)}%)
+                    {formatPercentage(stockData.change_percent)}
                   </span>
-                  {wsConnected ? (
-                    <Wifi className="h-3 w-3 text-emerald-500" />
-                  ) : (
-                    <WifiOff className="h-3 w-3 text-muted-foreground" />
-                  )}
                 </div>
               )
             )}

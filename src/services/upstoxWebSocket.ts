@@ -80,8 +80,8 @@ class UpstoxWebSocketService {
   formatToken(token: string): string {
     if (!token) return "";
     
-    // Skip if already has a prefix (NSE_FO, NSE_EQ, NSE_INDEX, BSE_INDEX, etc.)
-    if (token.includes("|")) return token;
+    // Skip if already has a prefix
+    if (token.includes("_FO|") || token.includes("_INDEX")) return token;
 
     // Add prefix based on symbol type
     if (this.symbolType === "BSE") return "BSE_FO|" + token;
