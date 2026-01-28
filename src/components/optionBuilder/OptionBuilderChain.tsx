@@ -6,6 +6,8 @@ import { ColumnConfig } from "./OptionBuilderSettings";
 
 interface LiveOptionData {
   ltp: number;
+  prevLtp?: number;
+  cp?: number; // Close price for change calculation
   iv?: number;
   oi?: number;
   volume?: number;
@@ -28,6 +30,7 @@ interface StrikeData {
   strike: number;
   callLTP: number;
   callLTPChg: number;
+  callTickUp: boolean | null; // true = up tick, false = down tick, null = no change
   callIV: number;
   callDelta: number;
   callTheta: number;
@@ -39,6 +42,7 @@ interface StrikeData {
   callToken: string;
   putLTP: number;
   putLTPChg: number;
+  putTickUp: boolean | null; // true = up tick, false = down tick, null = no change
   putIV: number;
   putDelta: number;
   putTheta: number;
@@ -107,9 +111,18 @@ const OptionBuilderChain = ({
 
       // Use live LTP if available, otherwise use static data
       const callLTP = callLiveData?.ltp ?? callData?.market_data?.ltp ?? 0;
-      const callClose = (callData?.market_data as { close?: number })?.close || callData?.market_data?.ltp || 0;
+      // Use close price from live feed if available, otherwise from static data
+      const callClose = callLiveData?.cp ?? (callData?.market_data as { close?: number })?.close ?? callData?.market_data?.ltp ?? 0;
       const putLTP = putLiveData?.ltp ?? putData?.market_data?.ltp ?? 0;
-      const putClose = (putData?.market_data as { close?: number })?.close || putData?.market_data?.ltp || 0;
+      const putClose = putLiveData?.cp ?? (putData?.market_data as { close?: number })?.close ?? putData?.market_data?.ltp ?? 0;
+
+      // Determine tick direction (compare current LTP with previous LTP)
+      const callTickUp = callLiveData?.prevLtp !== undefined 
+        ? (callLTP > callLiveData.prevLtp ? true : callLTP < callLiveData.prevLtp ? false : null)
+        : null;
+      const putTickUp = putLiveData?.prevLtp !== undefined 
+        ? (putLTP > putLiveData.prevLtp ? true : putLTP < putLiveData.prevLtp ? false : null)
+        : null;
 
       // Use live IV if available
       const callIV = callLiveData?.iv ?? callData?.option_greeks?.iv ?? 0;
@@ -127,6 +140,7 @@ const OptionBuilderChain = ({
         strike: item.strike_price,
         callLTP,
         callLTPChg: callLTP - callClose,
+        callTickUp,
         callIV,
         callDelta: callData?.option_greeks?.delta || 0,
         callTheta: callData?.option_greeks?.theta || 0,
@@ -138,6 +152,7 @@ const OptionBuilderChain = ({
         callToken,
         putLTP,
         putLTPChg: putLTP - putClose,
+        putTickUp,
         putIV,
         putDelta: putData?.option_greeks?.delta || 0,
         putTheta: putData?.option_greeks?.theta || 0,
@@ -274,6 +289,13 @@ const OptionBuilderChain = ({
     return "";
   };
 
+  // Get tick direction color for LTP (based on whether price went up or down from last tick)
+  const getTickColor = (tickUp: boolean | null) => {
+    if (tickUp === true) return "text-oc-positive";
+    if (tickUp === false) return "text-oc-negative";
+    return "";
+  };
+
   if (strikeData.length === 0 && !isLoading) {
     return <div className="text-center py-8 text-muted-foreground">No option chain data available for {expiry}</div>;
   }
@@ -327,7 +349,9 @@ const OptionBuilderChain = ({
                     >
                       {isLtpColumn ? (
                         <>
-                          <span className="text-xs font-medium">{getCallCellValue(row, col.id)}</span>
+                          <span className={`text-xs font-medium transition-colors ${getTickColor(row.callTickUp)}`}>
+                            {getCallCellValue(row, col.id)}
+                          </span>
                           {isHovered && (
                             <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                               <Button
@@ -371,7 +395,9 @@ const OptionBuilderChain = ({
                     >
                       {isLtpColumn ? (
                         <>
-                          <span className="text-xs font-medium">{getPutCellValue(row, col.id)}</span>
+                          <span className={`text-xs font-medium transition-colors ${getTickColor(row.putTickUp)}`}>
+                            {getPutCellValue(row, col.id)}
+                          </span>
                           {isHovered && (
                             <div className="absolute inset-0 flex items-center justify-center gap-1 bg-background/90">
                               <Button

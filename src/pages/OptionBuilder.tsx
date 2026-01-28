@@ -183,8 +183,8 @@ const OptionBuilder = () => {
     fetchSymbols();
   }, []);
 
-  // Live data state for option chain
-  const [liveOptionData, setLiveOptionData] = useState<Record<string, { ltp: number; iv?: number; oi?: number; volume?: number }>>({});
+  // Live data state for option chain (includes close price and previous LTP for tick direction)
+  const [liveOptionData, setLiveOptionData] = useState<Record<string, { ltp: number; prevLtp?: number; cp?: number; iv?: number; oi?: number; volume?: number }>>({});
 
   // Initialize WebSocket for live data
   useEffect(() => {
@@ -210,13 +210,16 @@ const OptionBuilder = () => {
             }),
           );
 
-          // Update option chain live data
+          // Update option chain live data with close price and previous LTP for tick direction
           setLiveOptionData((prev) => {
             const newData = { ...prev };
             updates.forEach((update) => {
               const token = update.token;
+              const existingData = prev[token];
               newData[token] = {
                 ltp: update.data.ltp,
+                prevLtp: existingData?.ltp, // Store previous LTP for tick direction
+                cp: update.data.prev_close ?? existingData?.cp, // Close price from feed
                 iv: update.data.iv,
                 oi: update.data.oi,
                 volume: update.data.volume,
