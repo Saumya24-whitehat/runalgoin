@@ -183,6 +183,9 @@ const OptionBuilder = () => {
     fetchSymbols();
   }, []);
 
+  // Live data state for option chain
+  const [liveOptionData, setLiveOptionData] = useState<Record<string, { ltp: number; iv?: number; oi?: number; volume?: number }>>({});
+
   // Initialize WebSocket for live data
   useEffect(() => {
     if (!settings.liveFeedEnabled || wsInitialized.current) return;
@@ -207,9 +210,27 @@ const OptionBuilder = () => {
             }),
           );
 
-          // Update option chain data with live prices
-          if (optionChainData) {
-            // We could update the expiryData here if needed
+          // Update option chain live data
+          setLiveOptionData((prev) => {
+            const newData = { ...prev };
+            updates.forEach((update) => {
+              const token = update.token;
+              newData[token] = {
+                ltp: update.data.ltp,
+                iv: update.data.iv,
+                oi: update.data.oi,
+                volume: update.data.volume,
+              };
+            });
+            return newData;
+          });
+
+          // Update spot price if we have index token
+          if (optionChainData?.spotToken) {
+            const spotUpdate = updates.find((u) => u.token.includes(optionChainData.spotToken));
+            if (spotUpdate) {
+              setCurrentPrice(spotUpdate.data.ltp);
+            }
           }
         });
 
@@ -752,6 +773,7 @@ const OptionBuilder = () => {
                     onAddPosition={addPosition}
                     callColumns={settings.callColumns}
                     putColumns={settings.putColumns}
+                    liveData={liveOptionData}
                   />
                 )}
               </CardContent>
