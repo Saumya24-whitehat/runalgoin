@@ -9,7 +9,8 @@
 class ChartPatternPlotter {
     constructor(tvWidget) {
         this.tvWidget = tvWidget;
-        this.chart = tvWidget.chart();
+        // Use activeChart() for proper TradingView widget API
+        this.chart = tvWidget.activeChart ? tvWidget.activeChart() : tvWidget.chart?.() || null;
         this.drawnShapes = new Map(); // Track drawn shapes by pattern ID
         this.drawnLines = new Map(); // Track drawn lines by pattern ID
         this.shapeColors = {
@@ -18,6 +19,12 @@ class ChartPatternPlotter {
             'neutral': '#999999'
         };
         this.lineWidth = 2;
+        
+        if (!this.chart) {
+            console.warn('⚠️ ChartPatternPlotter: No chart available. Ensure widget is ready.');
+        } else {
+            console.log('✅ ChartPatternPlotter initialized with chart');
+        }
     }
 
     /**
@@ -1216,6 +1223,9 @@ window.chartPlotterHelp = function() {
     `;
     console.log(help);
 };
+
+// Export ChartPatternPlotter class to window for global access
+window.ChartPatternPlotter = ChartPatternPlotter;
 
 console.log('🎨 Chart Pattern Plotter loaded');
 console.log('Type chartPlotterHelp() for usage information');
