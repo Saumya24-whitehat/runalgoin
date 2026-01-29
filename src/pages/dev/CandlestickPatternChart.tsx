@@ -514,7 +514,9 @@ const CandlestickPatternChart = () => {
         // Initialize pattern plotter with widget
         if (window.ChartPatternPlotter) {
           window.patternPlotter = new window.ChartPatternPlotter(widget);
-          console.log("✅ Pattern plotter initialized");
+          console.log("✅ Pattern plotter initialized", window.patternPlotter);
+        } else {
+          console.error("❌ ChartPatternPlotter class not found on window");
         }
 
         // Initialize pattern analyzer
@@ -522,6 +524,8 @@ const CandlestickPatternChart = () => {
           window.patternAnalyzer = new window.CandlestickPatternAnalyzer();
           window.patternAnalyzer.apiBaseUrl = "https://runalgo.xyz/top/chart/api";
           console.log("✅ Pattern analyzer initialized");
+        } else {
+          console.error("❌ CandlestickPatternAnalyzer class not found on window");
         }
 
         // Setup getIndicators function
@@ -564,13 +568,14 @@ const CandlestickPatternChart = () => {
   // Handle pattern click - plot on chart
   const handlePatternClick = (pattern: CandlestickPattern) => {
     console.log("🎯 Pattern clicked:", pattern);
+    console.log("🎯 Pattern original data:", pattern.original);
 
     if (window.patternPlotter) {
-      // Clear existing patterns
-      // window.patternPlotter.clearAllPatterns();
-
-      // Plot the selected pattern
+      console.log("🎨 Using patternPlotter.plotPattern()");
+      // The plotter expects the normalized pattern with 'original' containing the raw API data
       window.patternPlotter.plotPattern(pattern);
+    } else {
+      console.error("❌ patternPlotter not available");
     }
   };
 

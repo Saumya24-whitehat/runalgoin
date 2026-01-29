@@ -525,6 +525,9 @@ window.candlestickHelp = function() {
     console.log(help);
 };
 
+// Export class to window for global access
+window.CandlestickPatternAnalyzer = CandlestickPatternAnalyzer;
+
 // Auto-initialize
 console.log('🕯️ Candlestick Pattern Analyzer loaded');
 console.log('Type candlestickHelp() for usage information');
