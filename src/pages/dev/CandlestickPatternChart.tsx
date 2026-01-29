@@ -83,35 +83,35 @@ const CandlestickPatternChart = () => {
     setIsPatternsLoading(true);
     try {
       console.log("🔍 Fetching patterns for:", symbol, timeframe);
-      
+
       // Use the pattern analyzer if available
       if (window.patternAnalyzer) {
         const patterns = await window.patternAnalyzer.fetchPatternsFromAPI(symbol, timeframe, 50);
         setPatterns(patterns);
-        
+
         // Plot patterns on chart if plotter is available
         if (window.patternPlotter && patterns.length > 0) {
           window.patternPlotter.plotPatterns(patterns);
         }
-        
+
         return patterns;
       }
-      
+
       // Fallback: Direct API call
       const apiUrl = `https://runalgo.xyz/top/chart/api/get_candlestick_patterns.php?symbol=${encodeURIComponent(symbol)}&timeframe=${encodeURIComponent(timeframe)}&limit=50`;
-      
+
       const response = await fetch(apiUrl);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const rawData = await response.json();
       console.log("📨 Raw API Response:", rawData);
-      
+
       // Normalize the response
       const normalizedPatterns = normalizePatterns(rawData);
       setPatterns(normalizedPatterns);
-      
+
       return normalizedPatterns;
     } catch (error) {
       console.error("❌ Error fetching patterns:", error);
@@ -131,8 +131,12 @@ const CandlestickPatternChart = () => {
     return rawData.map((item, index) => ({
       id: item.id || `pattern_${index}`,
       name: item.conditionName || "Unknown Pattern",
-      signal: (item.trendType || "").toLowerCase() === "bullish" ? "bullish" : 
-              (item.trendType || "").toLowerCase() === "bearish" ? "bearish" : "neutral",
+      signal:
+        (item.trendType || "").toLowerCase() === "bullish"
+          ? "bullish"
+          : (item.trendType || "").toLowerCase() === "bearish"
+            ? "bearish"
+            : "neutral",
       strength: calculatePatternStrength(item),
       trend_type: item.trendType || "",
       time: item.timestamp,
@@ -141,7 +145,7 @@ const CandlestickPatternChart = () => {
       pattern_type: item.subTypeLabel || "Candlesticks",
       title: item.title || "",
       description: item.securityDescription || "",
-      original: item
+      original: item,
     }));
   };
 
@@ -163,10 +167,10 @@ const CandlestickPatternChart = () => {
       "Three White Soldiers",
       "Three Black Crows",
       "Double Bottom",
-      "Double Top"
+      "Double Top",
     ];
 
-    if (highStrengthPatterns.some(p => item.conditionName?.includes(p))) {
+    if (highStrengthPatterns.some((p) => item.conditionName?.includes(p))) {
       strength += 0.15;
     }
 
@@ -532,17 +536,20 @@ const CandlestickPatternChart = () => {
         (globalThis as any).getIndicators = getIndicatorsFn;
 
         // Listen for symbol changes
-        widget.activeChart().onSymbolChanged().subscribe(null, () => {
-          const symbolInfo = widget.activeChart().symbolExt();
-          if (symbolInfo) {
-            const symbol = symbolInfo.ticker || symbolInfo.symbol || "NIFTY";
-            setCurrentSymbol(symbol);
-            console.log("📊 Symbol changed to:", symbol);
-            
-            // Fetch patterns for new symbol
-            fetchPatterns(symbol, selectedTimeframe);
-          }
-        });
+        widget
+          .activeChart()
+          .onSymbolChanged()
+          .subscribe(null, () => {
+            const symbolInfo = widget.activeChart().symbolExt();
+            if (symbolInfo) {
+              const symbol = symbolInfo.ticker || symbolInfo.symbol || "NIFTY";
+              setCurrentSymbol(symbol);
+              console.log("📊 Symbol changed to:", symbol);
+
+              // Fetch patterns for new symbol
+              fetchPatterns(symbol, selectedTimeframe);
+            }
+          });
 
         // Initial pattern fetch
         fetchPatterns("NIFTY", selectedTimeframe);
@@ -557,11 +564,11 @@ const CandlestickPatternChart = () => {
   // Handle pattern click - plot on chart
   const handlePatternClick = (pattern: CandlestickPattern) => {
     console.log("🎯 Pattern clicked:", pattern);
-    
+
     if (window.patternPlotter) {
       // Clear existing patterns
       // window.patternPlotter.clearAllPatterns();
-      
+
       // Plot the selected pattern
       window.patternPlotter.plotPattern(pattern);
     }
@@ -598,9 +605,9 @@ const CandlestickPatternChart = () => {
   }, []);
 
   // Group patterns by signal type
-  const bullishPatterns = patterns.filter(p => p.signal === "bullish");
-  const bearishPatterns = patterns.filter(p => p.signal === "bearish");
-  const neutralPatterns = patterns.filter(p => p.signal === "neutral");
+  const bullishPatterns = patterns.filter((p) => p.signal === "bullish");
+  const bearishPatterns = patterns.filter((p) => p.signal === "bearish");
+  const neutralPatterns = patterns.filter((p) => p.signal === "neutral");
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -633,12 +640,7 @@ const CandlestickPatternChart = () => {
                     <SelectItem value="1week">Weekly</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleRefreshPatterns}
-                  disabled={isPatternsLoading}
-                >
+                <Button variant="outline" size="sm" onClick={handleRefreshPatterns} disabled={isPatternsLoading}>
                   <RefreshCw className={cn("h-4 w-4", isPatternsLoading && "animate-spin")} />
                 </Button>
                 <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-2">
@@ -715,11 +717,7 @@ const CandlestickPatternChart = () => {
                         Bullish ({bullishPatterns.length})
                       </div>
                       {bullishPatterns.map((pattern) => (
-                        <PatternItem 
-                          key={pattern.id} 
-                          pattern={pattern} 
-                          onClick={() => handlePatternClick(pattern)} 
-                        />
+                        <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
                       ))}
                     </div>
                   )}
@@ -732,11 +730,7 @@ const CandlestickPatternChart = () => {
                         Bearish ({bearishPatterns.length})
                       </div>
                       {bearishPatterns.map((pattern) => (
-                        <PatternItem 
-                          key={pattern.id} 
-                          pattern={pattern} 
-                          onClick={() => handlePatternClick(pattern)} 
-                        />
+                        <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
                       ))}
                     </div>
                   )}
@@ -749,11 +743,7 @@ const CandlestickPatternChart = () => {
                         Neutral ({neutralPatterns.length})
                       </div>
                       {neutralPatterns.map((pattern) => (
-                        <PatternItem 
-                          key={pattern.id} 
-                          pattern={pattern} 
-                          onClick={() => handlePatternClick(pattern)} 
-                        />
+                        <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
                       ))}
                     </div>
                   )}
@@ -774,17 +764,11 @@ const CandlestickPatternChart = () => {
 };
 
 // Pattern Item Component
-const PatternItem = ({ 
-  pattern, 
-  onClick 
-}: { 
-  pattern: CandlestickPattern; 
-  onClick: () => void;
-}) => {
+const PatternItem = ({ pattern, onClick }: { pattern: CandlestickPattern; onClick: () => void }) => {
   const signalColors = {
     bullish: "bg-oc-positive/10 text-oc-positive border-oc-positive/20",
     bearish: "bg-oc-negative/10 text-oc-negative border-oc-negative/20",
-    neutral: "bg-muted text-muted-foreground border-border"
+    neutral: "bg-muted text-muted-foreground border-border",
   };
 
   return (
@@ -792,7 +776,7 @@ const PatternItem = ({
       onClick={onClick}
       className={cn(
         "p-3 rounded-lg border cursor-pointer transition-all hover:shadow-md",
-        signalColors[pattern.signal]
+        signalColors[pattern.signal],
       )}
     >
       <div className="flex items-center justify-between mb-1">
@@ -808,7 +792,14 @@ const PatternItem = ({
       </div>
       {pattern.time && (
         <div className="text-xs opacity-50 mt-1">
-          {new Date(pattern.time).toLocaleString()}
+          {new Date(pattern.time).toLocaleString("en-IN", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
         </div>
       )}
     </div>
