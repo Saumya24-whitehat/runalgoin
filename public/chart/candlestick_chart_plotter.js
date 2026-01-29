@@ -40,14 +40,39 @@ class ChartPatternPlotter {
      */
     plotPattern(patternParsed) {
         try {
-            var pattern=patternParsed.original
-            // console.log(pattern)
-            if (!pattern || !pattern.dataThis) {
+            // The UI passes a normalized object ({ name, signal, original: rawApiPattern }).
+            // The plotter logic expects the raw API payload for candle/metadata, but also
+            // needs name/signal for display + coloring.
+            var rawPattern = (patternParsed && patternParsed.original) ? patternParsed.original : patternParsed;
+
+            if (!rawPattern || !rawPattern.dataThis) {
                 console.warn('⚠️ Invalid pattern structure');
                 return;
             }
 
-            const patternData = pattern.dataThis[0];
+            const signal = (patternParsed && patternParsed.signal)
+                ? patternParsed.signal
+                : ((rawPattern.trendType || '').toLowerCase() === 'bullish'
+                    ? 'bullish'
+                    : (rawPattern.trendType || '').toLowerCase() === 'bearish'
+                        ? 'bearish'
+                        : 'neutral');
+
+            const displayName = (patternParsed && patternParsed.name)
+                ? patternParsed.name
+                : (rawPattern.conditionName || rawPattern.name || 'Unknown Pattern');
+
+            // Create a merged object that preserves the raw API fields but also
+            // provides the properties this plotter uses.
+            var pattern = {
+                ...rawPattern,
+                id: rawPattern.id ?? (patternParsed ? patternParsed.id : undefined),
+                name: displayName,
+                signal: signal,
+                conditionName: rawPattern.conditionName || displayName
+            };
+
+            const patternData = rawPattern.dataThis[0];
             if (!patternData || !patternData.metadata) {
                 console.warn('⚠️ No metadata in pattern');
                 return;
@@ -108,7 +133,7 @@ class ChartPatternPlotter {
             }
 
         } catch (error) {
-            console.error('❌ Error plotting pattern:', error, pattern);
+            console.error('❌ Error plotting pattern:', error, patternParsed);
         }
     }
 
@@ -308,6 +333,36 @@ class ChartPatternPlotter {
             }else if(title=="Head and Shoulders"){
                 this.createHeadAndShouldersShape(createLinePoints, color, title, id, width);
                 
+            } else {
+                // Default: draw a simple polyline for ANY pattern (candlestick or chart patterns).
+                // This is crucial because most titles (e.g., Falling Wedge, Engulfing, etc.)
+                // are not handled by the specific-shape functions above.
+                if (typeof this.chart.createMultipointShape !== 'function') {
+                    console.warn('⚠️ TradingView chart API missing createMultipointShape; cannot draw', title);
+                    return;
+                }
+
+                const polyPoints = createLinePoints
+                    .filter(p => p && p.time != null && p.price != null && p.price !== -1)
+                    .map(p => ({ time: p.time, price: p.price }));
+
+                if (polyPoints.length < 2) {
+                    console.warn('⚠️ Not enough valid points to draw', title);
+                    return;
+                }
+
+                this.chart.createMultipointShape(polyPoints, {
+                    shape: "polyline",
+                    lock: true,
+                    disableSelection: true,
+                    disableSave: true,
+                    disableUndo: true,
+                    overrides: {
+                        linecolor: color,
+                        linewidth: width
+                    },
+                    zOrder: 5
+                });
             }
 
         } catch (error) {
