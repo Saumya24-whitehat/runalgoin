@@ -1,10 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
-import { TrendingUp, TrendingDown, BarChart3, RefreshCw, Loader2, ChevronDown, ChevronUp } from "lucide-react";
+import { TrendingUp, TrendingDown, BarChart3, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 
 declare global {
@@ -41,7 +40,6 @@ export const PatternPanel = ({ symbol, widgetReady, widgetRef }: PatternPanelPro
   const [patterns, setPatterns] = useState<CandlestickPattern[]>([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState("15mi");
   const [isPatternsLoading, setIsPatternsLoading] = useState(false);
-  const [isOpen, setIsOpen] = useState(true);
 
   // Normalize API response to standard format
   const normalizePatterns = (rawData: any[]): CandlestickPattern[] => {
@@ -189,104 +187,90 @@ export const PatternPanel = ({ symbol, widgetReady, widgetRef }: PatternPanelPro
   const neutralPatterns = patterns.filter((p) => p.signal === "neutral");
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="border border-border rounded-lg bg-card">
-      <CollapsibleTrigger asChild>
-        <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-          <div className="flex items-center gap-2">
-            <BarChart3 className="h-4 w-4 text-primary" />
-            <span className="font-medium text-sm">Chart Patterns</span>
-            {patterns.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {patterns.length}
-              </Badge>
-            )}
-            {isPatternsLoading && <Loader2 className="h-3 w-3 animate-spin" />}
-          </div>
-          {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-        </div>
-      </CollapsibleTrigger>
+    <div className="flex flex-col h-full">
+      {/* Controls */}
+      <div className="flex items-center gap-2 p-3 border-b border-border">
+        <Select value={selectedTimeframe} onValueChange={handleTimeframeChange}>
+          <SelectTrigger className="w-[100px] h-8 text-xs">
+            <SelectValue placeholder="Timeframe" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="5mi">5 Min</SelectItem>
+            <SelectItem value="15mi">15 Min</SelectItem>
+            <SelectItem value="30mi">30 Min</SelectItem>
+            <SelectItem value="1hr">1 Hour</SelectItem>
+            <SelectItem value="4hr">4 Hour</SelectItem>
+            <SelectItem value="1day">Daily</SelectItem>
+            <SelectItem value="1week">Weekly</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => fetchPatterns(symbol, selectedTimeframe)}
+          disabled={isPatternsLoading}
+          className="h-8 px-2"
+        >
+          <RefreshCw className={cn("h-3.5 w-3.5", isPatternsLoading && "animate-spin")} />
+        </Button>
+        {patterns.length > 0 && (
+          <Badge variant="secondary" className="text-xs ml-auto">
+            {patterns.length} patterns
+          </Badge>
+        )}
+        {isPatternsLoading && <Loader2 className="h-3 w-3 animate-spin ml-2" />}
+      </div>
 
-      <CollapsibleContent>
-        <div className="border-t border-border">
-          {/* Controls */}
-          <div className="flex items-center gap-2 p-3 border-b border-border">
-            <Select value={selectedTimeframe} onValueChange={handleTimeframeChange}>
-              <SelectTrigger className="w-[100px] h-8 text-xs">
-                <SelectValue placeholder="Timeframe" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5mi">5 Min</SelectItem>
-                <SelectItem value="15mi">15 Min</SelectItem>
-                <SelectItem value="30mi">30 Min</SelectItem>
-                <SelectItem value="1hr">1 Hour</SelectItem>
-                <SelectItem value="4hr">4 Hour</SelectItem>
-                <SelectItem value="1day">Daily</SelectItem>
-                <SelectItem value="1week">Weekly</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => fetchPatterns(symbol, selectedTimeframe)}
-              disabled={isPatternsLoading}
-              className="h-8 px-2"
-            >
-              <RefreshCw className={cn("h-3.5 w-3.5", isPatternsLoading && "animate-spin")} />
-            </Button>
-          </div>
-
-          {/* Pattern List */}
-          <ScrollArea className="h-[300px]">
-            <div className="p-3 space-y-3">
-              {/* Bullish Patterns */}
-              {bullishPatterns.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-oc-positive">
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    Bullish ({bullishPatterns.length})
-                  </div>
-                  {bullishPatterns.map((pattern) => (
-                    <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
-                  ))}
-                </div>
-              )}
-
-              {/* Bearish Patterns */}
-              {bearishPatterns.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-oc-negative">
-                    <TrendingDown className="h-3.5 w-3.5" />
-                    Bearish ({bearishPatterns.length})
-                  </div>
-                  {bearishPatterns.map((pattern) => (
-                    <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
-                  ))}
-                </div>
-              )}
-
-              {/* Neutral Patterns */}
-              {neutralPatterns.length > 0 && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
-                    <BarChart3 className="h-3.5 w-3.5" />
-                    Neutral ({neutralPatterns.length})
-                  </div>
-                  {neutralPatterns.map((pattern) => (
-                    <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
-                  ))}
-                </div>
-              )}
-
-              {patterns.length === 0 && !isPatternsLoading && (
-                <div className="text-center py-6 text-muted-foreground text-xs">
-                  No patterns detected for {symbol} on {selectedTimeframe} timeframe
-                </div>
-              )}
+      {/* Pattern List */}
+      <ScrollArea className="flex-1">
+        <div className="p-3 space-y-4">
+          {/* Bullish Patterns */}
+          {bullishPatterns.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-oc-positive">
+                <TrendingUp className="h-3.5 w-3.5" />
+                Bullish ({bullishPatterns.length})
+              </div>
+              {bullishPatterns.map((pattern) => (
+                <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
+              ))}
             </div>
-          </ScrollArea>
+          )}
+
+          {/* Bearish Patterns */}
+          {bearishPatterns.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-oc-negative">
+                <TrendingDown className="h-3.5 w-3.5" />
+                Bearish ({bearishPatterns.length})
+              </div>
+              {bearishPatterns.map((pattern) => (
+                <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
+              ))}
+            </div>
+          )}
+
+          {/* Neutral Patterns */}
+          {neutralPatterns.length > 0 && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                <BarChart3 className="h-3.5 w-3.5" />
+                Neutral ({neutralPatterns.length})
+              </div>
+              {neutralPatterns.map((pattern) => (
+                <PatternItem key={pattern.id} pattern={pattern} onClick={() => handlePatternClick(pattern)} />
+              ))}
+            </div>
+          )}
+
+          {patterns.length === 0 && !isPatternsLoading && (
+            <div className="text-center py-8 text-muted-foreground text-sm">
+              No patterns detected for <strong>{symbol}</strong> on {selectedTimeframe} timeframe
+            </div>
+          )}
         </div>
-      </CollapsibleContent>
-    </Collapsible>
+      </ScrollArea>
+    </div>
   );
 };
 

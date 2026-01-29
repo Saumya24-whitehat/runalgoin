@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Loader2, Maximize2, Minimize2 } from "lucide-react";
+import { Loader2, Maximize2, Minimize2, BarChart3, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PatternPanel } from "./PatternPanel";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 declare global {
   interface Window {
@@ -638,10 +639,37 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
+  const [showPatterns, setShowPatterns] = useState(false);
+
   return (
     <div className="space-y-4">
       <Card className="p-0 overflow-hidden bg-card border-border relative">
-        <div className="absolute top-2 right-2 z-10">
+        {/* Chart Controls */}
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-2">
+          {/* Patterns Button */}
+          <Sheet open={showPatterns} onOpenChange={setShowPatterns}>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 bg-background/80 backdrop-blur-sm"
+              >
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Patterns</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[350px] sm:w-[400px] p-0">
+              <SheetHeader className="p-4 border-b border-border">
+                <SheetTitle className="flex items-center gap-2">
+                  <BarChart3 className="h-5 w-5 text-primary" />
+                  Chart Patterns
+                </SheetTitle>
+              </SheetHeader>
+              <PatternPanel symbol={symbol} widgetReady={widgetReady} widgetRef={widgetRef} />
+            </SheetContent>
+          </Sheet>
+
+          {/* Fullscreen Button */}
           <Button
             variant="outline"
             size="sm"
@@ -674,9 +702,6 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
 
         <div ref={containerRef} className="w-full h-[500px]" />
       </Card>
-
-      {/* Pattern Panel */}
-      <PatternPanel symbol={symbol} widgetReady={widgetReady} widgetRef={widgetRef} />
     </div>
   );
 };
