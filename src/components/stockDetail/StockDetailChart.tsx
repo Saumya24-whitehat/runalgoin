@@ -2,6 +2,16 @@ import { useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Loader2, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { PatternPanel } from "./PatternPanel";
+
+declare global {
+  interface Window {
+    ChartPatternPlotter: any;
+    CandlestickPatternAnalyzer: any;
+    patternPlotter: any;
+    patternAnalyzer: any;
+  }
+}
 
 interface StockDetailChartProps {
   symbol: string;
@@ -43,6 +53,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [widgetReady, setWidgetReady] = useState(false);
   const widgetRef = useRef<any>(null);
 
   useEffect(() => {
@@ -53,6 +64,30 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
       try {
         setIsLoading(true);
         setError(null);
+
+        // Load pattern analyzer
+        if (!document.querySelector('script[src="/chart/candlestick_pattern_analyzer.js"]')) {
+          const analyzerScript = document.createElement("script");
+          analyzerScript.src = "/chart/candlestick_pattern_analyzer.js";
+          analyzerScript.async = true;
+          await new Promise<void>((resolve, reject) => {
+            analyzerScript.onload = () => resolve();
+            analyzerScript.onerror = () => reject(new Error("Failed to load pattern analyzer"));
+            document.head.appendChild(analyzerScript);
+          });
+        }
+
+        // Load pattern plotter
+        if (!document.querySelector('script[src="/chart/candlestick_chart_plotter.js"]')) {
+          const plotterScript = document.createElement("script");
+          plotterScript.src = "/chart/candlestick_chart_plotter.js";
+          plotterScript.async = true;
+          await new Promise<void>((resolve, reject) => {
+            plotterScript.onload = () => resolve();
+            plotterScript.onerror = () => reject(new Error("Failed to load chart plotter"));
+            document.head.appendChild(plotterScript);
+          });
+        }
 
         // Check if scripts already loaded
         if (!document.querySelector('script[src="/chart/customIndicators.js"]')) {
@@ -565,6 +600,20 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
 
       widget.onChartReady(() => {
         setIsLoading(false);
+        setWidgetReady(true);
+
+        // Initialize pattern plotter with widget
+        if (window.ChartPatternPlotter && !window.patternPlotter) {
+          window.patternPlotter = new window.ChartPatternPlotter(widget);
+          console.log("✅ Pattern plotter initialized for stock detail");
+        }
+
+        // Initialize pattern analyzer
+        if (window.CandlestickPatternAnalyzer && !window.patternAnalyzer) {
+          window.patternAnalyzer = new window.CandlestickPatternAnalyzer();
+          window.patternAnalyzer.apiBaseUrl = "https://runalgo.xyz/top/chart/api";
+          console.log("✅ Pattern analyzer initialized");
+        }
       });
     } catch (err) {
       console.error("Widget initialization error:", err);
@@ -590,39 +639,44 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
   }, []);
 
   return (
-    <Card className="p-0 overflow-hidden bg-card border-border relative">
-      <div className="absolute top-2 right-2 z-10">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={toggleFullscreen}
-          className="gap-1.5 bg-background/80 backdrop-blur-sm"
-        >
-          {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-          <div className="flex flex-col items-center gap-3">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <span className="text-sm text-muted-foreground">Loading Chart...</span>
-          </div>
+    <div className="space-y-4">
+      <Card className="p-0 overflow-hidden bg-card border-border relative">
+        <div className="absolute top-2 right-2 z-10">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleFullscreen}
+            className="gap-1.5 bg-background/80 backdrop-blur-sm"
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
         </div>
-      )}
 
-      {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
-          <div className="flex flex-col items-center gap-3 text-center p-4">
-            <span className="text-destructive font-medium">{error}</span>
-            <Button onClick={() => window.location.reload()} variant="outline" size="sm">
-              Retry
-            </Button>
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Loading Chart...</span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <div ref={containerRef} className="w-full h-[500px]" />
-    </Card>
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 z-10">
+            <div className="flex flex-col items-center gap-3 text-center p-4">
+              <span className="text-destructive font-medium">{error}</span>
+              <Button onClick={() => window.location.reload()} variant="outline" size="sm">
+                Retry
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div ref={containerRef} className="w-full h-[500px]" />
+      </Card>
+
+      {/* Pattern Panel */}
+      <PatternPanel symbol={symbol} widgetReady={widgetReady} widgetRef={widgetRef} />
+    </div>
   );
 };
