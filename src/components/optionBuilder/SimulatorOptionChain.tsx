@@ -20,6 +20,22 @@ interface SimulatorOptionChainProps {
   hasScrolledRef: MutableRefObject<boolean>;
 }
 
+// Format numbers in Indian notation (1,23,456)
+const formatIndianNumber = (num: number): string => {
+  const x = Math.round(num).toString().split(".");
+  let intPart = x[0];
+  const decPart = x.length > 1 ? "." + x[1] : "";
+
+  let lastThree = intPart.substring(intPart.length - 3);
+  const otherNumbers = intPart.substring(0, intPart.length - 3);
+
+  if (otherNumbers !== "") {
+    lastThree = "," + lastThree;
+  }
+
+  return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + decPart;
+};
+
 const formatNumber = (num: number) => {
   if (num >= 10000000) return `${(num / 10000000).toFixed(1)}Cr`;
   if (num >= 100000) return `${(num / 100000).toFixed(1)}L`;
@@ -64,9 +80,9 @@ const SimulatorOptionChain = ({
   const getCallCellValue = (strike: SimulatorData["strikes"][0], columnId: string) => {
     switch (columnId) {
       case "oi":
-        return formatNumber(strike.ceOI);
+        return formatIndianNumber(strike.ceOI);
       case "coi":
-        return formatNumber(strike.ceCOI || 0);
+        return formatIndianNumber(strike.ceCOI || 0);
       case "volume":
         return formatNumber(strike.ceVolume);
       case "iv":
@@ -89,9 +105,9 @@ const SimulatorOptionChain = ({
   const getPutCellValue = (strike: SimulatorData["strikes"][0], columnId: string) => {
     switch (columnId) {
       case "oi":
-        return formatNumber(strike.peOI);
+        return formatIndianNumber(strike.peOI);
       case "coi":
-        return formatNumber(strike.peCOI || 0);
+        return formatIndianNumber(strike.peCOI || 0);
       case "volume":
         return formatNumber(strike.peVolume);
       case "iv":

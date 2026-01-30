@@ -213,6 +213,9 @@ const OptionBuilderChain = ({
     });
   };
 
+  // Format OI/COI as full Indian numbers, other values abbreviated
+  const formatOIValue = (num: number) => formatIndianNumber(Math.round(num));
+  
   const formatNumber = (num: number) => {
     if (num >= 10000000) {
       return `${(num / 10000000).toFixed(1)}Cr`;
@@ -232,9 +235,9 @@ const OptionBuilderChain = ({
   const getCallCellValue = (row: StrikeData, columnId: string) => {
     switch (columnId) {
       case "oi":
-        return formatNumber(row.callOI);
+        return formatOIValue(row.callOI);
       case "coi":
-        return formatNumber(row.callCOI);
+        return formatOIValue(row.callCOI);
       case "volume":
         return formatNumber(row.callVolume);
       case "iv":
@@ -259,9 +262,9 @@ const OptionBuilderChain = ({
   const getPutCellValue = (row: StrikeData, columnId: string) => {
     switch (columnId) {
       case "oi":
-        return formatNumber(row.putOI);
+        return formatOIValue(row.putOI);
       case "coi":
-        return formatNumber(row.putCOI);
+        return formatOIValue(row.putCOI);
       case "volume":
         return formatNumber(row.putVolume);
       case "iv":
