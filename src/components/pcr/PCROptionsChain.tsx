@@ -18,11 +18,15 @@ interface PCROptionsChainProps {
   pcrCOI: number;
 }
 
+// Format OI/COI as full Indian numbers
 function formatNumber(value: number): string {
-  if (value >= 10000000) return (value / 10000000).toFixed(2) + " Cr";
-  if (value >= 100000) return (value / 100000).toFixed(2) + " L";
-  if (value >= 1000) return (value / 1000).toFixed(2) + " K";
-  return value.toLocaleString();
+  const x = Math.round(value).toString().split(".");
+  let intPart = x[0];
+  const decPart = x.length > 1 ? "." + x[1] : "";
+  let lastThree = intPart.substring(intPart.length - 3);
+  const otherNumbers = intPart.substring(0, intPart.length - 3);
+  if (otherNumbers !== "") lastThree = "," + lastThree;
+  return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + decPart;
 }
 
 export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROptionsChainProps) {
