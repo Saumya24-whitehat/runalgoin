@@ -305,6 +305,17 @@ const OptionChain = () => {
     return num.toFixed(2);
   };
 
+  // Format OI/COI as full Indian numbers
+  const formatOIFull = (num: number): string => {
+    const x = Math.round(num).toString().split(".");
+    let intPart = x[0];
+    const decPart = x.length > 1 ? "." + x[1] : "";
+    let lastThree = intPart.substring(intPart.length - 3);
+    const otherNumbers = intPart.substring(0, intPart.length - 3);
+    if (otherNumbers !== "") lastThree = "," + lastThree;
+    return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + decPart;
+  };
+
   const formatOI = (num: number) => {
     if (num >= 10000000) return (num / 10000000).toFixed(2);
     if (num >= 100000) return (num / 100000).toFixed(2);
@@ -757,7 +768,7 @@ const OptionChain = () => {
                                   className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
                                 >
                                   <span className={getCellColor(callOIChange)}>
-                                    {formatOI(row.call_options.market_data.oi)}
+                                    {formatOIFull(row.call_options.market_data.oi)}
                                   </span>
                                   <div className={`text-[10px] ${getCellColor(callOIChange)}`}>
                                     {callOIChange >= 0 ? "+" : ""}
@@ -765,7 +776,7 @@ const OptionChain = () => {
                                   </div>
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
-                                  <span className={getCellColor(callCOI)}>{formatNumber(callCOI)}</span>
+                                  <span className={getCellColor(callCOI)}>{formatOIFull(callCOI)}</span>
                                 </TableCell>
                                 <TableCell
                                   className={`text-center text-xs py-2 font-medium ${callITM ? "ceITMCell" : ""}`}
@@ -791,10 +802,10 @@ const OptionChain = () => {
                                 <TableCell
                                   className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
                                 >
-                                  {formatOI(row.call_options.market_data.oi)}
+                                  {formatOIFull(row.call_options.market_data.oi)}
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
-                                  <span className={getCellColor(callCOI)}>{formatNumber(callCOI)}</span>
+                                  <span className={getCellColor(callCOI)}>{formatOIFull(callCOI)}</span>
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.iv.toFixed(2)}
@@ -825,7 +836,7 @@ const OptionChain = () => {
                                 <TableCell
                                   className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""} ${isMaxCallOI ? "bg-cyan-500/20" : ""}`}
                                 >
-                                  {formatOI(row.call_options.market_data.oi)}
+                                  {formatOIFull(row.call_options.market_data.oi)}
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${callITM ? "ceITMCell" : ""}`}>
                                   {row.call_options.option_greeks.delta.toFixed(4)}
@@ -870,13 +881,13 @@ const OptionChain = () => {
                                   </span>
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
-                                  <span className={getCellColor(putCOI)}>{formatNumber(putCOI)}</span>
+                                  <span className={getCellColor(putCOI)}>{formatOIFull(putCOI)}</span>
                                 </TableCell>
                                 <TableCell
                                   className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
                                 >
                                   <span className={getCellColor(putOIChange)}>
-                                    {formatOI(row.put_options.market_data.oi)}
+                                    {formatOIFull(row.put_options.market_data.oi)}
                                   </span>
                                   <div className={`text-[10px] ${getCellColor(putOIChange)}`}>
                                     {putOIChange >= 0 ? "+" : ""}
@@ -894,12 +905,12 @@ const OptionChain = () => {
                                   {row.put_options.option_greeks.iv.toFixed(2)}
                                 </TableCell>
                                 <TableCell className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""}`}>
-                                  <span className={getCellColor(putCOI)}>{formatNumber(putCOI)}</span>
+                                  <span className={getCellColor(putCOI)}>{formatOIFull(putCOI)}</span>
                                 </TableCell>
                                 <TableCell
                                   className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
                                 >
-                                  {formatOI(row.put_options.market_data.oi)}
+                                  {formatOIFull(row.put_options.market_data.oi)}
                                 </TableCell>
                               </>
                             )}
@@ -933,7 +944,7 @@ const OptionChain = () => {
                                 <TableCell
                                   className={`text-center text-xs py-2 ${putITM ? "peITMCell" : ""} ${isMaxPutOI ? "bg-emerald-500/20" : ""}`}
                                 >
-                                  {formatOI(row.put_options.market_data.oi)}
+                                  {formatOIFull(row.put_options.market_data.oi)}
                                 </TableCell>
                               </>
                             )}

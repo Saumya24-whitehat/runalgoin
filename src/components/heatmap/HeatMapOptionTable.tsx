@@ -19,6 +19,17 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
     return num.toFixed(decimals);
   };
 
+  // Format OI/COI as full Indian numbers
+  const formatOIFull = (num: number): string => {
+    const x = Math.round(num).toString().split(".");
+    let intPart = x[0];
+    const decPart = x.length > 1 ? "." + x[1] : "";
+    let lastThree = intPart.substring(intPart.length - 3);
+    const otherNumbers = intPart.substring(0, intPart.length - 3);
+    if (otherNumbers !== "") lastThree = "," + lastThree;
+    return otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + decPart;
+  };
+
   const formatPercent = (num: number) => {
     return num.toFixed(2);
   };
@@ -57,13 +68,13 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
           return (
             <tr key={row.Strike} className={cn(isATM && "bg-oc-atm")}>
               <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm", getColorClass(row["CE_COI%"]))}>{formatPercent(row["CE_COI%"])}</td>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatNumber(row.CE_COI, 0)}</td>
-              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatNumber(row.CE_OI, 0)}</td>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatOIFull(row.CE_COI)}</td>
+              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatOIFull(row.CE_OI)}</td>
               <td className={cn("border-r border-border font-medium py-1 px-2 text-center bg-oc-strike-col", isATM && "text-oc-atm-text font-bold")}>
                 {row.Strike}
               </td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatNumber(row.PE_OI, 0)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatNumber(row.PE_COI, 0)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatOIFull(row.PE_OI)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatOIFull(row.PE_COI)}</td>
               <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm", getColorClass(row["PE_COI%"]))}>{formatPercent(row["PE_COI%"])}</td>
             </tr>
           );
