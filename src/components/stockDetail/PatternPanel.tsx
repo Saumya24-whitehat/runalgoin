@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { TrendingUp, TrendingDown, BarChart3, RefreshCw, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +40,12 @@ export const PatternPanel = ({ symbol, widgetReady, widgetRef }: PatternPanelPro
   const [patterns, setPatterns] = useState<CandlestickPattern[]>([]);
   const [selectedTimeframe, setSelectedTimeframe] = useState("15mi");
   const [isPatternsLoading, setIsPatternsLoading] = useState(false);
+  const requestSeqRef = useRef(0);
+
+  // Clear stale patterns immediately when symbol changes
+  useEffect(() => {
+    setPatterns([]);
+  }, [symbol]);
 
   // Normalize API response to standard format
   const normalizePatterns = (rawData: any[]): CandlestickPattern[] => {
@@ -99,6 +105,7 @@ export const PatternPanel = ({ symbol, widgetReady, widgetRef }: PatternPanelPro
 
   // Fetch candlestick patterns from API
   const fetchPatterns = useCallback(async (symbolName: string, timeframe: string) => {
+    const requestSeq = ++requestSeqRef.current;
     setIsPatternsLoading(true);
     try {
       console.log("🔍 Fetching patterns for:", symbolName, timeframe);
@@ -106,7 +113,9 @@ export const PatternPanel = ({ symbol, widgetReady, widgetRef }: PatternPanelPro
       // Use the pattern analyzer if available
       if (window.patternAnalyzer) {
         const patterns = await window.patternAnalyzer.fetchPatternsFromAPI(symbolName, timeframe, 50);
-        setPatterns(patterns);
+        if (requestSeq === requestSeqRef.current) {
+          setPatterns(patterns);
+        }
         return patterns;
       }
 
@@ -123,14 +132,18 @@ export const PatternPanel = ({ symbol, widgetReady, widgetRef }: PatternPanelPro
 
       // Normalize the response
       const normalizedPatterns = normalizePatterns(rawData);
-      setPatterns(normalizedPatterns);
+      if (requestSeq === requestSeqRef.current) {
+        setPatterns(normalizedPatterns);
+      }
 
       return normalizedPatterns;
     } catch (error) {
       console.error("❌ Error fetching patterns:", error);
       return [];
     } finally {
-      setIsPatternsLoading(false);
+      if (requestSeq === requestSeqRef.current) {
+        setIsPatternsLoading(false);
+      }
     }
   }, []);
 

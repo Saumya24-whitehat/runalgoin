@@ -56,8 +56,36 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
   const [error, setError] = useState<string | null>(null);
   const [widgetReady, setWidgetReady] = useState(false);
   const widgetRef = useRef<any>(null);
+  const [patternSymbol, setPatternSymbol] = useState(symbol);
+
+  const extractPatternSymbol = (symbolInfo: any): string | null => {
+    const raw =
+      (typeof symbolInfo?.ticker === "string" && symbolInfo.ticker) ||
+      (typeof symbolInfo?.name === "string" && symbolInfo.name) ||
+      (typeof symbolInfo?.full_name === "string" && symbolInfo.full_name) ||
+      (typeof symbolInfo?.symbol === "string" && symbolInfo.symbol) ||
+      "";
+
+    if (!raw) return null;
+
+    // Common formats:
+    // - "NSE_EQ|ITC"
+    // - "ITC-EQ" / "ITC_EQ"
+    const cleaned = raw
+      .replace(/^NSE_EQ\|/i, "")
+      .replace(/-EQ$|_EQ$/i, "")
+      .split("|")
+      .pop()!
+      .trim();
+
+    return cleaned ? cleaned.toUpperCase() : null;
+  };
 
   useEffect(() => {
+    // Keep patterns synced with whichever symbol is currently displayed on the chart
+    setPatternSymbol(symbol);
+    setWidgetReady(false);
+
     window.bars = window.bars || {};
     window.studies = window.studies || {};
 
@@ -604,7 +632,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         setWidgetReady(true);
 
         // Initialize pattern plotter with widget
-        if (window.ChartPatternPlotter && !window.patternPlotter) {
+        if (window.ChartPatternPlotter) {
           window.patternPlotter = new window.ChartPatternPlotter(widget);
           console.log("✅ Pattern plotter initialized for stock detail");
         }
@@ -614,6 +642,18 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
           window.patternAnalyzer = new window.CandlestickPatternAnalyzer();
           window.patternAnalyzer.apiBaseUrl = "https://runalgo.xyz/top/chart/api";
           console.log("✅ Pattern analyzer initialized");
+        }
+
+        // If user changes the symbol inside the TradingView header search,
+        // refresh patterns for that new symbol as well.
+        try {
+          const chart = widget.activeChart?.() ?? widget.chart?.();
+          chart?.onSymbolChanged?.().subscribe(null, (s: any) => {
+            const next = extractPatternSymbol(s);
+            if (next) setPatternSymbol(next);
+          });
+        } catch {
+          // no-op
         }
       });
     } catch (err) {
@@ -665,7 +705,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
                   Chart Patterns
                 </SheetTitle>
               </SheetHeader>
-              <PatternPanel symbol={symbol} widgetReady={widgetReady} widgetRef={widgetRef} />
+              <PatternPanel symbol={patternSymbol} widgetReady={widgetReady} widgetRef={widgetRef} />
             </SheetContent>
           </Sheet>
 
