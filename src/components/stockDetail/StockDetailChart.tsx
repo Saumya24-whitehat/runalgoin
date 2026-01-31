@@ -550,14 +550,27 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
           const data = await res.json();
 
           if (data?.bars?.length) {
-            const bars = data.bars.map((bar: any) => ({
-              time: bar.time,
-              open: bar.open,
-              high: bar.high,
-              low: bar.low,
-              close: bar.close,
-              volume: bar.volume,
-            }));
+            // The pattern plotter relies on `window.bars` (timestamp-indexed)
+            // to project some pattern drawings correctly (e.g. wedges / H&S / double top/bottom).
+            // Keep this in sync with the currently loaded chart bars.
+            window.bars = {};
+
+            const bars = data.bars.map((bar: any) => {
+              // Store bars in global window.bars for pattern plotter
+              // (keys must be milliseconds as strings, matching the plotter expectations)
+              if (typeof bar?.time === "number") {
+                window.bars[(bar.time * 1000).toString()] = bar;
+              }
+
+              return {
+                time: bar.time,
+                open: bar.open,
+                high: bar.high,
+                low: bar.low,
+                close: bar.close,
+                volume: bar.volume,
+              };
+            });
             onHistoryCallback(bars, { noData: false });
           } else {
             onHistoryCallback([], { noData: true });
