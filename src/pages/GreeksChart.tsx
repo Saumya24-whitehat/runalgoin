@@ -170,10 +170,10 @@ const GreeksChart = () => {
 
   // Auto-fetch when all selections are ready
   useEffect(() => {
-    if (selectedSymbol && selectedExpiry && selectedStrike && !loadingStrikes) {
+    if (selectedSymbol && selectedExpiry && selectedStrike && !loadingStrikes && !loadingExpiry) {
       handleGo();
     }
-  }, [selectedStrike]);
+  }, [selectedSymbol, selectedExpiry, selectedStrike, loadingStrikes, loadingExpiry]);
 
   return (
     <div className="min-h-screen bg-background">
