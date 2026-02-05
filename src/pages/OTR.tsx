@@ -130,6 +130,13 @@ const OTR = () => {
     fetchExpiry();
   }, [selectedSymbol, toast]);
 
+  // Auto-fetch when selections are ready
+  useEffect(() => {
+    if (selectedSymbol && selectedExpiry && !loadingExpiry) {
+      fetchData();
+    }
+  }, [selectedSymbol, selectedExpiry, loadingExpiry]);
+
   // Fetch OTR data
   const fetchData = useCallback(
     async (showLoader = true) => {

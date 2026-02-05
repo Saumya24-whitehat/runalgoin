@@ -162,6 +162,13 @@ const TOI = () => {
     fetchStrikes();
   }, [selectedSymbol, selectedExpiry, toast]);
 
+  // Auto-fetch when all selections are ready
+  useEffect(() => {
+    if (selectedSymbol && selectedExpiry && selectedStrikes.length > 0 && !loadingStrikes) {
+      fetchData();
+    }
+  }, [selectedSymbol, selectedExpiry, selectedStrikes, loadingStrikes]);
+
   // Fetch TOI data
   const fetchData = useCallback(
     async (showLoader = true) => {
