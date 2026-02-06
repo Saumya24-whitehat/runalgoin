@@ -90,6 +90,7 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
       timeScale: {
         borderColor: "rgba(255, 255, 255, 0.1)",
         visible: true,
+        timeVisible: true, // 👈 THIS is the key
       },
       crosshair: {
         mode: 1,
