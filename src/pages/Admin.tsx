@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionManager";
 import { VideoManagement } from "@/components/admin/VideoManagement";
+import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 
 interface UserWithSubscription {
   user_id: string;
@@ -397,6 +398,11 @@ const Admin = () => {
             </ScrollArea>
           </CardContent>
         </Card>
+
+        {/* Support Tickets */}
+        <div className="mt-8">
+          <SupportTicketManagement />
+        </div>
 
         {/* Video Management */}
         <div className="mt-8">
