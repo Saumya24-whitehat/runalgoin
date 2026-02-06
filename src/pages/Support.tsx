@@ -45,9 +45,14 @@ const Support = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("send-support-email", {
-        body: result.data,
-      });
+      const { error } = await supabase
+        .from("support_tickets")
+        .insert({
+          name: result.data.name,
+          email: result.data.email,
+          subject: result.data.subject,
+          message: result.data.message,
+        });
 
       if (error) throw error;
 
