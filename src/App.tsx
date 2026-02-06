@@ -49,11 +49,9 @@ import Profile from "./pages/Profile";
 import CandlestickPatternChart from "./pages/dev/CandlestickPatternChart";
 import Documentation from "./pages/Documentation";
 import Videos from "./pages/Videos";
-import Blog from "./pages/Blog";
 import FAQ from "./pages/FAQ";
 import Support from "./pages/Support";
 import About from "./pages/About";
-import Careers from "./pages/Careers";
 import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
@@ -117,11 +115,9 @@ const App = () => (
               {/* Footer pages */}
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/videos" element={<Videos />} />
-              <Route path="/blog" element={<Blog />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/support" element={<Support />} />
               <Route path="/about" element={<About />} />
-              <Route path="/careers" element={<Careers />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<Terms />} />

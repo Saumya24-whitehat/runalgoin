@@ -1,4 +1,4 @@
-import { TrendingUp, Mail, Phone, MapPin } from "lucide-react";
+import { TrendingUp, Mail, Phone } from "lucide-react";
 
 const footerLinks = [
   {
@@ -16,7 +16,6 @@ const footerLinks = [
     links: [
       { name: "Documentation", url: "/documentation" },
       { name: "Video Tutorials", url: "/videos" },
-      { name: "Blog", url: "/blog" },
       { name: "FAQ", url: "/faq" },
       { name: "Support", url: "/support" },
     ],
@@ -25,7 +24,6 @@ const footerLinks = [
     title: "Company",
     links: [
       { name: "About Us", url: "/about" },
-      { name: "Careers", url: "/careers" },
       { name: "Contact", url: "/contact" },
       { name: "Privacy Policy", url: "/privacy-policy" },
       { name: "Terms of Service", url: "/terms" },
@@ -51,15 +49,11 @@ export function Footer() {
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Mail className="h-4 w-4 text-primary" />
-                <span>support@runalgo.xyz</span>
+                <span>rm.rakesh@gmail.com</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Phone className="h-4 w-4 text-primary" />
-                <span>+91 98765 43210</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <MapPin className="h-4 w-4 text-primary" />
-                <span>Mumbai, India</span>
+                <span>+61 451 509 551</span>
               </div>
             </div>
           </div>
