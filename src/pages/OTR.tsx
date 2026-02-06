@@ -270,7 +270,7 @@ const OTR = () => {
         const toi = entry.Total_Put_OI - entry.Total_Call_OI;
         rawData.push({
           time: `${otrData.yesterday_date} ${formattedTime}`,
-          displayTime: new Date(`${otrData.yesterday_date} ${formattedTime}`).getTime(),
+          displayTime: new Date(`${otrData.yesterday_date} ${formattedTime}`).getTime() + 5.5 * 3600 * 1000,
           toi,
           spotPrice: entry.Spot_Price,
           isToday: false,
