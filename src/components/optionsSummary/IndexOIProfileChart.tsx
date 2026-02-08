@@ -1,8 +1,9 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 import {
   ComposedChart,
   Line,
@@ -11,8 +12,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   ReferenceLine,
-  Cell,
-  Bar,
 } from "recharts";
 
 interface IndexOIProfileChartProps {
@@ -30,66 +29,16 @@ interface StrikeOI {
   strike: number;
   callOI: number;
   putOI: number;
-  netOI: number; // positive = more puts (support), negative = more calls (resistance)
+  netOI: number;
 }
-
-// Custom shape for horizontal OI bars on the Y-axis
-const OIBar = (props: any) => {
-  const { x, y, width, height, payload, yAxisMap } = props;
-  if (!payload || !yAxisMap) return null;
-  
-  const yAxis = yAxisMap["price"];
-  if (!yAxis) return null;
-  
-  const { strikeOIData, maxOI, chartWidth } = payload;
-  if (!strikeOIData || strikeOIData.length === 0) return null;
-
-  const barMaxWidth = chartWidth * 0.15; // 15% of chart width for bars
-  const barHeight = 6;
-
-  return (
-    <g>
-      {strikeOIData.map((strike: StrikeOI) => {
-        const yPos = yAxis.scale(strike.strike);
-        if (yPos === undefined || isNaN(yPos)) return null;
-        
-        const callWidth = (strike.callOI / maxOI) * barMaxWidth;
-        const putWidth = (strike.putOI / maxOI) * barMaxWidth;
-        
-        return (
-          <g key={strike.strike}>
-            {/* Call OI - Red bar extending left from center */}
-            <rect
-              x={chartWidth - 60 - callWidth}
-              y={yPos - barHeight / 2}
-              width={callWidth}
-              height={barHeight}
-              fill="hsl(var(--destructive))"
-              opacity={0.7}
-              rx={2}
-            />
-            {/* Put OI - Green bar extending right from center */}
-            <rect
-              x={chartWidth - 58}
-              y={yPos - barHeight / 2}
-              width={putWidth}
-              height={barHeight}
-              fill="hsl(var(--success))"
-              opacity={0.7}
-              rx={2}
-            />
-          </g>
-        );
-      })}
-    </g>
-  );
-};
 
 export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps) => {
   const [loading, setLoading] = useState(true);
   const [spotData, setSpotData] = useState<SpotDataPoint[]>([]);
   const [strikeOIData, setStrikeOIData] = useState<StrikeOI[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [baseDomain, setBaseDomain] = useState<[number, number]>([0, 100]);
 
   // Fetch data
   useEffect(() => {
@@ -124,6 +73,13 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
           const latest = pcrData.dataWhole[pcrData.dataWhole.length - 1];
           const currentSpot = latest?.underlyning || latest?.Spot_Price || 0;
           setSpotPrice(currentSpot);
+
+          // Calculate base domain
+          const prices = processedSpot.map(d => d.price);
+          const min = Math.min(...prices);
+          const max = Math.max(...prices);
+          const padding = (max - min) * 0.15;
+          setBaseDomain([min - padding, max + padding]);
 
           // Extract strike OI data from strikeData if available
           let strikesArray: StrikeOI[] = [];
@@ -171,33 +127,36 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
     fetchData();
   }, [symbol, expiry]);
 
-  // Calculate Y-axis domain based on spot data and strike levels
-  const yDomain = useMemo(() => {
-    if (spotData.length === 0 && strikeOIData.length === 0) return [0, 100];
+  // Calculate zoomed Y-axis domain centered on spot price
+  const yDomain = useMemo((): [number, number] => {
+    const range = baseDomain[1] - baseDomain[0];
+    const center = spotPrice > 0 ? spotPrice : (baseDomain[0] + baseDomain[1]) / 2;
+    const zoomedRange = range / zoomLevel;
     
-    const prices = spotData.map(d => d.price);
-    const strikes = strikeOIData.map(s => s.strike);
-    const allValues = [...prices, ...strikes].filter(v => v > 0);
-    
-    if (allValues.length === 0) return [0, 100];
-    
-    const min = Math.min(...allValues);
-    const max = Math.max(...allValues);
-    const padding = (max - min) * 0.1;
-    
-    return [min - padding, max + padding];
-  }, [spotData, strikeOIData]);
+    return [center - zoomedRange / 2, center + zoomedRange / 2];
+  }, [baseDomain, zoomLevel, spotPrice]);
+
+  // Zoom handlers
+  const handleZoomIn = useCallback(() => {
+    setZoomLevel(prev => Math.min(prev * 1.5, 10));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoomLevel(prev => Math.max(prev / 1.5, 0.5));
+  }, []);
+
+  const handleResetZoom = useCallback(() => {
+    setZoomLevel(1);
+  }, []);
 
   const maxOI = useMemo(() => {
     return Math.max(...strikeOIData.map(s => Math.max(s.callOI, s.putOI)), 1);
   }, [strikeOIData]);
 
-  const formatOI = (oi: number) => {
-    if (oi >= 10000000) return (oi / 10000000).toFixed(1) + "Cr";
-    if (oi >= 100000) return (oi / 100000).toFixed(1) + "L";
-    if (oi >= 1000) return (oi / 1000).toFixed(1) + "K";
-    return oi.toString();
-  };
+  // Filter strikes within visible Y domain
+  const visibleStrikes = useMemo(() => {
+    return strikeOIData.filter(s => s.strike >= yDomain[0] && s.strike <= yDomain[1]);
+  }, [strikeOIData, yDomain]);
 
   if (loading) {
     return (
@@ -236,11 +195,42 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-primary" />
           Index Chart with OI Profile
-          {spotPrice > 0 && (
-            <span className="ml-auto text-sm font-normal text-muted-foreground">
-              Spot: {spotPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
-            </span>
-          )}
+          <div className="ml-auto flex items-center gap-2">
+            {spotPrice > 0 && (
+              <span className="text-sm font-normal text-muted-foreground">
+                Spot: {spotPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+              </span>
+            )}
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleZoomIn}
+                title="Zoom In"
+              >
+                <ZoomIn className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleZoomOut}
+                title="Zoom Out"
+              >
+                <ZoomOut className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7"
+                onClick={handleResetZoom}
+                title="Reset Zoom"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -282,7 +272,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
               />
               
               {/* OI Profile as horizontal reference lines with bars */}
-              {strikeOIData.map((strike) => {
+              {visibleStrikes.map((strike) => {
                 const callWidth = (strike.callOI / maxOI) * 12;
                 const putWidth = (strike.putOI / maxOI) * 12;
                 
