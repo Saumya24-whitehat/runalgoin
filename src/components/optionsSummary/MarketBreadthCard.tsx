@@ -1,47 +1,51 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fetchMarketBreadthData, calculateAdvanceDecline, StockData } from "@/services/marketBreadthApi";
-import { TrendingUp, TrendingDown, Minus, BarChart } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { TrendingUp, TrendingDown, BarChart } from "lucide-react";
 
 interface MarketBreadthCardProps {
   symbol: string;
 }
 
-// Map common symbol names to market breadth API symbols
-const symbolToBreadthMapping: Record<string, string> = {
-  "NIFTY": "SYML:NSE;NIFTY",
-  "BANKNIFTY": "SYML:NSE;BANKNIFTY",
-  "FINNIFTY": "SYML:NSE;CNXFINANCE",
-  "MIDCPNIFTY": "SYML:NSE;NIFTYMIDCAP50",
-  "SENSEX": "SYML:BSE;SENSEX",
-};
+interface AdvanceDeclineData {
+  advances: number;
+  declines: number;
+  unchanged: number;
+}
 
 export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
   const [loading, setLoading] = useState(true);
-  const [stocks, setStocks] = useState<StockData[]>([]);
-  const [advances, setAdvances] = useState(0);
-  const [declines, setDeclines] = useState(0);
-  const [unchanged, setUnchanged] = useState(0);
+  const [data, setData] = useState<AdvanceDeclineData | null>(null);
 
   useEffect(() => {
     const loadBreadthData = async () => {
       setLoading(true);
       try {
-        // Map the symbol to breadth API format
-        const breadthSymbol = symbolToBreadthMapping[symbol] || `SYML:NSE;${symbol}`;
-        const data = await fetchMarketBreadthData(breadthSymbol);
-        
-        if (data?.content) {
-          setStocks(data.content);
-          const { advances: adv, declines: dec, unchanged: unc } = calculateAdvanceDecline(data.content);
-          setAdvances(adv);
-          setDeclines(dec);
-          setUnchanged(unc);
+        const { data: result, error } = await supabase.functions.invoke("advance-decline");
+
+        if (error) throw error;
+
+        // The advance-decline API returns data for all indices
+        // We need to extract the relevant one based on symbol
+        if (result) {
+          // The API returns an object with time-keyed entries
+          // Each entry has advance and decline counts
+          const entries = Object.entries(result);
+          if (entries.length > 0) {
+            // Get the latest entry
+            const latestKey = entries[entries.length - 1][0];
+            const latestData = result[latestKey] as { advance?: number; decline?: number };
+            
+            setData({
+              advances: latestData?.advance || 0,
+              declines: latestData?.decline || 0,
+              unchanged: 0,
+            });
+          }
         }
       } catch (err) {
-        console.error("Error fetching market breadth:", err);
+        console.error("Error fetching advance/decline data:", err);
       } finally {
         setLoading(false);
       }
@@ -52,15 +56,13 @@ export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
     }
   }, [symbol]);
 
+  const advances = data?.advances || 0;
+  const declines = data?.declines || 0;
+  const unchanged = data?.unchanged || 0;
   const total = advances + declines + unchanged;
   const advancePercent = total > 0 ? (advances / total) * 100 : 0;
   const declinePercent = total > 0 ? (declines / total) * 100 : 0;
   const advDecRatio = declines > 0 ? (advances / declines).toFixed(2) : advances > 0 ? "∞" : "0";
-
-  // Get top gainers and losers
-  const sortedStocks = [...stocks].sort((a, b) => b.changePct - a.changePct);
-  const topGainers = sortedStocks.filter(s => s.changePct > 0).slice(0, 3);
-  const topLosers = sortedStocks.filter(s => s.changePct < 0).slice(-3).reverse();
 
   if (loading) {
     return (
@@ -99,7 +101,7 @@ export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
         <CardTitle className="text-sm font-medium flex items-center gap-2">
           <BarChart className="h-4 w-4 text-primary" />
           Market Breadth
-          <span className="text-xs text-muted-foreground font-normal">({total} stocks)</span>
+          {total > 0 && <span className="text-xs text-muted-foreground font-normal">({total} stocks)</span>}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -146,36 +148,6 @@ export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
           <div className="bg-destructive/10 rounded-lg p-2">
             <div className="text-lg font-bold text-destructive">{declines}</div>
             <div className="text-[10px] text-muted-foreground">Declining</div>
-          </div>
-        </div>
-
-        {/* Top Gainers/Losers */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Top Gainers */}
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-success flex items-center gap-1">
-              <TrendingUp className="h-3 w-3" />
-              Top Gainers
-            </div>
-            {topGainers.map((stock, i) => (
-              <div key={i} className="flex justify-between text-[10px] bg-success/5 rounded px-2 py-1">
-                <span className="truncate max-w-[60%]">{stock.name}</span>
-                <span className="text-success font-medium">+{(stock.changePct * 100).toFixed(1)}%</span>
-              </div>
-            ))}
-          </div>
-          {/* Top Losers */}
-          <div className="space-y-1">
-            <div className="text-xs font-medium text-destructive flex items-center gap-1">
-              <TrendingDown className="h-3 w-3" />
-              Top Losers
-            </div>
-            {topLosers.map((stock, i) => (
-              <div key={i} className="flex justify-between text-[10px] bg-destructive/5 rounded px-2 py-1">
-                <span className="truncate max-w-[60%]">{stock.name}</span>
-                <span className="text-destructive font-medium">{(stock.changePct * 100).toFixed(1)}%</span>
-              </div>
-            ))}
           </div>
         </div>
       </CardContent>
