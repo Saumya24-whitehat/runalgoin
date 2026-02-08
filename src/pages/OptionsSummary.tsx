@@ -49,6 +49,10 @@ import {
   Scale,
 } from "lucide-react";
 import { GroupedSymbols } from "@/types/optionChain";
+import { MarketBreadthCard } from "@/components/optionsSummary/MarketBreadthCard";
+import { SummaryOTRChart } from "@/components/optionsSummary/SummaryOTRChart";
+import { SpotVsVWAPChart } from "@/components/optionsSummary/SpotVsVWAPChart";
+import { SummarySupportResistanceChart } from "@/components/optionsSummary/SummarySupportResistanceChart";
 
 interface SummaryData {
   // Basic Info
@@ -227,20 +231,21 @@ const OptionsSummary = () => {
       const pcrOI = latestPCR?.PCR_OI || 0;
       const pcrCOI = latestPCR?.PCR_COI || 0;
 
-      // Calculate sentiment
+      // Calculate sentiment based on PCR COI (Change in Open Interest)
       let sentiment: "bullish" | "bearish" | "neutral" = "neutral";
       let sentimentStrength: "strong" | "moderate" | "weak" = "weak";
 
-      if (pcrOI > 1.3) {
+      // Sentiment based on PCR COI - more Put writing = bullish, more Call writing = bearish
+      if (pcrCOI > 1.5) {
         sentiment = "bullish";
-        sentimentStrength = pcrOI > 1.5 ? "strong" : "moderate";
-      } else if (pcrOI < 0.7) {
+        sentimentStrength = pcrCOI > 2.0 ? "strong" : "moderate";
+      } else if (pcrCOI < 0.5) {
         sentiment = "bearish";
-        sentimentStrength = pcrOI < 0.5 ? "strong" : "moderate";
-      } else if (pcrOI > 1.1) {
+        sentimentStrength = pcrCOI < 0.3 ? "strong" : "moderate";
+      } else if (pcrCOI > 1.1) {
         sentiment = "bullish";
         sentimentStrength = "weak";
-      } else if (pcrOI < 0.9) {
+      } else if (pcrCOI < 0.9) {
         sentiment = "bearish";
         sentimentStrength = "weak";
       }
@@ -711,21 +716,22 @@ const OptionsSummary = () => {
                 </CardContent>
               </Card>
 
-              {/* Sentiment & Trend Card */}
+              {/* Sentiment & Trend Card - Based on PCR COI */}
               <Card className="bg-card border-border">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg font-semibold flex items-center gap-2">
                     <Gauge className="h-5 w-5 text-primary" />
                     Market Sentiment
+                    <span className="text-xs font-normal text-muted-foreground">(Based on PCR COI)</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {/* Sentiment Gauge Visual */}
+                  {/* Sentiment Gauge Visual - Based on PCR COI */}
                   <div className="relative h-24 bg-gradient-to-r from-destructive/30 via-muted to-success/30 rounded-lg overflow-hidden">
                     <div
                       className="absolute top-1/2 -translate-y-1/2 w-4 h-12 bg-foreground rounded-full shadow-lg transition-all duration-500"
                       style={{
-                        left: `${Math.min(Math.max((summaryData.pcrOI - 0.5) * 50, 5), 95)}%`,
+                        left: `${Math.min(Math.max((summaryData.pcrCOI - 0.3) * 40, 5), 95)}%`,
                       }}
                     />
                     <div className="absolute bottom-2 left-4 text-xs text-destructive font-medium">Bearish</div>
@@ -733,6 +739,17 @@ const OptionsSummary = () => {
                     <div className="absolute bottom-2 left-1/2 -translate-x-1/2 text-xs text-muted-foreground font-medium">
                       Neutral
                     </div>
+                  </div>
+
+                  {/* PCR COI Value Display */}
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-sm text-muted-foreground">PCR COI:</span>
+                    <span className={cn(
+                      "text-2xl font-bold",
+                      summaryData.pcrCOI > 1 ? "text-success" : summaryData.pcrCOI < 1 ? "text-destructive" : "text-foreground"
+                    )}>
+                      {summaryData.pcrCOI.toFixed(2)}
+                    </span>
                   </div>
 
                   {/* Trend Badge */}
@@ -838,6 +855,16 @@ const OptionsSummary = () => {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Market Breadth Card */}
+            <MarketBreadthCard symbol={selectedSymbol} />
+
+            {/* Charts Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <SummaryOTRChart symbol={selectedSymbol} expiry={selectedExpiry} />
+              <SpotVsVWAPChart symbol={selectedSymbol} expiry={selectedExpiry} />
+              <SummarySupportResistanceChart symbol={selectedSymbol} expiry={selectedExpiry} />
+            </div>
           </>
         ) : selectedSymbol && selectedExpiry ? (
           <Card className="bg-card border-border">
