@@ -4,6 +4,56 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { TrendingUp, TrendingDown, BarChart } from "lucide-react";
 
+// Mapping of API keys to display names
+const symbolNameMap: Record<string, string> = {
+  "SYML:NSE;NIFTY": "Nifty 50",
+  "SYML:NSE;CNX500": "Nifty 500",
+  "SYML:NSE;BANKNIFTY": "Nifty Bank",
+  "SYML:NSE;SENSEX": "Sensex",
+  "SYML:NSE;CNXIT": "Nifty IT",
+  "SYML:NSE;CNXFINANCE": "Nifty Finance",
+  "SYML:NSE;CNXAUTO": "Nifty Auto",
+  "SYML:NSE;NIFTYJR": "Nifty Next 50",
+  "SYML:NSE;CNXPSUBANK": "Nifty PSU Bank",
+  "SYML:NSE;CNXPHARMA": "Nifty Pharma",
+  "SYML:NSE;CNXMETAL": "Nifty Metal",
+  "SYML:NSE;NIFTYFINSRV25_50": "Nifty Fin Srv 25/50",
+  "SYML:NSE;CNXFMCG": "Nifty FMCG",
+  "SYML:NSE;CNXINFRA": "Nifty Infra",
+  "SYML:NSE;NIFTYPVTBANK": "Nifty Pvt Bank",
+  "SYML:NSE;CNXMEDIA": "Nifty Media",
+  "SYML:NSE;CNXREALTY": "Nifty Realty",
+  "SYML:NSE;NIFTY_HEALTHCARE": "Nifty Healthcare",
+  "SYML:NSE;NIFTY_CONSR_DURBL": "Nifty Consumer Durables",
+  "SYML:NSE;NIFTY_OIL_AND_GAS": "Nifty Oil & Gas",
+  "SYML:NSE;CNXSMALLCAP": "Nifty Smallcap",
+  "SYML:NSE;NIFTY_MID_SELECT": "Nifty Mid Select",
+  "SYML:NSE;CNX200": "Nifty 200",
+  "SYML:NSE;CNXENERGY": "Nifty Energy",
+  "SYML:NSE;CNXCONSUMPTION": "Nifty Consumption",
+  "SYML:NSE;CNXMIDCAP": "Nifty Midcap",
+  "SYML:NSE;CNXCOMMODITIES": "Nifty Commodities",
+  "SYML:NSE;NIFTYMIDCAP50": "Nifty Midcap 50",
+  "SYML:NSE;NIFTYSMLCAP250": "Nifty Smallcap 250",
+  "SYML:NSE;NIFTYMIDSML400": "Nifty Midsml 400",
+  "SYML:NSE;CNXPSE": "Nifty PSE",
+  "SYML:NSE;NIFTYMIDCAP150": "Nifty Midcap 150",
+  "SYML:NSE;NIFTY_MICROCAP250": "Nifty Microcap 250",
+  "SYML:NSE;NIFTYALPHA50": "Nifty Alpha 50",
+  "SYML:NSE;NIFTY_TOTAL_MKT": "Nifty Total Mkt",
+  "SYML:NSE;CPSE": "CPSE",
+  "SYML:NSE;CNX100": "Nifty 100",
+  "SYML:NSE;CNXSERVICE": "Nifty Service",
+  "SYML:NSE;NIFTY500_MULTICAP": "Nifty 500 Multicap",
+  "SYML:NSE;CNXMNC": "Nifty MNC",
+  "SYML:NSE;NIFTY_INDIA_MFG": "Nifty India Mfg",
+  "SYML:NSE;NIFTY200MOMENTM30": "Nifty 200 Momentum 30",
+  "SYML:NSE;NIFTYSMLCAP50": "Nifty Smallcap 50",
+  "SYML:NSE;NIFTY_LARGEMID250": "Nifty Largemid 250",
+  "SYML:NSE;NIFTY50EQUALWEIGHT": "Nifty 50 Equal Wt",
+  "SYML:NSE;NIFTY_IND_DIGITAL": "Nifty Ind Digital",
+};
+
 interface MarketBreadthCardProps {
   symbol: string;
 }
@@ -26,23 +76,17 @@ export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
 
         if (error) throw error;
 
-        // The advance-decline API returns data for all indices
-        // We need to extract the relevant one based on symbol
-        if (result) {
-          // The API returns an object with time-keyed entries
-          // Each entry has advance and decline counts
-          const entries = Object.entries(result);
-          if (entries.length > 0) {
-            // Get the latest entry
-            const latestKey = entries[entries.length - 1][0];
-            const latestData = result[latestKey] as { advance?: number; decline?: number };
-            
-            setData({
-              advances: latestData?.advance || 0,
-              declines: latestData?.decline || 0,
-              unchanged: 0,
-            });
-          }
+        // Get the display name for the symbol to use as the key
+        const indexKey = symbolNameMap[symbol] || "Nifty 50";
+
+        if (result && result[indexKey]) {
+          const latestData = result[indexKey] as { advance?: number; decline?: number };
+          
+          setData({
+            advances: latestData?.advance || 0,
+            declines: latestData?.decline || 0,
+            unchanged: 0,
+          });
         }
       } catch (err) {
         console.error("Error fetching advance/decline data:", err);
