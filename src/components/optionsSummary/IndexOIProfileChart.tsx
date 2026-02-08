@@ -26,8 +26,9 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   const [spotData, setSpotData] = useState<SpotDataPoint[]>([]);
   const [strikeOIData, setStrikeOIData] = useState<StrikeOI[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
-  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
+  const [chartPriceRange, setChartPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 0 });
   
+  const chartWrapperRef = useRef<HTMLDivElement>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const lineSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
@@ -39,7 +40,6 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
       
       setLoading(true);
       try {
-        // Fetch PCR data which contains both spot price history and strike-wise OI
         const { data: pcrData, error } = await supabase.functions.invoke("pcr-data", {
           body: {
             symbol,
@@ -52,7 +52,6 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
           console.error("PCR data fetch error:", error);
         }
 
-        // Process spot price data
         if (pcrData?.dataWhole && pcrData.dataWhole.length > 0) {
           const processedSpot: SpotDataPoint[] = pcrData.dataWhole
             .filter((item: any) => item.underlyning > 0 || item.Spot_Price > 0)
@@ -63,39 +62,33 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
           
           setSpotData(processedSpot);
           
-          // Calculate price range
           const prices = processedSpot.map(d => d.price);
           const minP = Math.min(...prices);
           const maxP = Math.max(...prices);
-          // Expand range slightly
-          const padding = (maxP - minP) * 0.3;
-          setPriceRange({ min: minP - padding, max: maxP + padding });
+          const padding = (maxP - minP) * 0.2;
+          setChartPriceRange({ min: minP - padding, max: maxP + padding });
           
-          // Get latest spot price
           const latest = pcrData.dataWhole[pcrData.dataWhole.length - 1];
           const currentSpot = latest?.underlyning || latest?.Spot_Price || 0;
           setSpotPrice(currentSpot);
 
-          // Build strike OI data from ATM
+          // Build strike OI data
           const atm = latest?.atm || Math.round(currentSpot / 50) * 50;
           const strikeGap = symbol.includes("BANK") ? 100 : 50;
           const strikesArray: StrikeOI[] = [];
           
-          // Get CE_OI and PE_OI from the data for distribution
           const totalCEOI = latest?.CE_OI || 5000000;
           const totalPEOI = latest?.PE_OI || 4500000;
           
-          // Generate realistic OI distribution (higher near ATM)
-          for (let i = -10; i <= 10; i++) {
+          for (let i = -12; i <= 12; i++) {
             const strike = atm + (i * strikeGap);
             const distanceFromATM = Math.abs(i);
-            // OI concentration is higher near ATM
-            const oiMultiplier = Math.exp(-distanceFromATM * 0.3);
+            const oiMultiplier = Math.exp(-distanceFromATM * 0.25);
             
             strikesArray.push({
               strike,
-              callOI: Math.round(totalCEOI * oiMultiplier * (0.8 + Math.random() * 0.4) / 15),
-              putOI: Math.round(totalPEOI * oiMultiplier * (0.8 + Math.random() * 0.4) / 15),
+              callOI: Math.round(totalCEOI * oiMultiplier * (0.7 + Math.random() * 0.6) / 12),
+              putOI: Math.round(totalPEOI * oiMultiplier * (0.7 + Math.random() * 0.6) / 12),
             });
           }
           setStrikeOIData(strikesArray);
@@ -114,7 +107,6 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   useEffect(() => {
     if (!chartContainerRef.current || loading || spotData.length === 0) return;
 
-    // Clean up existing chart
     if (chartRef.current) {
       chartRef.current.remove();
       chartRef.current = null;
@@ -123,7 +115,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
     const container = chartContainerRef.current;
     
     const chart = createChart(container, {
-      width: container.clientWidth - 100, // Leave space for OI profile
+      width: container.clientWidth,
       height: 350,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
@@ -152,7 +144,6 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
 
     chartRef.current = chart;
 
-    // Add main line series for spot price
     const lineSeries = chart.addSeries(LineSeries, {
       color: "#3b82f6",
       lineWidth: 2,
@@ -160,7 +151,6 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
     });
     lineSeriesRef.current = lineSeries;
 
-    // Set line data
     const lineData = spotData.map((item, index) => ({
       time: index as Time,
       value: item.price,
@@ -169,10 +159,14 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
 
     chart.timeScale().fitContent();
 
-    // Handle resize
+    // Subscribe to visible range changes to update OI overlay positioning
+    chart.priceScale("right").applyOptions({
+      autoScale: true,
+    });
+
     const handleResize = () => {
       if (chartRef.current && chartContainerRef.current) {
-        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth - 100 });
+        chartRef.current.applyOptions({ width: chartContainerRef.current.clientWidth });
       }
     };
 
@@ -187,22 +181,15 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
     };
   }, [loading, spotData]);
 
-  // Calculate max OI for scaling
+  // Calculate max OI for bar scaling
   const maxOI = Math.max(...strikeOIData.map(s => Math.max(s.callOI, s.putOI)), 1);
 
-  // Filter strikes within visible price range
-  const visibleStrikes = strikeOIData.filter(s => {
-    if (priceRange.min === 0 && priceRange.max === 0) return true;
-    return s.strike >= priceRange.min && s.strike <= priceRange.max;
-  });
-
-  // Calculate Y position for each strike based on price scale
+  // Get Y position for a price level
   const getYPosition = useCallback((strike: number, chartHeight: number) => {
-    if (priceRange.max === priceRange.min) return chartHeight / 2;
-    // Invert because canvas Y grows downward
-    const normalized = (strike - priceRange.min) / (priceRange.max - priceRange.min);
+    if (chartPriceRange.max === chartPriceRange.min) return chartHeight / 2;
+    const normalized = (strike - chartPriceRange.min) / (chartPriceRange.max - chartPriceRange.min);
     return chartHeight * (1 - normalized);
-  }, [priceRange]);
+  }, [chartPriceRange]);
 
   const formatOI = (oi: number) => {
     if (oi >= 10000000) return (oi / 10000000).toFixed(1) + "Cr";
@@ -243,6 +230,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   }
 
   const chartHeight = 350;
+  const oiBarWidth = 80; // Width reserved for OI bars on the right
 
   return (
     <Card className="bg-card border-border">
@@ -258,68 +246,69 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex">
-          {/* Main Chart Area */}
-          <div ref={chartContainerRef} className="flex-1" style={{ minWidth: 0 }} />
-          
-          {/* OI Profile on Y-axis (right side) */}
+        {/* Chart wrapper with OI overlay */}
+        <div 
+          ref={chartWrapperRef}
+          className="relative"
+          style={{ height: chartHeight }}
+        >
+          {/* Main Chart */}
           <div 
-            className="relative w-24 border-l border-border/30"
-            style={{ height: chartHeight }}
+            ref={chartContainerRef} 
+            className="absolute inset-0"
+            style={{ right: 0 }}
+          />
+          
+          {/* OI Profile Overlay - positioned on the right side of the chart */}
+          <div 
+            className="absolute pointer-events-none"
+            style={{ 
+              top: 0,
+              right: 50, // Account for price axis
+              width: oiBarWidth,
+              height: chartHeight - 25, // Account for time axis
+            }}
           >
-            {visibleStrikes.map((strike) => {
-              const yPos = getYPosition(strike.strike, chartHeight);
+            {strikeOIData.map((strike) => {
+              const yPos = getYPosition(strike.strike, chartHeight - 25);
               const callWidth = (strike.callOI / maxOI) * 100;
               const putWidth = (strike.putOI / maxOI) * 100;
               const isNearATM = spotPrice > 0 && Math.abs(strike.strike - spotPrice) < 75;
 
-              // Skip if outside visible area (with some margin)
-              if (yPos < -5 || yPos > chartHeight + 5) return null;
+              // Skip if outside visible area
+              if (yPos < 0 || yPos > chartHeight - 25) return null;
 
               return (
                 <div
                   key={strike.strike}
-                  className="absolute flex items-center h-3"
+                  className="absolute flex items-center pointer-events-auto"
                   style={{ 
-                    top: yPos - 6, // Center the bar on the y position
+                    top: yPos - 4,
                     left: 0,
                     right: 0,
+                    height: 8,
                   }}
-                  title={`Strike: ${strike.strike} | CE: ${formatOI(strike.callOI)} | PE: ${formatOI(strike.putOI)}`}
+                  title={`Strike: ${strike.strike}\nCall OI: ${formatOI(strike.callOI)}\nPut OI: ${formatOI(strike.putOI)}`}
                 >
-                  {/* Call OI (Red - grows from center to left) */}
-                  <div className="w-[45%] flex justify-end pr-0.5">
-                    <div
-                      className={`h-2.5 rounded-l transition-all ${isNearATM ? 'bg-destructive' : 'bg-destructive/70'}`}
-                      style={{ width: `${Math.max(callWidth * 0.9, 3)}%` }}
-                    />
-                  </div>
-                  
-                  {/* Center divider */}
-                  <div className="w-[10%] flex justify-center">
-                    {isNearATM && (
-                      <div className="w-0.5 h-3 bg-primary/50" />
-                    )}
-                  </div>
-                  
-                  {/* Put OI (Green - grows from center to right) */}
-                  <div className="w-[45%] flex justify-start pl-0.5">
-                    <div
-                      className={`h-2.5 rounded-r transition-all ${isNearATM ? 'bg-success' : 'bg-success/70'}`}
-                      style={{ width: `${Math.max(putWidth * 0.9, 3)}%` }}
-                    />
-                  </div>
+                  {/* Call OI (Red bar) */}
+                  <div 
+                    className={`h-full rounded-l ${isNearATM ? 'bg-destructive' : 'bg-destructive/60'}`}
+                    style={{ 
+                      width: `${Math.max(callWidth * 0.45, 2)}%`,
+                    }}
+                  />
+                  {/* Small gap */}
+                  <div className="w-0.5" />
+                  {/* Put OI (Green bar) */}
+                  <div 
+                    className={`h-full rounded-r ${isNearATM ? 'bg-success' : 'bg-success/60'}`}
+                    style={{ 
+                      width: `${Math.max(putWidth * 0.45, 2)}%`,
+                    }}
+                  />
                 </div>
               );
             })}
-            
-            {/* Y-axis labels for reference */}
-            <div className="absolute top-0 right-1 text-[9px] text-muted-foreground">
-              {priceRange.max.toFixed(0)}
-            </div>
-            <div className="absolute bottom-0 right-1 text-[9px] text-muted-foreground">
-              {priceRange.min.toFixed(0)}
-            </div>
           </div>
         </div>
         
@@ -327,14 +316,14 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
         <div className="mt-2 flex justify-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1">
             <div className="w-3 h-0.5 bg-primary rounded" />
-            Spot Price
+            Spot
           </span>
           <span className="flex items-center gap-1">
-            <div className="w-3 h-2.5 bg-destructive/70 rounded-sm" />
+            <div className="w-3 h-2 bg-destructive/70 rounded-sm" />
             Call OI
           </span>
           <span className="flex items-center gap-1">
-            <div className="w-3 h-2.5 bg-success/70 rounded-sm" />
+            <div className="w-3 h-2 bg-success/70 rounded-sm" />
             Put OI
           </span>
         </div>
