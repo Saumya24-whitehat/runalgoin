@@ -55,6 +55,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
+import OptionsSummary from "./pages/OptionsSummary";
 
 const queryClient = new QueryClient();
 
@@ -112,6 +113,7 @@ const App = () => (
               <Route path="/plans" element={<Plans />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/options-summary" element={<OptionsSummary />} />
               {/* Footer pages */}
               <Route path="/documentation" element={<Documentation />} />
               <Route path="/videos" element={<Videos />} />

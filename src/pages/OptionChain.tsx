@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { Footer } from "@/components/Footer";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
@@ -962,6 +963,7 @@ const OptionChain = () => {
         </Card>
         </div>
       </ProFeatureGate>
+      <Footer />
     </div>
   );
 };

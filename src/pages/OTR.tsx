@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
+import { Footer } from "@/components/Footer";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -853,6 +854,7 @@ const OTR = () => {
             )}
           </main>
         </ProFeatureGate>
+        <Footer />
       </div>
     </>
   );
