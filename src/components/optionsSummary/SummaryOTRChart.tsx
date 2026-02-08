@@ -37,7 +37,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
           symbol,
           expiry,
           strikeCount: 7,
-          tf: "1min",
+          tf: "3min",
         },
       });
 
