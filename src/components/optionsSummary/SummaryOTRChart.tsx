@@ -114,7 +114,8 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       },
       timeScale: {
         borderColor: "rgba(255, 255, 255, 0.1)",
-        visible: false,
+        visible: true,
+        timeVisible: true,
       },
       crosshair: {
         mode: 1,
