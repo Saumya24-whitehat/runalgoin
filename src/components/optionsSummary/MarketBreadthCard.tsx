@@ -77,7 +77,8 @@ export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
         if (error) throw error;
 
         // Get the display name for the symbol to use as the key
-        const indexKey = symbolNameMap[symbol] || "Nifty 50";
+        // Find the key from the map that matches the symbol value
+        const indexKey = Object.keys(symbolNameMap).find(key => symbolNameMap[key] === symbol) || symbol;
 
         if (result && result[indexKey]) {
           const latestData = result[indexKey] as { advance?: number; decline?: number };
