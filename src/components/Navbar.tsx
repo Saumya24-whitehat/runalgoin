@@ -77,7 +77,7 @@ const navItems: NavItem[] = [
         items: [
           { icon: Star, label: "Summary Score", iconColor: "text-yellow-500" },
           { icon: Bot, label: "AI Analysis", iconColor: "text-emerald-500" },
-          { icon: Layers, label: "Summary", iconColor: "text-primary" },
+          { icon: Layers, label: "Options Summary", iconColor: "text-primary", path: "/options-summary" },
         ],
       },
       {
