@@ -53,6 +53,7 @@ import { MarketBreadthCard } from "@/components/optionsSummary/MarketBreadthCard
 import { SummaryOTRChart } from "@/components/optionsSummary/SummaryOTRChart";
 import { SpotVsVWAPChart } from "@/components/optionsSummary/SpotVsVWAPChart";
 import { SummarySupportResistanceChart } from "@/components/optionsSummary/SummarySupportResistanceChart";
+import { IndexOIProfileChart } from "@/components/optionsSummary/IndexOIProfileChart";
 
 interface SummaryData {
   // Basic Info
@@ -778,83 +779,8 @@ const OptionsSummary = () => {
               </Card>
             </div>
 
-            {/* OI Breakdown */}
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-primary" />
-                  Open Interest Breakdown
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                    <div className="text-xs text-muted-foreground mb-1">Call OI (CE)</div>
-                    <div className="text-xl font-bold text-destructive">
-                      {formatCrores(summaryData.totalCEOI)}
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-                    <div className="text-xs text-muted-foreground mb-1">Put OI (PE)</div>
-                    <div className="text-xl font-bold text-success">
-                      {formatCrores(summaryData.totalPEOI)}
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                    <div className="text-xs text-muted-foreground mb-1">Call COI (CE)</div>
-                    <div
-                      className={cn(
-                        "text-xl font-bold",
-                        summaryData.totalCECOI > 0 ? "text-destructive" : "text-success"
-                      )}
-                    >
-                      {summaryData.totalCECOI > 0 ? "+" : ""}
-                      {formatLakhs(summaryData.totalCECOI)}
-                    </div>
-                  </div>
-                  <div className="p-4 rounded-lg bg-success/10 border border-success/20">
-                    <div className="text-xs text-muted-foreground mb-1">Put COI (PE)</div>
-                    <div
-                      className={cn(
-                        "text-xl font-bold",
-                        summaryData.totalPECOI > 0 ? "text-success" : "text-destructive"
-                      )}
-                    >
-                      {summaryData.totalPECOI > 0 ? "+" : ""}
-                      {formatLakhs(summaryData.totalPECOI)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* OI Diff Bar */}
-                <div className="mt-4 p-3 rounded-lg bg-secondary/30">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-muted-foreground">OI Difference (PE - CE)</span>
-                    <span
-                      className={cn(
-                        "font-semibold",
-                        summaryData.oiDiff > 0 ? "text-success" : "text-destructive"
-                      )}
-                    >
-                      {summaryData.oiDiff > 0 ? "+" : ""}
-                      {formatCrores(summaryData.oiDiff)}
-                    </span>
-                  </div>
-                  <div className="h-3 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full transition-all duration-500",
-                        summaryData.oiDiff > 0 ? "bg-success" : "bg-destructive"
-                      )}
-                      style={{
-                        width: `${Math.min(Math.abs(summaryData.oiDiff) / (summaryData.totalCEOI + summaryData.totalPEOI) * 200, 100)}%`,
-                        marginLeft: summaryData.oiDiff < 0 ? "auto" : undefined,
-                      }}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Index Chart with OI Profile */}
+            <IndexOIProfileChart symbol={selectedSymbol} expiry={selectedExpiry} />
 
             {/* Market Breadth Card */}
             <MarketBreadthCard symbol={selectedSymbol} />
