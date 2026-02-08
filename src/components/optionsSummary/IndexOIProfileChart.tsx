@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -50,13 +50,17 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   const [hoveredStrike, setHoveredStrike] = useState<StrikeOI | null>(null);
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
   const chartContainerRef = useRef<HTMLDivElement>(null);
+  const isInitialFetch = useRef(true);
 
-  // Fetch data
+  // Fetch data - only on symbol/expiry change, not on every render
   useEffect(() => {
     const fetchData = async () => {
       if (!symbol || !expiry) return;
       
-      setLoading(true);
+      // Only show loading on initial fetch, not on updates
+      if (isInitialFetch.current) {
+        setLoading(true);
+      }
       try {
         const { data: pcrData, error } = await supabase.functions.invoke("pcr-data", {
           body: {
@@ -85,12 +89,14 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
           const currentSpot = latest?.underlyning || latest?.Spot_Price || 0;
           setSpotPrice(currentSpot);
 
-          // Calculate base domain
-          const prices = processedSpot.map(d => d.price);
-          const min = Math.min(...prices);
-          const max = Math.max(...prices);
-          const padding = (max - min) * 0.15;
-          setBaseDomain([min - padding, max + padding]);
+          // Only set base domain on initial fetch to prevent chart jumping
+          if (isInitialFetch.current) {
+            const prices = processedSpot.map(d => d.price);
+            const min = Math.min(...prices);
+            const max = Math.max(...prices);
+            const padding = (max - min) * 0.15;
+            setBaseDomain([min - padding, max + padding]);
+          }
 
           // Extract strike OI data from strikeData if available
           let strikesArray: StrikeOI[] = [];
@@ -131,10 +137,15 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
       } catch (err) {
         console.error("Error fetching index OI profile data:", err);
       } finally {
-        setLoading(false);
+        if (isInitialFetch.current) {
+          setLoading(false);
+          isInitialFetch.current = false;
+        }
       }
     };
 
+    // Reset initial fetch flag when symbol/expiry changes
+    isInitialFetch.current = true;
     fetchData();
   }, [symbol, expiry]);
 
@@ -369,7 +380,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 );
               })}
               
-              {/* Spot price line */}
+              {/* Spot price line - no animation for smooth data updates */}
               <Line
                 yAxisId="price"
                 type="monotone"
@@ -378,6 +389,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 strokeWidth={2}
                 dot={false}
                 activeDot={{ r: 4, fill: "hsl(var(--primary))" }}
+                isAnimationActive={false}
               />
               
               {/* Current spot reference line */}
