@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,14 @@ interface StrikeOI {
   netOI: number;
 }
 
+// Format OI for display
+const formatOI = (oi: number) => {
+  if (oi >= 10000000) return (oi / 10000000).toFixed(2) + " Cr";
+  if (oi >= 100000) return (oi / 100000).toFixed(2) + " L";
+  if (oi >= 1000) return (oi / 1000).toFixed(1) + " K";
+  return oi.toLocaleString("en-IN");
+};
+
 export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps) => {
   const [loading, setLoading] = useState(true);
   const [spotData, setSpotData] = useState<SpotDataPoint[]>([]);
@@ -39,6 +47,9 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   const [spotPrice, setSpotPrice] = useState<number>(0);
   const [zoomLevel, setZoomLevel] = useState<number>(1);
   const [baseDomain, setBaseDomain] = useState<[number, number]>([0, 100]);
+  const [hoveredStrike, setHoveredStrike] = useState<StrikeOI | null>(null);
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch data
   useEffect(() => {
@@ -149,6 +160,16 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
     setZoomLevel(1);
   }, []);
 
+  // Mouse wheel zoom handler
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY < 0) {
+      setZoomLevel(prev => Math.min(prev * 1.15, 10));
+    } else {
+      setZoomLevel(prev => Math.max(prev / 1.15, 0.5));
+    }
+  }, []);
+
   const maxOI = useMemo(() => {
     return Math.max(...strikeOIData.map(s => Math.max(s.callOI, s.putOI)), 1);
   }, [strikeOIData]);
@@ -234,7 +255,11 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[350px] w-full">
+        <div 
+          ref={chartContainerRef}
+          className="h-[350px] w-full relative"
+          onWheel={handleWheel}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={spotData}
@@ -288,27 +313,53 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                       content: ({ viewBox }: any) => {
                         if (!viewBox) return null;
                         const { y } = viewBox;
+                        const isHovered = hoveredStrike?.strike === strike.strike;
+                        
                         return (
-                          <g>
+                          <g
+                            style={{ cursor: "pointer" }}
+                            onMouseEnter={(e) => {
+                              setHoveredStrike(strike);
+                              const rect = chartContainerRef.current?.getBoundingClientRect();
+                              if (rect) {
+                                setTooltipPos({ 
+                                  x: e.clientX - rect.left, 
+                                  y: e.clientY - rect.top 
+                                });
+                              }
+                            }}
+                            onMouseLeave={() => {
+                              setHoveredStrike(null);
+                              setTooltipPos(null);
+                            }}
+                          >
+                            {/* Invisible hit area for hover */}
+                            <rect
+                              x={viewBox.width + 10}
+                              y={y - 8}
+                              width={Math.max(callWidth + putWidth + 10, 30)}
+                              height={16}
+                              fill="transparent"
+                            />
                             {/* Call OI bar (red) */}
                             <rect
                               x={viewBox.width + 15}
-                              y={y - 3}
+                              y={y - 4}
                               width={Math.max(callWidth, 2)}
-                              height={6}
+                              height={8}
                               fill="hsl(var(--destructive))"
-                              opacity={0.8}
-                              rx={1}
+                              opacity={isHovered ? 1 : 0.7}
+                              rx={2}
                             />
                             {/* Put OI bar (green) */}
                             <rect
                               x={viewBox.width + 17 + callWidth}
-                              y={y - 3}
+                              y={y - 4}
                               width={Math.max(putWidth, 2)}
-                              height={6}
+                              height={8}
                               fill="hsl(var(--success))"
-                              opacity={0.8}
-                              rx={1}
+                              opacity={isHovered ? 1 : 0.7}
+                              rx={2}
                             />
                           </g>
                         );
@@ -341,6 +392,37 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
               )}
             </ComposedChart>
           </ResponsiveContainer>
+          
+          {/* OI Hover Tooltip */}
+          {hoveredStrike && tooltipPos && (
+            <div
+              className="absolute z-50 pointer-events-none bg-popover border border-border rounded-lg shadow-lg p-3 text-sm"
+              style={{
+                left: Math.min(tooltipPos.x, (chartContainerRef.current?.clientWidth || 300) - 180),
+                top: tooltipPos.y - 80,
+              }}
+            >
+              <div className="font-semibold text-foreground mb-2">
+                Strike: {hoveredStrike.strike.toLocaleString("en-IN")}
+              </div>
+              <div className="flex items-center gap-2 text-destructive">
+                <div className="w-2 h-2 rounded-sm bg-destructive" />
+                <span>Call OI:</span>
+                <span className="font-mono">{formatOI(hoveredStrike.callOI)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-success">
+                <div className="w-2 h-2 rounded-sm bg-success" />
+                <span>Put OI:</span>
+                <span className="font-mono">{formatOI(hoveredStrike.putOI)}</span>
+              </div>
+              <div className="flex items-center gap-2 text-muted-foreground mt-1 pt-1 border-t border-border">
+                <span>Net:</span>
+                <span className={`font-mono ${hoveredStrike.netOI > 0 ? 'text-success' : 'text-destructive'}`}>
+                  {hoveredStrike.netOI > 0 ? '+' : ''}{formatOI(hoveredStrike.netOI)}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Legend */}
@@ -356,6 +438,9 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
           <span className="flex items-center gap-1">
             <div className="w-3 h-2 bg-success rounded-sm" />
             Put OI
+          </span>
+          <span className="text-muted-foreground/60 text-[10px]">
+            (Scroll to zoom)
           </span>
         </div>
       </CardContent>
