@@ -15,14 +15,40 @@ interface OTRDataPoint {
   Combined_PCR_OI: number;
   Combined_PCR_COI: number;
   Spot_Price: number;
-  timestamp?: number;
+  Total_Put_OI: number;
+  Total_Call_OI: number;
 }
+
+// Calculate EMA
+const calculateEMA = (data: number[], period: number): (number | null)[] => {
+  const ema: (number | null)[] = [];
+  const multiplier = 2 / (period + 1);
+
+  for (let i = 0; i < data.length; i++) {
+    if (i < period - 1) {
+      ema.push(null);
+    } else if (i === period - 1) {
+      // First EMA is SMA
+      const sum = data.slice(0, period).reduce((a, b) => a + b, 0);
+      ema.push(sum / period);
+    } else {
+      const prevEma = ema[i - 1];
+      if (prevEma !== null) {
+        ema.push((data[i] - prevEma) * multiplier + prevEma);
+      } else {
+        ema.push(null);
+      }
+    }
+  }
+  return ema;
+};
 
 export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
-  const pcrOISeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
-  const pcrCOISeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const toiSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const ema10SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const ema30SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<OTRDataPoint[]>([]);
@@ -65,6 +91,13 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       chartRef.current = null;
     }
 
+    // Calculate TOI (dataFinal) = Total_Put_OI - Total_Call_OI
+    const toiValues = data.map((d) => (d.Total_Put_OI || 0) - (d.Total_Call_OI || 0));
+    
+    // Calculate EMAs
+    const ema10Values = calculateEMA(toiValues, 10);
+    const ema30Values = calculateEMA(toiValues, 30);
+
     const chart = createChart(containerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
@@ -90,37 +123,54 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
 
     chartRef.current = chart;
 
-    // PCR OI Series
-    pcrOISeriesRef.current = chart.addSeries(LineSeries, {
+    // TOI (dataFinal) Series - Blue
+    toiSeriesRef.current = chart.addSeries(LineSeries, {
       color: "#3b82f6",
       lineWidth: 2,
-      title: "PCR OI",
+      title: "TOI",
     });
 
-    // PCR COI Series
-    pcrCOISeriesRef.current = chart.addSeries(LineSeries, {
-      color: "#f59e0b",
-      lineWidth: 2,
-      title: "PCR COI",
+    // EMA 10 Series - Green
+    ema10SeriesRef.current = chart.addSeries(LineSeries, {
+      color: "#22c55e",
+      lineWidth: 1,
+      title: "EMA 10",
+    });
+
+    // EMA 30 Series - Red
+    ema30SeriesRef.current = chart.addSeries(LineSeries, {
+      color: "#ef4444",
+      lineWidth: 1,
+      title: "EMA 30",
     });
 
     // Prepare data
-    const pcrOIData = data.map((item, idx) => ({
+    const toiData = toiValues.map((value, idx) => ({
       time: idx as any,
-      value: item.Combined_PCR_OI || 0,
+      value: value,
     }));
 
-    const pcrCOIData = data.map((item, idx) => ({
-      time: idx as any,
-      value: item.Combined_PCR_COI || 0,
-    }));
+    const ema10Data: { time: any; value: number }[] = [];
+    ema10Values.forEach((value, idx) => {
+      if (value !== null) {
+        ema10Data.push({ time: idx as any, value });
+      }
+    });
 
-    pcrOISeriesRef.current.setData(pcrOIData);
-    pcrCOISeriesRef.current.setData(pcrCOIData);
+    const ema30Data: { time: any; value: number }[] = [];
+    ema30Values.forEach((value, idx) => {
+      if (value !== null) {
+        ema30Data.push({ time: idx as any, value });
+      }
+    });
 
-    // Add reference lines
-    pcrOISeriesRef.current.createPriceLine({
-      price: 1,
+    toiSeriesRef.current.setData(toiData);
+    ema10SeriesRef.current.setData(ema10Data);
+    ema30SeriesRef.current.setData(ema30Data);
+
+    // Add zero line
+    toiSeriesRef.current.createPriceLine({
+      price: 0,
       color: "#6b7280",
       lineWidth: 1,
       lineStyle: LineStyle.Dashed,
@@ -152,7 +202,47 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     };
   }, []);
 
-  const latestData = data.length > 0 ? data[data.length - 1] : null;
+  // Calculate latest values
+  const getLatestValues = () => {
+    if (data.length === 0) return null;
+    
+    const toiValues = data.map((d) => (d.Total_Put_OI || 0) - (d.Total_Call_OI || 0));
+    const ema10Values = calculateEMA(toiValues, 10);
+    const ema30Values = calculateEMA(toiValues, 30);
+    
+    const latestTOI = toiValues[toiValues.length - 1];
+    const latestEMA10 = ema10Values[ema10Values.length - 1];
+    const latestEMA30 = ema30Values[ema30Values.length - 1];
+    
+    return { toi: latestTOI, ema10: latestEMA10, ema30: latestEMA30 };
+  };
+
+  const latestValues = getLatestValues();
+  
+  // Determine trend
+  const getTrend = () => {
+    if (!latestValues || latestValues.ema10 === null || latestValues.ema30 === null) return null;
+    
+    if (latestValues.ema10 > latestValues.ema30 && latestValues.toi > latestValues.ema10) {
+      return { text: "Bullish", color: "text-success" };
+    }
+    if (latestValues.ema10 < latestValues.ema30 && latestValues.toi < latestValues.ema10) {
+      return { text: "Bearish", color: "text-destructive" };
+    }
+    return { text: "Neutral", color: "text-warning" };
+  };
+
+  const trend = getTrend();
+
+  // Format TOI value
+  const formatTOI = (value: number) => {
+    if (Math.abs(value) >= 10000000) {
+      return (value / 10000000).toFixed(1) + " Cr";
+    } else if (Math.abs(value) >= 100000) {
+      return (value / 100000).toFixed(1) + " L";
+    }
+    return value.toLocaleString("en-IN");
+  };
 
   return (
     <Card className="bg-card border-border">
@@ -160,22 +250,39 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Activity className="h-4 w-4 text-primary" />
-            OTR (PCR Trend)
+            OTR (TOI with EMA)
           </CardTitle>
-          {latestData && (
-            <div className="flex items-center gap-3 text-xs">
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-blue-500" />
-                <span className="text-muted-foreground">OI:</span>
-                <span className="font-medium">{latestData.Combined_PCR_OI?.toFixed(2)}</span>
-              </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
-                <span className="text-muted-foreground">COI:</span>
-                <span className="font-medium">{latestData.Combined_PCR_COI?.toFixed(2)}</span>
-              </span>
-            </div>
-          )}
+          <div className="flex items-center gap-3 text-xs">
+            {latestValues && (
+              <>
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-blue-500" />
+                  <span className="text-muted-foreground">TOI:</span>
+                  <span className="font-medium">{formatTOI(latestValues.toi)}</span>
+                </span>
+                {trend && (
+                  <span className={`font-medium ${trend.color}`}>
+                    {trend.text}
+                  </span>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+        {/* Legend */}
+        <div className="flex items-center gap-4 text-[10px] mt-1">
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-0.5 bg-blue-500" />
+            <span className="text-muted-foreground">TOI</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-0.5 bg-green-500" />
+            <span className="text-muted-foreground">EMA 10</span>
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-3 h-0.5 bg-red-500" />
+            <span className="text-muted-foreground">EMA 30</span>
+          </span>
         </div>
       </CardHeader>
       <CardContent className="p-2">

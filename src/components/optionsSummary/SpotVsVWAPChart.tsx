@@ -105,16 +105,39 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
       title: "VWAP",
     });
 
-    // Prepare data
-    const spotData = data.map((item, idx) => ({
-      time: idx as any,
-      value: item.underlyning || 0,
-    }));
-
-    const vwapData = data.map((item, idx) => ({
-      time: idx as any,
-      value: item.VWAP || 0,
-    }));
+    // Prepare data - filter out 0 VWAP or use previous value
+    const spotData: { time: any; value: number }[] = [];
+    const vwapData: { time: any; value: number }[] = [];
+    
+    let lastValidVWAP = 0;
+    
+    data.forEach((item, idx) => {
+      // Always add spot data
+      spotData.push({
+        time: idx as any,
+        value: item.underlyning || 0,
+      });
+      
+      // Handle VWAP - skip if 0, or use previous valid value
+      let vwapValue = item.VWAP || 0;
+      
+      if (vwapValue === 0) {
+        // Use previous valid VWAP if available
+        if (lastValidVWAP > 0) {
+          vwapValue = lastValidVWAP;
+        } else {
+          // Skip this point if no valid VWAP yet
+          return;
+        }
+      } else {
+        lastValidVWAP = vwapValue;
+      }
+      
+      vwapData.push({
+        time: idx as any,
+        value: vwapValue,
+      });
+    });
 
     spotSeriesRef.current.setData(spotData);
     vwapSeriesRef.current.setData(vwapData);
@@ -144,8 +167,28 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     };
   }, []);
 
-  const latestData = data.length > 0 ? data[data.length - 1] : null;
-  const spotAboveVWAP = latestData ? latestData.underlyning >= latestData.VWAP : false;
+  // Get latest data with valid VWAP
+  const getLatestData = () => {
+    if (data.length === 0) return null;
+    
+    // Find the last entry with valid VWAP
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (data[i].VWAP && data[i].VWAP > 0) {
+        return {
+          spot: data[data.length - 1].underlyning,
+          vwap: data[i].VWAP,
+        };
+      }
+    }
+    
+    return {
+      spot: data[data.length - 1].underlyning,
+      vwap: 0,
+    };
+  };
+
+  const latestData = getLatestData();
+  const spotAboveVWAP = latestData && latestData.vwap > 0 ? latestData.spot >= latestData.vwap : null;
 
   return (
     <Card className="bg-card border-border">
@@ -160,19 +203,23 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span className="text-muted-foreground">Spot:</span>
-                <span className="font-medium">{latestData.underlyning?.toFixed(2)}</span>
+                <span className="font-medium">{latestData.spot?.toFixed(2)}</span>
               </span>
-              <span className="flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-purple-500" />
-                <span className="text-muted-foreground">VWAP:</span>
-                <span className="font-medium">{latestData.VWAP?.toFixed(2)}</span>
-              </span>
-              <span className={cn(
-                "text-xs font-medium px-2 py-0.5 rounded",
-                spotAboveVWAP ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-              )}>
-                {spotAboveVWAP ? "Above" : "Below"}
-              </span>
+              {latestData.vwap > 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-purple-500" />
+                  <span className="text-muted-foreground">VWAP:</span>
+                  <span className="font-medium">{latestData.vwap?.toFixed(2)}</span>
+                </span>
+              )}
+              {spotAboveVWAP !== null && (
+                <span className={cn(
+                  "text-xs font-medium px-2 py-0.5 rounded",
+                  spotAboveVWAP ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
+                )}>
+                  {spotAboveVWAP ? "Above" : "Below"}
+                </span>
+              )}
             </div>
           )}
         </div>
