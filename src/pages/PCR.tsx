@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
@@ -37,10 +38,14 @@ const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes in milliseconds
 
 const PCR = () => {
   const { toast } = useToast();
+  const [searchParams] = useSearchParams();
+  const urlSymbol = searchParams.get("symbol");
+  const urlExpiry = searchParams.get("expiry");
+  
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
-  const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
-  const [selectedExpiry, setSelectedExpiry] = useState("");
+  const [selectedSymbol, setSelectedSymbol] = useState(urlSymbol || "Nifty 50");
+  const [selectedExpiry, setSelectedExpiry] = useState(urlExpiry || "");
   const [strikeCount, setStrikeCount] = useState(5);
   const [historicalDate, setHistoricalDate] = useState<Date | undefined>();
   
@@ -126,7 +131,12 @@ const PCR = () => {
         setExpiryDates(dates);
         
         if (dates.length > 0) {
-          setSelectedExpiry(dates[0]);
+          // Use URL expiry if valid, otherwise default to first
+          if (urlExpiry && dates.includes(urlExpiry)) {
+            setSelectedExpiry(urlExpiry);
+          } else {
+            setSelectedExpiry(dates[0]);
+          }
         }
       } catch (err) {
         console.error("Error fetching expiry dates:", err);
