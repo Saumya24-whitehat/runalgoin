@@ -412,30 +412,30 @@ const OptionsSummary = () => {
         />
       </Helmet>
 
-      <div className="container py-6 space-y-6">
+      <div className="container px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Options Summary</h1>
-            <p className="text-muted-foreground text-sm">
+            <h1 className="text-xl sm:text-2xl font-bold text-foreground">Options Summary</h1>
+            <p className="text-muted-foreground text-xs sm:text-sm">
               All-in-one options analytics dashboard
             </p>
           </div>
           {lastRefresh && (
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
-              Last updated: {lastRefresh.toLocaleTimeString()}
+              Updated: {lastRefresh.toLocaleTimeString()}
             </div>
           )}
         </div>
 
         {/* Symbol & Expiry Selection */}
         <Card className="bg-card border-border">
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap items-center gap-4">
+          <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
               {/* Symbol Dropdown */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Symbol:</span>
+                <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap hidden sm:inline">Symbol:</span>
                 <Popover open={symbolOpen} onOpenChange={setSymbolOpen}>
                   <PopoverTrigger asChild>
                     <Button
@@ -443,19 +443,19 @@ const OptionsSummary = () => {
                       role="combobox"
                       aria-expanded={symbolOpen}
                       disabled={loadingSymbols}
-                      className="w-[180px] justify-between bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      className="w-[140px] sm:w-[180px] justify-between bg-secondary text-secondary-foreground hover:bg-secondary/80 h-9 sm:h-10 text-xs sm:text-sm"
                     >
                       {loadingSymbols ? (
                         <span className="flex items-center gap-2">
-                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                           Loading...
                         </span>
                       ) : selectedSymbol ? (
                         selectedSymbol
                       ) : (
-                        "Select symbol..."
+                        "Symbol..."
                       )}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      <ChevronsUpDown className="ml-2 h-3 w-3 sm:h-4 sm:w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[250px] p-0 bg-popover border-border z-50" align="start">
@@ -523,14 +523,14 @@ const OptionsSummary = () => {
 
               {/* Expiry Dropdown */}
               <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Expiry:</span>
+                <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap hidden sm:inline">Expiry:</span>
                 <Select
                   value={selectedExpiry}
                   onValueChange={setSelectedExpiry}
                   disabled={loadingExpiry || expiryDates.length === 0}
                 >
-                  <SelectTrigger className="w-[160px] bg-secondary text-secondary-foreground">
-                    <SelectValue placeholder={loadingExpiry ? "Loading..." : "Select expiry"} />
+                  <SelectTrigger className="w-[120px] sm:w-[160px] bg-secondary text-secondary-foreground h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectValue placeholder={loadingExpiry ? "Loading..." : "Expiry"} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
                     {expiryDates.map((date) => (
@@ -548,15 +548,15 @@ const OptionsSummary = () => {
                 size="icon"
                 onClick={fetchAllData}
                 disabled={loading || !selectedSymbol || !selectedExpiry}
-                className="bg-secondary"
+                className="bg-secondary h-9 w-9 sm:h-10 sm:w-10"
               >
-                <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+                <RefreshCw className={cn("h-3 w-3 sm:h-4 sm:w-4", loading && "animate-spin")} />
               </Button>
 
               {loading && (
                 <div className="flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Fetching data...</span>
+                  <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
+                  <span className="text-xs sm:text-sm hidden sm:inline">Fetching data...</span>
                 </div>
               )}
             </div>
@@ -565,85 +565,85 @@ const OptionsSummary = () => {
 
         {/* Main Summary Content */}
         {loading && !summaryData ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
             <Card className="lg:col-span-2 bg-card border-border">
-              <CardHeader>
-                <Skeleton className="h-8 w-40" />
+              <CardHeader className="px-3 sm:px-6">
+                <Skeleton className="h-6 sm:h-8 w-32 sm:w-40" />
               </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton className="h-16 w-full" />
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6">
+                <Skeleton className="h-12 sm:h-16 w-full" />
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                   {[1, 2, 3, 4].map((i) => (
-                    <Skeleton key={i} className="h-24 w-full" />
+                    <Skeleton key={i} className="h-16 sm:h-24 w-full" />
                   ))}
                 </div>
               </CardContent>
             </Card>
             <Card className="bg-card border-border">
-              <CardHeader>
-                <Skeleton className="h-6 w-32" />
+              <CardHeader className="px-3 sm:px-6">
+                <Skeleton className="h-5 sm:h-6 w-24 sm:w-32" />
               </CardHeader>
-              <CardContent>
-                <Skeleton className="h-40 w-full" />
+              <CardContent className="px-3 sm:px-6">
+                <Skeleton className="h-32 sm:h-40 w-full" />
               </CardContent>
             </Card>
           </div>
         ) : summaryData ? (
           <>
             {/* Price & Sentiment Header */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
               {/* Main Price Card */}
               <Card className="lg:col-span-2 bg-card border-border">
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-xl font-semibold flex items-center gap-2">
+                <CardHeader className="pb-2 px-3 sm:px-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <CardTitle className="text-lg sm:text-xl font-semibold flex items-center gap-2 flex-wrap">
                       {summaryData.symbol}
-                      <Badge variant="outline" className="text-xs">
+                      <Badge variant="outline" className="text-[10px] sm:text-xs">
                         {selectedExpiry}
                       </Badge>
                     </CardTitle>
-                    <Badge className={`${getSentimentColor(summaryData.sentiment)} flex items-center gap-1`}>
+                    <Badge className={`${getSentimentColor(summaryData.sentiment)} flex items-center gap-1 text-[10px] sm:text-xs w-fit`}>
                       {getSentimentIcon(summaryData.sentiment)}
                       {summaryData.sentimentStrength} {summaryData.sentiment}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4 sm:space-y-6 px-3 sm:px-6">
                   {/* Price Row */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="bg-primary/10 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <DollarSign className="h-4 w-4" />
-                        Spot Price
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                    <div className="bg-primary/10 rounded-lg p-2 sm:p-4">
+                      <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-muted-foreground mb-1">
+                        <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
+                        Spot
                       </div>
-                      <div className="text-2xl font-bold text-foreground">
+                      <div className="text-base sm:text-2xl font-bold text-foreground">
                         ₹{formatNumber(summaryData.spotPrice)}
                       </div>
                     </div>
-                    <div className="bg-secondary/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Activity className="h-4 w-4" />
+                    <div className="bg-secondary/50 rounded-lg p-2 sm:p-4">
+                      <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-muted-foreground mb-1">
+                        <Activity className="h-3 w-3 sm:h-4 sm:w-4" />
                         Future
                       </div>
-                      <div className="text-xl font-semibold text-foreground">
+                      <div className="text-sm sm:text-xl font-semibold text-foreground">
                         ₹{formatNumber(summaryData.futurePrice)}
                       </div>
                     </div>
-                    <div className="bg-secondary/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <LineChart className="h-4 w-4" />
+                    <div className="bg-secondary/50 rounded-lg p-2 sm:p-4">
+                      <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-muted-foreground mb-1">
+                        <LineChart className="h-3 w-3 sm:h-4 sm:w-4" />
                         VWAP
                       </div>
-                      <div className="text-xl font-semibold text-foreground">
+                      <div className="text-sm sm:text-xl font-semibold text-foreground">
                         ₹{formatNumber(summaryData.vwap)}
                       </div>
                     </div>
-                    <div className="bg-secondary/50 rounded-lg p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Target className="h-4 w-4" />
-                        ATM Strike
+                    <div className="bg-secondary/50 rounded-lg p-2 sm:p-4">
+                      <div className="flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm text-muted-foreground mb-1">
+                        <Target className="h-3 w-3 sm:h-4 sm:w-4" />
+                        ATM
                       </div>
-                      <div className="text-xl font-semibold text-foreground">
+                      <div className="text-sm sm:text-xl font-semibold text-foreground">
                         {formatNumber(summaryData.atm)}
                       </div>
                     </div>

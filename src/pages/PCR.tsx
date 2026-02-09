@@ -373,16 +373,16 @@ const PCR = () => {
       </div>
       
       <ProFeatureGate featureName="PCR Analysis">
-        <main className="container py-6 space-y-6">
+        <main className="container px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+          <CardContent className="p-3 sm:p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 items-end">
               {/* Symbol Selector */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Symbol</label>
+                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Symbol</label>
                 <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>
-                  <SelectTrigger className="w-full bg-background/50">
+                  <SelectTrigger className="w-full bg-background/50 h-9 sm:h-10 text-xs sm:text-sm">
                     <SelectValue placeholder="Select Symbol" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px] bg-popover">
@@ -408,14 +408,14 @@ const PCR = () => {
               
               {/* Expiry Selector */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Expiry Date</label>
+                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Expiry</label>
                 <Select
                   value={selectedExpiry}
                   onValueChange={setSelectedExpiry}
                   disabled={loadingExpiry || expiryDates.length === 0}
                 >
-                  <SelectTrigger className="w-full bg-secondary text-secondary-foreground">
-                    <SelectValue placeholder={loadingExpiry ? "Loading..." : "Select expiry"} />
+                  <SelectTrigger className="w-full bg-secondary text-secondary-foreground h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectValue placeholder={loadingExpiry ? "Loading..." : "Select"} />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border z-50">
                     {expiryDates.map((date) => (
@@ -427,17 +427,17 @@ const PCR = () => {
                 </Select>
               </div>
               
-              {/* Historical Date */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Historical Date</label>
+              {/* Historical Date - Hidden on mobile by default */}
+              <div className="space-y-1.5 hidden sm:block">
+                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Historical</label>
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full justify-start text-left font-normal bg-secondary"
+                      className="w-full justify-start text-left font-normal bg-secondary h-9 sm:h-10 text-xs sm:text-sm"
                     >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
+                      <CalendarIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                      {historicalDate ? format(historicalDate, "dd/MM") : "Date"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-50" align="start">
@@ -453,28 +453,28 @@ const PCR = () => {
               
               {/* Strike Count */}
               <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground">Strikes</label>
+                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Strikes</label>
                 <Input
                   type="number"
                   min={1}
                   max={50}
                   value={strikeCount}
                   onChange={(e) => setStrikeCount(parseInt(e.target.value) || 5)}
-                  className="bg-secondary"
+                  className="bg-secondary h-9 sm:h-10 text-xs sm:text-sm"
                 />
               </div>
               
               {/* GO Button */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-muted-foreground invisible">Action</label>
+              <div className="space-y-1.5 col-span-2 sm:col-span-1">
+                <label className="text-xs font-medium text-muted-foreground invisible hidden sm:block">Action</label>
                 <div className="flex gap-2">
                   <Button
                     onClick={handleGo}
                     disabled={loadingData || !selectedSymbol || !selectedExpiry}
-                    className="flex-1 bg-primary hover:bg-primary/90"
+                    className="flex-1 bg-primary hover:bg-primary/90 h-9 sm:h-10 text-xs sm:text-sm"
                   >
                     {loadingData ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-3 w-3 sm:h-4 sm:w-4 animate-spin" />
                     ) : (
                       "GO"
                     )}
