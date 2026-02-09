@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -91,15 +92,19 @@ const formatTimeDisplay = (time: string) => {
 const OptionChain = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlSymbol = searchParams.get("symbol");
+  const urlExpiry = searchParams.get("expiry");
+  
   const tableContainerRef = useRef<HTMLDivElement>(null);
   const spotPriceRowRef = useRef<HTMLTableRowElement>(null);
   const historicalFetchTimerRef = useRef<number | null>(null);
 
   const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
   const [stockSymbols, setStockSymbols] = useState<string[]>([]);
-  const [selectedSymbol, setSelectedSymbol] = useState<string>("Nifty 50");
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(urlSymbol || "Nifty 50");
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
-  const [selectedExpiry, setSelectedExpiry] = useState<string>("");
+  const [selectedExpiry, setSelectedExpiry] = useState<string>(urlExpiry || "");
   const [optionData, setOptionData] = useState<OptionData[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
   const [strikeCount, setStrikeCount] = useState<string>("9");
@@ -201,7 +206,12 @@ const OptionChain = () => {
       const dates = data.expiry_dates || [];
       setExpiryDates(dates);
       if (dates.length > 0) {
-        setSelectedExpiry(dates[0]);
+        // Use URL expiry if valid, otherwise default to first
+        if (urlExpiry && dates.includes(urlExpiry)) {
+          setSelectedExpiry(urlExpiry);
+        } else if (!selectedExpiry) {
+          setSelectedExpiry(dates[0]);
+        }
       }
     } catch (error) {
       console.error("Error fetching expiry dates:", error);

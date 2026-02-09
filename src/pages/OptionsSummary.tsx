@@ -825,22 +825,26 @@ const OptionsSummary = () => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              {quickLinks.map((link) => (
-                <button
-                  key={link.href}
-                  onClick={() => {
-                    const params = new URLSearchParams();
-                    if (selectedSymbol) params.set("symbol", selectedSymbol);
-                    if (selectedExpiry) params.set("expiry", selectedExpiry);
-                    navigate(`${link.href}?${params.toString()}`);
-                  }}
-                  className="flex flex-col items-center gap-2 p-4 rounded-lg bg-secondary/30 hover:bg-secondary/60 transition-colors group"
-                >
-                  <link.icon className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium text-foreground">{link.title}</span>
-                  <span className="text-xs text-muted-foreground">{link.description}</span>
-                </button>
-              ))}
+              {quickLinks.map((link) => {
+                const params = new URLSearchParams();
+                if (selectedSymbol) params.set("symbol", selectedSymbol);
+                if (selectedExpiry) params.set("expiry", selectedExpiry);
+                const fullUrl = `${link.href}?${params.toString()}`;
+                
+                return (
+                  <a
+                    key={link.href}
+                    href={fullUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex flex-col items-center gap-2 p-4 rounded-lg bg-secondary/30 hover:bg-secondary/60 transition-colors group"
+                  >
+                    <link.icon className="h-6 w-6 text-primary group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-medium text-foreground">{link.title}</span>
+                    <span className="text-xs text-muted-foreground">{link.description}</span>
+                  </a>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
 import { Navbar } from "@/components/Navbar";
@@ -63,14 +63,17 @@ const STORAGE_KEY_SETTINGS = "optionBuilder_settings";
 const OptionBuilder = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const urlSymbol = searchParams.get("symbol");
+  const urlExpiry = searchParams.get("expiry");
   
   // Database-backed strategies
   const { strategies: savedStrategies, saveStrategy, deleteStrategy, loading: strategiesLoading } = useSavedStrategies({ source: "builder" });
 
-  const [symbol, setSymbol] = useState("Nifty 50");
+  const [symbol, setSymbol] = useState(urlSymbol || "Nifty 50");
   const [optionChainData, setOptionChainData] = useState<OptionChainResponse | null>(null);
   const [expiries, setExpiries] = useState<string[]>([]);
-  const [activeExpiry, setActiveExpiry] = useState<string>("");
+  const [activeExpiry, setActiveExpiry] = useState<string>(urlExpiry || "");
   const [positions, setPositions] = useState<Position[]>([]);
   const [currentPrice, setCurrentPrice] = useState(0);
   const [lotSize, setLotSize] = useState(75);
@@ -298,8 +301,13 @@ const OptionBuilder = () => {
         if (data.expiryWise) {
           const expiryKeys = Object.keys(data.expiryWise).sort();
           setExpiries(expiryKeys);
-          if (expiryKeys.length > 0 && !activeExpiry) {
-            setActiveExpiry(expiryKeys[0]);
+          if (expiryKeys.length > 0) {
+            // Use URL expiry if valid, otherwise keep current or use first
+            if (urlExpiry && expiryKeys.includes(urlExpiry)) {
+              setActiveExpiry(urlExpiry);
+            } else if (!activeExpiry || !expiryKeys.includes(activeExpiry)) {
+              setActiveExpiry(expiryKeys[0]);
+            }
           }
         }
       } catch (error) {
