@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { TrendingDown, TrendingUp, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,17 +22,24 @@ export function TickerRibbon() {
   const [tickerData, setTickerData] = useState<TickerItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const isInitialFetch = useRef(true);
 
   useEffect(() => {
     const fetchTickerData = async () => {
       try {
-        setHasError(false);
+        // Only show loading on initial fetch
+        if (isInitialFetch.current) {
+          setHasError(false);
+        }
+        
         const { data, error } = await supabase.functions.invoke('ticker-data');
         
         if (error) {
           console.error('Error fetching ticker data:', error);
-          setHasError(true);
-          setTickerData([]);
+          if (isInitialFetch.current) {
+            setHasError(true);
+            setTickerData([]);
+          }
           return;
         }
 
@@ -46,22 +53,27 @@ export function TickerRibbon() {
           }));
           setTickerData(formattedData);
           setHasError(false);
-        } else {
+        } else if (isInitialFetch.current) {
           setHasError(true);
           setTickerData([]);
         }
       } catch (error) {
         console.error('Error fetching ticker data:', error);
-        setHasError(true);
-        setTickerData([]);
+        if (isInitialFetch.current) {
+          setHasError(true);
+          setTickerData([]);
+        }
       } finally {
-        setIsLoading(false);
+        if (isInitialFetch.current) {
+          setIsLoading(false);
+          isInitialFetch.current = false;
+        }
       }
     };
 
     fetchTickerData();
     
-    // Refresh every 30 seconds
+    // Refresh every 30 seconds - seamless background update
     const interval = setInterval(fetchTickerData, 30000);
     return () => clearInterval(interval);
   }, []);

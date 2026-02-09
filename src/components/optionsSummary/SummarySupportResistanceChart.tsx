@@ -16,14 +16,19 @@ export const SummarySupportResistanceChart = ({ symbol, expiry }: SummarySupport
   const spotSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const resistanceSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const supportSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const isInitialFetch = useRef(true);
 
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [kundaliData, setKundaliData] = useState<KundaliTimeData[]>([]);
 
   const fetchData = useCallback(async () => {
     if (!symbol || !expiry) return;
     
-    setLoading(true);
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
+      setLoading(true);
+    }
+    
     try {
       const result = await fetchKundaliData(symbol, expiry, 100);
       if (result.dataWhole && result.dataWhole.length > 0) {
@@ -32,12 +37,21 @@ export const SummarySupportResistanceChart = ({ symbol, expiry }: SummarySupport
     } catch (err) {
       console.error("Error fetching kundali data:", err);
     } finally {
-      setLoading(false);
+      if (isInitialFetch.current) {
+        setLoading(false);
+        isInitialFetch.current = false;
+      }
     }
   }, [symbol, expiry]);
 
   useEffect(() => {
+    // Reset initial fetch flag when symbol/expiry changes
+    isInitialFetch.current = true;
     fetchData();
+    
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
   }, [fetchData]);
 
   useEffect(() => {

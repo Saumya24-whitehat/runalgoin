@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { PageLayout } from "@/components/PageLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -110,6 +110,7 @@ const OptionsSummary = () => {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const isInitialFetch = useRef(true);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -184,7 +185,10 @@ const OptionsSummary = () => {
   const fetchAllData = useCallback(async () => {
     if (!selectedSymbol || !selectedExpiry) return;
 
-    setLoading(true);
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
+      setLoading(true);
+    }
 
     try {
       // Fetch all data in parallel with correct payloads
@@ -297,15 +301,26 @@ const OptionsSummary = () => {
       setLastRefresh(new Date());
     } catch (err) {
       console.error(`Error fetching data:`, err);
-      setSummaryData(null);
+      if (isInitialFetch.current) {
+        setSummaryData(null);
+      }
     } finally {
-      setLoading(false);
+      if (isInitialFetch.current) {
+        setLoading(false);
+        isInitialFetch.current = false;
+      }
     }
   }, [selectedSymbol, selectedExpiry]);
 
-  // Auto-fetch when symbol/expiry changes
+  // Auto-fetch when symbol/expiry changes with auto-refresh
   useEffect(() => {
+    // Reset initial fetch flag when symbol/expiry changes
+    isInitialFetch.current = true;
     fetchAllData();
+    
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchAllData, 60000);
+    return () => clearInterval(interval);
   }, [fetchAllData]);
 
   // Filtered symbols for search

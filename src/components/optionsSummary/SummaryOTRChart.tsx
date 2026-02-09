@@ -49,6 +49,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
   const toiSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema10SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const ema30SeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const isInitialFetch = useRef(true);
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<OTRDataPoint[]>([]);
@@ -56,7 +57,11 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
   const fetchData = useCallback(async () => {
     if (!symbol || !expiry) return;
     
-    setLoading(true);
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
+      setLoading(true);
+    }
+    
     try {
       const { data: result, error } = await supabase.functions.invoke("otr-data", {
         body: {
@@ -74,12 +79,21 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     } catch (err) {
       console.error("Error fetching OTR data:", err);
     } finally {
-      setLoading(false);
+      if (isInitialFetch.current) {
+        setLoading(false);
+        isInitialFetch.current = false;
+      }
     }
   }, [symbol, expiry]);
 
   useEffect(() => {
+    // Reset initial fetch flag when symbol/expiry changes
+    isInitialFetch.current = true;
     fetchData();
+    
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
   }, [fetchData]);
 
   useEffect(() => {
