@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Flame, Clock, RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +56,7 @@ export function OptionHeatMapDashboard() {
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
   const [initialExpirySet, setInitialExpirySet] = useState(false);
+  const isInitialFetch = useRef(true);
 
   // Fetch symbols
   const {
@@ -97,11 +98,15 @@ export function OptionHeatMapDashboard() {
     setInitialExpirySet(false);
   };
 
-  // Fetch data function
+  // Fetch data function - seamless refresh
   const fetchData = useCallback(async () => {
     if (!selectedSymbol || !selectedExpiry) return;
 
-    setIsLoading(true);
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
+      setIsLoading(true);
+    }
+    
     try {
       const data = await fetchHeatMapOptionChainData(selectedSymbol, selectedExpiry, strikeCount);
       setOptionData(data);
@@ -116,30 +121,29 @@ export function OptionHeatMapDashboard() {
     } catch (error) {
       console.error("Failed to fetch option chain data:", error);
     } finally {
-      setIsLoading(false);
+      if (isInitialFetch.current) {
+        setIsLoading(false);
+        isInitialFetch.current = false;
+      }
     }
   }, [selectedSymbol, selectedExpiry, strikeCount]);
 
-  // Auto-fetch when symbol and expiry are selected
+  // Auto-fetch when symbol and expiry are selected with auto-refresh
   useEffect(() => {
     if (selectedSymbol && selectedExpiry) {
+      // Reset initial fetch flag when symbol/expiry changes
+      isInitialFetch.current = true;
       fetchData();
+      
+      // Auto-refresh every 3 minutes during market hours
+      const interval = setInterval(() => {
+        if (isMarketHours()) {
+          fetchData();
+        }
+      }, REFRESH_INTERVAL);
+
+      return () => clearInterval(interval);
     }
-  }, [selectedSymbol, selectedExpiry, fetchData]);
-
-  // Auto-refresh every 3 minutes during market hours
-  useEffect(() => {
-    if (!selectedSymbol || !selectedExpiry) return;
-
-    const checkAndRefresh = () => {
-      if (isMarketHours()) {
-        fetchData();
-      }
-    };
-
-    const interval = setInterval(checkAndRefresh, REFRESH_INTERVAL);
-
-    return () => clearInterval(interval);
   }, [selectedSymbol, selectedExpiry, fetchData]);
 
   return (

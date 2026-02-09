@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -23,34 +23,48 @@ interface JackpotData {
 }
 
 const JackpotScanner = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [data, setData] = useState<JackpotData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const isInitialFetch = useRef(true);
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!authLoading && !user) {
       navigate("/auth");
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, navigate]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const { data: response, error } = await supabase.functions.invoke("jackpot-scanner");
-        if (!error && response) {
-          setData(response);
-        }
-      } catch (err) {
-        console.error("Error fetching jackpot data:", err);
-      } finally {
-        setIsLoading(false);
+  const fetchData = useCallback(async () => {
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
+      setIsLoading(true);
+    }
+    
+    try {
+      const { data: response, error } = await supabase.functions.invoke("jackpot-scanner");
+      if (!error && response) {
+        setData(response);
       }
-    };
-    fetchData();
+    } catch (err) {
+      console.error("Error fetching jackpot data:", err);
+    } finally {
+      if (isInitialFetch.current) {
+        setIsLoading(false);
+        isInitialFetch.current = false;
+      }
+    }
   }, []);
 
-  if (loading) {
+  useEffect(() => {
+    fetchData();
+    
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-foreground">Loading...</div>

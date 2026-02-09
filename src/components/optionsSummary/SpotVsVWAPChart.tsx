@@ -24,6 +24,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   const chartRef = useRef<IChartApi | null>(null);
   const spotSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const vwapSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const isInitialFetch = useRef(true);
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<PCRTimeData[]>([]);
@@ -31,7 +32,11 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   const fetchData = useCallback(async () => {
     if (!symbol || !expiry) return;
     
-    setLoading(true);
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
+      setLoading(true);
+    }
+    
     try {
       const { data: result, error } = await supabase.functions.invoke("pcr-data", {
         body: {
@@ -48,12 +53,21 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     } catch (err) {
       console.error("Error fetching PCR data for VWAP chart:", err);
     } finally {
-      setLoading(false);
+      if (isInitialFetch.current) {
+        setLoading(false);
+        isInitialFetch.current = false;
+      }
     }
   }, [symbol, expiry]);
 
   useEffect(() => {
+    // Reset initial fetch flag when symbol/expiry changes
+    isInitialFetch.current = true;
     fetchData();
+    
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(fetchData, 60000);
+    return () => clearInterval(interval);
   }, [fetchData]);
 
   useEffect(() => {

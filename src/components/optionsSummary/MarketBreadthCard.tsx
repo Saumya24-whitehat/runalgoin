@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,39 +67,53 @@ interface AdvanceDeclineData {
 export const MarketBreadthCard = ({ symbol }: MarketBreadthCardProps) => {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<AdvanceDeclineData | null>(null);
+  const isInitialFetch = useRef(true);
 
-  useEffect(() => {
-    const loadBreadthData = async () => {
+  const loadBreadthData = useCallback(async () => {
+    if (!symbol) return;
+    
+    // Only show loading on initial fetch
+    if (isInitialFetch.current) {
       setLoading(true);
-      try {
-        const { data: result, error } = await supabase.functions.invoke("advance-decline");
+    }
+    
+    try {
+      const { data: result, error } = await supabase.functions.invoke("advance-decline");
 
-        if (error) throw error;
+      if (error) throw error;
 
-        // Get the display name for the symbol to use as the key
-        // Find the key from the map that matches the symbol value
-        const indexKey = Object.keys(symbolNameMap).find(key => symbolNameMap[key] === symbol) || symbol;
+      // Get the display name for the symbol to use as the key
+      // Find the key from the map that matches the symbol value
+      const indexKey = Object.keys(symbolNameMap).find(key => symbolNameMap[key] === symbol) || symbol;
 
-        if (result && result[indexKey]) {
-          const latestData = result[indexKey] as { advance?: number; decline?: number };
-          
-          setData({
-            advances: latestData?.advance || 0,
-            declines: latestData?.decline || 0,
-            unchanged: 0,
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching advance/decline data:", err);
-      } finally {
-        setLoading(false);
+      if (result && result[indexKey]) {
+        const latestData = result[indexKey] as { advance?: number; decline?: number };
+        
+        setData({
+          advances: latestData?.advance || 0,
+          declines: latestData?.decline || 0,
+          unchanged: 0,
+        });
       }
-    };
-
-    if (symbol) {
-      loadBreadthData();
+    } catch (err) {
+      console.error("Error fetching advance/decline data:", err);
+    } finally {
+      if (isInitialFetch.current) {
+        setLoading(false);
+        isInitialFetch.current = false;
+      }
     }
   }, [symbol]);
+
+  useEffect(() => {
+    // Reset initial fetch flag when symbol changes
+    isInitialFetch.current = true;
+    loadBreadthData();
+    
+    // Auto-refresh every 60 seconds
+    const interval = setInterval(loadBreadthData, 60000);
+    return () => clearInterval(interval);
+  }, [loadBreadthData]);
 
   const advances = data?.advances || 0;
   const declines = data?.declines || 0;
