@@ -269,17 +269,18 @@ export function Navbar() {
 
   return (
     <nav className="sticky top-0 z-[100] bg-nav-bg border-b border-nav-border">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2">
+          <Link to="/dashboard" className="flex items-center gap-1.5 sm:gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               xmlnsXlink="http://www.w3.org/1999/xlink"
-              width={50}
-              height={50}
+              width={36}
+              height={36}
               viewBox="0 0 375 375"
               preserveAspectRatio="xMidYMid meet"
+              className="sm:w-[50px] sm:h-[50px]"
             >
               <defs>
                 <clipPath id="clip1">
@@ -332,7 +333,7 @@ export function Navbar() {
                 d="M303.597656 78.089844V310.285156H172.855469V339.574219H332.886719V48.800781H303.597656Z"
               />
             </svg>
-            <span className="font-heading font-bold text-xl text-foreground">Runalgo</span>
+            <span className="font-heading font-bold text-lg sm:text-xl text-foreground">Runalgo</span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -437,17 +438,17 @@ export function Navbar() {
       {/* Mobile Menu */}
       {isMobileMenuOpen && (
         <div className="lg:hidden bg-nav-bg border-t border-nav-border animate-slide-down max-h-[80vh] overflow-y-auto">
-          <div className="container mx-auto px-4 py-4 space-y-2">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-1 sm:space-y-2">
             {navItems.map((item) => (
               <div key={item.label}>
                 {item.hasDropdown ? (
                   <>
                     <button
                       onClick={() => toggleMobileDropdown(item.label)}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
+                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full min-h-[44px]"
                     >
-                      {item.icon && <item.icon className="h-5 w-5 text-primary" />}
-                      <span className="font-medium">{item.label}</span>
+                      {item.icon && <item.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
+                      <span className="font-medium text-sm sm:text-base">{item.label}</span>
                       <ChevronDown
                         className={`h-4 w-4 ml-auto transition-transform duration-200 ${
                           expandedMobileItem === item.label ? "rotate-180" : ""

@@ -285,10 +285,10 @@ const Dashboard = () => {
           return (
             <div
               key={idx}
-              className="flex items-center gap-4 p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
+              className="flex items-center gap-2 sm:gap-4 p-2 sm:p-3 rounded-lg bg-secondary/30 hover:bg-secondary/50 transition-colors"
             >
               <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center overflow-hidden"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg flex items-center justify-center overflow-hidden shrink-0"
                 style={{ backgroundColor: "#2a2e39" }}
               >
                 <img
@@ -298,26 +298,27 @@ const Dashboard = () => {
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
                     target.style.display = "none";
-                    target.parentElement!.innerHTML = `<span class="text-sm font-bold text-white">${stock.companyName.charAt(0)}</span>`;
+                    target.parentElement!.innerHTML = `<span class="text-xs sm:text-sm font-bold text-white">${stock.companyName.charAt(0)}</span>`;
                   }}
                 />
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{stock.companyName}</div>
-                <div className="text-xs text-muted-foreground">{stock.nseScriptCode}</div>
+                <div className="font-medium text-xs sm:text-sm truncate">{stock.companyName}</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground">{stock.nseScriptCode}</div>
               </div>
-              <div className="text-primary font-medium">₹{ltp.toLocaleString()}</div>
-              <div className="text-muted-foreground">₹{close.toLocaleString()}</div>
-              <div className={`font-medium ${isPositive ? "text-success" : "text-destructive"}`}>
-                {isPositive ? "▲" : "▼"} {Math.abs(change).toFixed(2)}%
+              <div className="text-right shrink-0">
+                <div className="text-primary font-medium text-xs sm:text-sm">₹{ltp.toLocaleString()}</div>
+                <div className={`font-medium text-[10px] sm:text-xs ${isPositive ? "text-success" : "text-destructive"}`}>
+                  {isPositive ? "▲" : "▼"} {Math.abs(change).toFixed(2)}%
+                </div>
               </div>
-              <span className="text-primary font-medium" onClick={() => handleStockClick(stock.nseScriptCode)}>
+              <span className="text-primary font-medium shrink-0" onClick={() => handleStockClick(stock.nseScriptCode)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
+                  width="14"
+                  height="14"
                   fill="#19c3e6"
-                  className="bi bi-graph-up-arrow cursor-pointer hover:opacity-80"
+                  className="bi bi-graph-up-arrow cursor-pointer hover:opacity-80 sm:w-4 sm:h-4"
                   viewBox="0 0 16 16"
                 >
                   <path
@@ -429,7 +430,7 @@ const Dashboard = () => {
         <TickerRibbon />
         <Navbar />
       </div>
-      <main className="container mx-auto px-4 py-6 space-y-6">
+      <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Indices Section */}
         <IndicesSection />
 
@@ -438,58 +439,60 @@ const Dashboard = () => {
 
         {/* Trending Stocks Section */}
         <Card className="bg-card border-border">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xl font-semibold">Trending Stocks</CardTitle>
-            <a href="#" className="text-primary text-sm hover:underline">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 sm:px-6">
+            <CardTitle className="text-lg sm:text-xl font-semibold">Trending Stocks</CardTitle>
+            <a href="#" className="text-primary text-xs sm:text-sm hover:underline">
               View All ›
             </a>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-6">
             <Tabs defaultValue="topgainers" className="w-full">
-              <TabsList className="bg-transparent border-b border-border rounded-none w-full justify-start gap-6 h-auto p-0 mb-4 overflow-x-auto">
-                <TabsTrigger
-                  value="topgainers"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  Top Gainers
-                </TabsTrigger>
-                <TabsTrigger
-                  value="toplosers"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  Top Losers
-                </TabsTrigger>
-                <TabsTrigger
-                  value="volumeshockers"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  Volume Shockers
-                </TabsTrigger>
-                <TabsTrigger
-                  value="topvolume"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  Top Volume
-                </TabsTrigger>
-                <TabsTrigger
-                  value="52weekhigh"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  52 Week High
-                </TabsTrigger>
-                <TabsTrigger
-                  value="52weeklow"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  52 Week Low
-                </TabsTrigger>
-                <TabsTrigger
-                  value="mostvisited"
-                  className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap"
-                >
-                  Most Visited
-                </TabsTrigger>
-              </TabsList>
+              <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
+                <TabsList className="bg-transparent border-b border-border rounded-none w-max sm:w-full justify-start gap-3 sm:gap-6 h-auto p-0 mb-4">
+                  <TabsTrigger
+                    value="topgainers"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    Gainers
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="toplosers"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    Losers
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="volumeshockers"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    Vol Shockers
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="topvolume"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    Top Vol
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="52weekhigh"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    52W High
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="52weeklow"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    52W Low
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="mostvisited"
+                    className="data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 whitespace-nowrap text-xs sm:text-sm"
+                  >
+                    Popular
+                  </TabsTrigger>
+                </TabsList>
+              </div>
               <TabsContent value="topgainers">{renderStockList(trendingData?.TOP_GAINERS, true)}</TabsContent>
               <TabsContent value="toplosers">{renderStockList(trendingData?.TOP_LOSERS, false)}</TabsContent>
               <TabsContent value="volumeshockers">{renderStockList(trendingData?.VOLUME_SHOCKERS)}</TabsContent>

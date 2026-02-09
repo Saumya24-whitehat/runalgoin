@@ -189,18 +189,20 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased text-[11px];
+    @apply bg-background text-foreground font-sans antialiased text-[11px] sm:text-[11px];
     font-family: "Inter", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: 100%;
   }
 
   h1 {
     font-family: "Outfit", sans-serif;
-    @apply text-xl;
+    @apply text-lg sm:text-xl;
   }
 
   h2 {
     font-family: "Outfit", sans-serif;
-    @apply text-lg;
+    @apply text-base sm:text-lg;
   }
 
   h3,
@@ -216,6 +218,22 @@
   }
   .peITMCell {
     background-color: hsl(var(--oc-put-itm-bg));
+  }
+
+  /* Mobile-friendly touch targets */
+  @media (max-width: 640px) {
+    button, 
+    a, 
+    [role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    input, 
+    select, 
+    textarea {
+      font-size: 16px; /* Prevents iOS zoom on focus */
+    }
   }
 }
 
@@ -255,6 +273,58 @@
       line-height: 1.25;
       padding: 0.5rem;
     }
+  }
+
+  /* Mobile-friendly containers */
+  .container-mobile {
+    @apply px-3 sm:px-4 md:px-6;
+  }
+
+  /* Hide on mobile, show on larger screens */
+  .hide-mobile {
+    @apply hidden sm:block;
+  }
+
+  /* Show on mobile, hide on larger screens */
+  .show-mobile {
+    @apply block sm:hidden;
+  }
+
+  /* Mobile-friendly card padding */
+  .card-mobile {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+
+  /* Mobile-friendly gap */
+  .gap-mobile {
+    @apply gap-3 sm:gap-4 md:gap-6;
+  }
+
+  /* Mobile-friendly grid */
+  .grid-mobile-1 {
+    @apply grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Scrollable horizontal container for mobile */
+  .scroll-x-mobile {
+    @apply overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0 sm:overflow-x-visible;
+  }
+
+  /* Mobile-optimized table wrapper */
+  .table-scroll-mobile {
+    @apply overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0;
+  }
+
+  .table-scroll-mobile::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .table-scroll-mobile::-webkit-scrollbar-track {
+    @apply bg-muted/30 rounded-full;
+  }
+
+  .table-scroll-mobile::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
   }
 }
 

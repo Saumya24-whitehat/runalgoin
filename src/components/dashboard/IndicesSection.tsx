@@ -243,12 +243,12 @@ export function IndicesSection() {
 
   const IndexCard = () => (
     <Card className="bg-card border-border h-full">
-      <CardContent className="p-4 h-full flex flex-col">
+      <CardContent className="p-3 sm:p-4 h-full flex flex-col">
         {/* Tabs */}
-        <div className="flex gap-6 mb-4 border-b border-border pb-2">
+        <div className="flex gap-4 sm:gap-6 mb-3 sm:mb-4 border-b border-border pb-2">
           <button
             onClick={() => setActiveIndex("nifty")}
-            className={`text-sm font-semibold pb-1 border-b-2 transition-colors ${
+            className={`text-xs sm:text-sm font-semibold pb-1 border-b-2 transition-colors ${
               activeIndex === "nifty" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
             }`}
           >
@@ -256,7 +256,7 @@ export function IndicesSection() {
           </button>
           <button
             onClick={() => setActiveIndex("sensex")}
-            className={`text-sm font-semibold pb-1 border-b-2 transition-colors ${
+            className={`text-xs sm:text-sm font-semibold pb-1 border-b-2 transition-colors ${
               activeIndex === "sensex" ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
             }`}
           >
@@ -268,12 +268,12 @@ export function IndicesSection() {
         <div className="flex items-start justify-between mb-1">
           <div>
             <div className="flex items-baseline gap-2">
-              <span className="text-xl font-bold">{indexData.value}</span>
-              <span className={`text-sm ${indexData.isPositive ? "text-success" : "text-destructive"}`}>
+              <span className="text-lg sm:text-xl font-bold">{indexData.value}</span>
+              <span className={`text-xs sm:text-sm ${indexData.isPositive ? "text-success" : "text-destructive"}`}>
                 ({indexData.change})
               </span>
             </div>
-            <div className="text-xs text-muted-foreground mt-1">{latestFii.date}</div>
+            <div className="text-[10px] sm:text-xs text-muted-foreground mt-1">{latestFii.date}</div>
           </div>
           {/* Mini Line Chart with real Nifty data */}
           {(() => {
@@ -324,22 +324,22 @@ export function IndicesSection() {
         </div>
 
         {/* Divider */}
-        <div className="border-t border-dashed border-border my-4" />
+        <div className="border-t border-dashed border-border my-3 sm:my-4" />
 
         {/* FII Cash with Bar Calendar */}
         <div className="flex-1">
           <div className="flex items-start justify-between">
             <div>
-              <div className="text-sm text-muted-foreground">FII Cash</div>
-              <div className={`text-lg font-semibold ${latestFii.isPositive ? "text-success" : "text-destructive"}`}>
+              <div className="text-xs sm:text-sm text-muted-foreground">FII Cash</div>
+              <div className={`text-base sm:text-lg font-semibold ${latestFii.isPositive ? "text-success" : "text-destructive"}`}>
                 {latestFii.value} Cr.
               </div>
-              <div className="text-xs text-muted-foreground mt-0.5">{latestFii.date}</div>
+              <div className="text-[10px] sm:text-xs text-muted-foreground mt-0.5">{latestFii.date}</div>
             </div>
           </div>
 
           {/* FII Calendar Bars - Stacked style like reference */}
-          <div className="flex items-end justify-end gap-0.5 h-12 mt-2">
+          <div className="flex items-end justify-end gap-0.5 h-10 sm:h-12 mt-2">
             {fiiCalendarData.map((item, idx) => {
               // Scale bars relative to max value
               const maxValue = Math.max(...fiiCalendarData.map((d) => Math.abs(d.value)));
@@ -349,13 +349,13 @@ export function IndicesSection() {
               return (
                 <div
                   key={idx}
-                  className={`flex items-center justify-center rounded-sm text-[8px] font-medium text-white ${
+                  className={`flex items-center justify-center rounded-sm text-[7px] sm:text-[8px] font-medium text-white ${
                     item.isPositive ? "bg-success" : "bg-destructive"
                   }`}
                   style={{
                     height: `${barHeight}%`,
-                    minHeight: "16px",
-                    width: "20px",
+                    minHeight: "14px",
+                    width: "16px",
                   }}
                 >
                   {item.day}
@@ -502,18 +502,18 @@ export function IndicesSection() {
 
   const ChartCard = () => (
     <Card className="bg-card border-border h-full">
-      <CardContent className="p-4 h-full flex flex-col">
+      <CardContent className="p-3 sm:p-4 h-full flex flex-col">
         {/* Tabs */}
-        <div className="flex gap-6 mb-4 border-b border-border pb-2">
+        <div className="flex gap-3 sm:gap-6 mb-3 sm:mb-4 border-b border-border pb-2 overflow-x-auto">
           {(["nifty50", "nifty500", "niftybank"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveChart(tab)}
-              className={`text-sm font-medium pb-1 border-b-2 transition-colors ${
+              className={`text-xs sm:text-sm font-medium pb-1 border-b-2 transition-colors whitespace-nowrap ${
                 activeChart === tab ? "border-primary text-foreground" : "border-transparent text-muted-foreground"
               }`}
             >
-              {tab === "nifty50" ? "Nifty 50" : tab === "nifty500" ? "Nifty 500" : "Nifty Bank"}
+              {tab === "nifty50" ? "Nifty 50" : tab === "nifty500" ? "Nifty 500" : "Bank"}
             </button>
           ))}
         </div>
@@ -619,28 +619,28 @@ export function IndicesSection() {
     };
 
     return (
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
         {/* Index Name */}
         <span 
-          className="w-24 text-foreground font-medium cursor-pointer hover:text-primary transition-colors"
+          className="w-16 sm:w-24 text-foreground font-medium cursor-pointer hover:text-primary transition-colors text-xs sm:text-sm truncate"
           onClick={handleIndexClick}
         >
           {item.name}
         </span>
 
         {/* Fixed-width container for counts + bars */}
-        <div className="flex items-center gap-1 w-[260px]">
+        <div className="flex items-center gap-1 flex-1 sm:w-[260px]">
           {/* Advance count */}
-          <span className="text-xs text-success w-9 text-right">▲{item.advance}</span>
+          <span className="text-[10px] sm:text-xs text-success w-6 sm:w-9 text-right">▲{item.advance}</span>
 
           {/* Advance bar (flexible width) */}
-          <div className="h-4 bg-success rounded-l" style={{ flexBasis: `${advancePercent}%` }} />
+          <div className="h-3 sm:h-4 bg-success rounded-l" style={{ flexBasis: `${advancePercent}%` }} />
 
           {/* Decline bar (flexible width) */}
-          <div className="h-4 bg-destructive rounded-r" style={{ flexBasis: `${declinePercent}%` }} />
+          <div className="h-3 sm:h-4 bg-destructive rounded-r" style={{ flexBasis: `${declinePercent}%` }} />
 
           {/* Decline count */}
-          <span className="text-xs text-destructive w-9 text-left">▼{item.decline}</span>
+          <span className="text-[10px] sm:text-xs text-destructive w-6 sm:w-9 text-left">▼{item.decline}</span>
         </div>
       </div>
     );
@@ -648,12 +648,12 @@ export function IndicesSection() {
 
   const AdvancesCard = () => (
     <Card className="bg-card border-border h-full">
-      <CardContent className="p-4 h-full flex flex-col">
-        <h3 className="font-semibold mb-3">Advances/Declines</h3>
+      <CardContent className="p-3 sm:p-4 h-full flex flex-col">
+        <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Advances/Declines</h3>
 
         {/* Scrollable - only shows 3 items initially, scroll for more */}
-        <ScrollArea className="h-[50vh] md:h-[200px]">
-          <div className="space-y-3 pr-2">
+        <ScrollArea className="h-[40vh] sm:h-[50vh] md:h-[200px]">
+          <div className="space-y-2 sm:space-y-3 pr-2">
             {advanceDeclineItems.map((item, idx) => (
               <AdvanceDeclineBar key={idx} item={item} />
             ))}
