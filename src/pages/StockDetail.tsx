@@ -152,18 +152,20 @@ const StockDetail = () => {
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">P/E Ratio</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                {stockData.pe_ratio?.toFixed(2) || "N/A"}
+                {stockData.price_earnings_ttm?.toFixed(2) || "N/A"}
               </p>
             </div>
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Div Yield</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                {stockData.dividend_yield?.toFixed(1)}%
+                {stockData.dividends_yield_current?.toFixed(1)}%
               </p>
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">EPS</p>
-              <p className="text-xs sm:text-sm font-semibold text-foreground">₹{stockData.eps?.toFixed(2)}</p>
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                ₹{stockData.earnings_per_share_diluted_ttm?.toFixed(2)}
+              </p>
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Volume</p>
