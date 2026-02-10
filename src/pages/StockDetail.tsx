@@ -143,7 +143,7 @@ const StockDetail = () => {
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Market Cap</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                {formatMarketCap(stockData.market_cap)}
+                {formatMarketCap(stockData.market_cap_basic)}
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
                 Last updated: {lastUpdated}
