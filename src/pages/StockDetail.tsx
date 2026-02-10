@@ -71,17 +71,28 @@ const StockDetail = () => {
 
             <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                <img src={`https://runalgo.xyz/top/chart/data/svg/nse_${symbol}.svg`} alt={`Chart for ${symbol}`} className="w-6 h-6 sm:w-8 sm:h-8" />
+                <img
+                  src={`https://runalgo.xyz/top/chart/data/svg/nse_${symbol}.svg`}
+                  alt={`Chart for ${symbol}`}
+                  className="w-6 h-6 sm:w-8 sm:h-8"
+                />
               </div>
 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-1.5 sm:gap-2">
-                  <h1 className="text-sm sm:text-xl font-bold text-foreground truncate">{stockData?.company_name || symbol}</h1>
-                  <Badge variant="secondary" className="text-[10px] sm:text-xs bg-primary text-primary-foreground shrink-0">
+                  <h1 className="text-sm sm:text-xl font-bold text-foreground truncate">
+                    {stockData?.company_name || symbol}
+                  </h1>
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] sm:text-xs bg-primary text-primary-foreground shrink-0"
+                  >
                     NSE
                   </Badge>
                 </div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase truncate">{stockData?.sector || "Loading..."}</p>
+                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase truncate">
+                  {stockData?.sector || "Loading..."}
+                </p>
               </div>
             </div>
 
@@ -92,7 +103,9 @@ const StockDetail = () => {
             ) : (
               stockData && (
                 <div className="flex items-center gap-1 sm:gap-2 shrink-0">
-                  <span className="text-base sm:text-2xl font-bold text-foreground">{formatPrice(stockData.price)}</span>
+                  <span className="text-base sm:text-2xl font-bold text-foreground">
+                    {formatPrice(stockData.close)}
+                  </span>
                   <span
                     className={`text-[10px] sm:text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
                   >
@@ -107,10 +120,18 @@ const StockDetail = () => {
             <Button variant="ghost" size="icon" className="rounded-full border border-border h-8 w-8 sm:h-9 sm:w-9">
               <Star className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full border border-border h-8 w-8 sm:h-9 sm:w-9 hidden sm:flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full border border-border h-8 w-8 sm:h-9 sm:w-9 hidden sm:flex"
+            >
               <Maximize2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
-            <Button variant="ghost" size="icon" className="rounded-full border border-border h-8 w-8 sm:h-9 sm:w-9 hidden sm:flex">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full border border-border h-8 w-8 sm:h-9 sm:w-9 hidden sm:flex"
+            >
               <MoreVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
@@ -121,16 +142,24 @@ const StockDetail = () => {
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-4 py-2">
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Market Cap</p>
-              <p className="text-xs sm:text-sm font-semibold text-foreground">{formatMarketCap(stockData.market_cap)}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Last updated: {lastUpdated}</p>
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                {formatMarketCap(stockData.market_cap)}
+              </p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
+                Last updated: {lastUpdated}
+              </p>
             </div>
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">P/E Ratio</p>
-              <p className="text-xs sm:text-sm font-semibold text-foreground">{stockData.pe_ratio?.toFixed(2) || "N/A"}</p>
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                {stockData.pe_ratio?.toFixed(2) || "N/A"}
+              </p>
             </div>
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Div Yield</p>
-              <p className="text-xs sm:text-sm font-semibold text-foreground">{stockData.dividend_yield?.toFixed(1)}%</p>
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                {stockData.dividend_yield?.toFixed(1)}%
+              </p>
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">EPS</p>
@@ -138,7 +167,9 @@ const StockDetail = () => {
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Volume</p>
-              <p className="text-xs sm:text-sm font-semibold text-foreground">{stockData.volume?.toLocaleString("en-IN")}</p>
+              <p className="text-xs sm:text-sm font-semibold text-foreground">
+                {stockData.volume?.toLocaleString("en-IN")}
+              </p>
             </div>
           </div>
         )}
