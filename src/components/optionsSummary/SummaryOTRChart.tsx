@@ -163,7 +163,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     // Prepare data
     const toiData = toiValues
       .map((value, idx) => ({
-        time: idx,
+        time: data[idx][0] / 1000,
         value: value,
       }))
       .filter((d) => d.value != null && !isNaN(d.value));
@@ -171,18 +171,17 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     const ema10Data: { time: any; value: number }[] = [];
     ema10Values.forEach((value, idx) => {
       if (value !== null) {
-        ema10Data.push({ time: idx, value });
+        ema10Data.push({ time: data[idx][0] / 1000, value });
       }
     });
 
     const ema30Data: { time: any; value: number }[] = [];
     ema30Values.forEach((value, idx) => {
       if (value !== null) {
-        ema30Data.push({ time: idx, value });
+        ema30Data.push({ time: data[idx][0] / 1000, value });
       }
     });
-    console.log(toiData);
-    console.log(ema30Data);
+    console.log[(toiData, ema10Data, ema30Data)];
 
     toiSeriesRef.current.setData(toiData as any);
     ema10SeriesRef.current.setData(ema10Data as any);
