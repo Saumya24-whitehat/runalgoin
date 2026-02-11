@@ -163,7 +163,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     // Prepare data
     const toiData = toiValues
       .map((value, idx) => ({
-        time: data[idx][0] / 1000,
+        time: data[data.length - idx][0] / 1000,
         value: value,
       }))
       .filter((d) => d.value != null && !isNaN(d.value));
