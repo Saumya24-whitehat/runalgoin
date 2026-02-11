@@ -56,12 +56,12 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
 
   const fetchData = useCallback(async () => {
     if (!symbol || !expiry) return;
-    
+
     // Only show loading on initial fetch
     if (isInitialFetch.current) {
       setLoading(true);
     }
-    
+
     try {
       const { data: result, error } = await supabase.functions.invoke("otr-data", {
         body: {
@@ -90,7 +90,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     // Reset initial fetch flag when symbol/expiry changes
     isInitialFetch.current = true;
     fetchData();
-    
+
     // Auto-refresh every 60 seconds
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
@@ -105,9 +105,10 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       chartRef.current = null;
     }
 
+    console.log(data);
     // Calculate TOI (dataFinal) = Total_Put_OI - Total_Call_OI
     const toiValues = data.map((d) => (d.Total_Put_OI || 0) - (d.Total_Call_OI || 0));
-    
+
     // Calculate EMAs
     const ema10Values = calculateEMA(toiValues, 10);
     const ema30Values = calculateEMA(toiValues, 30);
@@ -220,24 +221,24 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
   // Calculate latest values
   const getLatestValues = () => {
     if (data.length === 0) return null;
-    
+
     const toiValues = data.map((d) => (d.Total_Put_OI || 0) - (d.Total_Call_OI || 0));
     const ema10Values = calculateEMA(toiValues, 10);
     const ema30Values = calculateEMA(toiValues, 30);
-    
+
     const latestTOI = toiValues[toiValues.length - 1];
     const latestEMA10 = ema10Values[ema10Values.length - 1];
     const latestEMA30 = ema30Values[ema30Values.length - 1];
-    
+
     return { toi: latestTOI, ema10: latestEMA10, ema30: latestEMA30 };
   };
 
   const latestValues = getLatestValues();
-  
+
   // Determine trend
   const getTrend = () => {
     if (!latestValues || latestValues.ema10 === null || latestValues.ema30 === null) return null;
-    
+
     if (latestValues.ema10 > latestValues.ema30 && latestValues.toi > latestValues.ema10) {
       return { text: "Bullish", color: "text-success" };
     }
@@ -275,11 +276,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
                   <span className="text-muted-foreground">TOI:</span>
                   <span className="font-medium">{formatTOI(latestValues.toi)}</span>
                 </span>
-                {trend && (
-                  <span className={`font-medium ${trend.color}`}>
-                    {trend.text}
-                  </span>
-                )}
+                {trend && <span className={`font-medium ${trend.color}`}>{trend.text}</span>}
               </>
             )}
           </div>
