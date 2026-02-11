@@ -163,7 +163,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     // Prepare data
     const toiData = toiValues
       .map((value, idx) => ({
-        time: data[data.length - idx - 1][0] / 1000,
+        time: data[idx][0] / 1000,
         value: value,
       }))
       .filter((d) => d.value != null && !isNaN(d.value));
@@ -171,15 +171,42 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     const ema10Data: { time: any; value: number }[] = [];
     ema10Values.forEach((value, idx) => {
       if (value !== null) {
-        ema10Data.push({ time: data[data.length - idx - 1][0] / 1000, value });
+        ema10Data.push({ time: data[idx][0] / 1000, value });
       }
     });
 
     const ema30Data: { time: any; value: number }[] = [];
     ema30Values.forEach((value, idx) => {
       if (value !== null) {
-        ema30Data.push({ time: data[data.length - idx - 1][0] / 1000, value });
+        ema30Data.push({ time: data[idx][0] / 1000, value });
       }
+    });
+    toiData = toiData.sort((a, b) => {
+      if (new Date(a.time).getTime() > new Date(b.time).getTime()) {
+        return 1;
+      }
+      if (new Date(a.time).getTime() < new Date(b.time).getTime()) {
+        return -1;
+      }
+      return 0;
+    });
+    ema10Data = ema10Data.sort((a, b) => {
+      if (new Date(a.time).getTime() > new Date(b.time).getTime()) {
+        return 1;
+      }
+      if (new Date(a.time).getTime() < new Date(b.time).getTime()) {
+        return -1;
+      }
+      return 0;
+    });
+    ema30Data = ema30Data.sort((a, b) => {
+      if (new Date(a.time).getTime() > new Date(b.time).getTime()) {
+        return 1;
+      }
+      if (new Date(a.time).getTime() < new Date(b.time).getTime()) {
+        return -1;
+      }
+      return 0;
     });
     console.log([toiData, ema10Data, ema30Data]);
 
