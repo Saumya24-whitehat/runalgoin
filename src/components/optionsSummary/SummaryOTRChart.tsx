@@ -107,7 +107,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
 
     // console.log(data);
     // Calculate TOI (dataFinal) = Total_Put_OI - Total_Call_OI
-    const toiValues = data.map((d) => d[1]);
+    const toiValues = data.map((d) => d[1] ?? 0);
 
     // Calculate EMAs
     const ema10Values = calculateEMA(toiValues, 10);
@@ -161,10 +161,12 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     });
 
     // Prepare data
-    const toiData = toiValues.map((value, idx) => ({
-      time: data[idx][0] / 1000,
-      value: value,
-    }));
+    const toiData = toiValues
+      .map((value, idx) => ({
+        time: data[idx][0] / 1000,
+        value: value,
+      }))
+      .filter((d) => d.value != null && !isNaN(d.value));
 
     const ema10Data: { time: any; value: number }[] = [];
     ema10Values.forEach((value, idx) => {
