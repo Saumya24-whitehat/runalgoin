@@ -107,7 +107,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
 
     // console.log(data);
     // Calculate TOI (dataFinal) = Total_Put_OI - Total_Call_OI
-    const toiValues = dataFinal.map((d) => d[1]);
+    const toiValues = data.map((d) => d[1]);
 
     // Calculate EMAs
     const ema10Values = calculateEMA(toiValues, 10);
