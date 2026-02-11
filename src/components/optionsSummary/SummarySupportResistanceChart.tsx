@@ -23,12 +23,12 @@ export const SummarySupportResistanceChart = ({ symbol, expiry }: SummarySupport
 
   const fetchData = useCallback(async () => {
     if (!symbol || !expiry) return;
-    
+
     // Only show loading on initial fetch
     if (isInitialFetch.current) {
       setLoading(true);
     }
-    
+
     try {
       const result = await fetchKundaliData(symbol, expiry, 100);
       if (result.dataWhole && result.dataWhole.length > 0) {
@@ -48,7 +48,7 @@ export const SummarySupportResistanceChart = ({ symbol, expiry }: SummarySupport
     // Reset initial fetch flag when symbol/expiry changes
     isInitialFetch.current = true;
     fetchData();
-    
+
     // Auto-refresh every 60 seconds
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
@@ -113,6 +113,7 @@ export const SummarySupportResistanceChart = ({ symbol, expiry }: SummarySupport
     const resistanceData: { time: number; value: number }[] = [];
     const supportData: { time: number; value: number }[] = [];
 
+    console.log(kundaliData);
     kundaliData.forEach((item, index) => {
       spotData.push({ time: index, value: item.underlyning || 0 });
       resistanceData.push({ time: index, value: item.max_ce_strike || 0 });
