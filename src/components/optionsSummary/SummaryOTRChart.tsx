@@ -182,9 +182,9 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
     console.log(toiData);
     console.log(ema30Data);
 
-    toiSeriesRef.current.setData(toiData);
-    ema10SeriesRef.current.setData(ema10Data);
-    ema30SeriesRef.current.setData(ema30Data);
+    toiSeriesRef.current.setData(toiData as any);
+    ema10SeriesRef.current.setData(ema10Data as any);
+    ema30SeriesRef.current.setData(ema30Data as any);
 
     // Add zero line
     toiSeriesRef.current.createPriceLine({
