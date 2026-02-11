@@ -73,8 +73,8 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       });
 
       if (error) throw error;
-      if (result?.data) {
-        setData(result.data);
+      if (result?.dataFinal) {
+        setData(result.dataFinal);
       }
     } catch (err) {
       console.error("Error fetching OTR data:", err);
@@ -105,9 +105,9 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       chartRef.current = null;
     }
 
-    console.log(data);
+    // console.log(data);
     // Calculate TOI (dataFinal) = Total_Put_OI - Total_Call_OI
-    const toiValues = data.map((d) => (d.Total_Put_OI || 0) - (d.Total_Call_OI || 0));
+    const toiValues = dataFinal.map((d) => d[1]);
 
     // Calculate EMAs
     const ema10Values = calculateEMA(toiValues, 10);
@@ -162,21 +162,21 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
 
     // Prepare data
     const toiData = toiValues.map((value, idx) => ({
-      time: idx as any,
+      time: dataFinal[idx][0],
       value: value,
     }));
 
     const ema10Data: { time: any; value: number }[] = [];
     ema10Values.forEach((value, idx) => {
       if (value !== null) {
-        ema10Data.push({ time: idx as any, value });
+        ema10Data.push({ time: dataFinal[idx][0], value });
       }
     });
 
     const ema30Data: { time: any; value: number }[] = [];
     ema30Values.forEach((value, idx) => {
       if (value !== null) {
-        ema30Data.push({ time: idx as any, value });
+        ema30Data.push({ time: dataFinal[idx][0], value });
       }
     });
 
