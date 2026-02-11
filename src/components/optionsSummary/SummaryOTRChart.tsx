@@ -162,21 +162,21 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
 
     // Prepare data
     const toiData = toiValues.map((value, idx) => ({
-      time: dataFinal[idx][0],
+      time: data[idx][0],
       value: value,
     }));
 
     const ema10Data: { time: any; value: number }[] = [];
     ema10Values.forEach((value, idx) => {
       if (value !== null) {
-        ema10Data.push({ time: dataFinal[idx][0], value });
+        ema10Data.push({ time: data[idx][0], value });
       }
     });
 
     const ema30Data: { time: any; value: number }[] = [];
     ema30Values.forEach((value, idx) => {
       if (value !== null) {
-        ema30Data.push({ time: dataFinal[idx][0], value });
+        ema30Data.push({ time: data[idx][0], value });
       }
     });
 
