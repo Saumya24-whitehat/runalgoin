@@ -31,12 +31,12 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
 
   const fetchData = useCallback(async () => {
     if (!symbol || !expiry) return;
-    
+
     // Only show loading on initial fetch
     if (isInitialFetch.current) {
       setLoading(true);
     }
-    
+
     try {
       const { data: result, error } = await supabase.functions.invoke("pcr-data", {
         body: {
@@ -64,7 +64,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     // Reset initial fetch flag when symbol/expiry changes
     isInitialFetch.current = true;
     fetchData();
-    
+
     // Auto-refresh every 60 seconds
     const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
@@ -123,19 +123,19 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     // Prepare data - filter out 0 VWAP or use previous value
     const spotData: { time: any; value: number }[] = [];
     const vwapData: { time: any; value: number }[] = [];
-    
+
     let lastValidVWAP = 0;
-    
+    console.log(data);
     data.forEach((item, idx) => {
       // Always add spot data
       spotData.push({
         time: idx as any,
         value: item.underlyning || 0,
       });
-      
+
       // Handle VWAP - skip if 0, or use previous valid value
       let vwapValue = item.VWAP || 0;
-      
+
       if (vwapValue === 0) {
         // Use previous valid VWAP if available
         if (lastValidVWAP > 0) {
@@ -147,7 +147,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
       } else {
         lastValidVWAP = vwapValue;
       }
-      
+
       vwapData.push({
         time: idx as any,
         value: vwapValue,
@@ -185,7 +185,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   // Get latest data with valid VWAP
   const getLatestData = () => {
     if (data.length === 0) return null;
-    
+
     // Find the last entry with valid VWAP
     for (let i = data.length - 1; i >= 0; i--) {
       if (data[i].VWAP && data[i].VWAP > 0) {
@@ -195,7 +195,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
         };
       }
     }
-    
+
     return {
       spot: data[data.length - 1].underlyning,
       vwap: 0,
@@ -228,10 +228,12 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
                 </span>
               )}
               {spotAboveVWAP !== null && (
-                <span className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded",
-                  spotAboveVWAP ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive"
-                )}>
+                <span
+                  className={cn(
+                    "text-xs font-medium px-2 py-0.5 rounded",
+                    spotAboveVWAP ? "bg-success/20 text-success" : "bg-destructive/20 text-destructive",
+                  )}
+                >
                   {spotAboveVWAP ? "Above" : "Below"}
                 </span>
               )}
