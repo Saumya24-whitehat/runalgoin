@@ -180,6 +180,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       }
     });
     console.log(toiData);
+    console.log(ema30Data);
 
     toiSeriesRef.current.setData(toiData);
     ema10SeriesRef.current.setData(ema10Data);
