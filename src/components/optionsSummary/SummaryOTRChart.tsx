@@ -179,6 +179,7 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
         ema30Data.push({ time: data[idx][0], value });
       }
     });
+    console.log(toiData);
 
     toiSeriesRef.current.setData(toiData);
     ema10SeriesRef.current.setData(ema10Data);
