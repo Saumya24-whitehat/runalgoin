@@ -129,7 +129,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     data.forEach((item, idx) => {
       // Always add spot data
       spotData.push({
-        time: idx as any,
+        time: item.timestamp,
         value: item.underlyning || 0,
       });
 
@@ -149,7 +149,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
       }
 
       vwapData.push({
-        time: idx as any,
+        time: item.timestamp,
         value: vwapValue,
       });
     });
