@@ -181,34 +181,9 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
         ema30Data.push({ time: data[idx][0] / 1000, value });
       }
     });
-    toiData = toiData.sort((a, b) => {
-      if (new Date(a.time).getTime() > new Date(b.time).getTime()) {
-        return 1;
-      }
-      if (new Date(a.time).getTime() < new Date(b.time).getTime()) {
-        return -1;
-      }
-      return 0;
-    });
-    ema10Data = ema10Data.sort((a, b) => {
-      if (new Date(a.time).getTime() > new Date(b.time).getTime()) {
-        return 1;
-      }
-      if (new Date(a.time).getTime() < new Date(b.time).getTime()) {
-        return -1;
-      }
-      return 0;
-    });
-    ema30Data = ema30Data.sort((a, b) => {
-      if (new Date(a.time).getTime() > new Date(b.time).getTime()) {
-        return 1;
-      }
-      if (new Date(a.time).getTime() < new Date(b.time).getTime()) {
-        return -1;
-      }
-      return 0;
-    });
-    console.log([toiData, ema10Data, ema30Data]);
+    toiData.sort((a, b) => a.time - b.time);
+    ema10Data.sort((a, b) => a.time - b.time);
+    ema30Data.sort((a, b) => a.time - b.time);
 
     toiSeriesRef.current.setData(toiData as any);
     ema10SeriesRef.current.setData(ema10Data as any);
