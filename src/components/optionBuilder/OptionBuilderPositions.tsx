@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { Position, parseExpiryDate } from '@/services/optionBuilderApi';
+import { useState, useEffect, useRef } from 'react';
+import { Position } from '@/services/optionBuilderApi';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -10,7 +10,6 @@ import PartialExitDialog from './PartialExitDialog';
 
 interface OptionBuilderPositionsProps {
   positions: Position[];
-  expiries?: string[];
   onToggle: (id: string) => void;
   onExit: (id: string, exitPrice: number) => void;
   onRemove: (id: string) => void;
@@ -75,7 +74,6 @@ const EditableInput = ({ value, onChange, min = 0, step, className, disabled, is
 
 const OptionBuilderPositions = ({ 
   positions, 
-  expiries = [],
   onToggle, 
   onExit, 
   onRemove, 
@@ -110,37 +108,7 @@ const OptionBuilderPositions = ({
     onUpdatePosition?.(id, { optType });
   };
 
-  // When date changes, filter valid expiries and keep current if still valid
-  const handleDateChange = (id: string, newDate: string, currentExpiry: string) => {
-    const newDateObj = new Date(newDate);
-    // Filter expiries that are on or after the new date
-    const validExpiries = expiries.filter((exp) => {
-      const expiryDate = parseExpiryDate(exp);
-      return expiryDate >= newDateObj;
-    });
 
-    const updates: Partial<Position> = { date: newDate };
-    
-    // Only change expiry if current one is no longer valid
-    if (!validExpiries.includes(currentExpiry) && validExpiries.length > 0) {
-      updates.expiry = validExpiries[0];
-    }
-
-    onUpdatePosition?.(id, updates);
-  };
-
-  const handleExpiryChange = (id: string, expiry: string) => {
-    onUpdatePosition?.(id, { expiry });
-  };
-
-  // Get valid expiries for a given date
-  const getValidExpiries = (date: string): string[] => {
-    const dateObj = new Date(date);
-    return expiries.filter((exp) => {
-      const expiryDate = parseExpiryDate(exp);
-      return expiryDate >= dateObj;
-    });
-  };
 
   const handleEntryPriceChange = (id: string, entryPrice: number) => {
     if (entryPrice >= 0) {
@@ -249,33 +217,8 @@ const OptionBuilderPositions = ({
                       disabled={isExited}
                     />
                   </TableCell>
-                  <TableCell>
-                    <Input
-                      type="date"
-                      value={position.date}
-                      onChange={(e) => position.id && handleDateChange(position.id, e.target.value, position.expiry)}
-                      className="w-[130px] h-8 text-xs"
-                      disabled={isExited}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={position.expiry}
-                      onValueChange={(value) => position.id && handleExpiryChange(position.id, value)}
-                      disabled={isExited}
-                    >
-                      <SelectTrigger className="w-[110px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {getValidExpiries(position.date).map((exp) => (
-                          <SelectItem key={exp} value={exp}>
-                            {exp}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
+                  <TableCell className="text-sm">{position.date}</TableCell>
+                  <TableCell className="text-sm">{position.expiry}</TableCell>
                   <TableCell className="font-medium">{position.strike}</TableCell>
                   <TableCell>
                     <Select 

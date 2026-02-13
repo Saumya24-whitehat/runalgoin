@@ -353,7 +353,7 @@ const OptionSimulator = () => {
     setLotSize(getLotSizeForSymbol(symbol));
   }, [symbol]);
 
-  // Fetch expiry dates when symbol or date changes
+  // Fetch expiry dates when symbol or date changes - retain expiry if still valid
   useEffect(() => {
     const loadExpiries = async () => {
       setIsLoadingExpiries(true);
@@ -362,7 +362,10 @@ const OptionSimulator = () => {
         const expiryList = await fetchSimulatorExpiryDates(symbol, dateStr);
         setExpiries(expiryList);
         if (expiryList.length > 0) {
-          setActiveExpiry(expiryList[0]);
+          // Keep current expiry if it exists in the new list
+          if (!activeExpiry || !expiryList.includes(activeExpiry)) {
+            setActiveExpiry(expiryList[0]);
+          }
         }
       } catch (error) {
         console.error("Error fetching expiries:", error);
