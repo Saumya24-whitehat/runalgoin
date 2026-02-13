@@ -851,7 +851,6 @@ const OptionBuilder = () => {
                 <TabsContent value="legs" className="mt-4">
                   <OptionBuilderPositions
                     positions={positions}
-                    expiries={expiries}
                     onToggle={togglePosition}
                     onExit={exitPosition}
                     onRemove={removePosition}
