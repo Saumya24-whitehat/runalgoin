@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Trash2, TrendingUp, TrendingDown, Minus, MoreHorizontal } from "lucide-react";
 import strategySVGData from "@/data/StrategySVGData.json";
 import CreateCustomStrategyModal, { CustomStrategyDefinition } from "./CreateCustomStrategyModal";
+import { useUserPreferences } from "@/hooks/useUserPreferences";
+import { toast } from "sonner";
 
 interface StrategyData {
   svg: string;
@@ -19,10 +21,24 @@ interface Strategy {
 
 const formatStrategyName = (id: string): string => {
   return id
-    .replace(/-[A-Za-z0-9]{8}$/, "") // Remove hash suffixes like -BuaBwyDA
+    .replace(/-[A-Za-z0-9]{8}$/, "")
     .split("-")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
+};
+
+const categoryIcons: Record<string, React.ElementType> = {
+  bullish: TrendingUp,
+  bearish: TrendingDown,
+  neutral: Minus,
+  others: MoreHorizontal,
+};
+
+const categoryColors: Record<string, string> = {
+  bullish: "text-green-500",
+  bearish: "text-red-500",
+  neutral: "text-yellow-500",
+  others: "text-blue-500",
 };
 
 interface OptionBuilderStrategiesProps {
@@ -33,6 +49,11 @@ interface OptionBuilderStrategiesProps {
 const OptionBuilderStrategies = ({ onSelectStrategy, onCreateCustomStrategy }: OptionBuilderStrategiesProps) => {
   const [filter, setFilter] = useState<"all" | "bullish" | "bearish" | "neutral" | "others">("bullish");
   const [showCustomModal, setShowCustomModal] = useState(false);
+
+  const { value: customStrategies, setValue: setCustomStrategies } = useUserPreferences<CustomStrategyDefinition[]>({
+    key: "custom_strategies",
+    defaultValue: [],
+  });
 
   const strategies: Strategy[] = useMemo(() => {
     const data = strategySVGData as Record<string, StrategyData>;
@@ -45,6 +66,28 @@ const OptionBuilderStrategies = ({ onSelectStrategy, onCreateCustomStrategy }: O
   }, []);
 
   const filteredStrategies = filter === "all" ? strategies : strategies.filter((s) => s.category === filter);
+  const filteredCustom = filter === "all" ? customStrategies : customStrategies.filter((s) => s.category === filter);
+
+  const handleCreateCustom = (strategy: CustomStrategyDefinition) => {
+    const updated = [...customStrategies, strategy];
+    setCustomStrategies(updated);
+    onCreateCustomStrategy?.(strategy);
+    toast.success(`Strategy "${strategy.name}" saved`);
+  };
+
+  const handleDeleteCustom = (index: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const name = filteredCustom[index].name;
+    // Find the actual index in the full array
+    const actualIndex = customStrategies.indexOf(filteredCustom[index]);
+    const updated = customStrategies.filter((_, i) => i !== actualIndex);
+    setCustomStrategies(updated);
+    toast.success(`Deleted "${name}"`);
+  };
+
+  const handleSelectCustom = (strategy: CustomStrategyDefinition) => {
+    onCreateCustomStrategy?.(strategy);
+  };
 
   return (
     <Card>
@@ -76,6 +119,36 @@ const OptionBuilderStrategies = ({ onSelectStrategy, onCreateCustomStrategy }: O
             </CardContent>
           </Card>
 
+          {/* Saved Custom Strategies */}
+          {filteredCustom.map((custom, index) => {
+            const Icon = categoryIcons[custom.category] || MoreHorizontal;
+            const color = categoryColors[custom.category] || "text-muted-foreground";
+            return (
+              <Card
+                key={`custom-${index}`}
+                className="cursor-pointer hover:border-primary transition-colors relative group"
+                onClick={() => handleSelectCustom(custom)}
+              >
+                <CardContent className="p-3 text-center">
+                  <div className="w-full h-12 mb-2 bg-muted/50 rounded flex flex-col items-center justify-center gap-1">
+                    <Icon className={`h-5 w-5 ${color}`} />
+                    <span className="text-[10px] text-muted-foreground">{custom.legs.length} legs</span>
+                  </div>
+                  <div className="text-xs font-medium truncate">{custom.name}</div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-1 right-1 h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => handleDeleteCustom(index, e)}
+                  >
+                    <Trash2 className="h-3 w-3 text-destructive" />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+
+          {/* Built-in Strategies */}
           {filteredStrategies.map((strategy) => (
             <Card
               key={strategy.id}
@@ -106,7 +179,7 @@ const OptionBuilderStrategies = ({ onSelectStrategy, onCreateCustomStrategy }: O
         <CreateCustomStrategyModal
           open={showCustomModal}
           onOpenChange={setShowCustomModal}
-          onCreateStrategy={(strategy) => onCreateCustomStrategy?.(strategy)}
+          onCreateStrategy={handleCreateCustom}
         />
       </CardContent>
     </Card>
