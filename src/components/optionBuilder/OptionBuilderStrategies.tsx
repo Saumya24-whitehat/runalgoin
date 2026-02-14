@@ -1,7 +1,9 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import strategySVGData from "@/data/StrategySVGData.json";
+import CreateCustomStrategyModal, { CustomStrategyDefinition } from "./CreateCustomStrategyModal";
 
 interface StrategyData {
   svg: string;
@@ -25,10 +27,12 @@ const formatStrategyName = (id: string): string => {
 
 interface OptionBuilderStrategiesProps {
   onSelectStrategy: (strategyId: string) => void;
+  onCreateCustomStrategy?: (strategy: CustomStrategyDefinition) => void;
 }
 
-const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesProps) => {
+const OptionBuilderStrategies = ({ onSelectStrategy, onCreateCustomStrategy }: OptionBuilderStrategiesProps) => {
   const [filter, setFilter] = useState<"all" | "bullish" | "bearish" | "neutral" | "others">("bullish");
+  const [showCustomModal, setShowCustomModal] = useState(false);
 
   const strategies: Strategy[] = useMemo(() => {
     const data = strategySVGData as Record<string, StrategyData>;
@@ -61,6 +65,17 @@ const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesPr
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {/* Create Custom Strategy Card */}
+          <Card
+            className="cursor-pointer hover:border-primary transition-colors border-dashed"
+            onClick={() => setShowCustomModal(true)}
+          >
+            <CardContent className="p-3 text-center flex flex-col items-center justify-center h-full min-h-[80px]">
+              <Plus className="h-6 w-6 text-muted-foreground mb-1" />
+              <div className="text-xs font-medium text-muted-foreground">Create Custom</div>
+            </CardContent>
+          </Card>
+
           {filteredStrategies.map((strategy) => (
             <Card
               key={strategy.id}
@@ -87,6 +102,12 @@ const OptionBuilderStrategies = ({ onSelectStrategy }: OptionBuilderStrategiesPr
             </Card>
           ))}
         </div>
+
+        <CreateCustomStrategyModal
+          open={showCustomModal}
+          onOpenChange={setShowCustomModal}
+          onCreateStrategy={(strategy) => onCreateCustomStrategy?.(strategy)}
+        />
       </CardContent>
     </Card>
   );

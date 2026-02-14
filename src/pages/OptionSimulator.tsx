@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -867,6 +868,60 @@ const OptionSimulator = () => {
     [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData],
   );
 
+  const handleCreateCustomStrategy = useCallback(
+    (strategy: CustomStrategyDefinition) => {
+      const dateStr = format(selectedDate, "yyyy-MM-dd");
+      const strikeDiff = symbol.includes("Bank") ? 100 : 50;
+      const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
+
+      strategy.legs.forEach((leg) => {
+        let strike = atm;
+
+        if (leg.strikeMethod === "atm_offset") {
+          strike = atm + leg.strikeOffset * strikeDiff;
+        } else if (leg.strikeMethod === "ltp" && simulatorData) {
+          let bestDiff = Infinity;
+          simulatorData.strikes.forEach((s) => {
+            const price = leg.optType === "CE" ? s.cePrice : s.pePrice;
+            const diff = Math.abs(price - leg.targetLtp);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              strike = s.strike;
+            }
+          });
+        } else if (leg.strikeMethod === "delta" && simulatorData) {
+          let bestDiff = Infinity;
+          simulatorData.strikes.forEach((s) => {
+            const delta = leg.optType === "CE" ? (s as any).ceDelta ?? 0.5 : (s as any).peDelta ?? -0.5;
+            const diff = Math.abs(delta - leg.targetDelta);
+            if (diff < bestDiff) {
+              bestDiff = diff;
+              strike = s.strike;
+            }
+          });
+        }
+
+        const strikeData = simulatorData?.strikes.find((s) => Math.abs(s.strike - strike) < 0.01);
+
+        addPosition({
+          action: leg.action,
+          lots: leg.lots,
+          date: dateStr,
+          expiry: activeExpiry,
+          strike,
+          optType: leg.optType,
+          entryPrice: strikeData ? (leg.optType === "CE" ? strikeData.cePrice : strikeData.pePrice) : 0,
+          currentPrice: strikeData ? (leg.optType === "CE" ? strikeData.cePrice : strikeData.pePrice) : 0,
+          IV: strikeData ? (leg.optType === "CE" ? strikeData.ceIV : strikeData.peIV) : 15,
+          lotSize,
+        });
+      });
+
+      setShowStrategies(false);
+    },
+    [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData],
+  );
+
   const handleSaveStrategy = async (name: string, description: string, type: string) => {
     await saveStrategy(name, description, type, positions, symbol);
   };
@@ -1550,7 +1605,7 @@ const OptionSimulator = () => {
             <div className="space-y-3">
               {/* Strategies or Chart */}
               {positions.length === 0 && showStrategies ? (
-                <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} />
+                <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} onCreateCustomStrategy={handleCreateCustomStrategy} />
               ) : (
                 <>
                   <OptionBuilderMetrics
