@@ -1604,7 +1604,7 @@ const OptionSimulator = () => {
             {/* Right Side - Chart and Metrics */}
             <div className="space-y-3">
               {/* Strategies or Chart */}
-              {positions.length === 0 && showStrategies ? (
+              {(positions.length === 0 || positions.every(p => p.exitPrice !== undefined)) && showStrategies ? (
                 <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} onCreateCustomStrategy={handleCreateCustomStrategy} />
               ) : (
                 <>

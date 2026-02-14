@@ -668,7 +668,9 @@ const OptionBuilder = () => {
     );
   }
 
+  const allExited = positions.length > 0 && positions.every(p => p.exitPrice !== undefined);
   const hasPositions = positions.length > 0;
+  const showStrategyCards = !hasPositions || allExited;
 
   return (
     <div className="min-h-screen bg-background">
@@ -861,8 +863,8 @@ const OptionBuilder = () => {
 
           {/* Right Panel - Chart & Metrics (only show when positions exist) */}
           <div className="space-y-6">
-            {/* Strategies Panel - only show when no positions */}
-            {showStrategies && !hasPositions && <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} onCreateCustomStrategy={handleCreateCustomStrategy} />}
+            {/* Strategies Panel - show when no positions or all exited */}
+            {showStrategies && showStrategyCards && <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} onCreateCustomStrategy={handleCreateCustomStrategy} />}
             {hasPositions && (
               <>
                 {/* Metrics */}
