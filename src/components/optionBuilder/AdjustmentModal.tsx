@@ -765,7 +765,7 @@ const ComparativeTriggersSection = ({
 
           return (
             <div key={idx} className="border border-border rounded-lg p-3 space-y-3">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {/* Position to compare */}
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Position to Compare With:</label>
@@ -818,8 +818,10 @@ const ComparativeTriggersSection = ({
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
 
-                {/* Operator */}
+              {/* Row 2: Operator, Condition, Value, Delete */}
+              <div className="grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-end">
                 <div>
                   <label className="text-xs text-muted-foreground mb-1 block">Operator:</label>
                   <Select
@@ -837,39 +839,33 @@ const ComparativeTriggersSection = ({
                     </SelectContent>
                   </Select>
                 </div>
-
-                {/* Condition + Value */}
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <label className="text-xs text-muted-foreground mb-1 block">Condition:</label>
-                    <Select
-                      value={ct.condition}
-                      onValueChange={(v) => onUpdate(group.id, idx, "condition", v)}
-                    >
-                      <SelectTrigger className="w-full text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="greaterThan">Greater than</SelectItem>
-                        <SelectItem value="lessThan">Less than</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="w-20">
-                    <label className="text-xs text-muted-foreground mb-1 block">Value:</label>
-                    <Input
-                      type="number"
-                      value={ct.value}
-                      onChange={(e) => onUpdate(group.id, idx, "value", parseFloat(e.target.value) || 0)}
-                      className="text-xs"
-                    />
-                  </div>
-                  <div className="flex items-end">
-                    <Button variant="ghost" size="sm" onClick={() => onRemove(group.id, idx)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Condition:</label>
+                  <Select
+                    value={ct.condition}
+                    onValueChange={(v) => onUpdate(group.id, idx, "condition", v)}
+                  >
+                    <SelectTrigger className="w-full text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="greaterThan">Greater than</SelectItem>
+                      <SelectItem value="lessThan">Less than</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Value:</label>
+                  <Input
+                    type="number"
+                    value={ct.value}
+                    onChange={(e) => onUpdate(group.id, idx, "value", parseFloat(e.target.value) || 0)}
+                    className="text-xs w-20"
+                  />
+                </div>
+                <Button variant="ghost" size="sm" onClick={() => onRemove(group.id, idx)}>
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
               </div>
 
               {/* Live Comparison Preview */}
