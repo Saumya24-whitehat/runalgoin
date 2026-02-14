@@ -16,6 +16,9 @@ interface OptionBuilderPositionsProps {
   onUpdatePosition?: (id: string, updates: Partial<Position>) => void;
   onReEntry?: (id: string) => void;
   onPartialExit?: (id: string, lotsToExit: number, exitPrice: number) => void;
+  onToggleAll?: (enabled: boolean) => void;
+  onExitAll?: () => void;
+  onRemoveAll?: () => void;
 }
 
 // Editable input that only syncs on blur to prevent focus loss
@@ -79,7 +82,10 @@ const OptionBuilderPositions = ({
   onRemove, 
   onUpdatePosition,
   onReEntry,
-  onPartialExit
+  onPartialExit,
+  onToggleAll,
+  onExitAll,
+  onRemoveAll,
 }: OptionBuilderPositionsProps) => {
   const [exitDialogOpen, setExitDialogOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
@@ -155,7 +161,10 @@ const OptionBuilderPositions = ({
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
-                <Checkbox />
+                <Checkbox 
+                  checked={positions.every(p => p.enabled)}
+                  onCheckedChange={(checked) => onToggleAll?.(!!checked)}
+                />
               </TableHead>
               <TableHead>Action</TableHead>
               <TableHead>Lots</TableHead>
@@ -167,7 +176,20 @@ const OptionBuilderPositions = ({
               <TableHead>Current/Exit</TableHead>
               <TableHead>P/L</TableHead>
               <TableHead>IV</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>
+                <div className="flex items-center gap-1">
+                  {onExitAll && (
+                    <Button variant="ghost" size="sm" className="h-6 px-1 text-xs" onClick={onExitAll} title="Exit all positions">
+                      <LogOut className="h-3 w-3" />
+                    </Button>
+                  )}
+                  {onRemoveAll && (
+                    <Button variant="ghost" size="sm" className="h-6 px-1 text-xs text-destructive hover:text-destructive" onClick={onRemoveAll} title="Delete all positions">
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

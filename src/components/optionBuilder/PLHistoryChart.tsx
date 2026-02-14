@@ -15,6 +15,7 @@ interface PLHistoryPoint {
   time: string;
   pnl: number;
   spotPrice: number;
+  date?: string;
 }
 
 interface PLHistoryChartProps {
@@ -25,7 +26,9 @@ const PLHistoryChart = ({ history }: PLHistoryChartProps) => {
   const chartData = useMemo(() => {
     return history.map((point) => ({
       ...point,
-      time: point.time.replace(/^(\d{2})(\d{2})$/, "$1:$2"),
+      label: point.date 
+        ? `${point.date.slice(5)} ${point.time.replace(/^(\d{2})(\d{2})$/, "$1:$2")}`
+        : point.time.replace(/^(\d{2})(\d{2})$/, "$1:$2"),
     }));
   }, [history]);
 
@@ -86,8 +89,8 @@ const PLHistoryChart = ({ history }: PLHistoryChartProps) => {
             >
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
               <XAxis
-                dataKey="time"
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                dataKey="label"
+                tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }}
                 tickLine={false}
                 axisLine={{ stroke: "hsl(var(--border))" }}
                 interval="preserveStartEnd"

@@ -283,12 +283,24 @@ const OptionSimulator = () => {
     [selectedHour, selectedMinute, selectedDate, findNextTradingDay],
   );
 
-  // Auto-fetch data when time changes (but not date - date changes trigger expiry reload)
+  // Auto-fetch data when time or date changes (date changes may retain the same expiry)
+  const prevDateRef = useRef<string>("");
   useEffect(() => {
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
     if (activeExpiry && simulatorData) {
-      loadStrikesData();
+      // If date changed but expiry was retained, we still need to reload
+      if (prevDateRef.current !== dateStr) {
+        prevDateRef.current = dateStr;
+        // Wait for expiry loading to finish, then load strikes
+        if (!isLoadingExpiries) {
+          loadStrikesData();
+        }
+      } else {
+        // Only time changed
+        loadStrikesData();
+      }
     }
-  }, [selectedTime]);
+  }, [selectedTime, selectedDate, isLoadingExpiries]);
 
   // Handle authentication
   useEffect(() => {
@@ -736,6 +748,20 @@ const OptionSimulator = () => {
     setPositions([]);
     setShowStrategies(true);
     toast.success("All positions cleared");
+  }, []);
+
+  const toggleAllPositions = useCallback((enabled: boolean) => {
+    setPositions((prev) => prev.map((p) => ({ ...p, enabled })));
+  }, []);
+
+  const exitAllPositions = useCallback(() => {
+    setPositions((prev) => prev.map((p) => p.exitPrice === undefined ? { ...p, exitPrice: p.currentPrice } : p));
+    toast.success("All positions exited");
+  }, []);
+
+  const removeAllPositions = useCallback(() => {
+    setPositions([]);
+    toast.success("All positions removed");
   }, []);
 
   const handleAddStrategy = useCallback(
@@ -1535,6 +1561,9 @@ const OptionSimulator = () => {
                       onUpdatePosition={updatePosition}
                       onReEntry={reEntryPosition}
                       onPartialExit={partialExitPosition}
+                      onToggleAll={toggleAllPositions}
+                      onExitAll={exitAllPositions}
+                      onRemoveAll={removeAllPositions}
                     />
                   </TabsContent>
                   <TabsContent value="greeks" className="mt-0">

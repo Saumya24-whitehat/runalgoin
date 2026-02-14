@@ -356,7 +356,17 @@ export const generatePLChartData = (
   const nearestExpiry = sortedExpiries[0];
   const daysToExpiry = getDaysUntilExpiry(nearestExpiry, today);
 
-  const { startPrice, endPrice, step } = calculatePriceRange(currentPrice, daysToExpiry);
+  const defaultRange = calculatePriceRange(currentPrice, daysToExpiry);
+
+  // Calculate strike-based range: smallest strike - 100 to largest strike + 100
+  const strikes = enabledPositions.filter(p => !p.exitPrice).map(p => p.strike);
+  const strikeMin = Math.min(...strikes) - 100;
+  const strikeMax = Math.max(...strikes) + 100;
+
+  // Use whichever range is larger
+  const startPrice = Math.min(defaultRange.startPrice, strikeMin);
+  const endPrice = Math.max(defaultRange.endPrice, strikeMax);
+  const step = defaultRange.step;
 
   const expiryData: [number, number][] = [];
   const todayData: [number, number][] = [];
