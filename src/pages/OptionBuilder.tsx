@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -531,6 +532,73 @@ const OptionBuilder = () => {
     [activeExpiry, currentPrice, lotSize, addPosition, symbol, currentExpiryData],
   );
 
+  const handleCreateCustomStrategy = useCallback(
+    (strategy: CustomStrategyDefinition) => {
+      const today = new Date().toISOString().split("T")[0];
+      const strikeDiff = symbol.includes("Bank") ? 100 : 50;
+      const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
+
+      strategy.legs.forEach((leg) => {
+        let strike = atm;
+
+        if (leg.strikeMethod === "atm_offset") {
+          strike = atm + leg.strikeOffset * strikeDiff;
+        } else if (leg.strikeMethod === "ltp" && currentExpiryData) {
+          // Find strike closest to target LTP
+          let bestDiff = Infinity;
+          currentExpiryData.data.forEach((d) => {
+            const optData = leg.optType === "CE" ? d.call_options : d.put_options;
+            if (optData) {
+              const diff = Math.abs(optData.market_data.ltp - leg.targetLtp);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                strike = d.strike_price;
+              }
+            }
+          });
+        } else if (leg.strikeMethod === "delta" && currentExpiryData) {
+          // Find strike closest to target delta
+          let bestDiff = Infinity;
+          currentExpiryData.data.forEach((d) => {
+            const optData = leg.optType === "CE" ? d.call_options : d.put_options;
+            if (optData) {
+              const diff = Math.abs(optData.option_greeks.delta - leg.targetDelta);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                strike = d.strike_price;
+              }
+            }
+          });
+        }
+
+        // Get live data for the resolved strike
+        const strikeData = currentExpiryData?.data.find((d) => Math.abs(d.strike_price - strike) < 0.01);
+        const optionData = strikeData
+          ? leg.optType === "CE"
+            ? strikeData.call_options
+            : strikeData.put_options
+          : null;
+
+        addPosition({
+          action: leg.action,
+          lots: leg.lots,
+          date: today,
+          expiry: activeExpiry,
+          strike,
+          optType: leg.optType,
+          entryPrice: optionData?.market_data.ltp ?? 0,
+          currentPrice: optionData?.market_data.ltp ?? 0,
+          IV: optionData?.option_greeks.iv ?? 15,
+          lotSize,
+          instrumentToken: optionData?.instrument_key,
+        });
+      });
+
+      setShowStrategies(false);
+    },
+    [activeExpiry, currentPrice, lotSize, addPosition, symbol, currentExpiryData],
+  );
+
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -794,7 +862,7 @@ const OptionBuilder = () => {
           {/* Right Panel - Chart & Metrics (only show when positions exist) */}
           <div className="space-y-6">
             {/* Strategies Panel - only show when no positions */}
-            {showStrategies && !hasPositions && <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} />}
+            {showStrategies && !hasPositions && <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} onCreateCustomStrategy={handleCreateCustomStrategy} />}
             {hasPositions && (
               <>
                 {/* Metrics */}
