@@ -124,6 +124,7 @@ const OptionSimulator = () => {
   const [expiries, setExpiries] = useState<string[]>([]);
   const [activeExpiry, setActiveExpiry] = useState<string>("");
   const [simulatorData, setSimulatorData] = useState<SimulatorData | null>(null);
+  const [positionExpiryData, setPositionExpiryData] = useState<Record<string, SimulatorData>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingExpiries, setIsLoadingExpiries] = useState(false);
   const [tradingDays, setTradingDays] = useState<string[]>([]);
@@ -385,18 +386,43 @@ const OptionSimulator = () => {
     setIsLoading(true);
     try {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
+
+      // Fetch data for the active expiry (option chain display)
       const data = await fetchSimulatorStrikesData(symbol, dateStr, selectedTime, activeExpiry);
-      console.log(data);
       setSimulatorData(data);
       setCurrentPrice(data.spotPrice);
       setLotSize(data.lotSize || getLotSizeForSymbol(symbol));
+
+      // Find unique expiries from positions that differ from active expiry
+      const otherExpiries = [...new Set(
+        positions
+          .filter((p) => p.expiry !== activeExpiry && !p.exitPrice)
+          .map((p) => p.expiry)
+      )];
+
+      // Fetch data for other position expiries in parallel
+      if (otherExpiries.length > 0) {
+        const otherDataPromises = otherExpiries.map((exp) =>
+          fetchSimulatorStrikesData(symbol, dateStr, selectedTime, exp)
+            .then((d) => [exp, d] as [string, SimulatorData])
+            .catch(() => null)
+        );
+        const results = await Promise.all(otherDataPromises);
+        const newExpiryData: Record<string, SimulatorData> = { [activeExpiry]: data };
+        results.forEach((r) => {
+          if (r) newExpiryData[r[0]] = r[1];
+        });
+        setPositionExpiryData(newExpiryData);
+      } else {
+        setPositionExpiryData({ [activeExpiry]: data });
+      }
     } catch (error) {
       console.error("Error fetching strikes data:", error);
       toast.error("Failed to load strikes data");
     } finally {
       setIsLoading(false);
     }
-  }, [symbol, selectedDate, selectedTime, activeExpiry]);
+  }, [symbol, selectedDate, selectedTime, activeExpiry, positions]);
 
   // Auto-load when expiry changes
   useEffect(() => {
@@ -405,22 +431,23 @@ const OptionSimulator = () => {
     }
   }, [activeExpiry]);
 
-  // Update positions' currentPrice when simulator data changes
+  // Update positions' currentPrice when simulator/position expiry data changes
   useEffect(() => {
-    if (!simulatorData || simulatorData.strikes.length === 0) return;
+    if (Object.keys(positionExpiryData).length === 0) return;
 
     setPositions((prevPositions) =>
       prevPositions.map((pos) => {
-        // Find the strike data for this position
-        const strikeData = simulatorData.strikes.find((s) => s.strike === pos.strike);
+        if (pos.exitPrice !== undefined) return pos;
+
+        // Use the correct expiry's data for this position
+        const expiryData = positionExpiryData[pos.expiry];
+        if (!expiryData) return pos;
+
+        const strikeData = expiryData.strikes.find((s) => s.strike === pos.strike);
         if (!strikeData) return pos;
 
-        // Get the current price based on option type
         const newCurrentPrice = pos.optType === "CE" ? strikeData.cePrice : strikeData.pePrice;
         const newIV = pos.optType === "CE" ? strikeData.ceIV : strikeData.peIV;
-
-        // Only update if not exited
-        if (pos.exitPrice !== undefined) return pos;
 
         return {
           ...pos,
@@ -429,7 +456,7 @@ const OptionSimulator = () => {
         };
       }),
     );
-  }, [simulatorData]);
+  }, [positionExpiryData]);
 
   // Auto-play interval with configurable speed and skip interval
   useEffect(() => {
