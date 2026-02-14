@@ -57,6 +57,7 @@ import { useSavedStrategies, SavedStrategy } from "@/hooks/useSavedStrategies";
 import AdjustmentModal, {
   AdjustmentRule,
   TriggerCondition,
+  ComparativeTrigger,
   ExitAction,
 } from "@/components/optionBuilder/AdjustmentModal";
 import PLHistoryChart from "@/components/optionBuilder/PLHistoryChart";
@@ -545,10 +546,14 @@ const OptionSimulator = () => {
             case "exitAndReenter":
               // Exit current
               newPositions.push({ ...pos, exitPrice: pos.currentPrice });
-              // Reenter at new strike
-              const strikeDiff = symbol.includes("Bank") ? 100 : 50;
-              const newStrike = pos.strike + (action.strikeDiff || strikeDiff);
-              const strikeData = simulatorData?.strikes.find((s) => s.strike === newStrike);
+              // Reenter at new strike using the user-specified strikeDiff
+              const newStrike = pos.strike + (action.strikeDiff || 0);
+              if (newStrike <= 0) {
+                break; // Invalid strike
+              }
+              // Look up data in correct expiry
+              const expiryDataForPos = positionExpiryData[pos.expiry] || simulatorData;
+              const strikeData = expiryDataForPos?.strikes.find((s) => s.strike === newStrike);
               if (strikeData) {
                 const newPrice = pos.optType === "CE" ? strikeData.cePrice : strikeData.pePrice;
                 const newIV = pos.optType === "CE" ? strikeData.ceIV : strikeData.peIV;
@@ -561,6 +566,8 @@ const OptionSimulator = () => {
                   IV: newIV,
                   exitPrice: undefined,
                 });
+              } else {
+                toast.error(`Strike ${newStrike} not found for reentry`);
               }
               break;
             case "sizeUp":
@@ -592,8 +599,39 @@ const OptionSimulator = () => {
           return { ...rule, isActive: false };
         }
 
-        // Check if any trigger condition is met
-        const triggered = rule.triggers.some((trigger) => checkTriggerCondition(mainPos, trigger));
+        // Check if any standard trigger condition is met
+        const standardTriggered = rule.triggers.some((trigger) => checkTriggerCondition(mainPos, trigger));
+
+        // Check comparative triggers
+        const comparativeTriggered = (rule.comparativeTriggers || []).some((ct) => {
+          const comparePos = positions[ct.comparePositionIndex];
+          if (!comparePos || comparePos.exitPrice !== undefined) return false;
+
+          const getVal = (pos: Position, metric: ComparativeTrigger["metric"]): number => {
+            switch (metric) {
+              case "currentPrice": return pos.currentPrice;
+              case "IV": return pos.IV || 0;
+              case "delta": return pos.delta || 0;
+              case "pnlAmount":
+                return (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
+              case "pnlPercent":
+                return ((pos.currentPrice - pos.entryPrice) * (pos.action === "Buy" ? 1 : -1) / pos.entryPrice) * 100;
+              default: return 0;
+            }
+          };
+
+          const mainVal = getVal(mainPos, ct.metric);
+          const compareVal = getVal(comparePos, ct.metric);
+
+          let result = 0;
+          if (ct.operator === "mainMinusCompare") result = mainVal - compareVal;
+          else if (ct.operator === "compareMinusMain") result = compareVal - mainVal;
+          else if (ct.operator === "ratio") result = compareVal !== 0 ? mainVal / compareVal : 0;
+
+          return ct.condition === "greaterThan" ? result > ct.value : result < ct.value;
+        });
+
+        const triggered = standardTriggered || comparativeTriggered;
 
         if (triggered) {
           executeAdjustmentAction(rule.mainPositionIndex, rule.linkedPositionIndices, rule.exitAction);

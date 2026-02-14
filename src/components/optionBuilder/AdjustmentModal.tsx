@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,10 +6,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Position } from "@/services/optionBuilderApi";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, BarChart3 } from "lucide-react";
 
 export interface TriggerCondition {
   trigger: "profitPercent" | "profitAmount" | "lossPercent" | "lossAmount" | "priceLevel";
+  value: number;
+}
+
+export interface ComparativeTrigger {
+  comparePositionIndex: number;
+  metric: "currentPrice" | "IV" | "delta" | "pnlAmount" | "pnlPercent";
+  operator: "mainMinusCompare" | "compareMinusMain" | "ratio";
+  condition: "greaterThan" | "lessThan";
   value: number;
 }
 
@@ -25,6 +33,7 @@ export interface AdjustmentRule {
   mainPositionIndex: number;
   linkedPositionIndices: number[];
   triggers: TriggerCondition[];
+  comparativeTriggers: ComparativeTrigger[];
   exitAction: ExitAction;
   isActive: boolean;
   applyToNewPositions: boolean;
@@ -49,7 +58,6 @@ const AdjustmentModal = ({
   const [linkedIndices, setLinkedIndices] = useState<number[]>([]);
   const [groups, setGroups] = useState<AdjustmentRule[]>([]);
 
-  // Reset state when modal opens
   useEffect(() => {
     if (open) {
       setGroups([...adjustmentRules]);
@@ -58,11 +66,8 @@ const AdjustmentModal = ({
     }
   }, [open, adjustmentRules]);
 
-  const activePositions = positions.filter((p) => p.exitPrice === undefined);
-
   const handleSelectMainPosition = (index: number) => {
     setSelectedMainIndex(index);
-    // Reset linked positions when main changes
     setLinkedIndices([]);
   };
 
@@ -83,6 +88,7 @@ const AdjustmentModal = ({
       mainPositionIndex: selectedMainIndex,
       linkedPositionIndices: linkedIndices,
       triggers: [{ trigger: "profitPercent", value: 50 }],
+      comparativeTriggers: [],
       exitAction: { type: "exitAll" },
       isActive: true,
       applyToNewPositions: true,
@@ -98,6 +104,7 @@ const AdjustmentModal = ({
     setGroups((prev) => prev.filter((g) => g.id !== groupId));
   };
 
+  // Standard trigger handlers
   const handleAddTrigger = (groupId: string) => {
     setGroups((prev) =>
       prev.map((g) =>
@@ -138,6 +145,63 @@ const AdjustmentModal = ({
     );
   };
 
+  // Comparative trigger handlers
+  const handleAddComparativeTrigger = (groupId: string) => {
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId) return g;
+        // Default compare position: first active position that isn't the main
+        const defaultCompare = positions.findIndex(
+          (p, i) => i !== g.mainPositionIndex && p.exitPrice === undefined
+        );
+        return {
+          ...g,
+          comparativeTriggers: [
+            ...g.comparativeTriggers,
+            {
+              comparePositionIndex: defaultCompare >= 0 ? defaultCompare : 0,
+              metric: "currentPrice",
+              operator: "mainMinusCompare",
+              condition: "greaterThan",
+              value: 50,
+            },
+          ],
+        };
+      })
+    );
+  };
+
+  const handleRemoveComparativeTrigger = (groupId: string, idx: number) => {
+    setGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId
+          ? { ...g, comparativeTriggers: g.comparativeTriggers.filter((_, i) => i !== idx) }
+          : g
+      )
+    );
+  };
+
+  const handleUpdateComparativeTrigger = (
+    groupId: string,
+    idx: number,
+    field: keyof ComparativeTrigger,
+    value: string | number
+  ) => {
+    setGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId
+          ? {
+              ...g,
+              comparativeTriggers: g.comparativeTriggers.map((ct, i) =>
+                i === idx ? { ...ct, [field]: field === "value" || field === "comparePositionIndex" ? Number(value) : value } : ct
+              ),
+            }
+          : g
+      )
+    );
+  };
+
+  // Exit action handlers
   const handleUpdateExitAction = (groupId: string, actionType: string) => {
     setGroups((prev) =>
       prev.map((g) =>
@@ -194,6 +258,33 @@ const AdjustmentModal = ({
       ((pos.currentPrice - pos.entryPrice) * (pos.action === "Buy" ? 1 : -1) / pos.entryPrice) *
       100;
     return { amount, percent };
+  };
+
+  const getMetricValue = (pos: Position, metric: ComparativeTrigger["metric"]): number => {
+    switch (metric) {
+      case "currentPrice": return pos.currentPrice;
+      case "IV": return pos.IV || 0;
+      case "delta": return pos.delta || 0;
+      case "pnlAmount":
+        return (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
+      case "pnlPercent":
+        return ((pos.currentPrice - pos.entryPrice) * (pos.action === "Buy" ? 1 : -1) / pos.entryPrice) * 100;
+      default: return 0;
+    }
+  };
+
+  const metricLabels: Record<ComparativeTrigger["metric"], string> = {
+    currentPrice: "Current Price",
+    IV: "IV",
+    delta: "Delta",
+    pnlAmount: "P&L Amount",
+    pnlPercent: "P&L %",
+  };
+
+  const operatorLabels: Record<ComparativeTrigger["operator"], string> = {
+    mainMinusCompare: "Main - Compare",
+    compareMinusMain: "Compare - Main",
+    ratio: "Main / Compare",
   };
 
   return (
@@ -383,7 +474,7 @@ const AdjustmentModal = ({
                         </Button>
                       </div>
 
-                      {/* Trigger Conditions */}
+                      {/* Standard Trigger Conditions */}
                       <div className="bg-muted/50 p-3 rounded mb-4">
                         <div className="flex justify-between items-center mb-2">
                           <label className="text-sm font-semibold">
@@ -449,11 +540,24 @@ const AdjustmentModal = ({
                         </div>
                       </div>
 
+                      {/* Comparative Triggers */}
+                      <ComparativeTriggersSection
+                        group={group}
+                        positions={positions}
+                        getMetricValue={getMetricValue}
+                        metricLabels={metricLabels}
+                        operatorLabels={operatorLabels}
+                        onAdd={handleAddComparativeTrigger}
+                        onRemove={handleRemoveComparativeTrigger}
+                        onUpdate={handleUpdateComparativeTrigger}
+                        getPositionLabel={getPositionLabel}
+                      />
+
                       {/* Exit Action */}
                       <div className="bg-muted/50 p-3 rounded">
                         <label className="text-sm font-semibold mb-2 block">Exit Action:</label>
 
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-4 flex-wrap">
                           <Select
                             value={group.exitAction.type}
                             onValueChange={(v) => handleUpdateExitAction(group.id, v)}
@@ -493,7 +597,7 @@ const AdjustmentModal = ({
                               <label className="text-sm text-muted-foreground">Strike Diff:</label>
                               <Input
                                 type="number"
-                                value={group.exitAction.strikeDiff || 0}
+                                value={group.exitAction.strikeDiff ?? 0}
                                 onChange={(e) =>
                                   handleUpdateExitActionParam(
                                     group.id,
@@ -503,6 +607,9 @@ const AdjustmentModal = ({
                                 }
                                 className="w-24"
                               />
+                              <span className="text-xs text-muted-foreground">
+                                (e.g. +100 or -100)
+                              </span>
                             </div>
                           )}
 
@@ -542,6 +649,202 @@ const AdjustmentModal = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+};
+
+// Extracted comparative triggers section
+interface ComparativeTriggersSectionProps {
+  group: AdjustmentRule;
+  positions: Position[];
+  getMetricValue: (pos: Position, metric: ComparativeTrigger["metric"]) => number;
+  metricLabels: Record<ComparativeTrigger["metric"], string>;
+  operatorLabels: Record<ComparativeTrigger["operator"], string>;
+  onAdd: (groupId: string) => void;
+  onRemove: (groupId: string, idx: number) => void;
+  onUpdate: (groupId: string, idx: number, field: keyof ComparativeTrigger, value: string | number) => void;
+  getPositionLabel: (index: number) => string;
+}
+
+const ComparativeTriggersSection = ({
+  group,
+  positions,
+  getMetricValue,
+  metricLabels,
+  operatorLabels,
+  onAdd,
+  onRemove,
+  onUpdate,
+  getPositionLabel,
+}: ComparativeTriggersSectionProps) => {
+  const mainPos = positions[group.mainPositionIndex];
+
+  return (
+    <div className="bg-muted/50 p-3 rounded mb-4 border border-accent/30">
+      <div className="flex justify-between items-center mb-2">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-4 w-4 text-accent-foreground" />
+          <label className="text-sm font-semibold">Compare Metrics Between Positions</label>
+        </div>
+        <Button variant="outline" size="sm" onClick={() => onAdd(group.id)}>
+          <Plus className="h-3 w-3 mr-1" /> Add Comparison
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground mb-3">
+        Compare the main position with any other position
+      </p>
+
+      <div className="space-y-4">
+        {group.comparativeTriggers.map((ct, idx) => {
+          const comparePos = positions[ct.comparePositionIndex];
+          const mainVal = mainPos ? getMetricValue(mainPos, ct.metric) : 0;
+          const compareVal = comparePos ? getMetricValue(comparePos, ct.metric) : 0;
+
+          let result = 0;
+          if (ct.operator === "mainMinusCompare") result = mainVal - compareVal;
+          else if (ct.operator === "compareMinusMain") result = compareVal - mainVal;
+          else if (ct.operator === "ratio") result = compareVal !== 0 ? mainVal / compareVal : 0;
+
+          const conditionMet =
+            ct.condition === "greaterThan" ? result > ct.value : result < ct.value;
+
+          return (
+            <div key={idx} className="border border-border rounded-lg p-3 space-y-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                {/* Position to compare */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Position to Compare With:</label>
+                  <Select
+                    value={String(ct.comparePositionIndex)}
+                    onValueChange={(v) => onUpdate(group.id, idx, "comparePositionIndex", v)}
+                  >
+                    <SelectTrigger className="w-full text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {positions.map((pos, pIdx) => {
+                        if (pos.exitPrice !== undefined || pIdx === group.mainPositionIndex) return null;
+                        return (
+                          <SelectItem key={pIdx} value={String(pIdx)}>
+                            {pos.action} {pos.lots}L @ {pos.strike}{pos.optType}
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Metric */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Metric to Compare:</label>
+                  <Select
+                    value={ct.metric}
+                    onValueChange={(v) => onUpdate(group.id, idx, "metric", v)}
+                  >
+                    <SelectTrigger className="w-full text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="currentPrice">Current Price</SelectItem>
+                      <SelectItem value="IV">IV</SelectItem>
+                      <SelectItem value="delta">Delta</SelectItem>
+                      <SelectItem value="pnlAmount">P&L Amount</SelectItem>
+                      <SelectItem value="pnlPercent">P&L %</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Operator */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Operator:</label>
+                  <Select
+                    value={ct.operator}
+                    onValueChange={(v) => onUpdate(group.id, idx, "operator", v)}
+                  >
+                    <SelectTrigger className="w-full text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="mainMinusCompare">Main - Compare</SelectItem>
+                      <SelectItem value="compareMinusMain">Compare - Main</SelectItem>
+                      <SelectItem value="ratio">Main / Compare</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Condition + Value */}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <label className="text-xs text-muted-foreground mb-1 block">Condition:</label>
+                    <Select
+                      value={ct.condition}
+                      onValueChange={(v) => onUpdate(group.id, idx, "condition", v)}
+                    >
+                      <SelectTrigger className="w-full text-xs">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="greaterThan">Greater than</SelectItem>
+                        <SelectItem value="lessThan">Less than</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-20">
+                    <label className="text-xs text-muted-foreground mb-1 block">Value:</label>
+                    <Input
+                      type="number"
+                      value={ct.value}
+                      onChange={(e) => onUpdate(group.id, idx, "value", parseFloat(e.target.value) || 0)}
+                      className="text-xs"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button variant="ghost" size="sm" onClick={() => onRemove(group.id, idx)}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Live Comparison Preview */}
+              {mainPos && comparePos && (
+                <div className="border border-border/50 rounded p-3 bg-background/50">
+                  <label className="text-xs text-muted-foreground mb-2 block">Live Comparison:</label>
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-xs font-semibold text-primary">Main Position</div>
+                      <div className="text-lg font-bold">{mainVal.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-muted-foreground">
+                        {ct.operator === "mainMinusCompare" ? "−" : ct.operator === "compareMinusMain" ? "−" : "÷"}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-xs font-semibold text-accent-foreground">Compare Position</div>
+                      <div className="text-lg font-bold">{compareVal.toFixed(2)}</div>
+                    </div>
+                  </div>
+                  <div className="flex justify-center gap-8 mt-2 pt-2 border-t border-border/50">
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">Result</div>
+                      <div className={`text-sm font-bold ${conditionMet ? "text-green-400" : "text-foreground"}`}>
+                        {result.toFixed(2)}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">Condition</div>
+                      <div className={`text-sm font-bold ${conditionMet ? "text-green-400" : "text-red-400"}`}>
+                        {ct.condition === "greaterThan" ? ">" : "<"} {ct.value}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
