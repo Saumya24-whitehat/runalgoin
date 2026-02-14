@@ -32,6 +32,7 @@ export interface AdjustmentRule {
   id: string;
   mainPositionIndex: number;
   linkedPositionIndices: number[];
+  triggerType: "simple" | "comparative";
   triggers: TriggerCondition[];
   comparativeTriggers: ComparativeTrigger[];
   exitAction: ExitAction;
@@ -87,6 +88,7 @@ const AdjustmentModal = ({
       id: `group_${Date.now()}`,
       mainPositionIndex: selectedMainIndex,
       linkedPositionIndices: linkedIndices,
+      triggerType: "simple",
       triggers: [{ trigger: "profitPercent", value: 50 }],
       comparativeTriggers: [],
       exitAction: { type: "exitAll" },
@@ -201,6 +203,14 @@ const AdjustmentModal = ({
     );
   };
 
+  const handleSetTriggerType = (groupId: string, type: "simple" | "comparative") => {
+    setGroups((prev) =>
+      prev.map((g) =>
+        g.id === groupId ? { ...g, triggerType: type } : g
+      )
+    );
+  };
+
   // Exit action handlers
   const handleUpdateExitAction = (groupId: string, actionType: string) => {
     setGroups((prev) =>
@@ -304,7 +314,7 @@ const AdjustmentModal = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Position Adjustment</DialogTitle>
           <DialogDescription>Configure automatic adjustments for your positions based on triggers</DialogDescription>
@@ -445,10 +455,11 @@ const AdjustmentModal = ({
             <div className="border-t border-dashed border-border pt-4">
               <h4 className="text-foreground font-semibold mb-4">Adjustment Groups</h4>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 {groups.map((group) => {
                   const mainPos = positions[group.mainPositionIndex];
                   if (!mainPos) return null;
+                  const triggerType = group.triggerType || "simple";
 
                   return (
                     <div
@@ -489,84 +500,113 @@ const AdjustmentModal = ({
                         </Button>
                       </div>
 
-                      {/* Standard Trigger Conditions */}
+                      {/* Trigger Type Selector */}
                       <div className="bg-muted/50 p-3 rounded mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <label className="text-sm font-semibold">
-                            Trigger Conditions (ANY match will trigger):
+                        <label className="text-sm font-semibold mb-2 block">Choose Trigger Type:</label>
+                        <div className="flex gap-6">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              checked={triggerType === "simple"}
+                              onChange={() => handleSetTriggerType(group.id, "simple")}
+                              className="accent-primary"
+                            />
+                            <span className="text-sm">Simple Triggers</span>
                           </label>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleAddTrigger(group.id)}
-                          >
-                            <Plus className="h-3 w-3 mr-1" /> Add Trigger
-                          </Button>
-                        </div>
-
-                        <div className="space-y-2">
-                          {group.triggers.map((trigger, idx) => (
-                            <div key={idx} className="flex items-center gap-2">
-                              <Select
-                                value={trigger.trigger}
-                                onValueChange={(v) =>
-                                  handleUpdateTrigger(group.id, idx, "trigger", v)
-                                }
-                              >
-                                <SelectTrigger className="w-48">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  <SelectItem value="profitPercent">Profit %</SelectItem>
-                                  <SelectItem value="profitAmount">Profit Amount ₹</SelectItem>
-                                  <SelectItem value="lossPercent">Loss %</SelectItem>
-                                  <SelectItem value="lossAmount">Loss Amount ₹</SelectItem>
-                                  <SelectItem value="priceLevel">Price Level ₹</SelectItem>
-                                </SelectContent>
-                              </Select>
-
-                              <span className="text-muted-foreground">≥</span>
-
-                              <Input
-                                type="number"
-                                value={trigger.value}
-                                onChange={(e) =>
-                                  handleUpdateTrigger(
-                                    group.id,
-                                    idx,
-                                    "value",
-                                    parseFloat(e.target.value) || 0
-                                  )
-                                }
-                                className="w-24"
-                              />
-
-                              {group.triggers.length > 1 && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => handleRemoveTrigger(group.id, idx)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              )}
-                            </div>
-                          ))}
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="radio"
+                              checked={triggerType === "comparative"}
+                              onChange={() => handleSetTriggerType(group.id, "comparative")}
+                              className="accent-primary"
+                            />
+                            <span className="text-sm">Comparative Trigger</span>
+                          </label>
                         </div>
                       </div>
 
+                      {/* Simple Trigger Conditions */}
+                      {triggerType === "simple" && (
+                        <div className="bg-muted/50 p-3 rounded mb-4">
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-semibold">
+                              Trigger Conditions (ANY match will trigger):
+                            </label>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleAddTrigger(group.id)}
+                            >
+                              <Plus className="h-3 w-3 mr-1" /> Add Trigger
+                            </Button>
+                          </div>
+
+                          <div className="space-y-2">
+                            {group.triggers.map((trigger, idx) => (
+                              <div key={idx} className="flex items-center gap-2">
+                                <Select
+                                  value={trigger.trigger}
+                                  onValueChange={(v) =>
+                                    handleUpdateTrigger(group.id, idx, "trigger", v)
+                                  }
+                                >
+                                  <SelectTrigger className="w-48">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="profitPercent">Profit %</SelectItem>
+                                    <SelectItem value="profitAmount">Profit Amount ₹</SelectItem>
+                                    <SelectItem value="lossPercent">Loss %</SelectItem>
+                                    <SelectItem value="lossAmount">Loss Amount ₹</SelectItem>
+                                    <SelectItem value="priceLevel">Price Level ₹</SelectItem>
+                                  </SelectContent>
+                                </Select>
+
+                                <span className="text-muted-foreground">≥</span>
+
+                                <Input
+                                  type="number"
+                                  value={trigger.value}
+                                  onChange={(e) =>
+                                    handleUpdateTrigger(
+                                      group.id,
+                                      idx,
+                                      "value",
+                                      parseFloat(e.target.value) || 0
+                                    )
+                                  }
+                                  className="w-24"
+                                />
+
+                                {group.triggers.length > 1 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveTrigger(group.id, idx)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* Comparative Triggers */}
-                      <ComparativeTriggersSection
-                        group={group}
-                        positions={positions}
-                        getMetricValue={getMetricValue}
-                        metricLabels={metricLabels}
-                        operatorLabels={operatorLabels}
-                        onAdd={handleAddComparativeTrigger}
-                        onRemove={handleRemoveComparativeTrigger}
-                        onUpdate={handleUpdateComparativeTrigger}
-                        getPositionLabel={getPositionLabel}
-                      />
+                      {triggerType === "comparative" && (
+                        <ComparativeTriggersSection
+                          group={group}
+                          positions={positions}
+                          getMetricValue={getMetricValue}
+                          metricLabels={metricLabels}
+                          operatorLabels={operatorLabels}
+                          onAdd={handleAddComparativeTrigger}
+                          onRemove={handleRemoveComparativeTrigger}
+                          onUpdate={handleUpdateComparativeTrigger}
+                          getPositionLabel={getPositionLabel}
+                        />
+                      )}
 
                       {/* Exit Action */}
                       <div className="bg-muted/50 p-3 rounded">

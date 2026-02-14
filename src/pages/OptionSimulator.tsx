@@ -639,7 +639,8 @@ const OptionSimulator = () => {
           return ct.condition === "greaterThan" ? result > ct.value : result < ct.value;
         });
 
-        const triggered = standardTriggered || comparativeTriggered;
+        const triggerType = rule.triggerType || "simple";
+        const triggered = triggerType === "simple" ? standardTriggered : comparativeTriggered;
 
         if (triggered) {
           executeAdjustmentAction(rule.mainPositionIndex, rule.linkedPositionIndices, rule.exitAction);
