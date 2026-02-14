@@ -610,8 +610,15 @@ const OptionSimulator = () => {
           const getVal = (pos: Position, metric: ComparativeTrigger["metric"]): number => {
             switch (metric) {
               case "currentPrice": return pos.currentPrice;
+              case "entryPrice": return pos.entryPrice;
               case "IV": return pos.IV || 0;
               case "delta": return pos.delta || 0;
+              case "gamma": return pos.gamma || 0;
+              case "theta": return pos.theta || 0;
+              case "vega": return pos.vega || 0;
+              case "volume": return 0;
+              case "oi": return 0;
+              case "coi": return 0;
               case "pnlAmount":
                 return (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
               case "pnlPercent":
@@ -626,6 +633,7 @@ const OptionSimulator = () => {
           let result = 0;
           if (ct.operator === "mainMinusCompare") result = mainVal - compareVal;
           else if (ct.operator === "compareMinusMain") result = compareVal - mainVal;
+          else if (ct.operator === "mainPlusCompare") result = mainVal + compareVal;
           else if (ct.operator === "ratio") result = compareVal !== 0 ? mainVal / compareVal : 0;
 
           return ct.condition === "greaterThan" ? result > ct.value : result < ct.value;

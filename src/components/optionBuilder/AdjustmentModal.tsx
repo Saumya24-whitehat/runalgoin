@@ -15,8 +15,8 @@ export interface TriggerCondition {
 
 export interface ComparativeTrigger {
   comparePositionIndex: number;
-  metric: "currentPrice" | "IV" | "delta" | "pnlAmount" | "pnlPercent";
-  operator: "mainMinusCompare" | "compareMinusMain" | "ratio";
+  metric: "currentPrice" | "entryPrice" | "pnlAmount" | "pnlPercent" | "volume" | "oi" | "coi" | "IV" | "delta" | "gamma" | "theta" | "vega";
+  operator: "mainMinusCompare" | "compareMinusMain" | "mainPlusCompare" | "ratio";
   condition: "greaterThan" | "lessThan";
   value: number;
 }
@@ -263,8 +263,15 @@ const AdjustmentModal = ({
   const getMetricValue = (pos: Position, metric: ComparativeTrigger["metric"]): number => {
     switch (metric) {
       case "currentPrice": return pos.currentPrice;
+      case "entryPrice": return pos.entryPrice;
       case "IV": return pos.IV || 0;
       case "delta": return pos.delta || 0;
+      case "gamma": return pos.gamma || 0;
+      case "theta": return pos.theta || 0;
+      case "vega": return pos.vega || 0;
+      case "volume": return 0; // placeholder - needs market data
+      case "oi": return 0; // placeholder - needs market data
+      case "coi": return 0; // placeholder - needs market data
       case "pnlAmount":
         return (pos.currentPrice - pos.entryPrice) * pos.lots * pos.lotSize * (pos.action === "Buy" ? 1 : -1);
       case "pnlPercent":
@@ -275,15 +282,23 @@ const AdjustmentModal = ({
 
   const metricLabels: Record<ComparativeTrigger["metric"], string> = {
     currentPrice: "Current Price",
+    entryPrice: "Entry Price",
+    pnlAmount: "P&L Amount",
+    pnlPercent: "P&L Percent",
+    volume: "Volume",
+    oi: "OI",
+    coi: "COI",
     IV: "IV",
     delta: "Delta",
-    pnlAmount: "P&L Amount",
-    pnlPercent: "P&L %",
+    gamma: "Gamma",
+    theta: "Theta",
+    vega: "Vega",
   };
 
   const operatorLabels: Record<ComparativeTrigger["operator"], string> = {
     mainMinusCompare: "Main - Compare",
     compareMinusMain: "Compare - Main",
+    mainPlusCompare: "Main + Compare",
     ratio: "Main / Compare",
   };
 
@@ -702,6 +717,7 @@ const ComparativeTriggersSection = ({
           let result = 0;
           if (ct.operator === "mainMinusCompare") result = mainVal - compareVal;
           else if (ct.operator === "compareMinusMain") result = compareVal - mainVal;
+          else if (ct.operator === "mainPlusCompare") result = mainVal + compareVal;
           else if (ct.operator === "ratio") result = compareVal !== 0 ? mainVal / compareVal : 0;
 
           const conditionMet =
@@ -744,11 +760,21 @@ const ComparativeTriggersSection = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem disabled value="__position_header" className="font-bold text-xs opacity-100">Position</SelectItem>
                       <SelectItem value="currentPrice">Current Price</SelectItem>
+                      <SelectItem value="entryPrice">Entry Price</SelectItem>
+                      <SelectItem value="pnlAmount">P&L Amount</SelectItem>
+                      <SelectItem value="pnlPercent">P&L Percent</SelectItem>
+                      <SelectItem disabled value="__market_header" className="font-bold text-xs opacity-100">Market Data</SelectItem>
+                      <SelectItem value="volume">Volume</SelectItem>
+                      <SelectItem value="oi">OI</SelectItem>
+                      <SelectItem value="coi">COI</SelectItem>
+                      <SelectItem disabled value="__greeks_header" className="font-bold text-xs opacity-100">Greeks</SelectItem>
                       <SelectItem value="IV">IV</SelectItem>
                       <SelectItem value="delta">Delta</SelectItem>
-                      <SelectItem value="pnlAmount">P&L Amount</SelectItem>
-                      <SelectItem value="pnlPercent">P&L %</SelectItem>
+                      <SelectItem value="gamma">Gamma</SelectItem>
+                      <SelectItem value="theta">Theta</SelectItem>
+                      <SelectItem value="vega">Vega</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -766,6 +792,7 @@ const ComparativeTriggersSection = ({
                     <SelectContent>
                       <SelectItem value="mainMinusCompare">Main - Compare</SelectItem>
                       <SelectItem value="compareMinusMain">Compare - Main</SelectItem>
+                      <SelectItem value="mainPlusCompare">Main + Compare</SelectItem>
                       <SelectItem value="ratio">Main / Compare</SelectItem>
                     </SelectContent>
                   </Select>
@@ -816,7 +843,7 @@ const ComparativeTriggersSection = ({
                     </div>
                     <div>
                       <div className="text-xs font-semibold text-muted-foreground">
-                        {ct.operator === "mainMinusCompare" ? "−" : ct.operator === "compareMinusMain" ? "−" : "÷"}
+                        {ct.operator === "mainMinusCompare" ? "−" : ct.operator === "compareMinusMain" ? "−" : ct.operator === "mainPlusCompare" ? "+" : "÷"}
                       </div>
                     </div>
                     <div>
