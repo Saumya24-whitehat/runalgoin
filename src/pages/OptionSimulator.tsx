@@ -657,10 +657,10 @@ const OptionSimulator = () => {
     });
   }, [simulatorData, positions, symbol]);
 
-  // Calculate chart data
-  const chartData = generatePLChartData(positions, currentPrice, 0.1);
-  const breakevens = findBreakevenPoints(chartData.expiry);
-  const greeks = calculateTotalGreeks(positions);
+  // Calculate chart data - only recalculate when positions change, not on every price tick
+  const chartData = useMemo(() => generatePLChartData(positions, currentPrice, 0.1), [positions]);
+  const breakevens = useMemo(() => findBreakevenPoints(chartData.expiry), [chartData]);
+  const greeks = useMemo(() => calculateTotalGreeks(positions), [positions]);
 
   // Calculate metrics
   const enabledPositions = positions.filter((p) => p.enabled);
