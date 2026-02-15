@@ -130,9 +130,9 @@ const OptionBuilderStrategies = ({ onSelectStrategy, onCreateCustomStrategy }: O
                 onClick={() => handleSelectCustom(custom)}
               >
                 <CardContent className="p-3 text-center">
-                  <div className="w-full h-12 mb-2 bg-muted/50 rounded flex flex-col items-center justify-center gap-1">
+                  <div className="w-full h-12 mb-2 bg-muted/50 rounded flex flex-col items-center justify-center gap-0.5">
                     <Icon className={`h-5 w-5 ${color}`} />
-                    <span className="text-[10px] text-muted-foreground">{custom.legs.length} legs</span>
+                    <span className="text-[10px] text-muted-foreground">{custom.legs.length} legs · {custom.expiryType?.replace("_", " ") || "weekly"}</span>
                   </div>
                   <div className="text-xs font-medium truncate">{custom.name}</div>
                   <Button

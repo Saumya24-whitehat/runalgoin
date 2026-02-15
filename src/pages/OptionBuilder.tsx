@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
+import { resolveExpiry } from "@/utils/resolveExpiryType";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserPreferences } from "@/hooks/useUserPreferences";
@@ -538,15 +539,18 @@ const OptionBuilder = () => {
       const strikeDiff = symbol.includes("Bank") ? 100 : 50;
       const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
+      // Resolve expiry based on strategy's expiryType
+      const resolvedExpiry = resolveExpiry(expiries, strategy.expiryType) || activeExpiry;
+      const resolvedExpiryData = optionChainData?.expiryWise?.[resolvedExpiry] || currentExpiryData;
+
       strategy.legs.forEach((leg) => {
         let strike = atm;
 
         if (leg.strikeMethod === "atm_offset") {
           strike = atm + leg.strikeOffset * strikeDiff;
-        } else if (leg.strikeMethod === "ltp" && currentExpiryData) {
-          // Find strike closest to target LTP
+        } else if (leg.strikeMethod === "ltp" && resolvedExpiryData) {
           let bestDiff = Infinity;
-          currentExpiryData.data.forEach((d) => {
+          resolvedExpiryData.data.forEach((d) => {
             const optData = leg.optType === "CE" ? d.call_options : d.put_options;
             if (optData) {
               const diff = Math.abs(optData.market_data.ltp - leg.targetLtp);
@@ -556,10 +560,9 @@ const OptionBuilder = () => {
               }
             }
           });
-        } else if (leg.strikeMethod === "delta" && currentExpiryData) {
-          // Find strike closest to target delta
+        } else if (leg.strikeMethod === "delta" && resolvedExpiryData) {
           let bestDiff = Infinity;
-          currentExpiryData.data.forEach((d) => {
+          resolvedExpiryData.data.forEach((d) => {
             const optData = leg.optType === "CE" ? d.call_options : d.put_options;
             if (optData) {
               const diff = Math.abs(optData.option_greeks.delta - leg.targetDelta);
@@ -572,7 +575,7 @@ const OptionBuilder = () => {
         }
 
         // Get live data for the resolved strike
-        const strikeData = currentExpiryData?.data.find((d) => Math.abs(d.strike_price - strike) < 0.01);
+        const strikeData = resolvedExpiryData?.data.find((d) => Math.abs(d.strike_price - strike) < 0.01);
         const optionData = strikeData
           ? leg.optType === "CE"
             ? strikeData.call_options
@@ -583,7 +586,7 @@ const OptionBuilder = () => {
           action: leg.action,
           lots: leg.lots,
           date: today,
-          expiry: activeExpiry,
+          expiry: resolvedExpiry,
           strike,
           optType: leg.optType,
           entryPrice: optionData?.market_data.ltp ?? 0,
@@ -596,7 +599,7 @@ const OptionBuilder = () => {
 
       setShowStrategies(false);
     },
-    [activeExpiry, currentPrice, lotSize, addPosition, symbol, currentExpiryData],
+    [activeExpiry, currentPrice, lotSize, addPosition, symbol, currentExpiryData, expiries, optionChainData],
   );
 
   const handleRefresh = useCallback(async () => {

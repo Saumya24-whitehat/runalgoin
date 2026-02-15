@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
+import { resolveExpiry } from "@/utils/resolveExpiryType";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -874,6 +875,12 @@ const OptionSimulator = () => {
       const strikeDiff = symbol.includes("Bank") ? 100 : 50;
       const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
 
+      // Resolve expiry based on strategy's expiryType
+      const resolvedExpiry = resolveExpiry(expiries, strategy.expiryType) || activeExpiry;
+
+      // If resolved expiry differs, we still use current simulatorData for strike resolution
+      // (positions will be tagged with the correct expiry for multi-expiry support)
+
       strategy.legs.forEach((leg) => {
         let strike = atm;
 
@@ -907,7 +914,7 @@ const OptionSimulator = () => {
           action: leg.action,
           lots: leg.lots,
           date: dateStr,
-          expiry: activeExpiry,
+          expiry: resolvedExpiry,
           strike,
           optType: leg.optType,
           entryPrice: strikeData ? (leg.optType === "CE" ? strikeData.cePrice : strikeData.pePrice) : 0,
@@ -919,7 +926,7 @@ const OptionSimulator = () => {
 
       setShowStrategies(false);
     },
-    [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData],
+    [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData, expiries],
   );
 
   const handleSaveStrategy = async (name: string, description: string, type: string) => {

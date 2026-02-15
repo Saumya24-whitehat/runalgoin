@@ -8,6 +8,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Plus, Trash2, TrendingUp, TrendingDown, Minus, MoreHorizontal } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
+export type ExpiryType = "current_week" | "next_week" | "current_month" | "next_month";
+
 export interface CustomStrategyLeg {
   action: "Buy" | "Sell";
   lots: number;
@@ -21,6 +23,7 @@ export interface CustomStrategyLeg {
 export interface CustomStrategyDefinition {
   name: string;
   category: "bullish" | "bearish" | "neutral" | "others";
+  expiryType: ExpiryType;
   legs: CustomStrategyLeg[];
 }
 
@@ -47,9 +50,17 @@ const categoryConfig = {
   others: { icon: MoreHorizontal, label: "Others", color: "text-blue-500" },
 };
 
+const expiryTypeOptions: { value: ExpiryType; label: string; description: string }[] = [
+  { value: "current_week", label: "Weekly", description: "Current week expiry" },
+  { value: "next_week", label: "Next Weekly", description: "Next week expiry" },
+  { value: "current_month", label: "Monthly", description: "Current month expiry" },
+  { value: "next_month", label: "Next Monthly", description: "Next month expiry" },
+];
+
 const CreateCustomStrategyModal = ({ open, onOpenChange, onCreateStrategy }: CreateCustomStrategyModalProps) => {
   const [name, setName] = useState("");
   const [category, setCategory] = useState<"bullish" | "bearish" | "neutral" | "others">("bullish");
+  const [expiryType, setExpiryType] = useState<ExpiryType>("current_week");
   const [legs, setLegs] = useState<CustomStrategyLeg[]>([{ ...DEFAULT_LEG }]);
 
   const addLeg = () => {
@@ -67,10 +78,11 @@ const CreateCustomStrategyModal = ({ open, onOpenChange, onCreateStrategy }: Cre
   const handleCreate = () => {
     if (!name.trim()) return;
     if (legs.length === 0) return;
-    onCreateStrategy({ name: name.trim(), category, legs });
+    onCreateStrategy({ name: name.trim(), category, expiryType, legs });
     // Reset
     setName("");
     setCategory("bullish");
+    setExpiryType("current_week");
     setLegs([{ ...DEFAULT_LEG }]);
     onOpenChange(false);
   };
@@ -115,6 +127,25 @@ const CreateCustomStrategyModal = ({ open, onOpenChange, onCreateStrategy }: Cre
                 }
               )}
             </RadioGroup>
+          </div>
+
+          {/* Expiry Type Selection */}
+          <div className="space-y-2">
+            <Label>Expiry Type</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {expiryTypeOptions.map((opt) => (
+                <label
+                  key={opt.value}
+                  className={`flex flex-col px-3 py-2 rounded-md border cursor-pointer transition-colors ${
+                    expiryType === opt.value ? "border-primary bg-primary/10" : "border-border hover:border-muted-foreground"
+                  }`}
+                  onClick={() => setExpiryType(opt.value)}
+                >
+                  <span className="text-sm font-medium">{opt.label}</span>
+                  <span className="text-[10px] text-muted-foreground">{opt.description}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           {/* Position Legs */}
