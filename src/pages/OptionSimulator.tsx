@@ -869,26 +869,26 @@ const OptionSimulator = () => {
     [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData],
   );
 
-  const handleCreateCustomStrategy = useCallback(
-    (strategy: CustomStrategyDefinition) => {
+  // Ref to hold a pending custom strategy that needs data to load first
+  const pendingCustomStrategyRef = useRef<CustomStrategyDefinition | null>(null);
+
+  // Execute a custom strategy using the current simulatorData
+  const executeCustomStrategy = useCallback(
+    (strategy: CustomStrategyDefinition, data: SimulatorData) => {
       const dateStr = format(selectedDate, "yyyy-MM-dd");
       const strikeDiff = symbol.includes("Bank") ? 100 : 50;
-      const atm = Math.round(currentPrice / strikeDiff) * strikeDiff;
+      const atm = Math.round(data.spotPrice / strikeDiff) * strikeDiff;
 
-      // Resolve expiry based on strategy's expiryType
       const resolvedExpiry = resolveExpiry(expiries, strategy.expiryType) || activeExpiry;
-
-      // If resolved expiry differs, we still use current simulatorData for strike resolution
-      // (positions will be tagged with the correct expiry for multi-expiry support)
 
       strategy.legs.forEach((leg) => {
         let strike = atm;
 
         if (leg.strikeMethod === "atm_offset") {
           strike = atm + leg.strikeOffset * strikeDiff;
-        } else if (leg.strikeMethod === "ltp" && simulatorData) {
+        } else if (leg.strikeMethod === "ltp") {
           let bestDiff = Infinity;
-          simulatorData.strikes.forEach((s) => {
+          data.strikes.forEach((s) => {
             const price = leg.optType === "CE" ? s.cePrice : s.pePrice;
             const diff = Math.abs(price - leg.targetLtp);
             if (diff < bestDiff) {
@@ -896,9 +896,9 @@ const OptionSimulator = () => {
               strike = s.strike;
             }
           });
-        } else if (leg.strikeMethod === "delta" && simulatorData) {
+        } else if (leg.strikeMethod === "delta") {
           let bestDiff = Infinity;
-          simulatorData.strikes.forEach((s) => {
+          data.strikes.forEach((s) => {
             const delta = leg.optType === "CE" ? (s as any).ceDelta ?? 0.5 : (s as any).peDelta ?? -0.5;
             const diff = Math.abs(delta - leg.targetDelta);
             if (diff < bestDiff) {
@@ -908,7 +908,7 @@ const OptionSimulator = () => {
           });
         }
 
-        const strikeData = simulatorData?.strikes.find((s) => Math.abs(s.strike - strike) < 0.01);
+        const strikeData = data.strikes.find((s) => Math.abs(s.strike - strike) < 0.01);
 
         addPosition({
           action: leg.action,
@@ -920,13 +920,41 @@ const OptionSimulator = () => {
           entryPrice: strikeData ? (leg.optType === "CE" ? strikeData.cePrice : strikeData.pePrice) : 0,
           currentPrice: strikeData ? (leg.optType === "CE" ? strikeData.cePrice : strikeData.pePrice) : 0,
           IV: strikeData ? (leg.optType === "CE" ? strikeData.ceIV : strikeData.peIV) : 15,
-          lotSize,
+          lotSize: data.lotSize || lotSize,
         });
       });
 
       setShowStrategies(false);
     },
-    [activeExpiry, currentPrice, lotSize, addPosition, symbol, selectedDate, simulatorData, expiries],
+    [activeExpiry, lotSize, addPosition, symbol, selectedDate, expiries],
+  );
+
+  // When simulatorData loads and there's a pending strategy, execute it
+  useEffect(() => {
+    if (pendingCustomStrategyRef.current && simulatorData && !isLoading) {
+      executeCustomStrategy(pendingCustomStrategyRef.current, simulatorData);
+      pendingCustomStrategyRef.current = null;
+    }
+  }, [simulatorData, isLoading, executeCustomStrategy]);
+
+  const handleCreateCustomStrategy = useCallback(
+    (strategy: CustomStrategyDefinition) => {
+      const resolvedExpiry = resolveExpiry(expiries, strategy.expiryType) || activeExpiry;
+
+      // If the resolved expiry differs from active, switch expiry first and wait for data
+      if (resolvedExpiry !== activeExpiry) {
+        pendingCustomStrategyRef.current = strategy;
+        setActiveExpiry(resolvedExpiry);
+        toast.info("Switching expiry and loading data...");
+        return;
+      }
+
+      // If same expiry and data is available, execute immediately
+      if (simulatorData) {
+        executeCustomStrategy(strategy, simulatorData);
+      }
+    },
+    [activeExpiry, simulatorData, expiries, executeCustomStrategy],
   );
 
   const handleSaveStrategy = async (name: string, description: string, type: string) => {
