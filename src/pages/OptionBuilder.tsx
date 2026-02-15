@@ -597,6 +597,10 @@ const OptionBuilder = () => {
         });
       });
 
+      // Switch active expiry to match the resolved one
+      if (resolvedExpiry !== activeExpiry) {
+        setActiveExpiry(resolvedExpiry);
+      }
       setShowStrategies(false);
     },
     [activeExpiry, currentPrice, lotSize, addPosition, symbol, currentExpiryData, expiries, optionChainData],
