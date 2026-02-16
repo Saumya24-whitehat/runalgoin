@@ -104,7 +104,7 @@ const StockDetail = () => {
               stockData && (
                 <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <span className="text-base sm:text-2xl font-bold text-foreground">
-                    {formatPrice(stockData.price)}
+                    {formatPrice(stockData.close)}
                   </span>
                   <span
                     className={`text-[10px] sm:text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
@@ -163,9 +163,7 @@ const StockDetail = () => {
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">EPS</p>
-              <p className="text-xs sm:text-sm font-semibold text-foreground">
-                ₹{stockData.eps?.toFixed(2)}
-              </p>
+              <p className="text-xs sm:text-sm font-semibold text-foreground">₹{stockData.eps?.toFixed(2)}</p>
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Volume</p>
