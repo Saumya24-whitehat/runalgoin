@@ -107,9 +107,9 @@ const StockDetail = () => {
                     {formatPrice(stockData.close)}
                   </span>
                   <span
-                    className={`text-[10px] sm:text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                    className={`text-[10px] sm:text-sm font-medium ${stockData.change >= 0 ? "text-emerald-500" : "text-red-500"}`}
                   >
-                    {formatPercentage(stockData.change_percent)}
+                    {formatPercentage(stockData.change)}
                   </span>
                 </div>
               )
