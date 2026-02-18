@@ -930,31 +930,42 @@ const OptionSimulator = () => {
   );
 
   // When simulatorData loads and there's a pending strategy, execute it
+  // Only fire when data has finished loading AND the data's expiry matches the pending strategy's resolved expiry
   useEffect(() => {
-    if (pendingCustomStrategyRef.current && simulatorData && !isLoading) {
-      executeCustomStrategy(pendingCustomStrategyRef.current, simulatorData);
-      pendingCustomStrategyRef.current = null;
-    }
-  }, [simulatorData, isLoading, executeCustomStrategy]);
+    if (!pendingCustomStrategyRef.current || isLoading || !simulatorData) return;
+
+    const strategy = pendingCustomStrategyRef.current;
+    const resolvedExpiry = resolveExpiry(expiries, strategy.expiryType) || activeExpiry;
+
+    // Guard: only execute when the loaded data is actually for the target expiry
+    if (simulatorData.expiry !== resolvedExpiry) return;
+
+    executeCustomStrategy(strategy, simulatorData);
+    pendingCustomStrategyRef.current = null;
+  }, [simulatorData, isLoading, executeCustomStrategy, expiries, activeExpiry]);
 
   const handleCreateCustomStrategy = useCallback(
     (strategy: CustomStrategyDefinition) => {
       const resolvedExpiry = resolveExpiry(expiries, strategy.expiryType) || activeExpiry;
 
-      // If the resolved expiry differs from active, switch expiry first and wait for data
+      // If the resolved expiry differs from active, store strategy and switch expiry — the effect above will execute it once data loads
       if (resolvedExpiry !== activeExpiry) {
         pendingCustomStrategyRef.current = strategy;
         setActiveExpiry(resolvedExpiry);
-        toast.info("Switching expiry and loading data...");
+        toast.info("Switching to " + resolvedExpiry + " expiry and loading data…");
         return;
       }
 
-      // If same expiry and data is available, execute immediately
-      if (simulatorData) {
+      // Same expiry — but still wait for data to finish loading before executing
+      if (!isLoading && simulatorData) {
         executeCustomStrategy(strategy, simulatorData);
+      } else {
+        // Data is still loading for the current expiry; park it
+        pendingCustomStrategyRef.current = strategy;
+        toast.info("Loading data, executing strategy shortly…");
       }
     },
-    [activeExpiry, simulatorData, expiries, executeCustomStrategy],
+    [activeExpiry, simulatorData, isLoading, expiries, executeCustomStrategy],
   );
 
   const handleSaveStrategy = async (name: string, description: string, type: string) => {

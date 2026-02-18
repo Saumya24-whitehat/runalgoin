@@ -101,15 +101,15 @@ const StockDetail = () => {
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
               </div>
             ) : (
-              stockData && (
+            stockData && (
                 <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                   <span className="text-base sm:text-2xl font-bold text-foreground">
-                    {formatPrice(stockData.close)}
+                    {formatPrice(stockData.price)}
                   </span>
                   <span
-                    className={`text-[10px] sm:text-sm font-medium ${stockData.change >= 0 ? "text-emerald-500" : "text-red-500"}`}
+                    className={`text-[10px] sm:text-sm font-medium ${stockData.change_percent >= 0 ? "text-emerald-500" : "text-red-500"}`}
                   >
-                    {formatPercentage(stockData.change)}
+                    {formatPercentage(stockData.change_percent)}
                   </span>
                 </div>
               )
@@ -143,7 +143,7 @@ const StockDetail = () => {
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Market Cap</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                {formatMarketCap(stockData.market_cap_basic)}
+                {formatMarketCap(stockData.market_cap)}
               </p>
               <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
                 Last updated: {lastUpdated}
@@ -152,19 +152,19 @@ const StockDetail = () => {
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">P/E Ratio</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                {stockData.price_earnings_ttm?.toFixed(2) || "N/A"}
+                {stockData.pe_ratio?.toFixed(2) || "N/A"}
               </p>
             </div>
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">Div Yield</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                {stockData.dividends_yield_current?.toFixed(1)}%
+                {stockData.dividend_yield?.toFixed(1)}%
               </p>
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">EPS</p>
               <p className="text-xs sm:text-sm font-semibold text-foreground">
-                ₹{stockData.earnings_per_share_diluted_ttm?.toFixed(2)}
+                ₹{stockData.eps?.toFixed(2)}
               </p>
             </div>
             <div className="hidden sm:block">
