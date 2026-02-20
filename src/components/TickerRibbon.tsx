@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { TrendingDown, TrendingUp, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFallback } from "@/services/directApi";
 
 interface TickerItem {
   name: string;
@@ -32,18 +32,12 @@ export function TickerRibbon() {
           setHasError(false);
         }
         
-        const { data, error } = await supabase.functions.invoke('ticker-data');
+        const data = await fetchWithFallback<TickerAPIResponse>({
+          directPath: "/ticker/indices_data.php",
+          edgeFunctionName: "ticker-data",
+        });
         
-        if (error) {
-          console.error('Error fetching ticker data:', error);
-          if (isInitialFetch.current) {
-            setHasError(true);
-            setTickerData([]);
-          }
-          return;
-        }
-
-        if (data && typeof data === 'object' && !data.error) {
+        if (data && typeof data === 'object') {
           const apiData = data as TickerAPIResponse;
           const formattedData: TickerItem[] = Object.entries(apiData).map(([key, value]) => ({
             name: value.symbol || key,
