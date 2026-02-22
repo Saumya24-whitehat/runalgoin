@@ -1,46 +1,26 @@
-import { supabase } from "@/integrations/supabase/client";
-import { SymbolsResponse, ExpiryResponse, OptionChainResponse, GroupedSymbols } from "@/types/optionChain";
+import { fetchWithFallback } from "./directApi";
+import { ExpiryResponse, OptionChainResponse, GroupedSymbols } from "@/types/optionChain";
 
 export async function fetchHeatMapSymbols(): Promise<GroupedSymbols> {
-  try {
-    const { data, error } = await supabase.functions.invoke('option-chain-proxy', {
-      body: { endpoint: 'symbols' }
-    });
+  const data = await fetchWithFallback<Record<string, any>>({
+    directPath: "/data/getSymbols.php",
+    edgeFunctionName: "option-chain-proxy",
+    edgeFunctionBody: { endpoint: "symbols" },
+  });
 
-    if (error) {
-      console.error("Error fetching symbols:", error);
-      throw error;
-    }
-
-    return {
-      indexSymbols: data["index symbols"] || [],
-      stockSymbols: data.symbols || []
-    };
-  } catch (error) {
-    console.error("Error fetching symbols:", error);
-    throw error;
-  }
+  return {
+    indexSymbols: data["index symbols"] || [],
+    stockSymbols: data.symbols || [],
+  };
 }
 
 export async function fetchHeatMapExpiryDates(symbol: string): Promise<ExpiryResponse> {
-  try {
-    const { data, error } = await supabase.functions.invoke('option-chain-proxy', {
-      body: {
-        endpoint: 'expiry',
-        params: { symbol }
-      }
-    });
-
-    if (error) {
-      console.error("Error fetching expiry dates:", error);
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching expiry dates:", error);
-    throw error;
-  }
+  return fetchWithFallback<ExpiryResponse>({
+    directPath: "/data/getExpiryDates2.php",
+    edgeFunctionName: "option-chain-proxy",
+    edgeFunctionBody: { endpoint: "expiry", params: { symbol } },
+    queryParams: { symbol },
+  });
 }
 
 export async function fetchHeatMapOptionChainData(
@@ -48,22 +28,10 @@ export async function fetchHeatMapOptionChainData(
   expiry: string,
   strikeCount: number = 10
 ): Promise<OptionChainResponse> {
-  try {
-    const { data, error } = await supabase.functions.invoke('option-chain-proxy', {
-      body: {
-        endpoint: 'optionchain',
-        params: { symbol, expiry, strikeCount }
-      }
-    });
-
-    if (error) {
-      console.error("Error fetching option chain data:", error);
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Error fetching option chain data:", error);
-    throw error;
-  }
+  return fetchWithFallback<OptionChainResponse>({
+    directPath: "/data/calculateStrikeDataWithStrikeCount.php",
+    edgeFunctionName: "option-chain-proxy",
+    edgeFunctionBody: { endpoint: "optionchain", params: { symbol, expiry, strikeCount } },
+    queryParams: { symbol, expiry, StrikeCount: strikeCount.toString() },
+  });
 }

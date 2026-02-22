@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFallback } from "./directApi";
 
 export interface FutureOiDataPoint {
   time: string;
@@ -24,15 +24,11 @@ export interface FutureOiBreakupResponse {
 }
 
 export async function fetchFutureOiBreakup(symbol: string, expiryDate: string): Promise<FutureOiBreakupResponse> {
-  const url = `https://runalgo.xyz/data/calculateFutureData.php?symbol=${encodeURIComponent(symbol)}&expiry_date=${encodeURIComponent(expiryDate)}`;
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Failed to fetch future OI data: ${response.statusText}`);
-  }
-
-  const rawData = await response.json();
+  const rawData = await fetchWithFallback<any>({
+    directPath: "/data/calculateFutureData.php",
+    edgeFunctionName: "option-chain", // fallback to any available proxy
+    queryParams: { symbol, expiry_date: expiryDate },
+  });
 
   // Transform the data from the API format
   const dataWhole = rawData.dataWhole || {};
@@ -62,7 +58,6 @@ export async function fetchFutureOiBreakup(symbol: string, expiryDate: string): 
   return { data, date };
 }
 
-// Calculate derived values for the table
 export interface ProcessedFutureOiData extends FutureOiDataPoint {
   totalOiChange: number;
   totalOiChangePercent: number;
@@ -86,31 +81,25 @@ export function processFutureOiData(data: FutureOiDataPoint[]): ProcessedFutureO
   return data.map((row, index) => {
     const prevRow = index > 0 ? data[index - 1] : null;
 
-    // Flags before updating running values
     let isNewDayHigh = false;
     let isNewDayLow = false;
 
-    // Check & update running Day High
     if (row.high > runningDayHigh) {
       runningDayHigh = row.high;
       isNewDayHigh = true;
     }
 
-    // Check & update running Day Low
     if (row.low < runningDayLow) {
       runningDayLow = row.low;
       isNewDayLow = true;
     }
 
-    // Calculate OI changes
     const oiChange = prevRow ? row.oi - prevRow.oi : 0;
     const totalOiChange = row.oi - firstOi;
     const totalOiChangePercent = firstOi > 0 ? (totalOiChange / firstOi) * 100 : 0;
 
-    // Price change
     const priceChange = row.close - row.previousClose;
 
-    // Determine buildup
     let buildup = "Neutral";
     if (oiChange > 0 && priceChange > 0) buildup = "Long Buildup";
     else if (oiChange > 0 && priceChange < 0) buildup = "Short Buildup";

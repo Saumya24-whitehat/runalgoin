@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFallback } from "./directApi";
 
 export interface IndexStock {
   symbol: string;
@@ -88,16 +88,12 @@ export interface StockTechnical {
 
 export async function fetchIndexStocks(indexSymbol: string): Promise<IndexStock[] | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("index-detail", {
-      body: { index: indexSymbol, dataType: "stocks" },
+    return await fetchWithFallback<IndexStock[]>({
+      directPath: "/navbar/detailed/datastocks.php",
+      edgeFunctionName: "index-detail",
+      edgeFunctionBody: { index: indexSymbol, dataType: "stocks" },
+      queryParams: { index: indexSymbol },
     });
-
-    if (error) {
-      console.error("Error fetching index stocks:", error);
-      return null;
-    }
-
-    return data;
   } catch (error) {
     console.error("Error fetching index stocks:", error);
     return null;
@@ -106,16 +102,12 @@ export async function fetchIndexStocks(indexSymbol: string): Promise<IndexStock[
 
 export async function fetchDeliveryData(indexSymbol: string): Promise<DeliveryData | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("index-detail", {
-      body: { index: indexSymbol, dataType: "delivery" },
+    return await fetchWithFallback<DeliveryData>({
+      directPath: "/navbar/detailed/deliveryData.php",
+      edgeFunctionName: "index-detail",
+      edgeFunctionBody: { index: indexSymbol, dataType: "delivery" },
+      queryParams: { index: indexSymbol },
     });
-
-    if (error) {
-      console.error("Error fetching delivery data:", error);
-      return null;
-    }
-
-    return data;
   } catch (error) {
     console.error("Error fetching delivery data:", error);
     return null;
@@ -124,14 +116,12 @@ export async function fetchDeliveryData(indexSymbol: string): Promise<DeliveryDa
 
 export async function fetchTechnicalsData(indexSymbol: string): Promise<StockTechnical[] | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("index-detail", {
-      body: { index: indexSymbol, dataType: "technicals" },
+    const data = await fetchWithFallback<any>({
+      directPath: "/adv-dec%20copy/ADdataLastData.php",
+      edgeFunctionName: "index-detail",
+      edgeFunctionBody: { index: indexSymbol, dataType: "technicals" },
+      queryParams: { index: indexSymbol },
     });
-
-    if (error) {
-      console.error("Error fetching technicals data:", error);
-      return null;
-    }
 
     // API returns array with date as first element, extract content
     if (Array.isArray(data) && data.length > 0 && data[0].content) {
@@ -150,16 +140,12 @@ export async function fetchShareholdingData(
   type: "promoter" | "fii" | "mf" | "public" = "promoter",
 ): Promise<any[] | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("index-detail", {
-      body: { index: indexSymbol, dataType: "shareholding", shareholdingType: type },
+    return await fetchWithFallback<any[]>({
+      directPath: "/navbar/detailed/shareholdingData.php",
+      edgeFunctionName: "index-detail",
+      edgeFunctionBody: { index: indexSymbol, dataType: "shareholding", shareholdingType: type },
+      queryParams: { index: indexSymbol, type },
     });
-
-    if (error) {
-      console.error("Error fetching shareholding data:", error);
-      return null;
-    }
-
-    return data;
   } catch (error) {
     console.error("Error fetching shareholding data:", error);
     return null;
@@ -168,16 +154,12 @@ export async function fetchShareholdingData(
 
 export async function fetchBreadthData(indexSymbol: string): Promise<any | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("index-detail", {
-      body: { index: indexSymbol, dataType: "breadth" },
+    return await fetchWithFallback<any>({
+      directPath: "/adv-dec%20copy/ADdataLastData.php",
+      edgeFunctionName: "index-detail",
+      edgeFunctionBody: { index: indexSymbol, dataType: "breadth" },
+      queryParams: { index: indexSymbol },
     });
-
-    if (error) {
-      console.error("Error fetching breadth data:", error);
-      return null;
-    }
-
-    return data;
   } catch (error) {
     console.error("Error fetching breadth data:", error);
     return null;

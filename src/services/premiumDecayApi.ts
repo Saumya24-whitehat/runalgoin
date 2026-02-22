@@ -1,4 +1,4 @@
-const BASE_URL = "https://runalgo.xyz/data";
+import { fetchWithFallback } from "./directApi";
 
 export interface PremiumDecayStrikesResponse {
   symbol: string;
@@ -37,21 +37,15 @@ export async function fetchPremiumDecayStrikes(
   expiry: string,
   date?: string
 ): Promise<PremiumDecayStrikesResponse> {
-  const params = new URLSearchParams();
-  params.append("symbol", symbol);
-  params.append("expiry", expiry);
-  if (date) {
-    params.append("date", date);
-  }
+  const queryParams: Record<string, string> = { symbol, expiry };
+  if (date) queryParams.date = date;
 
-  const url = `${BASE_URL}/strikes.php?${params.toString()}`;
-  
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
+  return fetchWithFallback<PremiumDecayStrikesResponse>({
+    directPath: "/data/strikes.php",
+    edgeFunctionName: "premium-decay-data",
+    edgeFunctionBody: { endpoint: "strikes", symbol, expiry, date },
+    queryParams,
+  });
 }
 
 export async function fetchPremiumDecayData(
@@ -60,20 +54,17 @@ export async function fetchPremiumDecayData(
   strike: number,
   date?: string
 ): Promise<PremiumDecayResponse> {
-  const params = new URLSearchParams();
-  params.append("symbol", symbol);
-  params.append("expiry", expiry);
-  params.append("strike", strike.toString());
-  if (date) {
-    params.append("date", date);
-  }
+  const queryParams: Record<string, string> = {
+    symbol,
+    expiry,
+    strike: strike.toString(),
+  };
+  if (date) queryParams.date = date;
 
-  const url = `${BASE_URL}/getATMDeltaPremiumData.php?${params.toString()}`;
-  
-  const response = await fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  return response.json();
+  return fetchWithFallback<PremiumDecayResponse>({
+    directPath: "/data/getATMDeltaPremiumData.php",
+    edgeFunctionName: "premium-decay-data",
+    edgeFunctionBody: { endpoint: "data", symbol, expiry, strike, date },
+    queryParams,
+  });
 }

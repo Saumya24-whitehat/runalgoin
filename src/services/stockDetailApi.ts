@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFallback } from "./directApi";
 
 export interface StockOverview {
   symbol: string;
@@ -34,17 +34,17 @@ export interface GrowthData {
 }
 
 export interface ConsolidatedData {
-  Table_1: FinancialRow[]; // Quarterly results
-  Table_2: FinancialRow[]; // Yearly results
-  Table_3: GrowthData[]; // Compounded Sales Growth
-  Table_4: GrowthData[]; // Compounded Profit Growth
-  Table_5: GrowthData[]; // Stock Price CAGR
-  Table_6: GrowthData[]; // Return on Equity
-  Table_7: FinancialRow[]; // Balance Sheet
-  Table_8: FinancialRow[]; // Cash Flow
-  Table_9: FinancialRow[]; // Ratios
-  Table_10: FinancialRow[]; // Shareholding Quarterly
-  Table_11: FinancialRow[]; // Shareholding Yearly
+  Table_1: FinancialRow[];
+  Table_2: FinancialRow[];
+  Table_3: GrowthData[];
+  Table_4: GrowthData[];
+  Table_5: GrowthData[];
+  Table_6: GrowthData[];
+  Table_7: FinancialRow[];
+  Table_8: FinancialRow[];
+  Table_9: FinancialRow[];
+  Table_10: FinancialRow[];
+  Table_11: FinancialRow[];
 }
 
 export interface OptionsAverageData {
@@ -101,56 +101,56 @@ export interface AdditionalFinancialData {
 
 export const fetchStockOverview = async (symbol: string): Promise<StockOverview | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('stock-detail-data', {
-      body: { symbol, endpoint: 'overview' }
+    return await fetchWithFallback<StockOverview>({
+      directPath: "/navbar/detailed/data1stock.php",
+      edgeFunctionName: "stock-detail-data",
+      edgeFunctionBody: { symbol, endpoint: "overview" },
+      queryParams: { symbol },
     });
-
-    if (error) throw error;
-    return data;
   } catch (error) {
-    console.error('Error fetching stock overview:', error);
+    console.error("Error fetching stock overview:", error);
     return null;
   }
 };
 
 export const fetchCompanyId = async (symbol: string): Promise<string | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('stock-detail-data', {
-      body: { symbol, endpoint: 'mapping' }
+    const data = await fetchWithFallback<any>({
+      directPath: "/navbar/detailed/detailedMapping.php",
+      edgeFunctionName: "stock-detail-data",
+      edgeFunctionBody: { symbol, endpoint: "mapping" },
+      queryParams: { symbol },
     });
-
-    if (error) throw error;
     return data ? String(data) : null;
   } catch (error) {
-    console.error('Error fetching company ID:', error);
+    console.error("Error fetching company ID:", error);
     return null;
   }
 };
 
 export const fetchStockConsolidated = async (symbol: string): Promise<ConsolidatedData | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('stock-detail-data', {
-      body: { symbol, endpoint: 'consolidated' }
+    return await fetchWithFallback<ConsolidatedData>({
+      directPath: `/navbar/financial%20api/data_consolidated/${encodeURIComponent(symbol)}.json`,
+      edgeFunctionName: "stock-detail-data",
+      edgeFunctionBody: { symbol, endpoint: "consolidated" },
     });
-
-    if (error) throw error;
-    return data;
   } catch (error) {
-    console.error('Error fetching stock consolidated data:', error);
+    console.error("Error fetching stock consolidated data:", error);
     return null;
   }
 };
 
 export const fetchStockOptions = async (symbol: string): Promise<any> => {
   try {
-    const { data, error } = await supabase.functions.invoke('jackpot-symbol-data', {
-      body: { symbol }
+    return await fetchWithFallback<any>({
+      directPath: "/stockJackpot/getSymbolData.php",
+      edgeFunctionName: "jackpot-symbol-data",
+      edgeFunctionBody: { symbol },
+      queryParams: { symbol },
     });
-
-    if (error) throw error;
-    return data;
   } catch (error) {
-    console.error('Error fetching stock options data:', error);
+    console.error("Error fetching stock options data:", error);
     return null;
   }
 };
@@ -158,23 +158,23 @@ export const fetchStockOptions = async (symbol: string): Promise<any> => {
 export const fetchAdditionalFinancialInfo = async (
   company_id: string,
   parent: string,
-  section: 'quarters' | 'years'
+  section: "quarters" | "years"
 ): Promise<AdditionalFinancialData | null> => {
   try {
-    const { data, error } = await supabase.functions.invoke('stock-detail-data', {
-      body: { 
-        symbol: '', 
-        endpoint: 'additional_financial',
+    return await fetchWithFallback<AdditionalFinancialData>({
+      directPath: "/navbar/detailed/getAdditionalFinancialInfo.php",
+      edgeFunctionName: "stock-detail-data",
+      edgeFunctionBody: {
+        symbol: "",
+        endpoint: "additional_financial",
         company_id,
         parent,
-        section
-      }
+        section,
+      },
+      queryParams: { company_id, parent, section },
     });
-
-    if (error) throw error;
-    return data;
   } catch (error) {
-    console.error('Error fetching additional financial info:', error);
+    console.error("Error fetching additional financial info:", error);
     return null;
   }
 };
@@ -187,13 +187,13 @@ export const formatMarketCap = (value: number): string => {
   } else if (value >= 1e5) {
     return `₹${(value / 1e5).toFixed(2)}L`;
   }
-  return `₹${value.toLocaleString('en-IN')}`;
+  return `₹${value.toLocaleString("en-IN")}`;
 };
 
 export const formatPrice = (value: number): string => {
-  return `₹${value.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `₹${value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 };
 
 export const formatPercentage = (value: number): string => {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
+  return `${value >= 0 ? "+" : ""}${value.toFixed(2)}%`;
 };
