@@ -59,7 +59,6 @@ export async function fetchWithFallback<T = unknown>(options: DirectFetchOptions
         "x-requested-with": "XMLHttpRequest",
         ...directHeaders,
       },
-      signal: controller.signal,
     });
     const response = await fetch(url.toString(), {
       method: "GET",
@@ -69,7 +68,6 @@ export async function fetchWithFallback<T = unknown>(options: DirectFetchOptions
         "x-requested-with": "XMLHttpRequest",
         ...directHeaders,
       },
-      signal: controller.signal,
     });
 
     clearTimeout(timeout);
