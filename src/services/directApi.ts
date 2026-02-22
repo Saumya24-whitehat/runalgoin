@@ -30,14 +30,7 @@ interface DirectFetchOptions {
 }
 
 export async function fetchWithFallback<T = unknown>(options: DirectFetchOptions): Promise<T> {
-  const {
-    directPath,
-    edgeFunctionName,
-    edgeFunctionBody,
-    queryParams,
-    directHeaders,
-    requiresAuth = false,
-  } = options;
+  const { directPath, edgeFunctionName, edgeFunctionBody, queryParams, directHeaders, requiresAuth = false } = options;
 
   // If this endpoint needs server-side auth, skip direct call entirely
   if (requiresAuth) {
@@ -58,7 +51,16 @@ export async function fetchWithFallback<T = unknown>(options: DirectFetchOptions
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout for direct
-
+    console.log({
+      method: "GET",
+      headers: {
+        accept: "*/*",
+        "content-type": "application/json",
+        "x-requested-with": "XMLHttpRequest",
+        ...directHeaders,
+      },
+      signal: controller.signal,
+    });
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
