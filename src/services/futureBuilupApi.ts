@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFallback } from "./directApi";
 
 export interface BuildupItem {
   symbol: string;
@@ -17,6 +18,7 @@ export interface FutureBuildupData {
   lastUpdated: string;
 }
 
+// This endpoint does server-side data categorization, keep using edge function
 export async function fetchFutureBuildup(symbol: string, expiry: string): Promise<FutureBuildupData> {
   const { data, error } = await supabase.functions.invoke("future-buildup", {
     body: { symbol, expiry },
@@ -35,15 +37,18 @@ export async function fetchFutureBuildup(symbol: string, expiry: string): Promis
   };
 }
 
+// Expiry dates endpoint is a simple proxy - use direct call
 export async function fetchFutureExpiryDates(symbol: string): Promise<string[]> {
-  // Use the option-chain endpoint to get expiry dates as futures share similar expiries
-  const { data, error } = await supabase.functions.invoke("option-chain", {
-    body: { action: "getExpiryDates", symbol },
-  });
+  try {
+    const data = await fetchWithFallback<any>({
+      directPath: "/data/getExpiryDates2.php",
+      edgeFunctionName: "option-chain",
+      edgeFunctionBody: { action: "getExpiryDates", symbol },
+      queryParams: { symbol },
+    });
 
-  if (error) {
-    throw new Error(error.message);
+    return data?.expiry_dates || [];
+  } catch (error) {
+    throw new Error(error instanceof Error ? error.message : "Failed to fetch expiry dates");
   }
-
-  return data?.expiry_dates || [];
 }

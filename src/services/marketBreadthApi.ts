@@ -1,4 +1,4 @@
-import { supabase } from "@/integrations/supabase/client";
+import { fetchWithFallback } from "./directApi";
 
 export interface IndexGroup {
   name: string;
@@ -13,7 +13,7 @@ export interface StockData {
   description: string;
   close: number;
   change: number;
-  changePct: number; // Calculated percentage
+  changePct: number;
   high: number;
   low: number;
   exchange: string;
@@ -113,73 +113,40 @@ export const groupedIndices: IndexGroup[] = [
 // Fetch advance/decline data for all indices
 export async function fetchAdvanceDeclineData(): Promise<Record<string, AdvanceDeclineData> | null> {
   try {
-    const { data, error } = await supabase.functions.invoke("advance-decline");
-
-    if (error) {
-      console.error("Error fetching advance/decline data:", error);
-      return null;
-    }
-
-    return data;
+    return await fetchWithFallback<Record<string, AdvanceDeclineData>>({
+      directPath: "/navbar/marketpage/advanceDecline.php",
+      edgeFunctionName: "advance-decline",
+    });
   } catch (error) {
     console.error("Error in fetchAdvanceDeclineData:", error);
     return null;
   }
 }
 
-// Calculate change percentage from change in Rs
-// Formula: chgPCT = chg / (LTP - chg) * 100
-function calculateChangePct(close: number, change: number): number {
-  const previousClose = close - change;
-  if (previousClose === 0) return 0;
-  return (change / previousClose) * 100;
-}
-
 export async function fetchMarketBreadthData(indexSymbol: string): Promise<MarketBreadthResponse | null> {
   try {
-    // Construct the full function URL with query parameter
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "ucvstbihgvuuaficfjsu";
-    const functionUrl = `https://${projectId}.supabase.co/functions/v1/market-breadth?index=${encodeURIComponent(indexSymbol)}`;
-
-    const response = await fetch(functionUrl, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const data = await fetchWithFallback<any[]>({
+      directPath: "/adv-dec%20copy/ADdataLastData2.php",
+      edgeFunctionName: "market-breadth",
+      edgeFunctionBody: { index: indexSymbol },
+      queryParams: { index: indexSymbol },
     });
-
-    if (!response.ok) {
-      console.error("Error fetching market breadth data:", response.status);
-      return null;
-    }
-
-    const data = await response.json();
 
     // The API returns an array with date entries, get the latest
     if (Array.isArray(data) && data.length > 0) {
       const latestEntry = data[0];
       const rawContent = latestEntry.content || [];
 
-      // Process stocks and calculate change percentage
-      const processedContent: StockData[] = rawContent.map((stock: any) => {
-        const close = stock.close || 0;
-        // The API 'change' field is a decimal ratio (e.g., 0.066 means 6.6%)
-        // So we multiply by 100 to get percentage
-        // But looking at sample, change = 0.066077972 for 6.6% change
-        // So changePct = change * 100
-        const changePct = stock.change || 0;
-
-        return {
-          name: stock.name || "",
-          description: stock.description || "",
-          close: close,
-          change: stock.change || 0,
-          changePct: changePct,
-          high: stock.high || 0,
-          low: stock.low || 0,
-          exchange: stock.exchange || "NSE",
-        };
-      });
+      const processedContent: StockData[] = rawContent.map((stock: any) => ({
+        name: stock.name || "",
+        description: stock.description || "",
+        close: stock.close || 0,
+        change: stock.change || 0,
+        changePct: stock.change || 0,
+        high: stock.high || 0,
+        low: stock.low || 0,
+        exchange: "NSE",
+      }));
 
       return {
         date: latestEntry.date,

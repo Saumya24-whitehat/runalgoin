@@ -1,3 +1,4 @@
+import { fetchWithFallback } from "./directApi";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface TOIStrikesResponse {
@@ -36,26 +37,20 @@ export interface TOIDataResponse {
   data: TOIDataEntry[];
 }
 
+// Strikes endpoint is public - use direct call
 export async function fetchTOIStrikes(
   symbol: string,
   expiry: string
 ): Promise<TOIStrikesResponse> {
-  const { data, error } = await supabase.functions.invoke("toi-data", {
-    body: {
-      endpoint: "strikes",
-      symbol,
-      expiry,
-    },
+  return fetchWithFallback<TOIStrikesResponse>({
+    directPath: "/data/strikes.php",
+    edgeFunctionName: "toi-data",
+    edgeFunctionBody: { endpoint: "strikes", symbol, expiry },
+    queryParams: { symbol, expiry },
   });
-
-  if (error) {
-    console.error("Error fetching TOI strikes:", error);
-    throw error;
-  }
-
-  return data;
 }
 
+// Data endpoint requires bearer token - use edge function
 export async function fetchTOIData(
   symbol: string,
   expiry: string,
