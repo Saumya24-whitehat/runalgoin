@@ -51,21 +51,14 @@ export async function fetchWithFallback<T = unknown>(options: DirectFetchOptions
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout for direct
-    console.log({
-      method: "GET",
-      headers: {
-        accept: "*/*",
-        "content-type": "application/json",
-        "x-requested-with": "XMLHttpRequest",
-        ...directHeaders,
-      },
-    });
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
-        accept: "*/*",
+        "accept": "*/*",
         "content-type": "application/json",
         "x-requested-with": "XMLHttpRequest",
+        "Referer": "https://optionworld.tech/",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36",
         ...directHeaders,
       },
     });
