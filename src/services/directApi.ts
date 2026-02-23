@@ -50,9 +50,10 @@ export async function fetchWithFallback<T = unknown>(options: DirectFetchOptions
     }
 
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000); // 5s timeout for direct
+    const timeout = setTimeout(() => controller.abort(), 2000); // 2s timeout for direct
     const response = await fetch(url.toString(), {
       method: "GET",
+      signal: controller.signal,
       headers: {
         "accept": "*/*",
         "content-type": "application/json",
