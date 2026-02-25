@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,62 +8,73 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SessionManager } from "@/components/SessionManager";
 import { useTableStyles } from "@/components/admin/TableStyleSettings";
+import { Loader2 } from "lucide-react";
+
+// Eagerly loaded pages (landing + auth — needed immediately)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import OptionChain from "./pages/OptionChain";
-import SupportResistance from "./pages/SupportResistance";
-import OptionHeatMap from "./pages/OptionHeatMap";
-import PCR from "./pages/PCR";
-import PCRLongShort from "./pages/PCRLongShort";
-import PCRAllStrikes from "./pages/PCRAllStrikes";
-import TOI from "./pages/TOI";
-import MaxPain from "./pages/MaxPain";
-import OTR from "./pages/OTR";
-import Algo from "./pages/Algo";
-import OptionBuilder from "./pages/OptionBuilder";
-import OptionSimulator from "./pages/OptionSimulator";
-import FutureBuildup from "./pages/FutureBuildup";
-import FutureOpenHighLow from "./pages/FutureOpenHighLow";
-import FutureRollover from "./pages/FutureRollover";
-import MarketBreadth from "./pages/MarketBreadth";
-import OptionsChart from "./pages/OptionsChart";
-import GreeksChart from "./pages/GreeksChart";
-import StrategyCharts from "./pages/StrategyCharts";
-import PremiumDecay from "./pages/PremiumDecay";
-import Indices from "./pages/Indices";
-import FII from "./pages/FII";
-import IPO from "./pages/IPO";
-import StockScreeners from "./pages/StockScreeners";
-import JackpotScanner from "./pages/JackpotScanner";
-import JackpotDetail from "./pages/JackpotDetail";
-import AllSectors from "./pages/AllSectors";
-import SectorAnalysis from "./pages/SectorAnalysis";
-import IndexDetail from "./pages/IndexDetail";
-import StockDetail from "./pages/StockDetail";
-import Plans from "./pages/Plans";
-import NotFound from "./pages/NotFound";
-import FuturesOiBreakup from "./pages/FuturesOiBreakup";
-import Admin from "./pages/Admin";
-import Profile from "./pages/Profile";
-// Development pages
-import CandlestickPatternChart from "./pages/dev/CandlestickPatternChart";
-import Documentation from "./pages/Documentation";
-import Videos from "./pages/Videos";
-import FAQ from "./pages/FAQ";
-import Support from "./pages/Support";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Terms from "./pages/Terms";
-import OptionsSummary from "./pages/OptionsSummary";
+
+// Lazy-loaded pages
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const OptionChain = lazy(() => import("./pages/OptionChain"));
+const SupportResistance = lazy(() => import("./pages/SupportResistance"));
+const OptionHeatMap = lazy(() => import("./pages/OptionHeatMap"));
+const PCR = lazy(() => import("./pages/PCR"));
+const PCRLongShort = lazy(() => import("./pages/PCRLongShort"));
+const PCRAllStrikes = lazy(() => import("./pages/PCRAllStrikes"));
+const TOI = lazy(() => import("./pages/TOI"));
+const MaxPain = lazy(() => import("./pages/MaxPain"));
+const OTR = lazy(() => import("./pages/OTR"));
+const Algo = lazy(() => import("./pages/Algo"));
+const OptionBuilder = lazy(() => import("./pages/OptionBuilder"));
+const OptionSimulator = lazy(() => import("./pages/OptionSimulator"));
+const FutureBuildup = lazy(() => import("./pages/FutureBuildup"));
+const FutureOpenHighLow = lazy(() => import("./pages/FutureOpenHighLow"));
+const FutureRollover = lazy(() => import("./pages/FutureRollover"));
+const FuturesOiBreakup = lazy(() => import("./pages/FuturesOiBreakup"));
+const MarketBreadth = lazy(() => import("./pages/MarketBreadth"));
+const OptionsChart = lazy(() => import("./pages/OptionsChart"));
+const GreeksChart = lazy(() => import("./pages/GreeksChart"));
+const StrategyCharts = lazy(() => import("./pages/StrategyCharts"));
+const PremiumDecay = lazy(() => import("./pages/PremiumDecay"));
+const Indices = lazy(() => import("./pages/Indices"));
+const FII = lazy(() => import("./pages/FII"));
+const IPO = lazy(() => import("./pages/IPO"));
+const StockScreeners = lazy(() => import("./pages/StockScreeners"));
+const JackpotScanner = lazy(() => import("./pages/JackpotScanner"));
+const JackpotDetail = lazy(() => import("./pages/JackpotDetail"));
+const AllSectors = lazy(() => import("./pages/AllSectors"));
+const SectorAnalysis = lazy(() => import("./pages/SectorAnalysis"));
+const IndexDetail = lazy(() => import("./pages/IndexDetail"));
+const StockDetail = lazy(() => import("./pages/StockDetail"));
+const Plans = lazy(() => import("./pages/Plans"));
+const Admin = lazy(() => import("./pages/Admin"));
+const Profile = lazy(() => import("./pages/Profile"));
+const OptionsSummary = lazy(() => import("./pages/OptionsSummary"));
+const Documentation = lazy(() => import("./pages/Documentation"));
+const Videos = lazy(() => import("./pages/Videos"));
+const FAQ = lazy(() => import("./pages/FAQ"));
+const Support = lazy(() => import("./pages/Support"));
+const About = lazy(() => import("./pages/About"));
+const Contact = lazy(() => import("./pages/Contact"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatternChart"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
-// Component to apply saved table styles
 function TableStyleApplier() {
   useTableStyles();
   return null;
+}
+
+function PageLoader() {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-background">
+      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+    </div>
+  );
 }
 
 const App = () => (
@@ -75,58 +87,58 @@ const App = () => (
           <TooltipProvider>
             <Toaster />
             <Sonner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/option-chain" element={<OptionChain />} />
-              <Route path="/support-resistance" element={<SupportResistance />} />
-              <Route path="/option-heatmap" element={<OptionHeatMap />} />
-              <Route path="/pcr" element={<PCR />} />
-              <Route path="/pcr-long-short" element={<PCRLongShort />} />
-              <Route path="/pcr-all-strikes" element={<PCRAllStrikes />} />
-              <Route path="/toi" element={<TOI />} />
-              <Route path="/max-pain" element={<MaxPain />} />
-              <Route path="/otr" element={<OTR />} />
-              <Route path="/algo" element={<Algo />} />
-              <Route path="/option-builder" element={<OptionBuilder />} />
-              <Route path="/option-simulator" element={<OptionSimulator />} />
-              <Route path="/future-buildup" element={<FutureBuildup />} />
-              <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
-              <Route path="/future-rollover" element={<FutureRollover />} />
-              <Route path="/futures-oi-breakup" element={<FuturesOiBreakup />} />
-              <Route path="/market-breadth" element={<MarketBreadth />} />
-              <Route path="/options-chart" element={<OptionsChart />} />
-              <Route path="/greeks-chart" element={<GreeksChart />} />
-              <Route path="/strategy-charts" element={<StrategyCharts />} />
-              <Route path="/premium-decay" element={<PremiumDecay />} />
-              <Route path="/indices" element={<Indices />} />
-              <Route path="/fii" element={<FII />} />
-              <Route path="/ipo" element={<IPO />} />
-              <Route path="/stock-screeners" element={<StockScreeners />} />
-              <Route path="/jackpot-scanner" element={<JackpotScanner />} />
-              <Route path="/jackpot-detail" element={<JackpotDetail />} />
-              <Route path="/all-sectors" element={<AllSectors />} />
-              <Route path="/sector-analysis" element={<SectorAnalysis />} />
-              <Route path="/index-detail" element={<IndexDetail />} />
-              <Route path="/stock-detail" element={<StockDetail />} />
-              <Route path="/plans" element={<Plans />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/options-summary" element={<OptionsSummary />} />
-              {/* Footer pages */}
-              <Route path="/documentation" element={<Documentation />} />
-              <Route path="/videos" element={<Videos />} />
-              <Route path="/faq" element={<FAQ />} />
-              <Route path="/support" element={<Support />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms" element={<Terms />} />
-              {/* Development pages */}
-              <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <Suspense fallback={<PageLoader />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/option-chain" element={<OptionChain />} />
+                <Route path="/support-resistance" element={<SupportResistance />} />
+                <Route path="/option-heatmap" element={<OptionHeatMap />} />
+                <Route path="/pcr" element={<PCR />} />
+                <Route path="/pcr-long-short" element={<PCRLongShort />} />
+                <Route path="/pcr-all-strikes" element={<PCRAllStrikes />} />
+                <Route path="/toi" element={<TOI />} />
+                <Route path="/max-pain" element={<MaxPain />} />
+                <Route path="/otr" element={<OTR />} />
+                <Route path="/algo" element={<Algo />} />
+                <Route path="/option-builder" element={<OptionBuilder />} />
+                <Route path="/option-simulator" element={<OptionSimulator />} />
+                <Route path="/future-buildup" element={<FutureBuildup />} />
+                <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
+                <Route path="/future-rollover" element={<FutureRollover />} />
+                <Route path="/futures-oi-breakup" element={<FuturesOiBreakup />} />
+                <Route path="/market-breadth" element={<MarketBreadth />} />
+                <Route path="/options-chart" element={<OptionsChart />} />
+                <Route path="/greeks-chart" element={<GreeksChart />} />
+                <Route path="/strategy-charts" element={<StrategyCharts />} />
+                <Route path="/premium-decay" element={<PremiumDecay />} />
+                <Route path="/indices" element={<Indices />} />
+                <Route path="/fii" element={<FII />} />
+                <Route path="/ipo" element={<IPO />} />
+                <Route path="/stock-screeners" element={<StockScreeners />} />
+                <Route path="/jackpot-scanner" element={<JackpotScanner />} />
+                <Route path="/jackpot-detail" element={<JackpotDetail />} />
+                <Route path="/all-sectors" element={<AllSectors />} />
+                <Route path="/sector-analysis" element={<SectorAnalysis />} />
+                <Route path="/index-detail" element={<IndexDetail />} />
+                <Route path="/stock-detail" element={<StockDetail />} />
+                <Route path="/plans" element={<Plans />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/options-summary" element={<OptionsSummary />} />
+                <Route path="/documentation" element={<Documentation />} />
+                <Route path="/videos" element={<Videos />} />
+                <Route path="/faq" element={<FAQ />} />
+                <Route path="/support" element={<Support />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms" element={<Terms />} />
+                <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </Suspense>
           </TooltipProvider>
         </AuthProvider>
       </ThemeProvider>
