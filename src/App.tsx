@@ -59,6 +59,7 @@ const About = lazy(() => import("./pages/About"));
 const Contact = lazy(() => import("./pages/Contact"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const OIAcrossExpiries = lazy(() => import("./pages/OIAcrossExpiries"));
 const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatternChart"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -135,6 +136,7 @@ const App = () => (
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
+                <Route path="/oi-across-expiries" element={<OIAcrossExpiries />} />
                 <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
