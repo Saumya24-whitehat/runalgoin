@@ -27,6 +27,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  ReferenceLine,
 } from "recharts";
 
 interface SymbolGroup {
@@ -259,7 +260,7 @@ const OIAcrossExpiries = () => {
   };
 
   // Better approach: separate charts per expiry with CE/PE bars
-  const renderExpiryChart = (expiryData: ExpiryData, idx: number, dataKey: "OI" | "COI") => {
+  const renderExpiryChart = (expiryData: ExpiryData, idx: number, dataKey: "OI" | "COI", isFirst: boolean) => {
     const { expiry, latestData } = expiryData;
     if (!latestData?.dataThis) return null;
 
@@ -283,8 +284,17 @@ const OIAcrossExpiries = () => {
       });
     });
 
+    // Find the label closest to ATM for the reference line
+    const underlying = expiryDataList[0]?.latestData?.underlyning || 0;
+    // Find the nearest strike to the underlying price
+    const nearestStrike = strikes.reduce((prev, curr) =>
+      Math.abs(curr - underlying) < Math.abs(prev - underlying) ? curr : prev, strikes[0]);
+    const refLabel = `${nearestStrike} CE`;
+
+    const leftMargin = isFirst ? 70 : 5;
+
     return (
-      <div key={`${expiry}_${dataKey}`} className="flex-1 min-w-[250px]">
+      <div key={`${expiry}_${dataKey}`} className="flex-1 min-w-[200px]">
         <h4 className="text-xs font-medium text-center mb-1 text-muted-foreground">
           {expiry} {dataKey}
         </h4>
@@ -293,7 +303,7 @@ const OIAcrossExpiries = () => {
             <BarChart
               data={rows}
               layout="vertical"
-              margin={{ top: 5, right: 10, left: 70, bottom: 5 }}
+              margin={{ top: 5, right: 10, left: leftMargin, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" horizontal={false} />
               <XAxis
@@ -304,8 +314,10 @@ const OIAcrossExpiries = () => {
               <YAxis
                 type="category"
                 dataKey="label"
-                width={65}
-                tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 9 }}
+                width={isFirst ? 65 : 0}
+                tick={isFirst ? { fill: "hsl(var(--muted-foreground))", fontSize: 9 } : false}
+                tickLine={isFirst}
+                axisLine={isFirst}
               />
               <Tooltip
                 contentStyle={{
@@ -316,6 +328,18 @@ const OIAcrossExpiries = () => {
                   fontSize: 11,
                 }}
                 formatter={(value: number) => [formatValue(value), dataKey]}
+              />
+              <ReferenceLine
+                y={refLabel}
+                stroke="hsl(var(--primary))"
+                strokeDasharray="4 4"
+                strokeWidth={1.5}
+                label={{
+                  value: isFirst ? `Spot: ${underlying.toFixed(0)}` : "",
+                  position: "right",
+                  fill: "hsl(var(--primary))",
+                  fontSize: 9,
+                }}
               />
               <Bar dataKey="value" isAnimationActive={false}>
                 {rows.map((row, i) => (
@@ -423,7 +447,7 @@ const OIAcrossExpiries = () => {
                 </CardHeader>
                 <CardContent className="p-2 overflow-x-auto">
                   <div className="flex gap-2">
-                    {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "OI"))}
+                    {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "OI", idx === 0))}
                   </div>
                 </CardContent>
               </Card>
@@ -438,7 +462,7 @@ const OIAcrossExpiries = () => {
                 </CardHeader>
                 <CardContent className="p-2 overflow-x-auto">
                   <div className="flex gap-2">
-                    {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "COI"))}
+                    {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "COI", idx === 0))}
                   </div>
                 </CardContent>
               </Card>
