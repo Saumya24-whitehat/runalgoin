@@ -242,12 +242,31 @@ const OptionSimulator = () => {
   // Adjust time by minutes - auto-fetches data after change
   const adjustTime = useCallback(
     (minutes: number) => {
+      // Helper to check if a date is past the closest expiry of active positions
+      const checkExpiryBreach = (newDate: Date): boolean => {
+        const activePositions = positions.filter((p) => !p.exitPrice && p.enabled);
+        if (activePositions.length === 0) return false;
+
+        const positionExpiries = [...new Set(activePositions.map((p) => p.expiry))];
+        const closestExpiry = positionExpiries.sort()[0]; // earliest expiry
+        if (!closestExpiry) return false;
+
+        const newDateStr = format(newDate, "yyyy-MM-dd");
+        if (newDateStr > closestExpiry) {
+          setAutoPlay(false);
+          toast.error(`Option expired! Closest expiry (${closestExpiry}) has passed on ${newDateStr}. Exit or remove expired positions to continue.`);
+          return true;
+        }
+        return false;
+      };
+
       // Handle day jump
       if (Math.abs(minutes) >= 1440) {
         const direction = minutes > 0 ? 1 : -1;
         const newDate = findNextTradingDay(selectedDate, direction);
         newDate.setHours(direction > 0 ? 9 : 15);
         newDate.setMinutes(direction > 0 ? 15 : 30);
+        if (checkExpiryBreach(newDate)) return;
         setSelectedDate(newDate);
         setSelectedHour(direction > 0 ? 9 : 15);
         setSelectedMinute(direction > 0 ? 15 : 30);
@@ -262,12 +281,14 @@ const OptionSimulator = () => {
       // Handle overflow to next/previous day
       if (totalMinutes < startMinutes) {
         const prevDay = findNextTradingDay(selectedDate, -1);
+        if (checkExpiryBreach(prevDay)) return;
         setSelectedDate(prevDay);
         setSelectedHour(15);
         setSelectedMinute(30);
         return;
       } else if (totalMinutes > endMinutes) {
         const nextDay = findNextTradingDay(selectedDate, 1);
+        if (checkExpiryBreach(nextDay)) return;
         setSelectedDate(nextDay);
         setSelectedHour(9);
         setSelectedMinute(15);
@@ -283,7 +304,7 @@ const OptionSimulator = () => {
       setSelectedHour(newHour);
       setSelectedMinute(newMinute);
     },
-    [selectedHour, selectedMinute, selectedDate, findNextTradingDay],
+    [selectedHour, selectedMinute, selectedDate, findNextTradingDay, positions],
   );
 
   // Auto-fetch data when time or date changes (date changes may retain the same expiry)
@@ -788,6 +809,13 @@ const OptionSimulator = () => {
     setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
   }, []);
 
+  // Auto-show strategies when all positions are exited or disabled
+  useEffect(() => {
+    if (positions.length > 0 && positions.every(p => !p.enabled || p.exitPrice !== undefined)) {
+      setShowStrategies(true);
+    }
+  }, [positions]);
+
   const reEntryPosition = useCallback((id: string) => {
     setPositions((prev) => prev.map((p) => (p.id === id ? { ...p, exitPrice: undefined } : p)));
     toast.success("Position re-entered");
@@ -1152,6 +1180,13 @@ const OptionSimulator = () => {
                     while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
                       prevDate = subDays(prevDate, 1);
                     }
+                    // Check expiry breach
+                    const activePos = positions.filter((p) => !p.exitPrice && p.enabled);
+                    const closestExpiry = [...new Set(activePos.map((p) => p.expiry))].sort()[0];
+                    if (closestExpiry && format(prevDate, "yyyy-MM-dd") > closestExpiry) {
+                      toast.error(`Option expired! Closest expiry (${closestExpiry}) has passed.`);
+                      return;
+                    }
                     setSelectedDate(prevDate);
                   }}
                 >
@@ -1235,6 +1270,12 @@ const OptionSimulator = () => {
                     while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
                       nextDate = addDays(nextDate, 1);
                     }
+                    const activePos = positions.filter((p) => !p.exitPrice && p.enabled);
+                    const closestExpiry = [...new Set(activePos.map((p) => p.expiry))].sort()[0];
+                    if (closestExpiry && format(nextDate, "yyyy-MM-dd") > closestExpiry) {
+                      toast.error(`Option expired! Closest expiry (${closestExpiry}) has passed.`);
+                      return;
+                    }
                     setSelectedDate(nextDate);
                   }}
                 >
@@ -1264,6 +1305,12 @@ const OptionSimulator = () => {
                     let prevDate = subDays(selectedDate, 1);
                     while (!isTradingDay(prevDate) && prevDate > subDays(new Date(), 365)) {
                       prevDate = subDays(prevDate, 1);
+                    }
+                    const activePos = positions.filter((p) => !p.exitPrice && p.enabled);
+                    const closestExpiry = [...new Set(activePos.map((p) => p.expiry))].sort()[0];
+                    if (closestExpiry && format(prevDate, "yyyy-MM-dd") > closestExpiry) {
+                      toast.error(`Option expired! Closest expiry (${closestExpiry}) has passed.`);
+                      return;
                     }
                     setSelectedDate(prevDate);
                   }}
@@ -1420,6 +1467,12 @@ const OptionSimulator = () => {
                     let nextDate = addDays(selectedDate, 1);
                     while (!isTradingDay(nextDate) && nextDate < addDays(new Date(), 365)) {
                       nextDate = addDays(nextDate, 1);
+                    }
+                    const activePos = positions.filter((p) => !p.exitPrice && p.enabled);
+                    const closestExpiry = [...new Set(activePos.map((p) => p.expiry))].sort()[0];
+                    if (closestExpiry && format(nextDate, "yyyy-MM-dd") > closestExpiry) {
+                      toast.error(`Option expired! Closest expiry (${closestExpiry}) has passed.`);
+                      return;
                     }
                     setSelectedDate(nextDate);
                   }}
@@ -1650,7 +1703,7 @@ const OptionSimulator = () => {
             {/* Right Side - Chart and Metrics */}
             <div className="space-y-3">
               {/* Strategies or Chart */}
-              {(positions.length === 0 || positions.every(p => p.exitPrice !== undefined)) && showStrategies ? (
+              {(positions.length === 0 || positions.every(p => p.exitPrice !== undefined) || positions.every(p => !p.enabled || p.exitPrice !== undefined)) && showStrategies ? (
                 <OptionBuilderStrategies onSelectStrategy={handleAddStrategy} onCreateCustomStrategy={handleCreateCustomStrategy} />
               ) : (
                 <>
