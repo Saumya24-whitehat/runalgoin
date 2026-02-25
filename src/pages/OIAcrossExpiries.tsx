@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
@@ -50,6 +50,9 @@ const OIAcrossExpiries = () => {
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingData, setLoadingData] = useState(false);
   const [expiryDataList, setExpiryDataList] = useState<ExpiryData[]>([]);
+  const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
+  const isInitialFetch = useRef(true);
+  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch symbols
   useEffect(() => {
@@ -105,11 +108,10 @@ const OIAcrossExpiries = () => {
   }, [selectedSymbol, symbols]);
 
   // Fetch data for all expiries
-  const fetchAllExpiries = useCallback(async () => {
+  const fetchAllExpiries = useCallback(async (silent = false) => {
     if (!selectedSymbol || expiryDates.length === 0) return;
-    setLoadingData(true);
+    if (!silent) setLoadingData(true);
     try {
-      // Fetch first 4 expiries max
       const expiriesToFetch = expiryDates.slice(0, 4);
       const results = await Promise.all(
         expiriesToFetch.map(async (expiry) => {
@@ -125,15 +127,31 @@ const OIAcrossExpiries = () => {
         })
       );
       setExpiryDataList(results.filter((r) => r.latestData !== null));
+      setLastRefreshed(new Date());
+      isInitialFetch.current = false;
     } catch (err) {
       console.error("Error fetching all expiries:", err);
-      toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
+      if (!silent) toast({ title: "Error", description: "Failed to load data", variant: "destructive" });
     } finally {
-      setLoadingData(false);
+      if (!silent) setLoadingData(false);
     }
   }, [selectedSymbol, expiryDates, strikeCount, toast]);
 
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    if (autoRefreshRef.current) clearInterval(autoRefreshRef.current);
+    if (expiryDataList.length > 0) {
+      autoRefreshRef.current = setInterval(() => {
+        fetchAllExpiries(true);
+      }, 30000);
+    }
+    return () => {
+      if (autoRefreshRef.current) clearInterval(autoRefreshRef.current);
+    };
+  }, [fetchAllExpiries, expiryDataList.length]);
+
   const handleGo = () => {
+    isInitialFetch.current = true;
     fetchAllExpiries();
   };
 
@@ -419,11 +437,16 @@ const OIAcrossExpiries = () => {
             </CardContent>
           </Card>
 
-          {/* ATM info */}
+          {/* ATM info + last refreshed */}
           {atm > 0 && (
-            <div className="text-xs text-muted-foreground">
-              ATM: <span className="font-semibold text-foreground">{atm}</span>
-              {" | "}Spot: <span className="font-semibold text-foreground">{expiryDataList[0]?.latestData?.underlyning?.toFixed(2)}</span>
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <div>
+                ATM: <span className="font-semibold text-foreground">{atm}</span>
+                {" | "}Spot: <span className="font-semibold text-foreground">{expiryDataList[0]?.latestData?.underlyning?.toFixed(2)}</span>
+              </div>
+              {lastRefreshed && (
+                <div>Last updated: <span className="font-semibold text-foreground">{lastRefreshed.toLocaleTimeString()}</span></div>
+              )}
             </div>
           )}
 
@@ -437,6 +460,21 @@ const OIAcrossExpiries = () => {
 
           {!loadingData && expiryDataList.length > 0 && (
             <div className="space-y-6">
+              {/* COI Section first */}
+              <Card className="bg-card/50 border-border/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4 text-primary" />
+                    Change in OI (COI) Across Expiries
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-2 overflow-x-auto">
+                  <div className="flex gap-2">
+                    {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "COI", idx === 0))}
+                  </div>
+                </CardContent>
+              </Card>
+
               {/* OI Section */}
               <Card className="bg-card/50 border-border/50">
                 <CardHeader className="pb-2">
@@ -448,21 +486,6 @@ const OIAcrossExpiries = () => {
                 <CardContent className="p-2 overflow-x-auto">
                   <div className="flex gap-2">
                     {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "OI", idx === 0))}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* COI Section */}
-              <Card className="bg-card/50 border-border/50">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-sm flex items-center gap-2">
-                    <BarChart3 className="h-4 w-4 text-primary" />
-                    Change in OI (COI) Across Expiries
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-2 overflow-x-auto">
-                  <div className="flex gap-2">
-                    {expiryDataList.map((ed, idx) => renderExpiryChart(ed, idx, "COI", idx === 0))}
                   </div>
                 </CardContent>
               </Card>
