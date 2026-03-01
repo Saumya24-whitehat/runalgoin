@@ -544,7 +544,7 @@ const OTR = () => {
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="w-auto p-0 z-50" align="start">
-                        <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} initialFocus />
+                        <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} defaultMonth={historicalDate} initialFocus />
                       </PopoverContent>
                     </Popover>
                   </div>

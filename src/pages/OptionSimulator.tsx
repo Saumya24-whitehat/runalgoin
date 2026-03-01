@@ -1217,9 +1217,9 @@ const OptionSimulator = () => {
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => date && setSelectedDate(date)}
+                      defaultMonth={selectedDate}
                       disabled={(date) => !isTradingDay(date)}
                       initialFocus
-                      className={cn("p-3 pointer-events-auto")}
                     />
                     <div className="flex gap-2 p-3 border-t">
                       <Select value={selectedHour.toString()} onValueChange={(v) => setSelectedHour(parseInt(v))}>
@@ -1378,9 +1378,9 @@ const OptionSimulator = () => {
                       mode="single"
                       selected={selectedDate}
                       onSelect={(date) => date && setSelectedDate(date)}
+                      defaultMonth={selectedDate}
                       disabled={(date) => !isTradingDay(date)}
                       initialFocus
-                      className={cn("p-3 pointer-events-auto")}
                     />
                   </PopoverContent>
                 </Popover>

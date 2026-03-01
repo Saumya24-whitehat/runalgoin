@@ -708,6 +708,7 @@ export default function FII() {
                               mode="single"
                               selected={currentDateParsed}
                               onSelect={handleDateSelect}
+                              defaultMonth={currentDateParsed}
                               disabled={(date) =>
                                 !availableDates.some(
                                   (d) =>
@@ -1249,6 +1250,7 @@ export default function FII() {
                       <Calendar
                         mode="single"
                         selected={currentDateParsed}
+                        defaultMonth={currentDateParsed}
                         onSelect={(date) => {
                           if (date && fiiData) {
                             // Find the closest available date index
