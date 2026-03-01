@@ -367,6 +367,7 @@ const PCRLongShort = () => {
                       mode="single"
                       selected={historicalDate}
                       onSelect={setHistoricalDate}
+                      defaultMonth={historicalDate}
                       initialFocus
                     />
                   </PopoverContent>

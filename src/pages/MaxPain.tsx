@@ -405,8 +405,8 @@ const MaxPain = () => {
                       mode="single"
                       selected={historicalDate}
                       onSelect={setHistoricalDate}
+                      defaultMonth={historicalDate}
                       initialFocus
-                      className="pointer-events-auto"
                     />
                   </PopoverContent>
                 </Popover>

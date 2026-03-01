@@ -331,7 +331,7 @@ const PremiumDecay = () => {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0 z-50" align="start">
-                    <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} initialFocus />
+                    <Calendar mode="single" selected={selectedDate} onSelect={setSelectedDate} defaultMonth={selectedDate} initialFocus />
                   </PopoverContent>
                 </Popover>
               </div>
