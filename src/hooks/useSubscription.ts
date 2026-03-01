@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -8,76 +8,70 @@ interface Subscription {
   expires_at: string | null;
 }
 
+async function fetchSubscription(userId: string): Promise<Subscription> {
+  const { data, error } = await supabase
+    .from("subscriptions")
+    .select("plan_type, status, expires_at")
+    .eq("user_id", userId)
+    .single();
+
+  if (error && error.code !== "PGRST116") {
+    console.error("Error fetching subscription:", error);
+  }
+
+  return (data as Subscription) || { plan_type: "free", status: "active", expires_at: null };
+}
+
+async function fetchIsAdmin(userId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc("has_role", {
+    _user_id: userId,
+    _role: "admin",
+  });
+
+  if (error) {
+    console.error("Error checking admin role:", error);
+    return false;
+  }
+  return data === true;
+}
+
 export function useSubscription() {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => {
-    if (user) {
-      fetchSubscription();
-      checkAdminRole();
-    } else {
-      setSubscription(null);
-      setIsAdmin(false);
-      setLoading(false);
-    }
-  }, [user]);
+  const {
+    data: subscription,
+    isLoading: subLoading,
+    refetch: refetchSub,
+  } = useQuery({
+    queryKey: ["subscription", user?.id],
+    queryFn: () => fetchSubscription(user!.id),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-  const fetchSubscription = async () => {
-    if (!user) return;
+  const { data: isAdmin = false, isLoading: adminLoading } = useQuery({
+    queryKey: ["isAdmin", user?.id],
+    queryFn: () => fetchIsAdmin(user!.id),
+    enabled: !!user,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
 
-    try {
-      const { data, error } = await supabase
-        .from("subscriptions")
-        .select("plan_type, status, expires_at")
-        .eq("user_id", user.id)
-        .single();
+  const loading = subLoading || adminLoading;
+  const sub = subscription || (user ? null : { plan_type: "free" as const, status: "active" as const, expires_at: null });
 
-      if (error && error.code !== "PGRST116") {
-        console.error("Error fetching subscription:", error);
-      }
-
-      setSubscription(data as Subscription || { plan_type: "free", status: "active", expires_at: null });
-    } catch (error) {
-      console.error("Error fetching subscription:", error);
-      setSubscription({ plan_type: "free", status: "active", expires_at: null });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const checkAdminRole = async () => {
-    if (!user) return;
-
-    try {
-      const { data, error } = await supabase.rpc("has_role", {
-        _user_id: user.id,
-        _role: "admin",
-      });
-
-      if (error) {
-        console.error("Error checking admin role:", error);
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(data === true);
-      }
-    } catch (error) {
-      console.error("Error checking admin role:", error);
-      setIsAdmin(false);
-    }
-  };
-
-  const isPro = subscription?.plan_type === "pro" || subscription?.plan_type === "enterprise";
-  const isEnterprise = subscription?.plan_type === "enterprise";
+  const isPro = sub?.plan_type === "pro" || sub?.plan_type === "enterprise";
+  const isEnterprise = sub?.plan_type === "enterprise";
 
   return {
-    subscription,
-    loading,
+    subscription: sub,
+    loading: !!user && loading,
     isPro,
     isEnterprise,
     isAdmin,
-    refetch: fetchSubscription,
+    refetch: refetchSub,
   };
 }
