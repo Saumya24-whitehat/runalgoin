@@ -22,6 +22,7 @@ import { PCRIntradayAnalysis } from "@/components/pcr/PCRIntradayAnalysis";
 import { PCRSupportResistance } from "@/components/pcr/PCRSupportResistance";
 import { PCRSentimentGauge } from "@/components/pcr/PCRSentimentGauge";
 import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
+import { aggregatePCRData, PCRTimeframe } from "@/utils/pcrTimeframeAggregator";
 import { fetchKundaliData, extractSupportResistance, SupportResistanceData } from "@/services/kundaliApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -47,8 +48,10 @@ const PCR = () => {
   const [selectedSymbol, setSelectedSymbol] = useState(urlSymbol || "Nifty 50");
   const [selectedExpiry, setSelectedExpiry] = useState(urlExpiry || "");
   const [strikeCount, setStrikeCount] = useState(5);
+  const [selectedTimeframe, setSelectedTimeframe] = useState<PCRTimeframe>("3min");
   const [historicalDate, setHistoricalDate] = useState<Date | undefined>();
   
+  const [rawPcrData, setRawPcrData] = useState<PCRTimeData[]>([]);
   const [pcrData, setPcrData] = useState<PCRTimeData[]>([]);
   const [latestData, setLatestData] = useState<PCRTimeData | null>(null);
   const [selectedTimeIndex, setSelectedTimeIndex] = useState<number>(-1);
@@ -169,8 +172,10 @@ const PCR = () => {
       );
       
       if (response.dataWhole && response.dataWhole.length > 0) {
-        setPcrData(response.dataWhole);
-        setSelectedTimeIndex(response.dataWhole.length - 1);
+        setRawPcrData(response.dataWhole);
+        const aggregated = aggregatePCRData(response.dataWhole, selectedTimeframe);
+        setPcrData(aggregated);
+        setSelectedTimeIndex(aggregated.length - 1);
         
         // Get the latest data entry and fill missing Future/VWAP from previous entries
         let latest = { ...response.dataWhole[response.dataWhole.length - 1] };
@@ -244,7 +249,7 @@ const PCR = () => {
       if (showLoader) setLoadingData(false);
       setLoadingSR(false);
     }
-  }, [selectedSymbol, selectedExpiry, strikeCount, historicalDate, toast]);
+  }, [selectedSymbol, selectedExpiry, strikeCount, historicalDate, selectedTimeframe, toast]);
 
   // Auto-fetch when selections change
   useEffect(() => {
@@ -252,6 +257,22 @@ const PCR = () => {
       fetchData();
     }
   }, [selectedSymbol, selectedExpiry, fetchData]);
+
+  // Re-aggregate when timeframe changes (no refetch needed)
+  useEffect(() => {
+    if (rawPcrData.length > 0) {
+      const aggregated = aggregatePCRData(rawPcrData, selectedTimeframe);
+      setPcrData(aggregated);
+      setSelectedTimeIndex(aggregated.length - 1);
+      if (aggregated.length > 0) {
+        const last = aggregated[aggregated.length - 1];
+        let data = { ...last };
+        (data as any).futureFromPrevious = false;
+        (data as any).vwapFromPrevious = false;
+        setLatestData(data);
+      }
+    }
+  }, [selectedTimeframe]);
 
   // Auto-refresh interval
   useEffect(() => {
@@ -377,7 +398,7 @@ const PCR = () => {
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-3 sm:p-4">
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4 items-end">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-4 items-end">
               {/* Symbol Selector */}
               <div className="space-y-1.5">
                 <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Symbol</label>
@@ -451,6 +472,23 @@ const PCR = () => {
                 </Popover>
               </div>
               
+              {/* Timeframe */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Timeframe</label>
+                <Select value={selectedTimeframe} onValueChange={(v) => setSelectedTimeframe(v as PCRTimeframe)}>
+                  <SelectTrigger className="w-full bg-secondary h-9 sm:h-10 text-xs sm:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border z-50">
+                    <SelectItem value="3min">3 Min</SelectItem>
+                    <SelectItem value="5min">5 Min</SelectItem>
+                    <SelectItem value="15min">15 Min</SelectItem>
+                    <SelectItem value="30min">30 Min</SelectItem>
+                    <SelectItem value="1hr">1 Hour</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Strike Count */}
               <div className="space-y-1.5">
                 <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Strikes</label>
