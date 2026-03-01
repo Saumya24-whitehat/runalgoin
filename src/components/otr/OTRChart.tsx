@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { createChart, IChartApi, ISeriesApi, ColorType, LineSeries, LineStyle } from "lightweight-charts";
+import { createChart, createSeriesMarkers, IChartApi, ISeriesApi, ColorType, LineSeries, LineStyle } from "lightweight-charts";
 
 interface ChartDataPoint {
   time: string;
@@ -206,6 +206,26 @@ const OTRChart = ({ data, crossoverPoints }: OTRChartProps) => {
       axisLabelVisible: false,
       title: "Zero Line",
     });
+
+    // Add crossover markers (Buy/Sell signals)
+    if (crossoverPoints.length > 0) {
+      const markers = crossoverPoints
+        .map((cp) => {
+          const matchingPoint = data[cp.index];
+          if (!matchingPoint) return null;
+          return {
+            time: matchingPoint.displayTime / 1000,
+            position: cp.type === "bullish" ? ("belowBar" as const) : ("aboveBar" as const),
+            color: cp.type === "bullish" ? "#22c55e" : "#ef4444",
+            shape: cp.type === "bullish" ? ("arrowUp" as const) : ("arrowDown" as const),
+            text: cp.type === "bullish" ? "BUY" : "SELL",
+          };
+        })
+        .filter(Boolean)
+        .sort((a: any, b: any) => a.time - b.time);
+
+      createSeriesMarkers(toiSeries, markers as any);
+    }
 
     chart.timeScale().fitContent();
   }, [data, crossoverPoints]);
