@@ -133,7 +133,7 @@ export default function PCRAllStrikes() {
     fetchSymbols();
   }, [toast]);
 
-  // Fetch expiry dates when symbol changes
+  // Fetch expiry dates when symbol or historical date changes
   useEffect(() => {
     if (!selectedSymbol) return;
 
@@ -147,8 +147,12 @@ export default function PCRAllStrikes() {
       setLoadingExpiry(true);
       setSelectedExpiry("");
       try {
+        const params: Record<string, string> = { symbol: selectedSymbol };
+        if (historicalDate) {
+          params.date = format(historicalDate, "yyyy-MM-dd");
+        }
         const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
-          body: { endpoint: "expiry", params: { symbol: selectedSymbol } },
+          body: { endpoint: "expiry", params },
         });
         if (error) throw error;
 
@@ -179,7 +183,7 @@ export default function PCRAllStrikes() {
       }
     };
     fetchExpiry();
-  }, [selectedSymbol, symbols, toast]);
+  }, [selectedSymbol, historicalDate, symbols, toast]);
 
   // Fetch available strikes from TOI API when expiry changes
   useEffect(() => {

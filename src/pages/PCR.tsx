@@ -355,7 +355,7 @@ const PCR = () => {
                         className="w-full justify-start text-left font-normal bg-secondary h-9 sm:h-10 text-xs sm:text-sm"
                       >
                         <CalendarIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        {historicalDate ? format(historicalDate, "dd/MM") : "Date"}
+                        {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "Date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0 z-50" align="start">
