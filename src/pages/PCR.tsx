@@ -51,9 +51,11 @@ async function fetchSymbolsList(): Promise<SymbolGroup> {
   };
 }
 
-async function fetchExpiryDates(symbol: string): Promise<string[]> {
+async function fetchExpiryDates(symbol: string, historicalDate?: string): Promise<string[]> {
+  const params: Record<string, string> = { symbol };
+  if (historicalDate) params.date = historicalDate;
   const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
-    body: { endpoint: "expiry", params: { symbol } },
+    body: { endpoint: "expiry", params },
   });
   if (error) throw error;
 
@@ -148,6 +150,8 @@ const PCR = () => {
   // Track last refresh for display
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
+  const historicalDateStr = historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined;
+
   // ---- React Query: Symbols (cached globally, rarely changes) ----
   const { data: symbols = { indexSymbols: [], stockSymbols: [] }, isLoading: loadingSymbols } = useQuery({
     queryKey: ["option-symbols"],
@@ -157,10 +161,10 @@ const PCR = () => {
     refetchOnWindowFocus: false,
   });
 
-  // ---- React Query: Expiry dates (cached per symbol) ----
+  // ---- React Query: Expiry dates (cached per symbol + historical date) ----
   const { data: expiryDates = [], isLoading: loadingExpiry } = useQuery({
-    queryKey: ["option-expiry", selectedSymbol],
-    queryFn: () => fetchExpiryDates(selectedSymbol),
+    queryKey: ["option-expiry", selectedSymbol, historicalDateStr],
+    queryFn: () => fetchExpiryDates(selectedSymbol, historicalDateStr),
     enabled: !!selectedSymbol,
     staleTime: 24 * 60 * 60 * 1000, // 1 day
     gcTime: 24 * 60 * 60 * 1000,
@@ -187,7 +191,6 @@ const PCR = () => {
   }, [selectedSymbol, symbols]);
 
   // ---- React Query: PCR + SR data (cached per params, auto-refresh) ----
-  const historicalDateStr = historicalDate ? format(historicalDate, "yyyy-MM-dd") : undefined;
 
   const pcrQueryKey = ["pcr-data", selectedSymbol, selectedExpiry, strikeCount, historicalDateStr];
 
