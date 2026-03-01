@@ -314,12 +314,47 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         return [`./data/svg/${cleanName}.svg`, exchangeLogo];
       },
       async loadCSVSymbols(): Promise<void> {
+        const CACHE_KEY = "nse_json_cache";
+        const CACHE_EXPIRY_KEY = "nse_json_cache_expiry";
+        const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+        // Helper: get next Sunday midnight for weekly expiry
+        const getNextSundayMidnight = () => {
+          const now = new Date();
+          const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
+          const nextSunday = new Date(now);
+          nextSunday.setDate(now.getDate() + daysUntilSunday);
+          nextSunday.setHours(0, 0, 0, 0);
+          return nextSunday.getTime();
+        };
+
         try {
+          // Try loading from localStorage cache first
+          const cachedExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
+          const cachedData = localStorage.getItem(CACHE_KEY);
+
+          if (cachedData && cachedExpiry && Date.now() < Number(cachedExpiry)) {
+            const jsonData = JSON.parse(cachedData) as NseInstrument[];
+            this.csvSymbols = this.parseNSEJson(jsonData);
+            this.csvLoaded = true;
+            console.log("✅ NSE.json loaded from cache");
+            return;
+          }
+
+          // Fetch fresh data
           const response = await fetch("https://runalgo.xyz/top/chart/NSE.json");
 
           if (!response.ok) {
-            const paths = ["./data/NSE.json", "../NSE.json", "./json/NSE.json", "./assets/NSE.json"];
+            // If fetch fails but we have stale cache, use it
+            if (cachedData) {
+              const jsonData = JSON.parse(cachedData) as NseInstrument[];
+              this.csvSymbols = this.parseNSEJson(jsonData);
+              this.csvLoaded = true;
+              console.log("⚠️ NSE.json fetch failed, using stale cache");
+              return;
+            }
 
+            const paths = ["./data/NSE.json", "../NSE.json", "./json/NSE.json", "./assets/NSE.json"];
             for (const path of paths) {
               try {
                 const altRes = await fetch(path);
@@ -331,13 +366,21 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
                 }
               } catch {}
             }
-
             throw new Error("NSE.json not found");
           }
 
           const jsonData = (await response.json()) as NseInstrument[];
           this.csvSymbols = this.parseNSEJson(jsonData);
           this.csvLoaded = true;
+
+          // Cache in localStorage with weekly expiry (next Sunday midnight)
+          try {
+            localStorage.setItem(CACHE_KEY, JSON.stringify(jsonData));
+            localStorage.setItem(CACHE_EXPIRY_KEY, String(getNextSundayMidnight()));
+            console.log("✅ NSE.json fetched and cached until next Sunday");
+          } catch (e) {
+            console.warn("⚠️ Could not cache NSE.json in localStorage:", e);
+          }
         } catch (error) {
           console.error("❌ Error loading NSE.json:", error);
           this.csvLoaded = false;
