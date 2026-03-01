@@ -11,7 +11,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      captionLayout="dropdown"
+      captionLayout="dropdown-buttons"
       fromYear={2020}
       toYear={new Date().getFullYear()}
       className={cn("p-3 pointer-events-auto", className)}
