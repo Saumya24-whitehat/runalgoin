@@ -152,8 +152,8 @@ const PCR = () => {
   const { data: symbols = { indexSymbols: [], stockSymbols: [] }, isLoading: loadingSymbols } = useQuery({
     queryKey: ["option-symbols"],
     queryFn: fetchSymbolsList,
-    staleTime: 30 * 60 * 1000, // 30 min
-    gcTime: 60 * 60 * 1000,
+    staleTime: 24 * 60 * 60 * 1000, // 1 day
+    gcTime: 24 * 60 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -162,8 +162,8 @@ const PCR = () => {
     queryKey: ["option-expiry", selectedSymbol],
     queryFn: () => fetchExpiryDates(selectedSymbol),
     enabled: !!selectedSymbol,
-    staleTime: 5 * 60 * 1000,
-    gcTime: 10 * 60 * 1000,
+    staleTime: 24 * 60 * 60 * 1000, // 1 day
+    gcTime: 24 * 60 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
