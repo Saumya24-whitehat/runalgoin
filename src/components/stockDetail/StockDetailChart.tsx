@@ -18,26 +18,8 @@ interface StockDetailChartProps {
   symbol: string;
 }
 
-interface NseInstrument {
-  symbol: string;
-  ticker: string;
-  full_name: string;
-  name: string;
-  description: string;
-  type: string;
-  session: string;
-  timezone: string;
-  exchange: string;
-  minmov: number;
-  pricescale: number;
-  has_intraday: boolean;
-  has_weekly_and_monthly: boolean;
-  supported_resolutions: string[];
-  volume_precision: number;
-  data_status: string;
-  instrument_key: string;
-  logo_urls?: string[];
-}
+
+
 
 declare global {
   interface Window {
@@ -197,15 +179,11 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
     const chartSymbol = `NSE_EQ|${symbol}`;
     const datafeed = {
       _quotesSubscriptions: {} as Record<string, any>,
-      csvSymbols: [] as NseInstrument[],
-      csvLoaded: false,
       logoCache: new Map<string, string>(),
       availableLogos: new Set<string>(),
 
       onReady(callback: (config: any) => void) {
         this._quotesSubscriptions = {};
-        this.csvSymbols = [];
-        this.csvLoaded = false;
         this.logoCache = new Map();
         this.availableLogos = new Set();
         this.configuration = {
@@ -237,7 +215,6 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         };
 
         this.loadAvailableLogos();
-        this.loadCSVSymbols();
 
         setTimeout(() => {
           callback({
@@ -313,80 +290,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         // Return logo URL or fallback immediately
         return [`./data/svg/${cleanName}.svg`, exchangeLogo];
       },
-      async loadCSVSymbols(): Promise<void> {
-        const CACHE_KEY = "nse_json_cache";
-        const CACHE_EXPIRY_KEY = "nse_json_cache_expiry";
-        const ONE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
-        // Helper: get next Sunday midnight for weekly expiry
-        const getNextSundayMidnight = () => {
-          const now = new Date();
-          const daysUntilSunday = (7 - now.getDay()) % 7 || 7;
-          const nextSunday = new Date(now);
-          nextSunday.setDate(now.getDate() + daysUntilSunday);
-          nextSunday.setHours(0, 0, 0, 0);
-          return nextSunday.getTime();
-        };
-
-        try {
-          // Try loading from localStorage cache first
-          const cachedExpiry = localStorage.getItem(CACHE_EXPIRY_KEY);
-          const cachedData = localStorage.getItem(CACHE_KEY);
-
-          if (cachedData && cachedExpiry && Date.now() < Number(cachedExpiry)) {
-            const jsonData = JSON.parse(cachedData) as NseInstrument[];
-            this.csvSymbols = this.parseNSEJson(jsonData);
-            this.csvLoaded = true;
-            console.log("✅ NSE.json loaded from cache");
-            return;
-          }
-
-          // Fetch fresh data
-          const response = await fetch("https://runalgo.xyz/top/chart/NSE.json");
-
-          if (!response.ok) {
-            // If fetch fails but we have stale cache, use it
-            if (cachedData) {
-              const jsonData = JSON.parse(cachedData) as NseInstrument[];
-              this.csvSymbols = this.parseNSEJson(jsonData);
-              this.csvLoaded = true;
-              console.log("⚠️ NSE.json fetch failed, using stale cache");
-              return;
-            }
-
-            const paths = ["./data/NSE.json", "../NSE.json", "./json/NSE.json", "./assets/NSE.json"];
-            for (const path of paths) {
-              try {
-                const altRes = await fetch(path);
-                if (altRes.ok) {
-                  const jsonData = (await altRes.json()) as NseInstrument[];
-                  this.csvSymbols = this.parseNSEJson(jsonData);
-                  this.csvLoaded = true;
-                  return;
-                }
-              } catch {}
-            }
-            throw new Error("NSE.json not found");
-          }
-
-          const jsonData = (await response.json()) as NseInstrument[];
-          this.csvSymbols = this.parseNSEJson(jsonData);
-          this.csvLoaded = true;
-
-          // Cache in localStorage with weekly expiry (next Sunday midnight)
-          try {
-            localStorage.setItem(CACHE_KEY, JSON.stringify(jsonData));
-            localStorage.setItem(CACHE_EXPIRY_KEY, String(getNextSundayMidnight()));
-            console.log("✅ NSE.json fetched and cached until next Sunday");
-          } catch (e) {
-            console.warn("⚠️ Could not cache NSE.json in localStorage:", e);
-          }
-        } catch (error) {
-          console.error("❌ Error loading NSE.json:", error);
-          this.csvLoaded = false;
-          this.csvSymbols = [];
-        }
-      },
 
       async searchSymbols(userInput: string, exchange: string, symbolType: string, onResultReadyCallback: Function) {
         try {
@@ -436,26 +340,6 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         const displayName = this.extractDisplayName(symbolName);
 
         let symbolInfo: any = null;
-
-        // Search NSE.json
-        if (this.csvLoaded && this.csvSymbols.length > 0) {
-          const foundSymbol = this.csvSymbols.find(
-            (s) =>
-              s.symbol === instrumentKey ||
-              s.ticker === instrumentKey ||
-              s.full_name === displayName ||
-              s.instrument_key === instrumentKey ||
-              s.symbol === symbolName ||
-              s.ticker === symbolName ||
-              s.full_name === symbolName ||
-              s.instrument_key === symbolName,
-          );
-
-          if (foundSymbol) {
-            symbolInfo = foundSymbol;
-          }
-        }
-        console.log(this.csvLoaded);
 
         // Handle NSE_INDEX| format
         if (!symbolInfo && symbolName.includes("NSE_INDEX|")) {
@@ -628,9 +512,8 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
 
       // Placeholder to avoid TS errors
       loadAvailableLogos() {},
-      parseNSEJson(data: NseInstrument[]) {
-        return data;
-      },
+
+
     };
 
     try {
