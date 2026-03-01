@@ -7,10 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { RefreshCw, CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 
-interface ApiStatus {
+interface ApiConfig {
   name: string;
   edgeFunction: string;
   body?: Record<string, unknown>;
+  needsExpiry?: boolean; // Will be replaced with real expiry at runtime
+}
+
+interface ApiStatus extends ApiConfig {
   lastDataTime: string | null;
   status: "ok" | "error" | "stale" | "loading";
   error?: string;
@@ -18,15 +22,15 @@ interface ApiStatus {
   responseTimeMs?: number;
 }
 
-const API_CONFIGS: Omit<ApiStatus, "lastDataTime" | "status" | "error" | "checkedAt" | "responseTimeMs">[] = [
+const API_CONFIGS: ApiConfig[] = [
   { name: "Ticker / Indices", edgeFunction: "ticker-data" },
-  { name: "PCR Data", edgeFunction: "pcr-data", body: { symbol: "Nifty 50", expiry: "current", strikeCount: 5 } },
-  { name: "OTR Data", edgeFunction: "otr-data", body: { symbol: "Nifty 50", expiry: "current", strikeCount: 7, tf: "3min" } },
-  { name: "Max Pain", edgeFunction: "maxpain-data", body: { symbol: "Nifty 50", expiry: "current", tf: "1min" } },
-  { name: "TOI Strikes", edgeFunction: "toi-data", body: { endpoint: "strikes", symbol: "Nifty 50", expiry: "current" } },
+  { name: "PCR Data", edgeFunction: "pcr-data", body: { symbol: "Nifty 50", strikeCount: 5 }, needsExpiry: true },
+  { name: "OTR Data", edgeFunction: "otr-data", body: { symbol: "Nifty 50", strikeCount: 7, tf: "3min" }, needsExpiry: true },
+  { name: "Max Pain", edgeFunction: "maxpain-data", body: { symbol: "Nifty 50", tf: "1min" }, needsExpiry: true },
+  { name: "TOI Strikes", edgeFunction: "toi-data", body: { endpoint: "strikes", symbol: "Nifty 50" }, needsExpiry: true },
   { name: "Option Chain Proxy", edgeFunction: "option-chain-proxy", body: { endpoint: "symbols" } },
-  { name: "Greeks Data", edgeFunction: "greeks-data", body: { symbol: "Nifty 50", expiry: "current" } },
-  { name: "Premium Decay", edgeFunction: "premium-decay-data", body: { endpoint: "strikes", symbol: "Nifty 50", expiry: "current" } },
+  { name: "Greeks Data", edgeFunction: "greeks-data", body: { symbol: "Nifty 50" }, needsExpiry: true },
+  { name: "Premium Decay", edgeFunction: "premium-decay-data", body: { endpoint: "strikes", symbol: "Nifty 50" }, needsExpiry: true },
   { name: "Advance/Decline", edgeFunction: "advance-decline" },
   { name: "Market Breadth", edgeFunction: "market-breadth", body: { index: "SYML:NSE;NIFTY" } },
   { name: "FII/DII Data", edgeFunction: "fii-data" },
@@ -41,15 +45,30 @@ const API_CONFIGS: Omit<ApiStatus, "lastDataTime" | "status" | "error" | "checke
   { name: "Future Rollover", edgeFunction: "future-rollover", body: { symbol: "Nifty 50" } },
   { name: "Jackpot Scanner", edgeFunction: "jackpot-scanner" },
   { name: "Trending Stocks", edgeFunction: "trending-stocks" },
-  { name: "Kundali Data", edgeFunction: "kundali-data", body: { symbol: "Nifty 50", expiry: "current", strikeCount: 10 } },
+  { name: "Kundali Data", edgeFunction: "kundali-data", body: { symbol: "Nifty 50", strikeCount: 10 }, needsExpiry: true },
   { name: "Option Builder", edgeFunction: "option-builder-data", body: { action: "getSymbols" } },
   { name: "Option Simulator", edgeFunction: "option-simulator-data", body: { action: "getSymbols" } },
   { name: "Strategy Chart", edgeFunction: "strategy-chart-data", body: { action: "getSymbols" } },
-  { name: "PCR All Strikes", edgeFunction: "pcr-all-strikes", body: { symbol: "Nifty 50", expiry: "current", strikeCount: 20 } },
-  { name: "PCR Long/Short", edgeFunction: "pcr-long-short", body: { symbol: "Nifty 50", expiry: "current" } },
+  { name: "PCR All Strikes", edgeFunction: "pcr-all-strikes", body: { symbol: "Nifty 50", strikeCount: 20 }, needsExpiry: true },
+  { name: "PCR Long/Short", edgeFunction: "pcr-long-short", body: { symbol: "Nifty 50" }, needsExpiry: true },
   { name: "Stock Detail", edgeFunction: "stock-detail-data", body: { action: "overview", symbol: "RELIANCE" } },
   { name: "Index Detail", edgeFunction: "index-detail", body: { index: "SYML:NSE;NIFTY", dataType: "stocks" } },
 ];
+
+// Fetch the nearest expiry for Nifty 50
+async function fetchNiftyExpiry(): Promise<string | null> {
+  try {
+    const { data, error } = await supabase.functions.invoke("option-chain-proxy", {
+      body: { endpoint: "expiry", params: { symbol: "Nifty 50" } },
+    });
+    if (error || !data) return null;
+    // Response is usually an array of expiry date strings, or { expiry_dates: [...] }
+    const dates: string[] = Array.isArray(data) ? data : (data.expiry_dates || data.dates || []);
+    return dates.length > 0 ? dates[0] : null;
+  } catch {
+    return null;
+  }
+}
 
 // Try to extract the latest date/time from various response formats
 function extractLastTime(data: unknown): string | null {
@@ -120,11 +139,17 @@ export default function ApiMonitor() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastFullRefresh, setLastFullRefresh] = useState<Date | null>(null);
 
-  const checkApi = useCallback(async (config: typeof API_CONFIGS[number], index: number) => {
+  const checkApi = useCallback(async (config: ApiConfig, index: number, expiry: string | null) => {
     const start = Date.now();
     try {
+      // Inject real expiry into body for APIs that need it
+      let body = config.body || {};
+      if (config.needsExpiry && expiry) {
+        body = { ...body, expiry, expiry_date: expiry };
+      }
+
       const { data, error } = await supabase.functions.invoke(config.edgeFunction, {
-        body: config.body || {},
+        body,
       });
 
       const responseTimeMs = Date.now() - start;
@@ -178,8 +203,12 @@ export default function ApiMonitor() {
     setIsRefreshing(true);
     setApis((prev) => prev.map((a) => ({ ...a, status: "loading" as const })));
 
+    // Fetch real expiry first
+    const expiry = await fetchNiftyExpiry();
+    console.log("API Monitor: Using expiry:", expiry);
+
     // Run all checks in parallel
-    await Promise.allSettled(API_CONFIGS.map((config, i) => checkApi(config, i)));
+    await Promise.allSettled(API_CONFIGS.map((config, i) => checkApi(config, i, expiry)));
 
     setLastFullRefresh(new Date());
     setIsRefreshing(false);
