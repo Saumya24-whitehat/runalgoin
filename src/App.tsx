@@ -61,6 +61,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const OIAcrossExpiries = lazy(() => import("./pages/OIAcrossExpiries"));
 const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatternChart"));
+const ApiMonitor = lazy(() => import("./pages/ApiMonitor"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -138,6 +139,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/oi-across-expiries" element={<OIAcrossExpiries />} />
                 <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
+                <Route path="/api-monitor" element={<ApiMonitor />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
