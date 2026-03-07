@@ -125,12 +125,12 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     const vwapData: { time: any; value: number }[] = [];
 
     let lastValidVWAP = 0;
-    console.log(data);
+    // console.log(data);
     data.forEach((item, idx) => {
       // Always add spot data
       spotData.push({
         time: item.timestamp,
-        value: item.underlyning || 0,
+        value: item.Future || 0,
       });
 
       // Handle VWAP - skip if 0, or use previous valid value
