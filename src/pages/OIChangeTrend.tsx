@@ -311,70 +311,49 @@ const OIChangeTrend = () => {
               <CardContent className="p-0">
                 <div className="overflow-x-auto max-h-[600px] overflow-y-auto relative">
                   <Table>
-                    <TableHeader className="sticky top-0 z-10">
-                      {/* Strike header row */}
-                      <TableRow className="bg-secondary border-b-0">
-                        <TableHead rowSpan={2} className="text-xs font-semibold whitespace-nowrap bg-secondary sticky left-0 z-20 min-w-[60px]">
+                     <TableHeader className="sticky top-0 z-10">
+                      <TableRow className="bg-secondary">
+                        <TableHead className="text-xs font-semibold whitespace-nowrap bg-secondary sticky left-0 z-20 min-w-[60px]">
                           Time
                         </TableHead>
-                        <TableHead rowSpan={2} className="text-xs font-semibold text-right whitespace-nowrap bg-secondary min-w-[70px]">
+                        <TableHead className="text-xs font-semibold text-right whitespace-nowrap bg-secondary min-w-[70px]">
                           Spot
                         </TableHead>
-                        {allStrikes.map((strike) => (
+                        {visibleStrikes.map((strike) => (
                           <TableHead
                             key={strike}
-                            colSpan={3}
-                            className="text-xs font-bold text-center whitespace-nowrap bg-secondary border-l border-border/30"
+                            className={`text-xs font-bold text-center whitespace-nowrap bg-secondary border-l border-border/30 min-w-[80px] ${strike === latestATM ? "!bg-primary/20" : ""}`}
                           >
                             {strike}
                           </TableHead>
                         ))}
                       </TableRow>
-                      {/* Sub-header row */}
-                      <TableRow className="bg-secondary/80 border-b-0">
-                        {allStrikes.map((strike) => (
-                          <React.Fragment key={`sub-${strike}`}>
-                            <TableHead className="text-[10px] font-medium text-center whitespace-nowrap bg-secondary/80 text-call border-l border-border/30 min-w-[65px]">
-                              CE Δ
-                            </TableHead>
-                            <TableHead className="text-[10px] font-medium text-center whitespace-nowrap bg-secondary/80 text-put min-w-[65px]">
-                              PE Δ
-                            </TableHead>
-                            <TableHead className="text-[10px] font-medium text-center whitespace-nowrap bg-secondary/80 min-w-[65px]">
-                              Trend
-                            </TableHead>
-                          </React.Fragment>
-                        ))}
-                      </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tableData.map((row, idx) => (
-                        <TableRow key={row.time} className={idx === tableData.length - 1 ? "bg-primary/5" : ""}>
-                          <TableCell className="font-medium whitespace-nowrap sticky left-0 bg-card/90 z-10">
-                            {row.time}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {row.spot.toFixed(2)}
-                          </TableCell>
-                          {allStrikes.map((strike) => {
-                            const s = row.strikes[strike] || { ceCOI: 0, peCOI: 0, trend: 0 };
-                            const isFirst = idx === 0;
-                            return (
-                              <React.Fragment key={`${row.time}-${strike}`}>
-                                <TableCell className={`text-center border-l border-border/20 ${isFirst ? "text-muted-foreground" : s.ceCOI > 0 ? "text-red-400" : s.ceCOI < 0 ? "text-emerald-400" : "text-muted-foreground"}`}>
-                                  {isFirst ? "—" : formatNumber(s.ceCOI)}
+                      {tableData.map((row, idx) => {
+                        const isLast = idx === tableData.length - 1;
+                        return (
+                          <TableRow key={row.time} className={idx === 0 ? "bg-primary/5" : ""}>
+                            <TableCell className="font-medium whitespace-nowrap sticky left-0 bg-card/90 z-10">
+                              {row.time}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {row.spot.toFixed(2)}
+                            </TableCell>
+                            {visibleStrikes.map((strike) => {
+                              const s = row.strikes[strike] || { trend: 0 };
+                              return (
+                                <TableCell
+                                  key={`${row.time}-${strike}`}
+                                  className={`text-center font-semibold border-l border-border/20 ${isLast ? "text-muted-foreground" : s.trend > 0 ? "text-emerald-400" : s.trend < 0 ? "text-red-400" : "text-muted-foreground"}`}
+                                >
+                                  {isLast ? "—" : formatNumber(s.trend)}
                                 </TableCell>
-                                <TableCell className={`text-center ${isFirst ? "text-muted-foreground" : s.peCOI > 0 ? "text-emerald-400" : s.peCOI < 0 ? "text-red-400" : "text-muted-foreground"}`}>
-                                  {isFirst ? "—" : formatNumber(s.peCOI)}
-                                </TableCell>
-                                <TableCell className={`text-center font-semibold ${isFirst ? "text-muted-foreground" : s.trend > 0 ? "text-emerald-400" : s.trend < 0 ? "text-red-400" : "text-muted-foreground"}`}>
-                                  {isFirst ? "—" : formatNumber(s.trend)}
-                                </TableCell>
-                              </React.Fragment>
-                            );
-                          })}
-                        </TableRow>
-                      ))}
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
