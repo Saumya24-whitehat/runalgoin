@@ -115,8 +115,8 @@ const OIChangeTrend = () => {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ["pcr-data", selectedSymbol, selectedExpiry, strikeCount, historicalDateStr],
-    queryFn: () => fetchPCRData(selectedSymbol, selectedExpiry, strikeCount, historicalDateStr),
+    queryKey: ["pcr-data-oict", selectedSymbol, selectedExpiry, historicalDateStr],
+    queryFn: () => fetchPCRData(selectedSymbol, selectedExpiry, 110, historicalDateStr),
     enabled: !!selectedSymbol && !!selectedExpiry && !loadingExpiry,
     staleTime: AUTO_REFRESH_INTERVAL,
     gcTime: 10 * 60 * 1000,
