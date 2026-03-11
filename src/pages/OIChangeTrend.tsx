@@ -184,6 +184,7 @@ const OIChangeTrend = () => {
       rows.push({
         time: current.time,
         spot: current.underlyning,
+        atm: current.atm,
         strikes,
       });
     }
