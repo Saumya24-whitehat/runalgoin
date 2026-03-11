@@ -48,8 +48,6 @@ async function fetchExpiryDates(symbol: string, historicalDate?: string): Promis
 }
 
 interface StrikeOIChange {
-  ceCOI: number;
-  peCOI: number;
   trend: number;
 }
 
@@ -60,10 +58,7 @@ interface TimeRowData {
 }
 
 function formatNumber(value: number): string {
-  if (Math.abs(value) >= 10000000) return (value / 10000000).toFixed(2) + " Cr";
-  if (Math.abs(value) >= 100000) return (value / 100000).toFixed(2) + " L";
-  if (Math.abs(value) >= 1000) return (value / 1000).toFixed(1) + " K";
-  return value.toLocaleString();
+  return value.toLocaleString("en-IN");
 }
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000;
@@ -120,8 +115,8 @@ const OIChangeTrend = () => {
     isFetching,
     refetch,
   } = useQuery({
-    queryKey: ["pcr-data", selectedSymbol, selectedExpiry, strikeCount, historicalDateStr],
-    queryFn: () => fetchPCRData(selectedSymbol, selectedExpiry, strikeCount, historicalDateStr),
+    queryKey: ["pcr-data-oict", selectedSymbol, selectedExpiry, historicalDateStr],
+    queryFn: () => fetchPCRData(selectedSymbol, selectedExpiry, 110, historicalDateStr),
     enabled: !!selectedSymbol && !!selectedExpiry && !loadingExpiry,
     staleTime: AUTO_REFRESH_INTERVAL,
     gcTime: 10 * 60 * 1000,
@@ -131,17 +126,30 @@ const OIChangeTrend = () => {
 
   const rawData = pcrResponse?.dataWhole || [];
 
-  // Compute all strikes sorted
-  const allStrikes = useMemo(() => {
-    if (rawData.length === 0) return [];
+  // Get ATM from latest candle
+  const latestATM = useMemo(() => {
+    if (rawData.length === 0) return 0;
+    return rawData[rawData.length - 1].atm;
+  }, [rawData]);
+
+  // Compute visible strikes based on ATM and user strikeCount
+  const visibleStrikes = useMemo(() => {
+    if (rawData.length === 0 || !latestATM) return [];
+    // Collect all unique strikes
     const strikeSet = new Set<number>();
     rawData.forEach((td) => {
       td.dataThis?.forEach((s) => strikeSet.add(s.Strike));
     });
-    return Array.from(strikeSet).sort((a, b) => a - b);
-  }, [rawData]);
+    const sorted = Array.from(strikeSet).sort((a, b) => a - b);
+    // Find ATM index
+    const atmIdx = sorted.findIndex((s) => s >= latestATM);
+    if (atmIdx === -1) return sorted;
+    const start = Math.max(0, atmIdx - strikeCount);
+    const end = Math.min(sorted.length, atmIdx + strikeCount + 1);
+    return sorted.slice(start, end);
+  }, [rawData, latestATM, strikeCount]);
 
-  // Compute OI change from previous candle per strike per time
+  // Compute OI change from previous candle per strike per time (reversed: latest first)
   const tableData = useMemo(() => {
     if (rawData.length === 0) return [];
 
@@ -151,7 +159,6 @@ const OIChangeTrend = () => {
       const current = rawData[i];
       const prev = i > 0 ? rawData[i - 1] : null;
 
-      // Build lookup for current and previous
       const currentMap = new Map<number, PCRStrikeData>();
       current.dataThis?.forEach((s) => currentMap.set(s.Strike, s));
 
@@ -160,26 +167,16 @@ const OIChangeTrend = () => {
 
       const strikes: Record<number, StrikeOIChange> = {};
 
-      allStrikes.forEach((strike) => {
+      visibleStrikes.forEach((strike) => {
         const cur = currentMap.get(strike);
         const prv = prevMap?.get(strike);
 
-        if (!cur) {
-          strikes[strike] = { ceCOI: 0, peCOI: 0, trend: 0 };
-          return;
-        }
-
-        if (!prv || i === 0) {
-          // First candle — no change
-          strikes[strike] = { ceCOI: 0, peCOI: 0, trend: 0 };
+        if (!cur || !prv || i === 0) {
+          strikes[strike] = { trend: 0 };
         } else {
           const ceChange = cur["CE OI"] - prv["CE OI"];
           const peChange = cur["PE OI"] - prv["PE OI"];
-          strikes[strike] = {
-            ceCOI: ceChange,
-            peCOI: peChange,
-            trend: peChange - ceChange,
-          };
+          strikes[strike] = { trend: peChange - ceChange };
         }
       });
 
@@ -190,8 +187,8 @@ const OIChangeTrend = () => {
       });
     }
 
-    return rows;
-  }, [rawData, allStrikes]);
+    return rows.reverse();
+  }, [rawData, visibleStrikes]);
 
   return (
     <PageLayout>
@@ -314,70 +311,49 @@ const OIChangeTrend = () => {
               <CardContent className="p-0">
                 <div className="overflow-x-auto max-h-[600px] overflow-y-auto relative">
                   <Table>
-                    <TableHeader className="sticky top-0 z-10">
-                      {/* Strike header row */}
-                      <TableRow className="bg-secondary border-b-0">
-                        <TableHead rowSpan={2} className="text-xs font-semibold whitespace-nowrap bg-secondary sticky left-0 z-20 min-w-[60px]">
+                     <TableHeader className="sticky top-0 z-10">
+                      <TableRow className="bg-secondary">
+                        <TableHead className="text-xs font-semibold whitespace-nowrap bg-secondary sticky left-0 z-20 min-w-[60px]">
                           Time
                         </TableHead>
-                        <TableHead rowSpan={2} className="text-xs font-semibold text-right whitespace-nowrap bg-secondary min-w-[70px]">
+                        <TableHead className="text-xs font-semibold text-right whitespace-nowrap bg-secondary min-w-[70px]">
                           Spot
                         </TableHead>
-                        {allStrikes.map((strike) => (
+                        {visibleStrikes.map((strike) => (
                           <TableHead
                             key={strike}
-                            colSpan={3}
-                            className="text-xs font-bold text-center whitespace-nowrap bg-secondary border-l border-border/30"
+                            className={`text-xs font-bold text-center whitespace-nowrap bg-secondary border-l border-border/30 min-w-[80px] ${strike === latestATM ? "!bg-primary/20" : ""}`}
                           >
                             {strike}
                           </TableHead>
                         ))}
                       </TableRow>
-                      {/* Sub-header row */}
-                      <TableRow className="bg-secondary/80 border-b-0">
-                        {allStrikes.map((strike) => (
-                          <React.Fragment key={`sub-${strike}`}>
-                            <TableHead className="text-[10px] font-medium text-center whitespace-nowrap bg-secondary/80 text-call border-l border-border/30 min-w-[65px]">
-                              CE Δ
-                            </TableHead>
-                            <TableHead className="text-[10px] font-medium text-center whitespace-nowrap bg-secondary/80 text-put min-w-[65px]">
-                              PE Δ
-                            </TableHead>
-                            <TableHead className="text-[10px] font-medium text-center whitespace-nowrap bg-secondary/80 min-w-[65px]">
-                              Trend
-                            </TableHead>
-                          </React.Fragment>
-                        ))}
-                      </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {tableData.map((row, idx) => (
-                        <TableRow key={row.time} className={idx === tableData.length - 1 ? "bg-primary/5" : ""}>
-                          <TableCell className="font-medium whitespace-nowrap sticky left-0 bg-card/90 z-10">
-                            {row.time}
-                          </TableCell>
-                          <TableCell className="text-right font-medium">
-                            {row.spot.toFixed(2)}
-                          </TableCell>
-                          {allStrikes.map((strike) => {
-                            const s = row.strikes[strike] || { ceCOI: 0, peCOI: 0, trend: 0 };
-                            const isFirst = idx === 0;
-                            return (
-                              <React.Fragment key={`${row.time}-${strike}`}>
-                                <TableCell className={`text-center border-l border-border/20 ${isFirst ? "text-muted-foreground" : s.ceCOI > 0 ? "text-red-400" : s.ceCOI < 0 ? "text-emerald-400" : "text-muted-foreground"}`}>
-                                  {isFirst ? "—" : formatNumber(s.ceCOI)}
+                      {tableData.map((row, idx) => {
+                        const isLast = idx === tableData.length - 1;
+                        return (
+                          <TableRow key={row.time} className={idx === 0 ? "bg-primary/5" : ""}>
+                            <TableCell className="font-medium whitespace-nowrap sticky left-0 bg-card/90 z-10">
+                              {row.time}
+                            </TableCell>
+                            <TableCell className="text-right font-medium">
+                              {row.spot.toFixed(2)}
+                            </TableCell>
+                            {visibleStrikes.map((strike) => {
+                              const s = row.strikes[strike] || { trend: 0 };
+                              return (
+                                <TableCell
+                                  key={`${row.time}-${strike}`}
+                                  className={`text-center font-semibold border-l border-border/20 ${isLast ? "text-muted-foreground" : s.trend > 0 ? "text-emerald-400" : s.trend < 0 ? "text-red-400" : "text-muted-foreground"}`}
+                                >
+                                  {isLast ? "—" : formatNumber(s.trend)}
                                 </TableCell>
-                                <TableCell className={`text-center ${isFirst ? "text-muted-foreground" : s.peCOI > 0 ? "text-emerald-400" : s.peCOI < 0 ? "text-red-400" : "text-muted-foreground"}`}>
-                                  {isFirst ? "—" : formatNumber(s.peCOI)}
-                                </TableCell>
-                                <TableCell className={`text-center font-semibold ${isFirst ? "text-muted-foreground" : s.trend > 0 ? "text-emerald-400" : s.trend < 0 ? "text-red-400" : "text-muted-foreground"}`}>
-                                  {isFirst ? "—" : formatNumber(s.trend)}
-                                </TableCell>
-                              </React.Fragment>
-                            );
-                          })}
-                        </TableRow>
-                      ))}
+                              );
+                            })}
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
