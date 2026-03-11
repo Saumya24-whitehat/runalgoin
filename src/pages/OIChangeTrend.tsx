@@ -54,6 +54,7 @@ interface StrikeOIChange {
 interface TimeRowData {
   time: string;
   spot: number;
+  atm: number;
   strikes: Record<number, StrikeOIChange>;
 }
 
