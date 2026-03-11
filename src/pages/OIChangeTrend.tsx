@@ -126,17 +126,30 @@ const OIChangeTrend = () => {
 
   const rawData = pcrResponse?.dataWhole || [];
 
-  // Compute all strikes sorted
-  const allStrikes = useMemo(() => {
-    if (rawData.length === 0) return [];
+  // Get ATM from latest candle
+  const latestATM = useMemo(() => {
+    if (rawData.length === 0) return 0;
+    return rawData[rawData.length - 1].atm;
+  }, [rawData]);
+
+  // Compute visible strikes based on ATM and user strikeCount
+  const visibleStrikes = useMemo(() => {
+    if (rawData.length === 0 || !latestATM) return [];
+    // Collect all unique strikes
     const strikeSet = new Set<number>();
     rawData.forEach((td) => {
       td.dataThis?.forEach((s) => strikeSet.add(s.Strike));
     });
-    return Array.from(strikeSet).sort((a, b) => a - b);
-  }, [rawData]);
+    const sorted = Array.from(strikeSet).sort((a, b) => a - b);
+    // Find ATM index
+    const atmIdx = sorted.findIndex((s) => s >= latestATM);
+    if (atmIdx === -1) return sorted;
+    const start = Math.max(0, atmIdx - strikeCount);
+    const end = Math.min(sorted.length, atmIdx + strikeCount + 1);
+    return sorted.slice(start, end);
+  }, [rawData, latestATM, strikeCount]);
 
-  // Compute OI change from previous candle per strike per time
+  // Compute OI change from previous candle per strike per time (reversed: latest first)
   const tableData = useMemo(() => {
     if (rawData.length === 0) return [];
 
@@ -146,7 +159,6 @@ const OIChangeTrend = () => {
       const current = rawData[i];
       const prev = i > 0 ? rawData[i - 1] : null;
 
-      // Build lookup for current and previous
       const currentMap = new Map<number, PCRStrikeData>();
       current.dataThis?.forEach((s) => currentMap.set(s.Strike, s));
 
@@ -155,26 +167,16 @@ const OIChangeTrend = () => {
 
       const strikes: Record<number, StrikeOIChange> = {};
 
-      allStrikes.forEach((strike) => {
+      visibleStrikes.forEach((strike) => {
         const cur = currentMap.get(strike);
         const prv = prevMap?.get(strike);
 
-        if (!cur) {
-          strikes[strike] = { ceCOI: 0, peCOI: 0, trend: 0 };
-          return;
-        }
-
-        if (!prv || i === 0) {
-          // First candle — no change
-          strikes[strike] = { ceCOI: 0, peCOI: 0, trend: 0 };
+        if (!cur || !prv || i === 0) {
+          strikes[strike] = { trend: 0 };
         } else {
           const ceChange = cur["CE OI"] - prv["CE OI"];
           const peChange = cur["PE OI"] - prv["PE OI"];
-          strikes[strike] = {
-            ceCOI: ceChange,
-            peCOI: peChange,
-            trend: peChange - ceChange,
-          };
+          strikes[strike] = { trend: peChange - ceChange };
         }
       });
 
@@ -185,8 +187,8 @@ const OIChangeTrend = () => {
       });
     }
 
-    return rows;
-  }, [rawData, allStrikes]);
+    return rows.reverse();
+  }, [rawData, visibleStrikes]);
 
   return (
     <PageLayout>
