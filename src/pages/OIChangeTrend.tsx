@@ -344,10 +344,11 @@ const OIChangeTrend = () => {
                             </TableCell>
                             {visibleStrikes.map((strike) => {
                               const s = row.strikes[strike] || { trend: 0 };
+                              const isATM = strike === row.atm;
                               return (
                                 <TableCell
                                   key={`${row.time}-${strike}`}
-                                  className={`text-center font-semibold border-l border-border/20 ${isLast ? "text-muted-foreground" : s.trend > 0 ? "text-emerald-400" : s.trend < 0 ? "text-red-400" : "text-muted-foreground"}`}
+                                  className={`text-center font-semibold border-l border-border/20 ${isATM ? "ring-2 ring-primary ring-inset bg-primary/10" : ""} ${isLast ? "text-muted-foreground" : s.trend > 0 ? "text-emerald-400" : s.trend < 0 ? "text-red-400" : "text-muted-foreground"}`}
                                 >
                                   {isLast ? "—" : formatNumber(s.trend)}
                                 </TableCell>
