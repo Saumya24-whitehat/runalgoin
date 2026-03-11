@@ -60,6 +60,7 @@ const Contact = lazy(() => import("./pages/Contact"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
 const OIAcrossExpiries = lazy(() => import("./pages/OIAcrossExpiries"));
+const OIChangeTrend = lazy(() => import("./pages/OIChangeTrend"));
 const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatternChart"));
 const ApiMonitor = lazy(() => import("./pages/ApiMonitor"));
 const NotFound = lazy(() => import("./pages/NotFound"));
