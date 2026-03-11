@@ -139,6 +139,7 @@ const App = () => (
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/oi-across-expiries" element={<OIAcrossExpiries />} />
+                <Route path="/oi-change-trend" element={<OIChangeTrend />} />
                 <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
                 <Route path="/api-monitor" element={<ApiMonitor />} />
                 <Route path="*" element={<NotFound />} />
