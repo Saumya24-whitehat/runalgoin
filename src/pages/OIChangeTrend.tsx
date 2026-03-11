@@ -60,10 +60,7 @@ interface TimeRowData {
 }
 
 function formatNumber(value: number): string {
-  if (Math.abs(value) >= 10000000) return (value / 10000000).toFixed(2) + " Cr";
-  if (Math.abs(value) >= 100000) return (value / 100000).toFixed(2) + " L";
-  if (Math.abs(value) >= 1000) return (value / 1000).toFixed(1) + " K";
-  return value.toLocaleString();
+  return value.toLocaleString("en-IN");
 }
 
 const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000;
