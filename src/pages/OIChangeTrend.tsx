@@ -48,8 +48,6 @@ async function fetchExpiryDates(symbol: string, historicalDate?: string): Promis
 }
 
 interface StrikeOIChange {
-  ceCOI: number;
-  peCOI: number;
   trend: number;
 }
 
