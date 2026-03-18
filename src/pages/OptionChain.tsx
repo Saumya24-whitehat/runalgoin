@@ -143,6 +143,15 @@ const OptionChain = () => {
     }
   }, [selectedExpiry]);
 
+  // Auto-refresh every 3 minutes
+  useEffect(() => {
+    if (!selectedExpiry || !selectedSymbol) return;
+    const interval = setInterval(() => {
+      fetchOptionChain();
+    }, 180000);
+    return () => clearInterval(interval);
+  }, [selectedExpiry, selectedSymbol]);
+
   // Auto-fetch historical data when time changes
   useEffect(() => {
     if (!isHistoricalMode) return;
