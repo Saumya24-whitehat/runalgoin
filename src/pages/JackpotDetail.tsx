@@ -213,6 +213,9 @@ const JackpotDetail = () => {
           <Button onClick={() => navigate("/jackpot-scanner")} className="bg-primary">
             Screener
           </Button>
+          <div className="ml-auto">
+            <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
+          </div>
         </div>
 
         {isLoading ? (
