@@ -68,7 +68,7 @@ export default function FuturesOiBreakup() {
     }
   }, []);
 
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching, dataUpdatedAt } = useQuery({
     queryKey: ["futureOiBreakup", symbol, expiry],
     queryFn: () => fetchFutureOiBreakup(symbol, expiry),
     enabled: !!expiry,
