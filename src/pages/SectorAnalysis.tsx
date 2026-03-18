@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight, Search } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   groupedIndices,
@@ -56,7 +57,7 @@ const SectorAnalysis = () => {
   const [selectedIndex, setSelectedIndex] = useState<string>(getInitialIndex);
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn>("change");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
@@ -100,7 +101,7 @@ const SectorAnalysis = () => {
       const data = await fetchMarketBreadthData(selectedIndex);
       if (data) {
         setStocks(data.content);
-        setLastUpdated(data.date);
+        setLastRefresh(new Date());
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -111,6 +112,8 @@ const SectorAnalysis = () => {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 180000);
+    return () => clearInterval(interval);
   }, [selectedIndex]);
 
   const toggleGroup = (groupName: string) => {
@@ -346,7 +349,7 @@ const SectorAnalysis = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {lastUpdated && <span className="text-xs text-muted-foreground">Last updated: {lastUpdated}</span>}
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
               <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
                 Refresh

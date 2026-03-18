@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Maximize2, Loader2 } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchMarketBreadthData } from "@/services/marketBreadthApi";
 import { getIndexSymbol } from "@/services/indexDetailApi";
 import { IndexDetailChart } from "@/components/indexDetail/IndexDetailChart";
@@ -22,7 +23,7 @@ const IndexDetail = () => {
   const [activeTab, setActiveTab] = useState("chart");
   const [indexData, setIndexData] = useState<{ ltp: number; change: number; changePct: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const indexSymbol = getIndexSymbol(indexName);
 
@@ -43,7 +44,7 @@ const IndexDetail = () => {
             changePct: 0.3
           });
         }
-        setLastUpdated(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        setLastRefresh(new Date());
       } catch (error) {
         console.error('Error fetching index price:', error);
       } finally {
@@ -96,7 +97,7 @@ const IndexDetail = () => {
                 </div>
               )}
               
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Last updated: {lastUpdated}</p>
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
             </div>
           </div>
 

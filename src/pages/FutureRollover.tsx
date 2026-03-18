@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureRollover, fetchFutureExpiryDates, RolloverItem } from "@/services/futureRolloverApi";
 import { supabase } from "@/integrations/supabase/client";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -313,6 +314,7 @@ export default function FutureRollover() {
               <span className="font-bold">{avgRollover.toFixed(2)}%</span>
             </div>
             <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} symbols</span>
+            <LastRefreshBadge lastRefresh={rolloverData ? new Date() : null} isFetching={isFetching} />
           </div>
 
           <Button onClick={handleExportCSV} variant="outline" className="gap-2">
@@ -394,12 +396,7 @@ export default function FutureRollover() {
           </Table>
         </div>
 
-        {/* Last Updated */}
-        {rolloverData?.lastUpdated && (
-          <p className="text-xs text-muted-foreground text-right">
-            Last updated: {new Date(rolloverData.lastUpdated).toLocaleString()}
-          </p>
-        )}
+
         </div>
       </ProFeatureGate>
     </div>

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Maximize2, Loader2, MoreVertical } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   StockOverview,
   fetchStockOverview,
@@ -28,7 +29,7 @@ const StockDetail = () => {
   const [activeTab, setActiveTab] = useState("chart");
   const [stockData, setStockData] = useState<StockOverview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,7 +39,7 @@ const StockDetail = () => {
         if (data) {
           setStockData(data);
         }
-        setLastUpdated(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + " IST");
+        setLastRefresh(new Date());
       } catch (error) {
         console.error("Error fetching stock data:", error);
       } finally {
@@ -145,9 +146,7 @@ const StockDetail = () => {
               <p className="text-xs sm:text-sm font-semibold text-foreground">
                 {formatMarketCap(stockData.market_cap_basic)}
               </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
-                Last updated: {lastUpdated}
-              </p>
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
             </div>
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">P/E Ratio</p>

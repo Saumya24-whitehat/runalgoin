@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { supabase } from "@/integrations/supabase/client";
 
 interface AverageData {
@@ -71,6 +72,7 @@ const JackpotDetail = () => {
   const [symbol, setSymbol] = useState(searchParams.get("symbol") || "RELIANCE");
   const [data, setData] = useState<[AverageData, OIData, string[][]] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -87,6 +89,7 @@ const JackpotDetail = () => {
         });
         if (!error && response) {
           setData(response);
+          setLastRefresh(new Date());
         }
       } catch (err) {
         console.error("Error fetching jackpot data:", err);
@@ -95,6 +98,8 @@ const JackpotDetail = () => {
       }
     };
     fetchData();
+    const interval = setInterval(fetchData, 180000);
+    return () => clearInterval(interval);
   }, [symbol]);
 
   const handleSymbolChange = (newSymbol: string) => {
@@ -208,6 +213,9 @@ const JackpotDetail = () => {
           <Button onClick={() => navigate("/jackpot-scanner")} className="bg-primary">
             Screener
           </Button>
+          <div className="ml-auto">
+            <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
+          </div>
         </div>
 
         {isLoading ? (
