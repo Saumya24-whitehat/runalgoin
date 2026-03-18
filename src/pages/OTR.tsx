@@ -736,10 +736,7 @@ const OTR = () => {
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">
-                          {lastRefresh ? format(lastRefresh, "HH:mm:ss") : "-"}
-                        </p>
+                        <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
                         <Button
                           variant="ghost"
                           size="icon"
