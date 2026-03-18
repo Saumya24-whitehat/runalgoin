@@ -396,12 +396,7 @@ export default function FutureRollover() {
           </Table>
         </div>
 
-        {/* Last Updated */}
-        {rolloverData?.lastUpdated && (
-          <p className="text-xs text-muted-foreground text-right">
-            Last updated: {new Date(rolloverData.lastUpdated).toLocaleString()}
-          </p>
-        )}
+
         </div>
       </ProFeatureGate>
     </div>
