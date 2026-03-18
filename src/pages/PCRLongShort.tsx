@@ -73,8 +73,8 @@ const PCRLongShort = () => {
   const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<string>("");
   
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Auth check
   useEffect(() => {

@@ -102,8 +102,8 @@ export default function PCRAllStrikes() {
   const [alertEnabled, setAlertEnabled] = useState(false);
   const [lastAlertTime, setLastAlertTime] = useState<string>("");
 
-  const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const refreshIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevATMPCRRef = useRef<number | null>(null);
 

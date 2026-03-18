@@ -52,7 +52,7 @@ const OIAcrossExpiries = () => {
   const [expiryDataList, setExpiryDataList] = useState<ExpiryData[]>([]);
   const [lastRefreshed, setLastRefreshed] = useState<Date | null>(null);
   const isInitialFetch = useRef(true);
-  const autoRefreshRef = useRef<NodeJS.Timeout | null>(null);
+  const autoRefreshRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Fetch symbols
   useEffect(() => {
