@@ -98,6 +98,8 @@ const JackpotDetail = () => {
       }
     };
     fetchData();
+    const interval = setInterval(fetchData, 180000);
+    return () => clearInterval(interval);
   }, [symbol]);
 
   const handleSymbolChange = (newSymbol: string) => {

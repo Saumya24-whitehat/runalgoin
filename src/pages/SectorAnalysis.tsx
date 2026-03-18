@@ -112,6 +112,8 @@ const SectorAnalysis = () => {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 180000);
+    return () => clearInterval(interval);
   }, [selectedIndex]);
 
   const toggleGroup = (groupName: string) => {

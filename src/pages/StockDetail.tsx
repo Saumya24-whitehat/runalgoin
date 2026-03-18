@@ -146,9 +146,7 @@ const StockDetail = () => {
               <p className="text-xs sm:text-sm font-semibold text-foreground">
                 {formatMarketCap(stockData.market_cap_basic)}
               </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">
-                Last updated: {lastUpdated}
-              </p>
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
             </div>
             <div>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase">P/E Ratio</p>
