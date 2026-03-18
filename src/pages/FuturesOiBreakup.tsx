@@ -128,6 +128,7 @@ export default function FuturesOiBreakup() {
             </h1>
             <p className="text-muted-foreground mt-1">Intraday OI analysis with price and VWAP correlation</p>
             <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+          </div>
 
           <div className="flex items-center gap-3">
             <Select value={symbol} onValueChange={setSymbol}>
