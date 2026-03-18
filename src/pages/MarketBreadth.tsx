@@ -57,6 +57,7 @@ export default function MarketBreadth() {
   const [selectedExchange, setSelectedExchange] = useState<"NSE" | "BSE">("NSE");
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefreshDate, setLastRefreshDate] = useState<Date | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
