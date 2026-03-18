@@ -29,7 +29,7 @@ const StockDetail = () => {
   const [activeTab, setActiveTab] = useState("chart");
   const [stockData, setStockData] = useState<StockOverview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
