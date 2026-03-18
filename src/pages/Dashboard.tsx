@@ -134,6 +134,7 @@ const Dashboard = () => {
   const [resultsLoading, setResultsLoading] = useState(true);
   const [trendingData, setTrendingData] = useState<TrendingStocksData | null>(null);
   const [trendingLoading, setTrendingLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
