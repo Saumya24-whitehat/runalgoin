@@ -23,7 +23,7 @@ const IndexDetail = () => {
   const [activeTab, setActiveTab] = useState("chart");
   const [indexData, setIndexData] = useState<{ ltp: number; change: number; changePct: number } | null>(null);
   const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const indexSymbol = getIndexSymbol(indexName);
 
