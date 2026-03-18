@@ -467,7 +467,7 @@ const MaxPain = () => {
               </div>
 
               <div className="flex items-center gap-3">
-                {lastRefresh && <span>Updated: {format(lastRefresh, "HH:mm:ss")}</span>}
+                <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
                 {countdown && (
                   <span className="flex items-center gap-1">
                     <Timer className="h-3 w-3" /> {countdown}
