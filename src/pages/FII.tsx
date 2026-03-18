@@ -246,7 +246,7 @@ export default function FII() {
   } = useQuery({
     queryKey: ["fii-data"],
     queryFn: fetchFIIData,
-    refetchInterval: 60000,
+    refetchInterval: 180000,
   });
 
   const currentData = fiiData?.[selectedDate];
