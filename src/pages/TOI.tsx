@@ -25,6 +25,7 @@ import {
   Check,
 } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
 interface SymbolGroup {

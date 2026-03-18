@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, Clock, RefreshCw, Timer, Info, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { format } from "date-fns";
 import OTRChart from "@/components/otr/OTRChart";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface SymbolGroup {

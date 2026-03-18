@@ -965,12 +965,7 @@ export default function PCRAllStrikes() {
 
                   <div className="h-4 w-px bg-border" />
 
-                  {lastRefresh && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>Updated: {lastRefresh.toLocaleTimeString()}</span>
-                    </div>
-                  )}
+                  <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isRefreshing} />
 
                   {countdown && (
                     <div className="flex items-center gap-1">

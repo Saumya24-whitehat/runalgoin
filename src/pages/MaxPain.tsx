@@ -29,6 +29,7 @@ import {
   Info,
 } from "lucide-react";
 import { format } from "date-fns";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   BarChart,
   Bar,

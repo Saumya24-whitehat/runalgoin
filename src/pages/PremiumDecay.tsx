@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, RefreshCw, Timer } from "lucide-react";
 import { format } from "date-fns";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   LineChart,
   Line,

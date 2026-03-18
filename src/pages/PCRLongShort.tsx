@@ -27,6 +27,7 @@ import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { fetchPCRLongShortData, LongShortTimeData, LongShortStrikeData } from "@/services/pcrLongShortApi";
 import { toast } from "sonner";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 interface SymbolsData {
   indexSymbols: string[];
