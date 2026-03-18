@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fetchPCRData, PCRTimeData, PCRStrikeData } from "@/services/pcrApi";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2, RefreshCw } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
 interface SymbolGroup {
