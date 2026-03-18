@@ -72,6 +72,7 @@ const JackpotDetail = () => {
   const [symbol, setSymbol] = useState(searchParams.get("symbol") || "RELIANCE");
   const [data, setData] = useState<[AverageData, OIData, string[][]] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
