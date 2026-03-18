@@ -159,6 +159,7 @@ const GreeksChart = () => {
     try {
       const data = await fetchCombinedGreeksData(selectedSymbol, selectedExpiry, selectedStrike, selectedTimeframe);
       setGreeksData(data);
+      setLastRefresh(new Date());
     } catch (err) {
       console.error("Error fetching Greeks data:", err);
       toast({
