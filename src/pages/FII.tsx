@@ -243,6 +243,8 @@ export default function FII() {
     data: fiiData,
     isLoading,
     error,
+    dataUpdatedAt,
+    isFetching: isFiiRefetching,
   } = useQuery({
     queryKey: ["fii-data"],
     queryFn: fetchFIIData,
