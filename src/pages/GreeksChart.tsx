@@ -11,6 +11,7 @@ import { IndividualGreeksChart } from "@/components/greeksChart/IndividualGreeks
 import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChartApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 interface SymbolGroup {
   indexSymbols: string[];
