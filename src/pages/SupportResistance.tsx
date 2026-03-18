@@ -333,7 +333,7 @@ const SupportResistance = () => {
       if (chainData.length > 0) {
         setOptionData(chainData);
         setSpotPrice(chainData[0].underlying_spot_price);
-        console.log("Option data set:", chainData.length, "rows, spot:", chainData[0].underlying_spot_price);
+        setLastRefresh(new Date());
       }
     } catch (err) {
       console.error("Error fetching option chain:", err);
