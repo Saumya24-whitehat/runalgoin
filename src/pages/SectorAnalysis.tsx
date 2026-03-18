@@ -349,7 +349,7 @@ const SectorAnalysis = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {lastUpdated && <span className="text-xs text-muted-foreground">Last updated: {lastUpdated}</span>}
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
               <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
                 Refresh
