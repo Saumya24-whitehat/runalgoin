@@ -199,7 +199,7 @@ const OIChangeTrend = () => {
       <ProFeatureGate featureName="OI Change Trend">
         <main className="container px-3 sm:px-4 py-4 sm:py-6 space-y-4">
           <div className="flex justify-end">
-            <LastRefreshBadge lastRefresh={pcrResponse ? new Date() : null} isFetching={isFetching} />
+            <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
           </div>
           {/* Controls */}
           <Card className="bg-card/50 border-border/50">
