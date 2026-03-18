@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { supabase } from "@/integrations/supabase/client";
 
 interface JackpotStock {
