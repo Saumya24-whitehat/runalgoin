@@ -191,6 +191,7 @@ const SupportResistance = () => {
   const [optionData, setOptionData] = useState<OptionData[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [isLive, setIsLive] = useState(true);
   const [historicalTime, setHistoricalTime] = useState<string>("");
 
