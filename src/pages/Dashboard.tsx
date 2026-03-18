@@ -142,20 +142,31 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
-  // Fetch FII data
-  useEffect(() => {
-    const fetchFiiData = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("fii-data");
-        if (!error && data) {
-          setFiiData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching FII data:", err);
+  const fetchAllDashboardData = useCallback(async () => {
+    try {
+      const [fiiRes, trendingRes] = await Promise.allSettled([
+        supabase.functions.invoke("fii-data"),
+        supabase.functions.invoke("trending-stocks"),
+      ]);
+
+      if (fiiRes.status === "fulfilled" && !fiiRes.value.error && fiiRes.value.data) {
+        setFiiData(fiiRes.value.data);
       }
-    };
-    fetchFiiData();
+      if (trendingRes.status === "fulfilled" && !trendingRes.value.error && trendingRes.value.data) {
+        setTrendingData(trendingRes.value.data);
+        setTrendingLoading(false);
+      }
+      setLastRefresh(new Date());
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAllDashboardData();
+    const interval = setInterval(fetchAllDashboardData, 180000);
+    return () => clearInterval(interval);
+  }, [fetchAllDashboardData]);
 
   // Fetch deals data
   useEffect(() => {
