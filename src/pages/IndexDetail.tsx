@@ -44,7 +44,7 @@ const IndexDetail = () => {
             changePct: 0.3
           });
         }
-        setLastUpdated(new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+        setLastRefresh(new Date());
       } catch (error) {
         console.error('Error fetching index price:', error);
       } finally {
