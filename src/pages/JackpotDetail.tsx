@@ -89,6 +89,7 @@ const JackpotDetail = () => {
         });
         if (!error && response) {
           setData(response);
+          setLastRefresh(new Date());
         }
       } catch (err) {
         console.error("Error fetching jackpot data:", err);
