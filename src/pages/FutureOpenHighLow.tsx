@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureOpenHighLow, fetchFutureExpiryDates, OpenHighLowItem } from "@/services/futureOpenHighLowApi";
 import { supabase } from "@/integrations/supabase/client";
 
