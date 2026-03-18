@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { PageLayout } from "@/components/PageLayout";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -421,12 +422,7 @@ const OptionsSummary = () => {
               All-in-one options analytics dashboard
             </p>
           </div>
-          {lastRefresh && (
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              Updated: {lastRefresh.toLocaleTimeString()}
-            </div>
-          )}
+          <LastRefreshBadge lastRefresh={lastRefresh} />
         </div>
 
         {/* Symbol & Expiry Selection */}

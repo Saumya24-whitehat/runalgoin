@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, Clock, RefreshCw, Timer, Info, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { format } from "date-fns";
 import OTRChart from "@/components/otr/OTRChart";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface SymbolGroup {
@@ -736,10 +737,7 @@ const OTR = () => {
                     </div>
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        <p className="text-xs text-muted-foreground">
-                          {lastRefresh ? format(lastRefresh, "HH:mm:ss") : "-"}
-                        </p>
+                        <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
                         <Button
                           variant="ghost"
                           size="icon"

@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { fetchPCRData, PCRTimeData, PCRStrikeData } from "@/services/pcrApi";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2, RefreshCw } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -114,6 +115,7 @@ const OIChangeTrend = () => {
     data: pcrResponse,
     isLoading: loadingData,
     isFetching,
+    dataUpdatedAt,
     refetch,
   } = useQuery({
     queryKey: ["pcr-data-oict", selectedSymbol, selectedExpiry, historicalDateStr],
@@ -196,6 +198,9 @@ const OIChangeTrend = () => {
     <PageLayout>
       <ProFeatureGate featureName="OI Change Trend">
         <main className="container px-3 sm:px-4 py-4 sm:py-6 space-y-4">
+          <div className="flex justify-end">
+            <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+          </div>
           {/* Controls */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-3 sm:p-4">

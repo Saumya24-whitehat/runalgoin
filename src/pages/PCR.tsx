@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -465,12 +466,7 @@ const PCR = () => {
                     <Clock className="h-3.5 w-3.5" />
                     <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    <span>Last Updated: <span className="text-foreground font-medium">
-                      {lastRefresh ? format(lastRefresh, "hh:mm:ss a") : "--:--:--"}
-                    </span></span>
-                  </div>
+                  <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isFetching} />
                   <div className="flex items-center gap-1.5">
                     <Timer className="h-3.5 w-3.5" />
                     <span>Next Refresh: <span className="text-primary font-medium">{countdown || "--:--"}</span></span>

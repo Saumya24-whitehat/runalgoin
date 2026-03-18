@@ -11,6 +11,7 @@ import { IndividualGreeksChart } from "@/components/greeksChart/IndividualGreeks
 import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChartApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -30,6 +31,7 @@ const GreeksChart = () => {
   const [activeTab, setActiveTab] = useState("combined");
 
   const [greeksData, setGreeksData] = useState<ParsedGreeksData | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
@@ -157,6 +159,7 @@ const GreeksChart = () => {
     try {
       const data = await fetchCombinedGreeksData(selectedSymbol, selectedExpiry, selectedStrike, selectedTimeframe);
       setGreeksData(data);
+      setLastRefresh(new Date());
     } catch (err) {
       console.error("Error fetching Greeks data:", err);
       toast({
@@ -194,6 +197,9 @@ const GreeksChart = () => {
 
       <ProFeatureGate featureName="Greeks Chart">
         <main className="container py-6 space-y-6">
+          <div className="flex justify-end">
+            <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+          </div>
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4">

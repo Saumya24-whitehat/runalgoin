@@ -37,6 +37,7 @@ import {
   VolumeX,
 } from "lucide-react";
 import { format } from "date-fns";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAllStrikesApi";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
@@ -965,12 +966,7 @@ export default function PCRAllStrikes() {
 
                   <div className="h-4 w-px bg-border" />
 
-                  {lastRefresh && (
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>Updated: {lastRefresh.toLocaleTimeString()}</span>
-                    </div>
-                  )}
+                  <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isRefreshing} />
 
                   {countdown && (
                     <div className="flex items-center gap-1">

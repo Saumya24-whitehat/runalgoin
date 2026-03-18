@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -56,6 +57,7 @@ export default function MarketBreadth() {
   const [selectedExchange, setSelectedExchange] = useState<"NSE" | "BSE">("NSE");
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefreshDate, setLastRefreshDate] = useState<Date | null>(null);
   const [lastUpdated, setLastUpdated] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -84,6 +86,7 @@ export default function MarketBreadth() {
       if (data) {
         setStocks(data.content);
         setLastUpdated(data.date);
+        setLastRefreshDate(new Date());
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -192,6 +195,9 @@ export default function MarketBreadth() {
       </div>
 
       <ProFeatureGate featureName="Market Breadth Analysis">
+        <div className="flex justify-end px-4 pt-2">
+          <LastRefreshBadge lastRefresh={lastRefreshDate} isFetching={isLoading} />
+        </div>
         <div className="flex">
           {/* Sidebar */}
         <div className="w-80 border-r border-border bg-card min-h-[calc(100vh-8rem)]">

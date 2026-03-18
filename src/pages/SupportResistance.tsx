@@ -15,6 +15,7 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import LTPCalculatorModal from "@/components/LTPCalculatorModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
@@ -190,6 +191,7 @@ const SupportResistance = () => {
   const [optionData, setOptionData] = useState<OptionData[]>([]);
   const [spotPrice, setSpotPrice] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [isLive, setIsLive] = useState(true);
   const [historicalTime, setHistoricalTime] = useState<string>("");
 
@@ -331,7 +333,7 @@ const SupportResistance = () => {
       if (chainData.length > 0) {
         setOptionData(chainData);
         setSpotPrice(chainData[0].underlying_spot_price);
-        console.log("Option data set:", chainData.length, "rows, spot:", chainData[0].underlying_spot_price);
+        setLastRefresh(new Date());
       }
     } catch (err) {
       console.error("Error fetching option chain:", err);
@@ -512,6 +514,9 @@ const SupportResistance = () => {
 
       <ProFeatureGate featureName="Support & Resistance Analysis">
         <main className="flex-1 p-2 md:p-4">
+          <div className="flex justify-end mb-2">
+            <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
+          </div>
           {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">
           <CardContent className="p-3">

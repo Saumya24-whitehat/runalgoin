@@ -17,6 +17,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3 } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   BarChart,
   Bar,
@@ -444,9 +445,7 @@ const OIAcrossExpiries = () => {
                 ATM: <span className="font-semibold text-foreground">{atm}</span>
                 {" | "}Spot: <span className="font-semibold text-foreground">{expiryDataList[0]?.latestData?.underlyning?.toFixed(2)}</span>
               </div>
-              {lastRefreshed && (
-                <div>Last updated: <span className="font-semibold text-foreground">{lastRefreshed.toLocaleTimeString()}</span></div>
-              )}
+              <LastRefreshBadge lastRefresh={lastRefreshed} />
             </div>
           )}
 

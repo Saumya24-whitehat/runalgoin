@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, RefreshCw, Timer } from "lucide-react";
 import { format } from "date-fns";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   LineChart,
   Line,
@@ -403,14 +404,7 @@ const PremiumDecay = () => {
               {/* Refresh Info */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground invisible">Info</label>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  {lastRefresh && (
-                    <>
-                      <Timer className="h-3 w-3" />
-                      <span>Next: {countdown}</span>
-                    </>
-                  )}
-                </div>
+                <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
               </div>
             </div>
           </CardContent>

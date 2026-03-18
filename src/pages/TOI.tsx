@@ -25,6 +25,7 @@ import {
   Check,
 } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -542,12 +543,7 @@ const TOI = () => {
                   </div>
                 )}
 
-                {lastRefresh && (
-                  <div className="flex items-center gap-1.5">
-                    <RefreshCw className="h-3.5 w-3.5" />
-                    <span>Last Updated: {format(lastRefresh, "HH:mm:ss")}</span>
-                  </div>
-                )}
+                <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
 
                 {countdown && (
                   <div className="flex items-center gap-1.5">
