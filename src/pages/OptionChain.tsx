@@ -420,6 +420,7 @@ const OptionChain = () => {
             <CardContent className="p-3 sm:p-6">
               {/* Controls */}
             <div className="flex flex-wrap gap-3 mb-4 items-end">
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium">Symbol</label>
                 <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>
