@@ -132,8 +132,13 @@ const JackpotScanner = () => {
       <ProFeatureGate featureName="Jackpot Scanner">
         <main className="flex-1 container mx-auto px-4 py-6">
           <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
-          <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
+              <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
+            </div>
+            <LastRefreshBadge lastRefresh={lastRefresh} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
