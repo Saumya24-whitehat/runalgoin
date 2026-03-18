@@ -115,6 +115,7 @@ const OIChangeTrend = () => {
     data: pcrResponse,
     isLoading: loadingData,
     isFetching,
+    dataUpdatedAt,
     refetch,
   } = useQuery({
     queryKey: ["pcr-data-oict", selectedSymbol, selectedExpiry, historicalDateStr],
