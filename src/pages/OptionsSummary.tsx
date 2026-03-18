@@ -318,8 +318,8 @@ const OptionsSummary = () => {
     isInitialFetch.current = true;
     fetchAllData();
     
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchAllData, 60000);
+    // Auto-refresh every 3 minutes
+    const interval = setInterval(fetchAllData, 180000);
     return () => clearInterval(interval);
   }, [fetchAllData]);
 

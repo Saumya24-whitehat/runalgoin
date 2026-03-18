@@ -267,7 +267,7 @@ export default function FII() {
     queryKey: ["fii-summary", summaryDateParam],
     queryFn: () => fetchFIISummary(summaryDateParam),
     enabled: !!currentData,
-    refetchInterval: 60000,
+    refetchInterval: 180000,
   });
 
   // Combined loading state - show data once fii-data is loaded

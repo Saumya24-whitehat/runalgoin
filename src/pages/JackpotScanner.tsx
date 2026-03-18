@@ -59,8 +59,8 @@ const JackpotScanner = () => {
   useEffect(() => {
     fetchData();
     
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchData, 60000);
+    // Auto-refresh every 3 minutes
+    const interval = setInterval(fetchData, 180000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
