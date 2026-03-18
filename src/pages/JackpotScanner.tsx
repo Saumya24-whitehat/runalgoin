@@ -47,6 +47,7 @@ const JackpotScanner = () => {
       const { data: response, error } = await supabase.functions.invoke("jackpot-scanner");
       if (!error && response) {
         setData(response);
+        setLastRefresh(new Date());
       }
     } catch (err) {
       console.error("Error fetching jackpot data:", err);
