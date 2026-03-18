@@ -314,6 +314,7 @@ export default function FutureRollover() {
               <span className="font-bold">{avgRollover.toFixed(2)}%</span>
             </div>
             <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} symbols</span>
+            <LastRefreshBadge lastRefresh={rolloverData ? new Date() : null} isFetching={isFetching} />
           </div>
 
           <Button onClick={handleExportCSV} variant="outline" className="gap-2">

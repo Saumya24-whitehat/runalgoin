@@ -39,7 +39,7 @@ const StockDetail = () => {
         if (data) {
           setStockData(data);
         }
-        setLastUpdated(new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" }) + " IST");
+        setLastRefresh(new Date());
       } catch (error) {
         console.error("Error fetching stock data:", error);
       } finally {

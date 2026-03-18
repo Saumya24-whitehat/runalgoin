@@ -97,7 +97,7 @@ const IndexDetail = () => {
                 </div>
               )}
               
-              <p className="text-[10px] sm:text-xs text-muted-foreground">Last updated: {lastUpdated}</p>
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
             </div>
           </div>
 
