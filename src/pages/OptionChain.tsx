@@ -115,6 +115,7 @@ const OptionChain = () => {
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingChain, setLoadingChain] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
