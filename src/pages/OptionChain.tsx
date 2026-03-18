@@ -247,6 +247,7 @@ const OptionChain = () => {
       if (chainData.length > 0) {
         setSpotPrice(chainData[0].underlying_spot_price);
       }
+      setLastRefresh(new Date());
     } catch (error) {
       console.error("Error fetching option chain:", error);
     } finally {
