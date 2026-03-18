@@ -86,6 +86,7 @@ export default function MarketBreadth() {
       if (data) {
         setStocks(data.content);
         setLastUpdated(data.date);
+        setLastRefreshDate(new Date());
       }
     } catch (error) {
       console.error("Error fetching data:", error);
