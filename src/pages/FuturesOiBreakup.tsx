@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import { fetchFutureOiBreakup, processFutureOiData, ProcessedFutureOiData } from "@/services/futureOiBreakupApi";
 import { RefreshCw, TrendingUp, TrendingDown, Activity, BarChart3, Loader2, Calendar } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 const SYMBOLS = [
   { value: "Nifty 50", label: "NIFTY" },
