@@ -421,12 +421,7 @@ const OptionsSummary = () => {
               All-in-one options analytics dashboard
             </p>
           </div>
-          {lastRefresh && (
-            <div className="flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              Updated: {lastRefresh.toLocaleTimeString()}
-            </div>
-          )}
+          <LastRefreshBadge lastRefresh={lastRefresh} />
         </div>
 
         {/* Symbol & Expiry Selection */}
