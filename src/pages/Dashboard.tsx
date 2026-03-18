@@ -259,23 +259,6 @@ const Dashboard = () => {
     fetchMarketActions();
   }, []);
 
-  // Fetch trending stocks data
-  useEffect(() => {
-    const fetchTrendingStocks = async () => {
-      setTrendingLoading(true);
-      try {
-        const { data, error } = await supabase.functions.invoke("trending-stocks");
-        if (!error && data) {
-          setTrendingData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching trending stocks:", err);
-      } finally {
-        setTrendingLoading(false);
-      }
-    };
-    fetchTrendingStocks();
-  }, []);
 
   const handleStockClick = (symbol: string) => {
     navigate(`/stock-detail?symbol=${symbol}`);
