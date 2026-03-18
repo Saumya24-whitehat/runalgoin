@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Star, Maximize2, Loader2 } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchMarketBreadthData } from "@/services/marketBreadthApi";
 import { getIndexSymbol } from "@/services/indexDetailApi";
 import { IndexDetailChart } from "@/components/indexDetail/IndexDetailChart";
