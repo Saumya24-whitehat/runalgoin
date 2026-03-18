@@ -28,6 +28,7 @@ const JackpotScanner = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<JackpotData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const isInitialFetch = useRef(true);
 
   useEffect(() => {
