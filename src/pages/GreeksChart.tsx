@@ -31,6 +31,7 @@ const GreeksChart = () => {
   const [activeTab, setActiveTab] = useState("combined");
 
   const [greeksData, setGreeksData] = useState<ParsedGreeksData | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
