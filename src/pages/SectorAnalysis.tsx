@@ -101,7 +101,7 @@ const SectorAnalysis = () => {
       const data = await fetchMarketBreadthData(selectedIndex);
       if (data) {
         setStocks(data.content);
-        setLastUpdated(data.date);
+        setLastRefresh(new Date());
       }
     } catch (error) {
       console.error("Error fetching data:", error);
