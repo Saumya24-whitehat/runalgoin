@@ -176,6 +176,15 @@ const GreeksChart = () => {
     }
   }, [selectedSymbol, selectedExpiry, selectedStrike, loadingStrikes, loadingExpiry]);
 
+  // Auto-refresh every 3 minutes
+  useEffect(() => {
+    if (!selectedSymbol || !selectedExpiry || !selectedStrike) return;
+    const interval = setInterval(() => {
+      handleGo();
+    }, 180000);
+    return () => clearInterval(interval);
+  }, [handleGo]);
+
   return (
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-50">
