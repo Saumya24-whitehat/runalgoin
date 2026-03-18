@@ -378,9 +378,7 @@ export default function FutureOpenHighLow() {
             </Button>
 
             {/* Last Updated */}
-            <div className="text-xs text-muted-foreground">
-              Updated: {openHighLowData?.lastUpdated ? new Date(openHighLowData.lastUpdated).toLocaleTimeString() : "-"}
-            </div>
+            <LastRefreshBadge lastRefresh={openHighLowData?.lastUpdated ? new Date(openHighLowData.lastUpdated) : null} isFetching={isFetching} />
 
             {/* Info Button */}
             <Popover>

@@ -515,9 +515,7 @@ export default function FutureBuildup() {
             </div>
           </div>
 
-          <div className="text-sm text-muted-foreground">
-            Last Updated: {buildupData?.lastUpdated ? new Date(buildupData.lastUpdated).toLocaleString() : "-"}
-          </div>
+          <LastRefreshBadge lastRefresh={buildupData?.lastUpdated ? new Date(buildupData.lastUpdated) : null} isFetching={isFetching} />
 
           {/* Info Button */}
           <Popover>
