@@ -197,6 +197,9 @@ const GreeksChart = () => {
 
       <ProFeatureGate featureName="Greeks Chart">
         <main className="container py-6 space-y-6">
+          <div className="flex justify-end">
+            <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+          </div>
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4">
