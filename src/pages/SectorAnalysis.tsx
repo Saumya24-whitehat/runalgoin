@@ -57,7 +57,7 @@ const SectorAnalysis = () => {
   const [selectedIndex, setSelectedIndex] = useState<string>(getInitialIndex);
   const [stocks, setStocks] = useState<StockData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState<string>("");
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [sortColumn, setSortColumn] = useState<SortColumn>("change");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [advanceDeclineData, setAdvanceDeclineData] = useState<Record<string, AdvanceDeclineData> | null>(null);
