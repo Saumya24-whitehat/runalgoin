@@ -25,6 +25,7 @@ import {
 } from "recharts";
 import { fetchFutureOiBreakup, processFutureOiData, ProcessedFutureOiData } from "@/services/futureOiBreakupApi";
 import { RefreshCw, TrendingUp, TrendingDown, Activity, BarChart3, Loader2, Calendar } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 const SYMBOLS = [
   { value: "Nifty 50", label: "NIFTY" },
@@ -68,11 +69,11 @@ export default function FuturesOiBreakup() {
     }
   }, []);
 
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, refetch, isFetching, dataUpdatedAt } = useQuery({
     queryKey: ["futureOiBreakup", symbol, expiry],
     queryFn: () => fetchFutureOiBreakup(symbol, expiry),
     enabled: !!expiry,
-    refetchInterval: 60000,
+    refetchInterval: 180000,
   });
 
   const processedData = data?.data ? processFutureOiData(data.data) : [];
@@ -126,6 +127,7 @@ export default function FuturesOiBreakup() {
               Futures OI Breakup
             </h1>
             <p className="text-muted-foreground mt-1">Intraday OI analysis with price and VWAP correlation</p>
+            <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
           </div>
 
           <div className="flex items-center gap-3">

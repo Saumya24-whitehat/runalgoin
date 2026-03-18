@@ -25,7 +25,7 @@ const getTimeUntilISTMidnight = (): number => {
 
 export const useSessionManager = () => {
   const { toast } = useToast();
-  const midnightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const midnightTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastVisibilityCheckRef = useRef<number>(Date.now());
   const SESSION_STALE_THRESHOLD = 30 * 60 * 1000; // 30 minutes
 

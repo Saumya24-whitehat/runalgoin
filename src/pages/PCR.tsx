@@ -145,7 +145,7 @@ const PCR = () => {
   // Countdown state
   const [nextRefresh, setNextRefresh] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState<string>("");
-  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Track last refresh for display
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);

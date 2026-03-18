@@ -14,6 +14,7 @@ import { Footer } from "@/components/Footer";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 interface OptionData {
   strike_price: number;
@@ -115,6 +116,7 @@ const OptionChain = () => {
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingChain, setLoadingChain] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -140,6 +142,15 @@ const OptionChain = () => {
       fetchOptionChain();
     }
   }, [selectedExpiry]);
+
+  // Auto-refresh every 3 minutes
+  useEffect(() => {
+    if (!selectedExpiry || !selectedSymbol) return;
+    const interval = setInterval(() => {
+      fetchOptionChain();
+    }, 180000);
+    return () => clearInterval(interval);
+  }, [selectedExpiry, selectedSymbol]);
 
   // Auto-fetch historical data when time changes
   useEffect(() => {
@@ -245,6 +256,7 @@ const OptionChain = () => {
       if (chainData.length > 0) {
         setSpotPrice(chainData[0].underlying_spot_price);
       }
+      setLastRefresh(new Date());
     } catch (error) {
       console.error("Error fetching option chain:", error);
     } finally {
@@ -408,6 +420,7 @@ const OptionChain = () => {
             <CardContent className="p-3 sm:p-6">
               {/* Controls */}
             <div className="flex flex-wrap gap-3 mb-4 items-end">
+              <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium">Symbol</label>
                 <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>

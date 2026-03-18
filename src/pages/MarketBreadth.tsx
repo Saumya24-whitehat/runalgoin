@@ -94,6 +94,8 @@ export default function MarketBreadth() {
 
   useEffect(() => {
     fetchData();
+    const interval = setInterval(fetchData, 180000);
+    return () => clearInterval(interval);
   }, [selectedIndex]);
 
   // Filter and sort stocks

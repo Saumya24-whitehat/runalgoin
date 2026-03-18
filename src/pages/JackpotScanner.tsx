@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { supabase } from "@/integrations/supabase/client";
 
 interface JackpotStock {
@@ -27,6 +28,7 @@ const JackpotScanner = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<JackpotData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const isInitialFetch = useRef(true);
 
   useEffect(() => {
@@ -45,6 +47,7 @@ const JackpotScanner = () => {
       const { data: response, error } = await supabase.functions.invoke("jackpot-scanner");
       if (!error && response) {
         setData(response);
+        setLastRefresh(new Date());
       }
     } catch (err) {
       console.error("Error fetching jackpot data:", err);
@@ -59,8 +62,8 @@ const JackpotScanner = () => {
   useEffect(() => {
     fetchData();
     
-    // Auto-refresh every 60 seconds
-    const interval = setInterval(fetchData, 60000);
+    // Auto-refresh every 3 minutes
+    const interval = setInterval(fetchData, 180000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -129,8 +132,13 @@ const JackpotScanner = () => {
       <ProFeatureGate featureName="Jackpot Scanner">
         <main className="flex-1 container mx-auto px-4 py-6">
           <div className="mb-6">
-          <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
-          <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
+              <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
+            </div>
+            <LastRefreshBadge lastRefresh={lastRefresh} />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

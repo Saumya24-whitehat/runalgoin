@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Tooltip as UITooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -243,10 +244,12 @@ export default function FII() {
     data: fiiData,
     isLoading,
     error,
+    dataUpdatedAt,
+    isFetching: isFiiRefetching,
   } = useQuery({
     queryKey: ["fii-data"],
     queryFn: fetchFIIData,
-    refetchInterval: 60000,
+    refetchInterval: 180000,
   });
 
   const currentData = fiiData?.[selectedDate];
@@ -267,7 +270,7 @@ export default function FII() {
     queryKey: ["fii-summary", summaryDateParam],
     queryFn: () => fetchFIISummary(summaryDateParam),
     enabled: !!currentData,
-    refetchInterval: 60000,
+    refetchInterval: 180000,
   });
 
   // Combined loading state - show data once fii-data is loaded
@@ -585,7 +588,8 @@ export default function FII() {
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6">
+          <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
             <TabsList className="bg-muted/50">
               <TabsTrigger
                 value="summary"

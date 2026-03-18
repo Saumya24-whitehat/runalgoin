@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navbar } from "@/components/Navbar";
@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
+import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 
 interface TrendingStock {
   companyName: string;
@@ -133,6 +134,7 @@ const Dashboard = () => {
   const [resultsLoading, setResultsLoading] = useState(true);
   const [trendingData, setTrendingData] = useState<TrendingStocksData | null>(null);
   const [trendingLoading, setTrendingLoading] = useState(true);
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -140,20 +142,31 @@ const Dashboard = () => {
     }
   }, [user, loading, navigate]);
 
-  // Fetch FII data
-  useEffect(() => {
-    const fetchFiiData = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke("fii-data");
-        if (!error && data) {
-          setFiiData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching FII data:", err);
+  const fetchAllDashboardData = useCallback(async () => {
+    try {
+      const [fiiRes, trendingRes] = await Promise.allSettled([
+        supabase.functions.invoke("fii-data"),
+        supabase.functions.invoke("trending-stocks"),
+      ]);
+
+      if (fiiRes.status === "fulfilled" && !fiiRes.value.error && fiiRes.value.data) {
+        setFiiData(fiiRes.value.data);
       }
-    };
-    fetchFiiData();
+      if (trendingRes.status === "fulfilled" && !trendingRes.value.error && trendingRes.value.data) {
+        setTrendingData(trendingRes.value.data);
+        setTrendingLoading(false);
+      }
+      setLastRefresh(new Date());
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchAllDashboardData();
+    const interval = setInterval(fetchAllDashboardData, 180000);
+    return () => clearInterval(interval);
+  }, [fetchAllDashboardData]);
 
   // Fetch deals data
   useEffect(() => {
@@ -246,23 +259,6 @@ const Dashboard = () => {
     fetchMarketActions();
   }, []);
 
-  // Fetch trending stocks data
-  useEffect(() => {
-    const fetchTrendingStocks = async () => {
-      setTrendingLoading(true);
-      try {
-        const { data, error } = await supabase.functions.invoke("trending-stocks");
-        if (!error && data) {
-          setTrendingData(data);
-        }
-      } catch (err) {
-        console.error("Error fetching trending stocks:", err);
-      } finally {
-        setTrendingLoading(false);
-      }
-    };
-    fetchTrendingStocks();
-  }, []);
 
   const handleStockClick = (symbol: string) => {
     navigate(`/stock-detail?symbol=${symbol}`);
@@ -431,6 +427,9 @@ const Dashboard = () => {
         <Navbar />
       </div>
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
+        <div className="flex justify-end">
+          <LastRefreshBadge lastRefresh={lastRefresh} />
+        </div>
         {/* Indices Section */}
         <IndicesSection />
 
