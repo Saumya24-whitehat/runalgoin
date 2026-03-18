@@ -195,6 +195,9 @@ export default function MarketBreadth() {
       </div>
 
       <ProFeatureGate featureName="Market Breadth Analysis">
+        <div className="flex justify-end px-4 pt-2">
+          <LastRefreshBadge lastRefresh={lastRefreshDate} isFetching={isLoading} />
+        </div>
         <div className="flex">
           {/* Sidebar */}
         <div className="w-80 border-r border-border bg-card min-h-[calc(100vh-8rem)]">

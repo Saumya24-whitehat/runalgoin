@@ -514,6 +514,9 @@ const SupportResistance = () => {
 
       <ProFeatureGate featureName="Support & Resistance Analysis">
         <main className="flex-1 p-2 md:p-4">
+          <div className="flex justify-end mb-2">
+            <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
+          </div>
           {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">
           <CardContent className="p-3">
