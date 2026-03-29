@@ -346,7 +346,7 @@ const SupportResistance = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedSymbol, selectedExpiry, isLive, historicalTime]);
+  }, [selectedSymbol, selectedExpiry, isLive, historicalTime, isTodayClosed, lastWorkingDay]);
 
   useEffect(() => {
     if (selectedExpiry) {
