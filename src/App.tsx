@@ -63,6 +63,8 @@ const OIAcrossExpiries = lazy(() => import("./pages/OIAcrossExpiries"));
 const OIChangeTrend = lazy(() => import("./pages/OIChangeTrend"));
 const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatternChart"));
 const ApiMonitor = lazy(() => import("./pages/ApiMonitor"));
+const Holidays = lazy(() => import("./pages/Holidays"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -142,6 +144,7 @@ const App = () => (
                 <Route path="/oi-change-trend" element={<OIChangeTrend />} />
                 <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
                 <Route path="/api-monitor" element={<ApiMonitor />} />
+                <Route path="/holidays" element={<Holidays />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
