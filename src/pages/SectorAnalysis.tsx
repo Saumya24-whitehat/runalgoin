@@ -350,6 +350,10 @@ const SectorAnalysis = () => {
 
             <div className="flex items-center gap-2">
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
+              <PageInfoButton
+                title="Sector Analysis"
+                description="Analyze sector-wise performance with advance/decline ratios, stock-level breakdown, and sector rotation patterns. Helps identify which sectors are leading or lagging."
+              />
               <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
                 Refresh
