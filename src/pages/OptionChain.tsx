@@ -17,6 +17,7 @@ import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoButton } from "@/components/PageInfoButton";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
+import { useMarketStatus } from "@/hooks/useMarketStatus";
 
 interface OptionData {
   strike_price: number;
