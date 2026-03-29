@@ -95,7 +95,7 @@ const formatTimeDisplay = (time: string) => {
 
 const OptionChain = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isTodayClosed } = useMarketStatus();
+  const { isTodayClosed, lastWorkingDay } = useMarketStatus();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
@@ -256,6 +256,9 @@ const OptionChain = () => {
 
       if (isHistoricalMode && selectedTime) {
         body.time = selectedTime;
+      }
+      if (isTodayClosed && lastWorkingDay) {
+        body.date = lastWorkingDay;
       }
 
       const { data, error } = await supabase.functions.invoke("option-chain", { body });

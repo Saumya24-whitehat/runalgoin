@@ -184,7 +184,7 @@ const calculateSupportValue = (
 const SupportResistance = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const { isTodayClosed } = useMarketStatus();
+  const { isTodayClosed, lastWorkingDay } = useMarketStatus();
 
   const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
   const [stockSymbols, setStockSymbols] = useState<string[]>([]);
@@ -319,6 +319,9 @@ const SupportResistance = () => {
       if (!isLive && historicalTime) {
         body.time = historicalTime;
       }
+      if (isTodayClosed && lastWorkingDay) {
+        body.date = lastWorkingDay;
+      }
 
       const { data, error } = await supabase.functions.invoke("option-chain", { body });
       if (error) throw error;
@@ -343,7 +346,7 @@ const SupportResistance = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedSymbol, selectedExpiry, isLive, historicalTime]);
+  }, [selectedSymbol, selectedExpiry, isLive, historicalTime, isTodayClosed, lastWorkingDay]);
 
   useEffect(() => {
     if (selectedExpiry) {
