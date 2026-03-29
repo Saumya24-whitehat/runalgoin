@@ -17,6 +17,7 @@ import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoButton } from "@/components/PageInfoButton";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
+import { useMarketStatus } from "@/hooks/useMarketStatus";
 
 interface OptionData {
   strike_price: number;
@@ -94,6 +95,7 @@ const formatTimeDisplay = (time: string) => {
 
 const OptionChain = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isTodayClosed } = useMarketStatus();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
@@ -125,6 +127,14 @@ const OptionChain = () => {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
+
+  // Auto-switch to historical mode with 1530 when market is closed
+  useEffect(() => {
+    if (isTodayClosed) {
+      setIsHistoricalMode(true);
+      setSelectedTime("1530");
+    }
+  }, [isTodayClosed]);
 
   // Fetch symbols on mount
   useEffect(() => {

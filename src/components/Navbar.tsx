@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -31,6 +31,7 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { CalendarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -60,7 +61,7 @@ interface NavItem {
   path?: string;
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     label: "Dashboard",
     icon: BarChart3,
@@ -183,6 +184,19 @@ const navItems: NavItem[] = [
     hasDropdown: false,
     path: "/algo",
   },
+  {
+    label: "Info",
+    icon: Activity,
+    hasDropdown: true,
+    sections: [
+      {
+        title: "INFORMATION",
+        items: [
+          { icon: Activity, label: "NSE Holidays", iconColor: "text-red-500", path: "/holidays" },
+        ],
+      },
+    ],
+  },
 ];
 
 function NavDropdown({
@@ -237,6 +251,24 @@ export function Navbar() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useSubscription();
   const navigate = useNavigate();
+
+  const navItems = useMemo(() => {
+    const items = [...baseNavItems];
+    // Find the Info section and add Admin if user is admin
+    const infoItem = items.find((i) => i.label === "Info");
+    if (isAdmin && infoItem?.sections?.[0]) {
+      const hasAdmin = infoItem.sections[0].items.some((i) => i.label === "Admin Panel");
+      if (!hasAdmin) {
+        infoItem.sections[0].items.push({
+          icon: Shield,
+          label: "Admin Panel",
+          iconColor: "text-amber-500",
+          path: "/admin",
+        });
+      }
+    }
+    return items;
+  }, [isAdmin]);
 
   const bars = {
     Bar1: useRef<SVGPathElement | null>(null),

@@ -17,6 +17,7 @@ import LTPCalculatorModal from "@/components/LTPCalculatorModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
+import { useMarketStatus } from "@/hooks/useMarketStatus";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
@@ -183,6 +184,7 @@ const calculateSupportValue = (
 const SupportResistance = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { isTodayClosed } = useMarketStatus();
 
   const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
   const [stockSymbols, setStockSymbols] = useState<string[]>([]);
@@ -379,6 +381,14 @@ const SupportResistance = () => {
       navigate("/auth");
     }
   }, [user, authLoading, navigate]);
+
+  // Auto-switch to historical mode with 1530 when market is closed
+  useEffect(() => {
+    if (isTodayClosed) {
+      setIsLive(false);
+      setHistoricalTime("1530");
+    }
+  }, [isTodayClosed]);
 
   // Handle time navigation
   const handleTimeChange = (direction: "prev" | "next") => {
