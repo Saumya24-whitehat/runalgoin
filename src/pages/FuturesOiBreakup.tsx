@@ -127,7 +127,13 @@ export default function FuturesOiBreakup() {
               Futures OI Breakup
             </h1>
             <p className="text-muted-foreground mt-1">Intraday OI analysis with price and VWAP correlation</p>
-            <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+            <div className="flex items-center gap-2">
+              <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+              <PageInfoButton
+                title="Futures OI Breakup"
+                description="Intraday analysis of futures Open Interest alongside price and VWAP. Helps identify buildup patterns and market sentiment through OI-price correlation."
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

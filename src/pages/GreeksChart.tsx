@@ -197,8 +197,12 @@ const GreeksChart = () => {
 
       <ProFeatureGate featureName="Greeks Chart">
         <main className="container py-6 space-y-6">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-2">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+            <PageInfoButton
+              title="Greeks Chart"
+              description="Visualize option Greeks (Delta, Gamma, Theta, Vega) for any strike over time. Track how Greeks change intraday to understand options pricing dynamics."
+            />
           </div>
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">

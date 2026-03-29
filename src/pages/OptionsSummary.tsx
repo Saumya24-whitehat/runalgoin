@@ -422,7 +422,13 @@ const OptionsSummary = () => {
               All-in-one options analytics dashboard
             </p>
           </div>
-          <LastRefreshBadge lastRefresh={lastRefresh} />
+          <div className="flex items-center gap-2">
+            <LastRefreshBadge lastRefresh={lastRefresh} />
+            <PageInfoButton
+              title="Options Summary"
+              description="Comprehensive options analytics dashboard showing OI profiles, support/resistance levels, PCR data, spot vs VWAP, and market breadth for the selected symbol and expiry."
+            />
+          </div>
         </div>
 
         {/* Symbol & Expiry Selection */}
