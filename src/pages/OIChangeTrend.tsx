@@ -63,7 +63,7 @@ function formatNumber(value: number): string {
   return value.toLocaleString("en-IN");
 }
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000;
+const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute
 
 const OIChangeTrend = () => {
   const [searchParams] = useSearchParams();
