@@ -61,7 +61,7 @@ interface NavItem {
   path?: string;
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   {
     label: "Dashboard",
     icon: BarChart3,
