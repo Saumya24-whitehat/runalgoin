@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   groupedIndices,
