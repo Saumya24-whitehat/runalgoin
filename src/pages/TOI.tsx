@@ -33,7 +33,7 @@ interface SymbolGroup {
   stockSymbols: string[];
 }
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute // 3 minutes
 
 const TOI = () => {
   const { toast } = useToast();

@@ -51,7 +51,7 @@ const formatRatio = (value: number): string => {
   return value.toFixed(2);
 };
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute // 3 minutes
 
 const PCRLongShort = () => {
   const { user, loading: authLoading } = useAuth();
