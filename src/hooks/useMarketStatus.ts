@@ -21,11 +21,11 @@ export function useMarketStatus() {
     queryKey: ["special-trading-days", year],
     queryFn: async () => {
       const { data } = await supabase
-        .from("special_trading_days")
+        .from("special_trading_days" as any)
         .select("*")
         .gte("date", `${year}-01-01`)
         .lte("date", `${year}-12-31`);
-      return data || [];
+      return (data || []) as any[];
     },
     staleTime: 24 * 60 * 60 * 1000,
   });
