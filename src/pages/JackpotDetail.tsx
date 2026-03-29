@@ -98,7 +98,7 @@ const JackpotDetail = () => {
       }
     };
     fetchData();
-    const interval = setInterval(fetchData, 180000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [symbol]);
 

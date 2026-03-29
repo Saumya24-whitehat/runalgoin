@@ -73,7 +73,7 @@ export default function FuturesOiBreakup() {
     queryKey: ["futureOiBreakup", symbol, expiry],
     queryFn: () => fetchFutureOiBreakup(symbol, expiry),
     enabled: !!expiry,
-    refetchInterval: 180000,
+    refetchInterval: 60000,
   });
 
   const processedData = data?.data ? processFutureOiData(data.data) : [];

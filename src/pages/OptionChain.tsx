@@ -148,7 +148,7 @@ const OptionChain = () => {
     if (!selectedExpiry || !selectedSymbol) return;
     const interval = setInterval(() => {
       fetchOptionChain();
-    }, 180000);
+    }, 60000);
     return () => clearInterval(interval);
   }, [selectedExpiry, selectedSymbol]);
 

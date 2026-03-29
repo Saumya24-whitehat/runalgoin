@@ -63,7 +63,7 @@ const JackpotScanner = () => {
     fetchData();
     
     // Auto-refresh every 3 minutes
-    const interval = setInterval(fetchData, 180000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [fetchData]);
 

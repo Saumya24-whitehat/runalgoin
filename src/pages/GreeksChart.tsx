@@ -184,7 +184,7 @@ const GreeksChart = () => {
     if (!selectedSymbol || !selectedExpiry || !selectedStrike) return;
     const interval = setInterval(() => {
       handleGo();
-    }, 180000);
+    }, 60000);
     return () => clearInterval(interval);
   }, [handleGo]);
 

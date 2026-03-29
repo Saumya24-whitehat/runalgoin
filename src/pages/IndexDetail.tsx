@@ -53,7 +53,7 @@ const IndexDetail = () => {
     };
 
     fetchIndexPrice();
-    const interval = setInterval(fetchIndexPrice, 180000);
+    const interval = setInterval(fetchIndexPrice, 60000);
     return () => clearInterval(interval);
   }, [indexSymbol]);
 

@@ -320,7 +320,7 @@ const OptionsSummary = () => {
     fetchAllData();
     
     // Auto-refresh every 3 minutes
-    const interval = setInterval(fetchAllData, 180000);
+    const interval = setInterval(fetchAllData, 60000);
     return () => clearInterval(interval);
   }, [fetchAllData]);
 

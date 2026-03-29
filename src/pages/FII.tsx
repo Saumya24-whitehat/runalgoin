@@ -249,7 +249,7 @@ export default function FII() {
   } = useQuery({
     queryKey: ["fii-data"],
     queryFn: fetchFIIData,
-    refetchInterval: 180000,
+    refetchInterval: 60000,
   });
 
   const currentData = fiiData?.[selectedDate];
@@ -270,7 +270,7 @@ export default function FII() {
     queryKey: ["fii-summary", summaryDateParam],
     queryFn: () => fetchFIISummary(summaryDateParam),
     enabled: !!currentData,
-    refetchInterval: 180000,
+    refetchInterval: 60000,
   });
 
   // Combined loading state - show data once fii-data is loaded
