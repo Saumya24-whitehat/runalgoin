@@ -382,6 +382,14 @@ const SupportResistance = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Auto-switch to historical mode with 1530 when market is closed
+  useEffect(() => {
+    if (isTodayClosed) {
+      setIsLive(false);
+      setHistoricalTime("1530");
+    }
+  }, [isTodayClosed]);
+
   // Handle time navigation
   const handleTimeChange = (direction: "prev" | "next") => {
     const currentIndex = TIME_SLOTS.indexOf(historicalTime);
