@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { action, symbol, expiry_date, time } = await req.json();
-    console.log(`Option chain request: action=${action}, symbol=${symbol}, expiry=${expiry_date}, time=${time}`);
+    const { action, symbol, expiry_date, time, date } = await req.json();
+    console.log(`Option chain request: action=${action}, symbol=${symbol}, expiry=${expiry_date}, time=${time}, date=${date}`);
 
     let url = '';
     
@@ -29,6 +29,9 @@ serve(async (req) => {
         // Add time parameter for historical data
         if (time) {
           url += `&time=${encodeURIComponent(time)}`;
+        }
+        if (date) {
+          url += `&date=${encodeURIComponent(date)}`;
         }
         break;
       default:
