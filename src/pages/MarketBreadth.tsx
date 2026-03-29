@@ -195,8 +195,12 @@ export default function MarketBreadth() {
       </div>
 
       <ProFeatureGate featureName="Market Breadth Analysis">
-        <div className="flex justify-end px-4 pt-2">
+        <div className="flex items-center justify-end gap-2 px-4 pt-2">
           <LastRefreshBadge lastRefresh={lastRefreshDate} isFetching={isLoading} />
+          <PageInfoButton
+            title="Market Breadth"
+            description="Visualize the internal strength of an index by showing advance/decline ratios, sector-wise breakdown, and individual stock performance within the selected index."
+          />
         </div>
         <div className="flex">
           {/* Sidebar */}
