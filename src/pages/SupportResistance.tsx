@@ -184,6 +184,7 @@ const calculateSupportValue = (
 const SupportResistance = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { isTodayClosed } = useMarketStatus();
 
   const [indexSymbols, setIndexSymbols] = useState<string[]>([]);
   const [stockSymbols, setStockSymbols] = useState<string[]>([]);
