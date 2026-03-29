@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { PageLayout } from "@/components/PageLayout";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";

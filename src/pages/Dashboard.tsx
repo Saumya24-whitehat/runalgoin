@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 interface TrendingStock {
   companyName: string;

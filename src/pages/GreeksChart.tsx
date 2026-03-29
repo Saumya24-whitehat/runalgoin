@@ -12,6 +12,7 @@ import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChar
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 interface SymbolGroup {
   indexSymbols: string[];

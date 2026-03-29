@@ -16,6 +16,7 @@ import { fetchPCRData, PCRTimeData, PCRStrikeData } from "@/services/pcrApi";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { format } from "date-fns";
 
 interface SymbolGroup {
