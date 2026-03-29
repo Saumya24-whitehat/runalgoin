@@ -252,6 +252,24 @@ export function Navbar() {
   const { isAdmin } = useSubscription();
   const navigate = useNavigate();
 
+  const navItems = useMemo(() => {
+    const items = [...baseNavItems];
+    // Find the Info section and add Admin if user is admin
+    const infoItem = items.find((i) => i.label === "Info");
+    if (isAdmin && infoItem?.sections?.[0]) {
+      const hasAdmin = infoItem.sections[0].items.some((i) => i.label === "Admin Panel");
+      if (!hasAdmin) {
+        infoItem.sections[0].items.push({
+          icon: Shield,
+          label: "Admin Panel",
+          iconColor: "text-amber-500",
+          path: "/admin",
+        });
+      }
+    }
+    return items;
+  }, [isAdmin]);
+
   const bars = {
     Bar1: useRef<SVGPathElement | null>(null),
     Bar2: useRef<SVGPathElement | null>(null),
