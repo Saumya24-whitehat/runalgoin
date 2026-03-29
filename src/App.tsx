@@ -65,7 +65,6 @@ const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatter
 const ApiMonitor = lazy(() => import("./pages/ApiMonitor"));
 const Holidays = lazy(() => import("./pages/Holidays"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 

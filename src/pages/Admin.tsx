@@ -39,6 +39,7 @@ import { format } from "date-fns";
 import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionManager";
 import { VideoManagement } from "@/components/admin/VideoManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
+import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
 
 interface UserWithSubscription {
   user_id: string;
@@ -402,6 +403,11 @@ const Admin = () => {
         {/* Support Tickets */}
         <div className="mt-8">
           <SupportTicketManagement />
+        </div>
+
+        {/* Special Trading Days */}
+        <div className="mt-8">
+          <SpecialTradingDaysManagement />
         </div>
 
         {/* Video Management */}
