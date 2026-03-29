@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { useNavigate, useSearchParams } from "react-router-dom";
 

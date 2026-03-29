@@ -18,6 +18,7 @@ import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3 } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import {
   BarChart,
   Bar,

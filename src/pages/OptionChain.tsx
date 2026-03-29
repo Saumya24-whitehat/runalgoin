@@ -15,6 +15,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 interface OptionData {
   strike_price: number;
