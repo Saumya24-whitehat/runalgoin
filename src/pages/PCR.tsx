@@ -200,6 +200,7 @@ const PCR = () => {
     isLoading: loadingData,
     isFetching,
     refetch: refetchPCR,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: pcrQueryKey,
     queryFn: () => fetchPCRAndSR(selectedSymbol, selectedExpiry, strikeCount, historicalDateStr),
@@ -211,13 +212,13 @@ const PCR = () => {
     meta: { skipLoadingToast: true },
   });
 
-  // Track refresh times
+  // Track refresh times using dataUpdatedAt (updates even if data is identical)
   useEffect(() => {
-    if (pcrResult && pcrResult.rawData.length > 0) {
-      setLastRefresh(new Date());
-      setNextRefresh(new Date(Date.now() + AUTO_REFRESH_INTERVAL));
+    if (dataUpdatedAt > 0) {
+      setLastRefresh(new Date(dataUpdatedAt));
+      setNextRefresh(new Date(dataUpdatedAt + AUTO_REFRESH_INTERVAL));
     }
-  }, [pcrResult]);
+  }, [dataUpdatedAt]);
 
   // Derive aggregated data from raw
   const rawPcrData = pcrResult?.rawData || [];
