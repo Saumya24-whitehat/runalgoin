@@ -31,6 +31,7 @@ import {
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
+import { CalendarOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -182,6 +183,19 @@ const navItems: NavItem[] = [
     icon: Bot,
     hasDropdown: false,
     path: "/algo",
+  },
+  {
+    label: "Info",
+    icon: Activity,
+    hasDropdown: true,
+    sections: [
+      {
+        title: "INFORMATION",
+        items: [
+          { icon: Activity, label: "NSE Holidays", iconColor: "text-red-500", path: "/holidays" },
+        ],
+      },
+    ],
   },
 ];
 
