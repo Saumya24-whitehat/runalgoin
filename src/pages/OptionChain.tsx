@@ -95,6 +95,7 @@ const formatTimeDisplay = (time: string) => {
 
 const OptionChain = () => {
   const { user, loading: authLoading } = useAuth();
+  const { isTodayClosed } = useMarketStatus();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
