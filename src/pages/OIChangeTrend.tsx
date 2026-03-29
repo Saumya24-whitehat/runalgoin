@@ -16,6 +16,7 @@ import { fetchPCRData, PCRTimeData, PCRStrikeData } from "@/services/pcrApi";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -63,7 +64,7 @@ function formatNumber(value: number): string {
   return value.toLocaleString("en-IN");
 }
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000;
+const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute
 
 const OIChangeTrend = () => {
   const [searchParams] = useSearchParams();
@@ -198,8 +199,12 @@ const OIChangeTrend = () => {
     <PageLayout>
       <ProFeatureGate featureName="OI Change Trend">
         <main className="container px-3 sm:px-4 py-4 sm:py-6 space-y-4">
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-2">
             <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+            <PageInfoButton
+              title="OI Change Trend"
+              description="Track how Open Interest changes across strikes over time. Helps identify where smart money is positioning and key support/resistance levels forming."
+            />
           </div>
           {/* Controls */}
           <Card className="bg-card/50 border-border/50">

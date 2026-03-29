@@ -8,6 +8,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { supabase } from "@/integrations/supabase/client";
 
 interface JackpotStock {
@@ -63,7 +64,7 @@ const JackpotScanner = () => {
     fetchData();
     
     // Auto-refresh every 3 minutes
-    const interval = setInterval(fetchData, 180000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -137,7 +138,19 @@ const JackpotScanner = () => {
               <h1 className="text-2xl font-bold text-foreground">Jackpot Scanner</h1>
               <p className="text-muted-foreground">Real-time stock trends based on futures OI and price analysis</p>
             </div>
-            <LastRefreshBadge lastRefresh={lastRefresh} />
+            <div className="flex items-center gap-2">
+              <LastRefreshBadge lastRefresh={lastRefresh} />
+              <PageInfoButton
+                title="Jackpot Scanner"
+                description="Identifies stocks with strong momentum signals by analyzing futures OI and price changes. Stocks are categorized into Long Buildup, Long Unwinding, Short Buildup, and Short Covering."
+                details={[
+                  { label: "Long Buildup", text: "Price ↑ + OI ↑ (Bullish)", color: "#4a90a4" },
+                  { label: "Long Unwinding", text: "Price ↓ + OI ↓ (Weak Bulls)", color: "#4a90a4" },
+                  { label: "Short Buildup", text: "Price ↓ + OI ↑ (Bearish)", color: "#d4837a" },
+                  { label: "Short Covering", text: "Price ↑ + OI ↓ (Weak Bears)", color: "#7cb987" },
+                ]}
+              />
+            </div>
           </div>
         </div>
 

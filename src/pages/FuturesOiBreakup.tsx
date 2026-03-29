@@ -26,6 +26,7 @@ import {
 import { fetchFutureOiBreakup, processFutureOiData, ProcessedFutureOiData } from "@/services/futureOiBreakupApi";
 import { RefreshCw, TrendingUp, TrendingDown, Activity, BarChart3, Loader2, Calendar } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 const SYMBOLS = [
   { value: "Nifty 50", label: "NIFTY" },
@@ -73,7 +74,7 @@ export default function FuturesOiBreakup() {
     queryKey: ["futureOiBreakup", symbol, expiry],
     queryFn: () => fetchFutureOiBreakup(symbol, expiry),
     enabled: !!expiry,
-    refetchInterval: 180000,
+    refetchInterval: 60000,
   });
 
   const processedData = data?.data ? processFutureOiData(data.data) : [];
@@ -127,7 +128,13 @@ export default function FuturesOiBreakup() {
               Futures OI Breakup
             </h1>
             <p className="text-muted-foreground mt-1">Intraday OI analysis with price and VWAP correlation</p>
-            <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+            <div className="flex items-center gap-2">
+              <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
+              <PageInfoButton
+                title="Futures OI Breakup"
+                description="Intraday analysis of futures Open Interest alongside price and VWAP. Helps identify buildup patterns and market sentiment through OI-price correlation."
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-3">

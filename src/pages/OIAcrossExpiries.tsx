@@ -18,6 +18,7 @@ import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3 } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import {
   BarChart,
   Bar,
@@ -445,7 +446,13 @@ const OIAcrossExpiries = () => {
                 ATM: <span className="font-semibold text-foreground">{atm}</span>
                 {" | "}Spot: <span className="font-semibold text-foreground">{expiryDataList[0]?.latestData?.underlyning?.toFixed(2)}</span>
               </div>
-              <LastRefreshBadge lastRefresh={lastRefreshed} />
+              <div className="flex items-center gap-2">
+                <LastRefreshBadge lastRefresh={lastRefreshed} />
+                <PageInfoButton
+                  title="OI Across Expiries"
+                  description="Compare Open Interest distribution across all active expiries. Helps identify where the maximum OI concentration exists and how positioning differs between near and far expiries."
+                />
+              </div>
             </div>
           )}
 

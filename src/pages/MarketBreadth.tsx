@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -97,7 +98,7 @@ export default function MarketBreadth() {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 180000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [selectedIndex]);
 
@@ -195,8 +196,12 @@ export default function MarketBreadth() {
       </div>
 
       <ProFeatureGate featureName="Market Breadth Analysis">
-        <div className="flex justify-end px-4 pt-2">
+        <div className="flex items-center justify-end gap-2 px-4 pt-2">
           <LastRefreshBadge lastRefresh={lastRefreshDate} isFetching={isLoading} />
+          <PageInfoButton
+            title="Market Breadth"
+            description="Visualize the internal strength of an index by showing advance/decline ratios, sector-wise breakdown, and individual stock performance within the selected index."
+          />
         </div>
         <div className="flex">
           {/* Sidebar */}

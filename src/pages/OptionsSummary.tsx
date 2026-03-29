@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { PageLayout } from "@/components/PageLayout";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -320,7 +321,7 @@ const OptionsSummary = () => {
     fetchAllData();
     
     // Auto-refresh every 3 minutes
-    const interval = setInterval(fetchAllData, 180000);
+    const interval = setInterval(fetchAllData, 60000);
     return () => clearInterval(interval);
   }, [fetchAllData]);
 
@@ -422,7 +423,13 @@ const OptionsSummary = () => {
               All-in-one options analytics dashboard
             </p>
           </div>
-          <LastRefreshBadge lastRefresh={lastRefresh} />
+          <div className="flex items-center gap-2">
+            <LastRefreshBadge lastRefresh={lastRefresh} />
+            <PageInfoButton
+              title="Options Summary"
+              description="Comprehensive options analytics dashboard showing OI profiles, support/resistance levels, PCR data, spot vs VWAP, and market breadth for the selected symbol and expiry."
+            />
+          </div>
         </div>
 
         {/* Symbol & Expiry Selection */}

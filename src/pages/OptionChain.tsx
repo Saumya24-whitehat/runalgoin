@@ -15,6 +15,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 interface OptionData {
   strike_price: number;
@@ -148,7 +149,7 @@ const OptionChain = () => {
     if (!selectedExpiry || !selectedSymbol) return;
     const interval = setInterval(() => {
       fetchOptionChain();
-    }, 180000);
+    }, 60000);
     return () => clearInterval(interval);
   }, [selectedExpiry, selectedSymbol]);
 
@@ -421,6 +422,10 @@ const OptionChain = () => {
               {/* Controls */}
             <div className="flex flex-wrap gap-3 mb-4 items-end">
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
+              <PageInfoButton
+                title="Option Chain"
+                description="Real-time option chain data showing OI, volume, LTP, IV, and Greeks for all strikes. Use strike count filter to focus on ATM region. Supports historical time-travel mode."
+              />
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium">Symbol</label>
                 <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>

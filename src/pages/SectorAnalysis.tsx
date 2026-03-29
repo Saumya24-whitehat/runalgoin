@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   groupedIndices,
@@ -112,7 +113,7 @@ const SectorAnalysis = () => {
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 180000);
+    const interval = setInterval(fetchData, 60000);
     return () => clearInterval(interval);
   }, [selectedIndex]);
 
@@ -350,6 +351,10 @@ const SectorAnalysis = () => {
 
             <div className="flex items-center gap-2">
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
+              <PageInfoButton
+                title="Sector Analysis"
+                description="Analyze sector-wise performance with advance/decline ratios, stock-level breakdown, and sector rotation patterns. Helps identify which sectors are leading or lagging."
+              />
               <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
                 Refresh

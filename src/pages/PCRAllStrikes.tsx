@@ -70,7 +70,7 @@ interface SupportResistanceDisplay {
   resistanceRange: string;
 }
 
-const AUTO_REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
+const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute
 
 export default function PCRAllStrikes() {
   const { toast } = useToast();

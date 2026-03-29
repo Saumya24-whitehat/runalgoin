@@ -13,6 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 interface TrendingStock {
   companyName: string;
@@ -164,7 +165,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     fetchAllDashboardData();
-    const interval = setInterval(fetchAllDashboardData, 180000);
+    const interval = setInterval(fetchAllDashboardData, 60000);
     return () => clearInterval(interval);
   }, [fetchAllDashboardData]);
 
@@ -427,8 +428,12 @@ const Dashboard = () => {
         <Navbar />
       </div>
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-end gap-2">
           <LastRefreshBadge lastRefresh={lastRefresh} />
+          <PageInfoButton
+            title="Dashboard"
+            description="Your central hub for market overview including trending stocks, FII/DII activity, indices performance, and chart patterns. Data refreshes every 1 minute automatically."
+          />
         </div>
         {/* Indices Section */}
         <IndicesSection />
