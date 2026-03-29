@@ -16,6 +16,7 @@ import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoButton } from "@/components/PageInfoButton";
+import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 
 interface OptionData {
   strike_price: number;
@@ -417,6 +418,7 @@ const OptionChain = () => {
 
       <ProFeatureGate featureName="Option Chain">
         <div className="container mx-auto px-2 sm:px-4 py-4">
+          <MarketClosedBanner />
           <Card className="bg-card border-border/30 shadow-xl">
             <CardContent className="p-3 sm:p-6">
               {/* Controls */}

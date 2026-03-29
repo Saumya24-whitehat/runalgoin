@@ -16,6 +16,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import LTPCalculatorModal from "@/components/LTPCalculatorModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
@@ -514,6 +515,7 @@ const SupportResistance = () => {
 
       <ProFeatureGate featureName="Support & Resistance Analysis">
         <main className="flex-1 p-2 md:p-4">
+          <MarketClosedBanner />
           <div className="flex justify-end mb-2">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
           </div>

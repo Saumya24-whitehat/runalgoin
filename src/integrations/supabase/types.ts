@@ -80,6 +80,39 @@ export type Database = {
         }
         Relationships: []
       }
+      special_trading_days: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date: string
+          description: string | null
+          id: string
+          trading_hours: string | null
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          trading_hours?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          trading_hours?: string | null
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
