@@ -128,6 +128,14 @@ const OptionChain = () => {
     }
   }, [user, authLoading, navigate]);
 
+  // Auto-switch to historical mode with 1530 when market is closed
+  useEffect(() => {
+    if (isTodayClosed) {
+      setIsHistoricalMode(true);
+      setSelectedTime("1530");
+    }
+  }, [isTodayClosed]);
+
   // Fetch symbols on mount
   useEffect(() => {
     fetchSymbols();
