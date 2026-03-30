@@ -208,7 +208,9 @@ const PCR = () => {
     staleTime: AUTO_REFRESH_INTERVAL,
     gcTime: 10 * 60 * 1000,
     refetchInterval: AUTO_REFRESH_INTERVAL,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: false,
+    retry: 2,
     meta: { skipLoadingToast: true },
   });
 
