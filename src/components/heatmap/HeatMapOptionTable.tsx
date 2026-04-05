@@ -47,14 +47,14 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
     <table className="options-table w-full text-xs">
       <thead>
         <tr>
-          <th colSpan={3} className="border-b border-r border-border text-call-color py-2">CALL</th>
-          <th rowSpan={2} className="border-b border-r border-border bg-secondary py-2">Strike</th>
-          <th colSpan={3} className="border-b border-border text-put-color py-2">PUT</th>
+          <th colSpan={3} className="border-b border-border bg-red-800 text-white py-2">CALL</th>
+          <th rowSpan={2} className="border-b border-border bg-indigo-900 text-white py-2">Strike</th>
+          <th colSpan={3} className="border-b border-border bg-green-800 text-white py-2">PUT</th>
         </tr>
-        <tr>
+        <tr className="bg-muted">
           <th className="border-b border-border py-1">COI%</th>
           <th className="border-b border-border py-1">COI</th>
-          <th className="border-b border-r border-border py-1">OI</th>
+          <th className="border-b border-border py-1">OI</th>
           <th className="border-b border-border py-1">OI</th>
           <th className="border-b border-border py-1">COI</th>
           <th className="border-b border-border py-1">COI%</th>
