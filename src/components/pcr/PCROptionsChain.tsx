@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -8,7 +8,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PCRStrikeData } from "@/services/pcrApi";
-import { TrendingUp } from "lucide-react";
 
 interface PCROptionsChainProps {
   data: PCRStrikeData[];
@@ -18,7 +17,6 @@ interface PCROptionsChainProps {
   pcrCOI: number;
 }
 
-// Format OI/COI as full Indian numbers
 function formatNumber(value: number): string {
   const x = Math.round(value).toString().split(".");
   let intPart = x[0];
@@ -33,7 +31,6 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
   const isCallITM = (strike: number) => strike < spotPrice;
   const isPutITM = (strike: number) => strike > spotPrice;
 
-  // Calculate totals
   const totalCEOI = data.reduce((sum, item) => sum + item["CE OI"], 0);
   const totalPEOI = data.reduce((sum, item) => sum + item["PE OI"], 0);
   const totalCECOI = data.reduce((sum, item) => sum + item["CE COI"], 0);
@@ -42,96 +39,94 @@ export function PCROptionsChain({ data, atm, spotPrice, pcrOI, pcrCOI }: PCROpti
   return (
     <Card className="bg-card/50 border-border/50">
       <CardContent className="p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Call Options Table */}
-          <div>
-            <h3 className="text-base font-semibold mb-3 text-call text-center flex items-center justify-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              CE (Call Options)
-            </h3>
-            <div className="overflow-x-auto rounded-lg border border-border/50">
-              <Table>
-                <TableHeader>
-                <TableRow className="bg-oc-header">
-                  <TableHead className="text-xs font-semibold">Strike</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">CE LTP</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">CE OI</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">CE COI</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.map((row) => {
-                    const isAtm = row.Strike === atm;
-                    const itm = isCallITM(row.Strike);
-                    return (
-                      <TableRow
-                        key={row.Strike}
-                        className={`text-xs ${isAtm ? 'bg-oc-atm' : itm ? 'bg-oc-call-itm' : ''}`}
-                      >
-                        <TableCell className="font-medium text-primary">{row.Strike}</TableCell>
-                        <TableCell className="text-right text-call">{row["CE LTP"].toFixed(2)}</TableCell>
-                        <TableCell className="text-right">{formatNumber(row["CE OI"])}</TableCell>
-                        <TableCell className={`text-right ${row["CE COI"] >= 0 ? 'text-oc-positive' : 'text-oc-negative'}`}>
-                          {formatNumber(row["CE COI"])}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                  <TableRow className="bg-oc-totals-row font-semibold">
-                    <TableCell>Total</TableCell>
-                    <TableCell className="text-right">-</TableCell>
-                    <TableCell className="text-right">{formatNumber(totalCEOI)}</TableCell>
-                    <TableCell className="text-right">{formatNumber(totalCECOI)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+        <div className="overflow-x-auto rounded-lg border border-border">
+          <Table>
+            <TableHeader className="sticky top-0 z-10">
+              <TableRow>
+                <TableHead colSpan={3} className="text-center bg-red-800 text-white font-bold text-sm py-2">
+                  CALL
+                </TableHead>
+                <TableHead className="text-center bg-indigo-900 text-white font-bold text-sm py-2">
+                  STRIKE
+                </TableHead>
+                <TableHead colSpan={3} className="text-center bg-green-800 text-white font-bold text-sm py-2">
+                  PUT
+                </TableHead>
+              </TableRow>
+              <TableRow className="bg-muted">
+                <TableHead className="text-center text-xs p-1">COI</TableHead>
+                <TableHead className="text-center text-xs p-1">OI</TableHead>
+                <TableHead className="text-center text-xs p-1">LTP</TableHead>
+                <TableHead className="text-center text-xs p-1 bg-indigo-900/50">PCR</TableHead>
+                <TableHead className="text-center text-xs p-1">LTP</TableHead>
+                <TableHead className="text-center text-xs p-1">OI</TableHead>
+                <TableHead className="text-center text-xs p-1">COI</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data.map((row, idx) => {
+                const isAtm = row.Strike === atm;
+                const callItm = isCallITM(row.Strike);
+                const putItm = isPutITM(row.Strike);
+                const isSpotRow = idx > 0 && data[idx - 1]?.Strike < spotPrice && row.Strike > spotPrice;
+                const pcr = row["CE OI"] > 0 ? (row["PE OI"] / row["CE OI"]).toFixed(2) : "-";
 
-          {/* Put Options Table */}
-          <div>
-            <h3 className="text-base font-semibold mb-3 text-put text-center flex items-center justify-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              PE (Put Options)
-            </h3>
-            <div className="overflow-x-auto rounded-lg border border-border/50">
-              <Table>
-                <TableHeader>
-                <TableRow className="bg-oc-header">
-                  <TableHead className="text-xs font-semibold">Strike</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">PE LTP</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">PE OI</TableHead>
-                    <TableHead className="text-xs font-semibold text-right">PE COI</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.map((row) => {
-                    const isAtm = row.Strike === atm;
-                    const itm = isPutITM(row.Strike);
-                    return (
-                      <TableRow
-                        key={row.Strike}
-                        className={`text-xs ${isAtm ? 'bg-oc-atm' : itm ? 'bg-oc-put-itm' : ''}`}
-                      >
-                        <TableCell className="font-medium text-primary">{row.Strike}</TableCell>
-                        <TableCell className="text-right text-put">{row["PE LTP"].toFixed(2)}</TableCell>
-                        <TableCell className="text-right">{formatNumber(row["PE OI"])}</TableCell>
-                        <TableCell className={`text-right ${row["PE COI"] >= 0 ? 'text-oc-positive' : 'text-oc-negative'}`}>
-                          {formatNumber(row["PE COI"])}
+                return (
+                  <>
+                    {isSpotRow && (
+                      <TableRow key={`spot-${idx}`} className="border-y-2 border-red-500">
+                        <TableCell colSpan={7} className="p-0">
+                          <div className="flex justify-between items-center bg-card/80 px-4 py-2">
+                            <span className="text-xs text-muted-foreground">PCR OI: {pcrOI.toFixed(2)}</span>
+                            <span className="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
+                              SPOT: {spotPrice.toFixed(2)}
+                            </span>
+                            <span className="text-xs text-muted-foreground">PCR COI: {pcrCOI.toFixed(2)}</span>
+                          </div>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  <TableRow className="bg-oc-totals-row font-semibold">
-                    <TableCell>Total</TableCell>
-                    <TableCell className="text-right">-</TableCell>
-                    <TableCell className="text-right">{formatNumber(totalPEOI)}</TableCell>
-                    <TableCell className="text-right">{formatNumber(totalPECOI)}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
-          </div>
+                    )}
+                    <TableRow
+                      key={row.Strike}
+                      className={`text-xs hover:bg-muted/20 ${isAtm ? "bg-oc-atm" : ""}`}
+                    >
+                      <TableCell className={`text-center p-1 ${callItm ? "bg-red-950/30" : ""} ${row["CE COI"] >= 0 ? "text-oc-positive" : "text-oc-negative"}`}>
+                        {formatNumber(row["CE COI"])}
+                      </TableCell>
+                      <TableCell className={`text-center p-1 ${callItm ? "bg-red-950/30" : ""}`}>
+                        {formatNumber(row["CE OI"])}
+                      </TableCell>
+                      <TableCell className={`text-center p-1 ${callItm ? "bg-red-950/30" : ""}`}>
+                        {row["CE LTP"].toFixed(2)}
+                      </TableCell>
+                      <TableCell className={`text-center p-1 bg-indigo-900/30 font-bold ${isAtm ? "text-oc-atm-text" : ""}`}>
+                        <div>{row.Strike}</div>
+                        <div className="text-[9px] text-muted-foreground">{pcr}</div>
+                      </TableCell>
+                      <TableCell className={`text-center p-1 ${putItm ? "bg-emerald-950/30" : ""}`}>
+                        {row["PE LTP"].toFixed(2)}
+                      </TableCell>
+                      <TableCell className={`text-center p-1 ${putItm ? "bg-emerald-950/30" : ""}`}>
+                        {formatNumber(row["PE OI"])}
+                      </TableCell>
+                      <TableCell className={`text-center p-1 ${putItm ? "bg-emerald-950/30" : ""} ${row["PE COI"] >= 0 ? "text-oc-positive" : "text-oc-negative"}`}>
+                        {formatNumber(row["PE COI"])}
+                      </TableCell>
+                    </TableRow>
+                  </>
+                );
+              })}
+              <TableRow className="bg-muted/30 font-bold">
+                <TableCell className="text-center p-1 bg-red-900/50">{formatNumber(totalCECOI)}</TableCell>
+                <TableCell className="text-center p-1 bg-red-900/50">{formatNumber(totalCEOI)}</TableCell>
+                <TableCell className="text-center p-1"></TableCell>
+                <TableCell className="text-center p-1 bg-indigo-900/50">Total</TableCell>
+                <TableCell className="text-center p-1"></TableCell>
+                <TableCell className="text-center p-1 bg-green-900/50">{formatNumber(totalPEOI)}</TableCell>
+                <TableCell className="text-center p-1 bg-green-900/50">{formatNumber(totalPECOI)}</TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
       </CardContent>
     </Card>
