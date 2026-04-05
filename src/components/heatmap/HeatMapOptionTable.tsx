@@ -67,15 +67,15 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
           const putITM = isPutITM(row.Strike);
           return (
             <tr key={row.Strike} className={cn(isATM && "bg-oc-atm")}>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm", getColorClass(row["CE_COI%"]))}>{formatPercent(row["CE_COI%"])}</td>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatOIFull(row.CE_COI)}</td>
-              <td className={cn("border-r border-border py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{formatOIFull(row.CE_OI)}</td>
-              <td className={cn("border-r border-border font-medium py-1 px-2 text-center bg-oc-strike-col", isATM && "text-oc-atm-text font-bold")}>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30", getColorClass(row["CE_COI%"]))}>{formatPercent(row["CE_COI%"])}</td>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30")}>{formatOIFull(row.CE_COI)}</td>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30")}>{formatOIFull(row.CE_OI)}</td>
+              <td className={cn("font-medium py-1 px-2 text-center bg-indigo-900/30", isATM && "text-oc-atm-text font-bold")}>
                 {row.Strike}
               </td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatOIFull(row.PE_OI)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{formatOIFull(row.PE_COI)}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm", getColorClass(row["PE_COI%"]))}>{formatPercent(row["PE_COI%"])}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{formatOIFull(row.PE_OI)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{formatOIFull(row.PE_COI)}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30", getColorClass(row["PE_COI%"]))}>{formatPercent(row["PE_COI%"])}</td>
             </tr>
           );
         })}
