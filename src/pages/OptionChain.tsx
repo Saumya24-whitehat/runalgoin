@@ -411,12 +411,18 @@ const OptionChain = () => {
   }
 
   const renderSpotPriceRow = () => (
-    <TableRow ref={spotPriceRowRef} className="bg-primary/20 border-y-2 border-primary">
-      <TableCell colSpan={viewMode === "ltp_oi" || viewMode === "oi_iv" ? 9 : 9} className="py-2">
-        <div className="flex items-center justify-center">
-          <div className="bg-primary text-primary-foreground px-5 sm:px-6 py-2 rounded-full font-bold text-base sm:text-lg shadow-lg">
-            {spotPrice.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
+    <TableRow ref={spotPriceRowRef} className="border-y-2 border-red-500">
+      <TableCell colSpan={9} className="p-0">
+        <div className="flex justify-between items-center bg-card/80 px-4 py-2">
+          <span className="text-xs text-muted-foreground">
+            Max Call OI: {formatOIFull(maxCallOI)}
+          </span>
+          <span className="bg-red-600 text-white px-3 py-1 rounded text-sm font-semibold">
+            SPOT: {spotPrice.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </span>
+          <span className="text-xs text-muted-foreground">
+            Max Put OI: {formatOIFull(maxPutOI)}
+          </span>
         </div>
       </TableCell>
     </TableRow>
