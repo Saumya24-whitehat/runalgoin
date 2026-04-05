@@ -305,7 +305,7 @@ const OptionBuilderChain = ({
 
   return (
     <div ref={containerRef} className="relative w-full overflow-auto max-h-[400px] rounded-lg border border-border">
-      <Table>
+      <Table className="[&_th]:px-[5px] [&_th]:py-[5px] [&_td]:px-[5px] [&_td]:py-[5px]">
         <TableHeader className="sticky top-0 z-20">
           <TableRow>
             <TableHead colSpan={enabledCallColumns.length} className="text-center bg-red-800 text-white font-bold text-sm py-2">

@@ -157,7 +157,7 @@ const OptionBuilderPositions = ({
   return (
     <>
       <div className="overflow-x-auto">
-        <Table>
+        <Table className="[&_th]:px-[5px] [&_th]:py-[5px] [&_td]:px-[5px] [&_td]:py-[5px]">
           <TableHeader>
             <TableRow>
               <TableHead className="w-12">
