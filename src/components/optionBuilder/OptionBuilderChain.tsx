@@ -394,7 +394,7 @@ const OptionBuilderChain = ({
                 })}
 
                 {/* Strike */}
-                <TableCell className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : ""}`}>
+                <TableCell className={`text-center font-bold text-xs ${isATM ? "text-oc-atm-text bg-oc-atm" : "bg-indigo-900/30"}`}>
                   {row.strike}
                 </TableCell>
 
