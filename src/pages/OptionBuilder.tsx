@@ -359,6 +359,23 @@ const OptionBuilder = () => {
   // Get current expiry data
   const currentExpiryData: ExpiryData | null = optionChainData?.expiryWise?.[activeExpiry] || null;
 
+  // Build future contracts from API data + live WS updates
+  const futureContracts: FutureContract[] = useMemo(() => {
+    if (!optionChainData?.futureToken?.length) return [];
+    return optionChainData.futureToken.map((token, idx) => {
+      const liveData = liveOptionData[token] || liveOptionData[`NSE_FO|${token}`];
+      const apiPrice = optionChainData.futurePrices?.[idx] || 0;
+      return {
+        name: optionChainData.futureNames?.[idx] || `Future ${idx + 1}`,
+        expiry: optionChainData.futureExpiry?.[idx] || activeExpiry,
+        token,
+        ltp: liveData?.ltp ?? apiPrice,
+        change: liveData ? (liveData.ltp - (liveData.cp ?? liveData.ltp)) : 0,
+        prevLtp: liveData?.prevLtp,
+      };
+    }).filter(f => f.ltp > 0);
+  }, [optionChainData, liveOptionData, activeExpiry]);
+
   // Calculate chart data - only recalculate when positions change, not on every price tick
   const chartData = useMemo(() => generatePLChartData(positions, currentPrice, 0.1), [positions]);
   const breakevens = useMemo(() => findBreakevenPoints(chartData.expiry), [chartData]);
