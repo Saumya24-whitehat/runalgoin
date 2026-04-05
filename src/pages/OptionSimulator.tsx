@@ -1688,6 +1688,13 @@ const OptionSimulator = () => {
                 </div>
 
                 {showChain && (
+                  <>
+                  <FuturesPanel
+                    futures={futureContracts}
+                    lotSize={lotSize}
+                    date={format(selectedDate, "yyyy-MM-dd")}
+                    onAddPosition={addPosition}
+                  />
                   <div ref={chainContainerRef} className="max-h-[500px] overflow-auto">
                     {simulatorData && simulatorData.strikes.length > 0 ? (
                       <SimulatorOptionChain
