@@ -304,18 +304,29 @@ const OptionBuilderChain = ({
   }
 
   return (
-    <div ref={containerRef} className="relative w-full overflow-auto max-h-[400px]">
+    <div ref={containerRef} className="relative w-full overflow-auto max-h-[400px] rounded-lg border border-border">
       <Table>
-        <TableHeader className="sticky top-0 bg-background z-20">
+        <TableHeader className="sticky top-0 z-20">
           <TableRow>
+            <TableHead colSpan={enabledCallColumns.length} className="text-center bg-red-800 text-white font-bold text-sm py-2">
+              CALL
+            </TableHead>
+            <TableHead className="text-center bg-indigo-900 text-white font-bold text-sm py-2">
+              Strike
+            </TableHead>
+            <TableHead colSpan={enabledPutColumns.length} className="text-center bg-green-800 text-white font-bold text-sm py-2">
+              PUT
+            </TableHead>
+          </TableRow>
+          <TableRow className="bg-muted">
             {enabledCallColumns.map((col) => (
-              <TableHead key={`call-${col.id}`} className="text-center text-call-color text-xs">
+              <TableHead key={`call-${col.id}`} className="text-center text-xs p-1">
                 {col.label}
               </TableHead>
             ))}
-            <TableHead className="text-center font-bold text-xs">Strike</TableHead>
+            <TableHead className="text-center font-bold text-xs p-1 bg-indigo-900/50">ATM</TableHead>
             {enabledPutColumns.map((col) => (
-              <TableHead key={`put-${col.id}`} className="text-center text-put-color text-xs">
+              <TableHead key={`put-${col.id}`} className="text-center text-xs p-1">
                 {col.label}
               </TableHead>
             ))}
