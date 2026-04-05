@@ -87,9 +87,9 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
     <table className="options-table w-full text-xs">
       <thead>
         <tr>
-          <th className="border-b border-border text-call-color py-2">Call IV</th>
-          <th className="border-b border-border bg-secondary py-2">Strike</th>
-          <th className="border-b border-border text-put-color py-2">Put IV</th>
+          <th className="border-b border-border bg-red-800 text-white py-2">Call IV</th>
+          <th className="border-b border-border bg-indigo-900 text-white py-2">Strike</th>
+          <th className="border-b border-border bg-green-800 text-white py-2">Put IV</th>
         </tr>
       </thead>
       <tbody>
@@ -99,9 +99,9 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
           const putITM = isPutITM(row.Strike);
           return (
             <tr key={row.Strike} className={cn(isATM && "bg-oc-atm")}>
-              <td className={cn("py-1 px-2 text-center", callITM && "bg-oc-call-itm")}>{row.CE_IV.toFixed(2)}</td>
-              <td className={cn("font-medium py-1 px-2 text-center bg-oc-strike-col", isATM && "text-oc-atm-text font-bold")}>{row.Strike}</td>
-              <td className={cn("py-1 px-2 text-center", putITM && "bg-oc-put-itm")}>{row.PE_IV.toFixed(2)}</td>
+              <td className={cn("py-1 px-2 text-center", callITM && "bg-red-950/30")}>{row.CE_IV.toFixed(2)}</td>
+              <td className={cn("font-medium py-1 px-2 text-center bg-indigo-900/30", isATM && "text-oc-atm-text font-bold")}>{row.Strike}</td>
+              <td className={cn("py-1 px-2 text-center", putITM && "bg-emerald-950/30")}>{row.PE_IV.toFixed(2)}</td>
             </tr>
           );
         })}
