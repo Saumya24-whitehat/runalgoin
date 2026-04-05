@@ -146,7 +146,7 @@ const SimulatorOptionChain = ({
   };
 
   return (
-    <Table>
+    <Table className="[&_th]:px-[5px] [&_th]:py-[5px] [&_td]:px-[5px] [&_td]:py-[5px]">
       <TableHeader className="sticky top-0 z-10">
         <TableRow>
           <TableHead colSpan={enabledCallColumns.length} className="text-center bg-red-800 text-white font-bold text-sm py-2">
