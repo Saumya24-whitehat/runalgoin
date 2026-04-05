@@ -642,7 +642,7 @@ const OptionChain = () => {
                       {/* Call Headers */}
                       {viewMode === "ltp_oi" && (
                         <>
-                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
+                          <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground">
                             OI (L)
                           </TableHead>
                           <TableHead className="text-center text-[10px] sm:text-xs py-1.5 sm:py-2 text-muted-foreground bg-muted/10">
