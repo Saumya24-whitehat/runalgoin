@@ -406,12 +406,13 @@ const OptionBuilder = () => {
   const shortPuts = enabledPositions
     .filter((p) => p.action === "Sell" && p.optType === "PE" && !p.exitPrice)
     .reduce((sum, p) => sum + p.lots, 0);
+  const hasFutures = enabledPositions.some((p) => p.optType === "FUTURE" && !p.exitPrice);
 
-  if (longCalls !== shortCalls || longPuts !== shortPuts) {
-    if (longCalls > shortCalls || longPuts > shortPuts) {
+  if (longCalls !== shortCalls || longPuts !== shortPuts || hasFutures) {
+    if (longCalls > shortCalls || longPuts > shortPuts || hasFutures) {
       maxProfit = "Unlimited";
     }
-    if (shortCalls > longCalls || shortPuts > longPuts) {
+    if (shortCalls > longCalls || shortPuts > longPuts || hasFutures) {
       maxLoss = "Unlimited";
     }
   }
