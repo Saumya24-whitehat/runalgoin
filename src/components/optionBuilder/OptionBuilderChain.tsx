@@ -405,7 +405,7 @@ const OptionBuilderChain = ({
                   return (
                     <TableCell
                       key={`put-${col.id}`}
-                      className={`text-center text-xs ${isITMPut ? "bg-oc-put-itm" : ""} ${isLtpColumn ? "relative" : ""} ${isLtpChgColumn ? getLTPChgColor(row.putLTPChg) : ""}`}
+                      className={`text-center text-xs ${isITMPut ? "bg-emerald-950/30" : ""} ${isLtpColumn ? "relative" : ""} ${isLtpChgColumn ? getLTPChgColor(row.putLTPChg) : ""}`}
                     >
                       {isLtpColumn ? (
                         <>
