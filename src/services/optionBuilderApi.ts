@@ -360,9 +360,10 @@ export const generatePLChartData = (
   const defaultRange = calculatePriceRange(currentPrice, daysToExpiry);
 
   // Calculate strike-based range: smallest strike - 100 to largest strike + 100
-  const strikes = enabledPositions.filter(p => !p.exitPrice).map(p => p.strike);
-  const strikeMin = Math.min(...strikes) - 100;
-  const strikeMax = Math.max(...strikes) + 100;
+  // Exclude futures (strike === 0) from strike range calculation
+  const strikes = enabledPositions.filter(p => !p.exitPrice && p.optType !== "FUTURE").map(p => p.strike);
+  const strikeMin = strikes.length > 0 ? Math.min(...strikes) - 100 : defaultRange.startPrice;
+  const strikeMax = strikes.length > 0 ? Math.max(...strikes) + 100 : defaultRange.endPrice;
 
   // Use whichever range is larger
   const startPrice = Math.min(defaultRange.startPrice, strikeMin);
