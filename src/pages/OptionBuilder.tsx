@@ -874,6 +874,13 @@ const OptionBuilder = () => {
                   </div>
                 </div>
                 {showOptionChain && (
+                  <>
+                  <FuturesPanel
+                    futures={futureContracts}
+                    lotSize={lotSize}
+                    date={new Date().toISOString().split("T")[0]}
+                    onAddPosition={addPosition}
+                  />
                   <OptionBuilderChain
                     symbol={symbol}
                     expiry={activeExpiry}
