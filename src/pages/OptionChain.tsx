@@ -620,25 +620,25 @@ const OptionChain = () => {
                 </div>
               ) : filteredData.length > 0 ? (
                 <Table className="min-w-[800px] table-fixed">
-                  <TableHeader className="sticky top-0 z-30 bg-card">
+                  <TableHeader className="sticky top-0 z-30">
                     <TableRow className="border-border/30">
                       <TableHead
                         colSpan={4}
-                        className="text-center bg-red-500/10 text-red-400 font-bold text-sm py-2 sm:py-3"
+                        className="text-center bg-red-800 text-white font-bold text-sm py-2 sm:py-3"
                       >
                         CALL
                       </TableHead>
-                      <TableHead className="text-center bg-card font-bold text-sm py-2 sm:py-3 border-x border-border/30 w-[80px] sm:w-[100px]">
+                      <TableHead className="text-center bg-indigo-900 text-white font-bold text-sm py-2 sm:py-3 w-[80px] sm:w-[100px]">
                         STRIKE
                       </TableHead>
                       <TableHead
                         colSpan={4}
-                        className="text-center bg-emerald-500/10 text-emerald-400 font-bold text-sm py-2 sm:py-3"
+                        className="text-center bg-green-800 text-white font-bold text-sm py-2 sm:py-3"
                       >
                         PUT
                       </TableHead>
                     </TableRow>
-                    <TableRow className="border-border/30 bg-muted/10">
+                    <TableRow className="bg-muted text-[10px] md:text-xs">
                       {/* Call Headers */}
                       {viewMode === "ltp_oi" && (
                         <>
