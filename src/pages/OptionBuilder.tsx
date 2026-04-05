@@ -34,6 +34,7 @@ import OptionBuilderGreeks from "@/components/optionBuilder/OptionBuilderGreeks"
 import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetrics";
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import OptionBuilderChain from "@/components/optionBuilder/OptionBuilderChain";
+import FuturesPanel, { FutureContract } from "@/components/optionBuilder/FuturesPanel";
 import OptionBuilderSettings, {
   OptionBuilderSettingsConfig,
   DEFAULT_SETTINGS,
