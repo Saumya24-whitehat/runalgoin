@@ -190,6 +190,10 @@ export async function fetchSimulatorStrikesData(
     expiry,
     date,
     time,
+    futureToken: data?.FutureToken || [],
+    futureNames: data?.FutureNames || [],
+    futureExpiry: data?.FutureExpiry || [],
+    futurePrices: data?.FuturePrices || data?.futurePrices || [],
   };
 }
 
