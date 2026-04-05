@@ -893,6 +893,7 @@ const OptionBuilder = () => {
                     putColumns={settings.putColumns}
                     liveData={liveOptionData}
                   />
+                  </>
                 )}
               </CardContent>
             </Card>
