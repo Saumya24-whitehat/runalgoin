@@ -34,6 +34,10 @@ export interface SimulatorData {
   expiry: string;
   date: string;
   time: string;
+  futureToken: string[];
+  futureNames: string[];
+  futureExpiry: string[];
+  futurePrices: number[];
 }
 
 // Fetch trading days
