@@ -619,7 +619,7 @@ const OptionChain = () => {
                   ))}
                 </div>
               ) : filteredData.length > 0 ? (
-                <Table className="min-w-[800px] table-fixed">
+                <Table className="min-w-[800px] table-fixed [&_th]:px-[0.2rem] [&_th]:py-[0.2rem] [&_td]:px-[0.2rem] [&_td]:py-[0.2rem]">
                   <TableHeader className="sticky top-0 z-30">
                     <TableRow className="border-border/30">
                       <TableHead
