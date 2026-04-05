@@ -1716,6 +1716,7 @@ const OptionSimulator = () => {
                       </div>
                     ) : null}
                   </div>
+                  </>
                 )}
               </CardContent>
             </Card>
