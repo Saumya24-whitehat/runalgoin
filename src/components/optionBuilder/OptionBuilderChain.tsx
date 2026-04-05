@@ -359,7 +359,7 @@ const OptionBuilderChain = ({
                   return (
                     <TableCell
                       key={`call-${col.id}`}
-                      className={`text-center text-xs ${isITMCall ? "bg-oc-call-itm" : ""} ${isLtpColumn ? "relative" : ""} ${isLtpChgColumn ? getLTPChgColor(row.callLTPChg) : ""}`}
+                      className={`text-center text-xs ${isITMCall ? "bg-red-950/30" : ""} ${isLtpColumn ? "relative" : ""} ${isLtpChgColumn ? getLTPChgColor(row.callLTPChg) : ""}`}
                     >
                       {isLtpColumn ? (
                         <>
