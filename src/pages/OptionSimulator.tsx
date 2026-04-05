@@ -681,6 +681,18 @@ const OptionSimulator = () => {
     });
   }, [simulatorData, positions, symbol]);
 
+  // Build future contracts from simulator data
+  const futureContracts: FutureContract[] = useMemo(() => {
+    if (!simulatorData?.futureToken?.length) return [];
+    return simulatorData.futureToken.map((token, idx) => ({
+      name: simulatorData.futureNames?.[idx] || `Future ${idx + 1}`,
+      expiry: simulatorData.futureExpiry?.[idx] || activeExpiry,
+      token,
+      ltp: simulatorData.futurePrices?.[idx] || simulatorData.spotPrice,
+      change: 0,
+    })).filter(f => f.ltp > 0);
+  }, [simulatorData, activeExpiry]);
+
   // Calculate chart data - only recalculate when positions change, not on every price tick
   const chartData = useMemo(() => generatePLChartData(positions, currentPrice, 0.1), [positions]);
   const breakevens = useMemo(() => findBreakevenPoints(chartData.expiry), [chartData]);
