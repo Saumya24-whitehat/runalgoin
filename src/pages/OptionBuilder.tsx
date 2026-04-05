@@ -278,6 +278,11 @@ const OptionBuilder = () => {
       allTokens.push(optionChainData.spotToken);
     }
 
+    // Subscribe to future tokens for live futures prices
+    if (optionChainData.futureToken?.length > 0) {
+      allTokens.push(...optionChainData.futureToken);
+    }
+
     if (allTokens.length > 0) {
       upstoxWebSocket.subscribe(allTokens);
     }
