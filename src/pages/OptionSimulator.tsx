@@ -64,6 +64,7 @@ import AdjustmentModal, {
 } from "@/components/optionBuilder/AdjustmentModal";
 import PLHistoryChart from "@/components/optionBuilder/PLHistoryChart";
 import SimulatorOptionChain from "@/components/optionBuilder/SimulatorOptionChain";
+import FuturesPanel, { FutureContract } from "@/components/optionBuilder/FuturesPanel";
 import {
   Position,
   generatePLChartData,
@@ -475,6 +476,18 @@ const OptionSimulator = () => {
       prevPositions.map((pos) => {
         if (pos.exitPrice !== undefined) return pos;
 
+        // For FUTURE positions, update with spot price (futures track spot closely)
+        if (pos.optType === "FUTURE") {
+          const expiryData = positionExpiryData[pos.expiry] || positionExpiryData[Object.keys(positionExpiryData)[0]];
+          if (expiryData) {
+            // Use future price from data if available, otherwise spot
+            const futIdx = expiryData.futureExpiry?.indexOf(pos.expiry);
+            const futPrice = futIdx !== undefined && futIdx >= 0 ? expiryData.futurePrices?.[futIdx] : undefined;
+            return { ...pos, currentPrice: futPrice || expiryData.spotPrice };
+          }
+          return pos;
+        }
+
         // Use the correct expiry's data for this position
         const expiryData = positionExpiryData[pos.expiry];
         if (!expiryData) return pos;
@@ -680,6 +693,18 @@ const OptionSimulator = () => {
     });
   }, [simulatorData, positions, symbol]);
 
+  // Build future contracts from simulator data
+  const futureContracts: FutureContract[] = useMemo(() => {
+    if (!simulatorData?.futureToken?.length) return [];
+    return simulatorData.futureToken.map((token, idx) => ({
+      name: simulatorData.futureNames?.[idx] || `Future ${idx + 1}`,
+      expiry: simulatorData.futureExpiry?.[idx] || activeExpiry,
+      token,
+      ltp: simulatorData.futurePrices?.[idx] || simulatorData.spotPrice,
+      change: 0,
+    })).filter(f => f.ltp > 0);
+  }, [simulatorData, activeExpiry]);
+
   // Calculate chart data - only recalculate when positions change, not on every price tick
   const chartData = useMemo(() => generatePLChartData(positions, currentPrice, 0.1), [positions]);
   const breakevens = useMemo(() => findBreakevenPoints(chartData.expiry), [chartData]);
@@ -710,12 +735,13 @@ const OptionSimulator = () => {
   const shortPuts = enabledPositions
     .filter((p) => p.action === "Sell" && p.optType === "PE" && !p.exitPrice)
     .reduce((sum, p) => sum + p.lots, 0);
+  const hasFutures = enabledPositions.some((p) => p.optType === "FUTURE" && !p.exitPrice);
 
-  if (longCalls !== shortCalls || longPuts !== shortPuts) {
-    if (longCalls > shortCalls || longPuts > shortPuts) {
+  if (longCalls !== shortCalls || longPuts !== shortPuts || hasFutures) {
+    if (longCalls > shortCalls || longPuts > shortPuts || hasFutures) {
       maxProfit = "Unlimited";
     }
-    if (shortCalls > longCalls || shortPuts > longPuts) {
+    if (shortCalls > longCalls || shortPuts > longPuts || hasFutures) {
       maxLoss = "Unlimited";
     }
   }
@@ -1675,6 +1701,13 @@ const OptionSimulator = () => {
                 </div>
 
                 {showChain && (
+                  <>
+                  <FuturesPanel
+                    futures={futureContracts}
+                    lotSize={lotSize}
+                    date={format(selectedDate, "yyyy-MM-dd")}
+                    onAddPosition={addPosition}
+                  />
                   <div ref={chainContainerRef} className="max-h-[500px] overflow-auto">
                     {simulatorData && simulatorData.strikes.length > 0 ? (
                       <SimulatorOptionChain
@@ -1696,6 +1729,7 @@ const OptionSimulator = () => {
                       </div>
                     ) : null}
                   </div>
+                  </>
                 )}
               </CardContent>
             </Card>

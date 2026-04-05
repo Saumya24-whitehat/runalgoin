@@ -37,6 +37,7 @@ export interface OptionChainResponse {
   futureToken: string[];
   futureNames: string[];
   futureExpiry: string[];
+  futurePrices: number[];
   ceTokens: string[];
   peTokens: string[];
   spotToken: string;

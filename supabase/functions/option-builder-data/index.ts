@@ -54,6 +54,7 @@ serve(async (req) => {
           futureToken: data.FutureToken || [],
           futureNames: data.FutureNames || [],
           futureExpiry: data.FutureExpiry || [],
+          futurePrices: data.FuturePrices || data.futurePrices || [],
           ceTokens: data.CE_Tokens || [],
           peTokens: data.PE_Tokens || [],
           spotToken: data.SpotToken_upstox || '',

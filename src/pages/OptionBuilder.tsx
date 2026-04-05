@@ -34,6 +34,7 @@ import OptionBuilderGreeks from "@/components/optionBuilder/OptionBuilderGreeks"
 import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetrics";
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import OptionBuilderChain from "@/components/optionBuilder/OptionBuilderChain";
+import FuturesPanel, { FutureContract } from "@/components/optionBuilder/FuturesPanel";
 import OptionBuilderSettings, {
   OptionBuilderSettingsConfig,
   DEFAULT_SETTINGS,
@@ -277,6 +278,11 @@ const OptionBuilder = () => {
       allTokens.push(optionChainData.spotToken);
     }
 
+    // Subscribe to future tokens for live futures prices
+    if (optionChainData.futureToken?.length > 0) {
+      allTokens.push(...optionChainData.futureToken);
+    }
+
     if (allTokens.length > 0) {
       upstoxWebSocket.subscribe(allTokens);
     }
@@ -353,6 +359,23 @@ const OptionBuilder = () => {
   // Get current expiry data
   const currentExpiryData: ExpiryData | null = optionChainData?.expiryWise?.[activeExpiry] || null;
 
+  // Build future contracts from API data + live WS updates
+  const futureContracts: FutureContract[] = useMemo(() => {
+    if (!optionChainData?.futureToken?.length) return [];
+    return optionChainData.futureToken.map((token, idx) => {
+      const liveData = liveOptionData[token] || liveOptionData[`NSE_FO|${token}`];
+      const apiPrice = optionChainData.futurePrices?.[idx] || 0;
+      return {
+        name: optionChainData.futureNames?.[idx] || `Future ${idx + 1}`,
+        expiry: optionChainData.futureExpiry?.[idx] || activeExpiry,
+        token,
+        ltp: liveData?.ltp ?? apiPrice,
+        change: liveData ? (liveData.ltp - (liveData.cp ?? liveData.ltp)) : 0,
+        prevLtp: liveData?.prevLtp,
+      };
+    }).filter(f => f.ltp > 0);
+  }, [optionChainData, liveOptionData, activeExpiry]);
+
   // Calculate chart data - only recalculate when positions change, not on every price tick
   const chartData = useMemo(() => generatePLChartData(positions, currentPrice, 0.1), [positions]);
   const breakevens = useMemo(() => findBreakevenPoints(chartData.expiry), [chartData]);
@@ -383,12 +406,13 @@ const OptionBuilder = () => {
   const shortPuts = enabledPositions
     .filter((p) => p.action === "Sell" && p.optType === "PE" && !p.exitPrice)
     .reduce((sum, p) => sum + p.lots, 0);
+  const hasFutures = enabledPositions.some((p) => p.optType === "FUTURE" && !p.exitPrice);
 
-  if (longCalls !== shortCalls || longPuts !== shortPuts) {
-    if (longCalls > shortCalls || longPuts > shortPuts) {
+  if (longCalls !== shortCalls || longPuts !== shortPuts || hasFutures) {
+    if (longCalls > shortCalls || longPuts > shortPuts || hasFutures) {
       maxProfit = "Unlimited";
     }
-    if (shortCalls > longCalls || shortPuts > longPuts) {
+    if (shortCalls > longCalls || shortPuts > longPuts || hasFutures) {
       maxLoss = "Unlimited";
     }
   }
@@ -851,6 +875,13 @@ const OptionBuilder = () => {
                   </div>
                 </div>
                 {showOptionChain && (
+                  <>
+                  <FuturesPanel
+                    futures={futureContracts}
+                    lotSize={lotSize}
+                    date={new Date().toISOString().split("T")[0]}
+                    onAddPosition={addPosition}
+                  />
                   <OptionBuilderChain
                     symbol={symbol}
                     expiry={activeExpiry}
@@ -863,6 +894,7 @@ const OptionBuilder = () => {
                     putColumns={settings.putColumns}
                     liveData={liveOptionData}
                   />
+                  </>
                 )}
               </CardContent>
             </Card>
