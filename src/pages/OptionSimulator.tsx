@@ -476,6 +476,18 @@ const OptionSimulator = () => {
       prevPositions.map((pos) => {
         if (pos.exitPrice !== undefined) return pos;
 
+        // For FUTURE positions, update with spot price (futures track spot closely)
+        if (pos.optType === "FUTURE") {
+          const expiryData = positionExpiryData[pos.expiry] || positionExpiryData[Object.keys(positionExpiryData)[0]];
+          if (expiryData) {
+            // Use future price from data if available, otherwise spot
+            const futIdx = expiryData.futureExpiry?.indexOf(pos.expiry);
+            const futPrice = futIdx !== undefined && futIdx >= 0 ? expiryData.futurePrices?.[futIdx] : undefined;
+            return { ...pos, currentPrice: futPrice || expiryData.spotPrice };
+          }
+          return pos;
+        }
+
         // Use the correct expiry's data for this position
         const expiryData = positionExpiryData[pos.expiry];
         if (!expiryData) return pos;
