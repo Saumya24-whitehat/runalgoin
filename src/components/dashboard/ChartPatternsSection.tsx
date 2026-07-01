@@ -307,7 +307,7 @@ export function ChartPatternsSection() {
         <CardContent className="p-0">
           <ScrollArea className="h-[350px]">
             <div className="divide-y divide-border">
-              {filteredPatterns.slice(0, 50).map((pattern) => (
+              {[...filteredPatterns].reverse().slice(0, 50).map((pattern) => (
                 <div key={pattern.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
                   {/* Pattern Icon */}
                   <div className="w-10 h-10 flex-shrink-0 rounded">
