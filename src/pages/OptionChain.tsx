@@ -15,7 +15,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { RefreshCw, ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
 
@@ -443,9 +443,108 @@ const OptionChain = () => {
               {/* Controls */}
             <div className="flex flex-wrap gap-3 mb-4 items-end">
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
-              <PageInfoButton
+              <PageInfoModal
                 title="Option Chain"
-                description="Real-time option chain data showing OI, volume, LTP, IV, and Greeks for all strikes. Use strike count filter to focus on ATM region. Supports historical time-travel mode."
+                subtitle="The complete real-time options table for any F&O symbol"
+                overview={
+                  <>
+                    The Option Chain is the single most important screen for options traders. It
+                    lists every strike of the selected expiry, with Calls (CE) on the left and
+                    Puts (PE) on the right, sharing a central Strike column. Rows near the
+                    current spot price are the At-The-Money (ATM) region — where liquidity,
+                    theta and gamma are highest.
+                  </>
+                }
+                legend={[
+                  {
+                    label: "LTP",
+                    text: "Last Traded Price of the option contract — updates tick-by-tick via WebSocket. Green flash = uptick, red flash = downtick.",
+                    color: "#3b82f6",
+                  },
+                  {
+                    label: "OI (Open Interest)",
+                    text: "Total number of outstanding contracts at that strike. High OI = strong writer commitment = potential support/resistance.",
+                    color: "#8b5cf6",
+                  },
+                  {
+                    label: "COI (Change in OI)",
+                    text: "OI delta from previous session close. Positive = fresh positions being built, negative = positions being closed.",
+                    color: "#f59e0b",
+                  },
+                  {
+                    label: "Volume",
+                    text: "Contracts traded today. High volume with rising OI confirms conviction; high volume with falling OI = position squaring.",
+                    color: "#06b6d4",
+                  },
+                  {
+                    label: "IV (Implied Volatility)",
+                    text: "Market's forecast of the underlying's future volatility. Rising IV inflates premiums; falling IV deflates them.",
+                    color: "#ec4899",
+                  },
+                  {
+                    label: "ITM shading",
+                    text: "In-The-Money strikes are visually highlighted — CE strikes below spot and PE strikes above spot.",
+                    color: "#334155",
+                  },
+                ]}
+                sections={[
+                  {
+                    heading: "Greeks (Δ Γ Θ Vega)",
+                    body: (
+                      <ul className="space-y-1 list-disc pl-5">
+                        <li>
+                          <strong>Delta (Δ)</strong> — price sensitivity. A 0.50 delta call gains ₹0.50 for every ₹1 spot up-move. Also the rough probability of expiring ITM.
+                        </li>
+                        <li>
+                          <strong>Gamma (Γ)</strong> — how fast Delta changes. Highest at ATM, especially near expiry — the source of "gamma squeezes".
+                        </li>
+                        <li>
+                          <strong>Theta (Θ)</strong> — daily premium decay. Sellers earn theta; buyers pay it. Accelerates non-linearly in the last week of expiry.
+                        </li>
+                        <li>
+                          <strong>Vega</strong> — sensitivity to a 1% IV change. Long options are long vega; short options are short vega.
+                        </li>
+                      </ul>
+                    ),
+                  },
+                  {
+                    heading: "Strike Count Filter",
+                    body: (
+                      <>
+                        Restricts the visible rows to N strikes above and below ATM. Useful
+                        when the full chain is overwhelming — e.g. Bank Nifty can list 100+
+                        strikes but only the nearest 15 typically matter for intraday trading.
+                      </>
+                    ),
+                  },
+                  {
+                    heading: "Historical Time-Travel Mode",
+                    body: (
+                      <>
+                        Switch to a past date to view the option chain exactly as it looked
+                        then. Great for post-mortem analysis of a specific event day (results,
+                        RBI policy, expiry). The chain falls back to the last active session
+                        automatically on market holidays.
+                      </>
+                    ),
+                  },
+                ]}
+                howToUse={
+                  <>
+                    Scan the chain for <strong>OI concentrations</strong> to spot support
+                    (highest Put OI) and resistance (highest Call OI). Watch{" "}
+                    <strong>COI</strong> during the session to see where fresh positions are
+                    being built — this leads price. Cross-check <strong>IV</strong> before
+                    buying options: an IV spike after news often makes long positions expensive
+                    and vulnerable to IV crush.
+                  </>
+                }
+                tips={[
+                  "Click any row to jump to that strike's intraday premium chart.",
+                  "Green OI cells = fresh writing; red = unwinding. Follow the writers, not the buyers.",
+                  "Near expiry, ATM gamma explodes — avoid selling naked ATM options in the last 2 sessions.",
+                  "If CE COI ≫ PE COI, expect resistance to hold; if PE COI ≫ CE COI, expect support to hold.",
+                ]}
               />
               <div className="flex flex-col gap-1">
                 <label className="text-xs text-muted-foreground font-medium">Symbol</label>
