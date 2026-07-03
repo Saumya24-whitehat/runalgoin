@@ -29,6 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
@@ -470,6 +471,7 @@ const PCR = () => {
                     <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                   </div>
                   <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isFetching} />
+                  <PageInfoButton title="Put-Call Ratio (PCR)" description="Ratio of Put OI to Call OI. Values >1 typically indicate bullish sentiment (put writing), values <1 indicate bearish sentiment (call writing). Includes ATM PCR and sentiment gauges." />
                   <div className="flex items-center gap-1.5">
                     <Timer className="h-3.5 w-3.5" />
                     <span>Next Refresh: <span className="text-primary font-medium">{countdown || "--:--"}</span></span>

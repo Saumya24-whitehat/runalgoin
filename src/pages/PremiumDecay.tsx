@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, RefreshCw, Timer } from "lucide-react";
 import { format } from "date-fns";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import {
   LineChart,
   Line,
@@ -405,6 +406,7 @@ const PremiumDecay = () => {
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground invisible">Info</label>
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+                <PageInfoButton title="Premium Decay" description="Tracks time-decay (theta erosion) of option premiums across strikes. Useful for option sellers to visualize how premiums bleed during the trading session." />
               </div>
             </div>
           </CardContent>

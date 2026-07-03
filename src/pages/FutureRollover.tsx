@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureRollover, fetchFutureExpiryDates, RolloverItem } from "@/services/futureRolloverApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -315,6 +316,7 @@ export default function FutureRollover() {
             </div>
             <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} symbols</span>
             <LastRefreshBadge lastRefresh={rolloverData ? new Date() : null} isFetching={isFetching} />
+            <PageInfoButton title="Futures Rollover" description="Shows rollover percentages of futures positions from the near month to the next expiry. Higher rollover with price/OI context indicates trader conviction in the ongoing trend." />
           </div>
 
           <Button onClick={handleExportCSV} variant="outline" className="gap-2">

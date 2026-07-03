@@ -16,6 +16,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import LTPCalculatorModal from "@/components/LTPCalculatorModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
@@ -531,6 +532,7 @@ const SupportResistance = () => {
           <MarketClosedBanner />
           <div className="flex justify-end mb-2">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
+            <PageInfoButton title="Support & Resistance" description="Derives intraday support and resistance levels from Call/Put OI concentrations. Highest Call OI acts as resistance; highest Put OI acts as support." />
           </div>
           {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">

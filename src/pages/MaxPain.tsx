@@ -29,6 +29,7 @@ import {
   Info,
 } from "lucide-react";
 import { format } from "date-fns";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   BarChart,
@@ -469,6 +470,7 @@ const MaxPain = () => {
 
               <div className="flex items-center gap-3">
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+                <PageInfoButton title="Max Pain" description="The strike price at which option writers experience the least aggregate loss on expiry — commonly used as a gravity point that spot prices tend toward near expiry." />
                 {countdown && (
                   <span className="flex items-center gap-1">
                     <Timer className="h-3 w-3" /> {countdown}
