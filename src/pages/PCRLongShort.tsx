@@ -28,7 +28,7 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 import { fetchPCRLongShortData, LongShortTimeData, LongShortStrikeData } from "@/services/pcrLongShortApi";
 import { toast } from "sonner";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 
 interface SymbolsData {
   indexSymbols: string[];
@@ -436,14 +436,96 @@ const PCRLongShort = () => {
                   <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                 </div>
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton
+                <PageInfoModal
                   title="PCR Long / Short"
-                  description="Decomposes PCR into long-buildup vs short-buildup components so you can tell whether option writing bias is genuinely bullish or bearish, not just a noisy ratio."
-                  details={[
-                    { label: "Long PCR", text: "Put OI growth vs Call OI growth on long-buildup strikes — rising = bullish writing pressure", color: "#10b981" },
-                    { label: "Short PCR", text: "Call OI growth vs Put OI growth on short-buildup strikes — rising = bearish writing pressure", color: "#ef4444" },
-                    { label: "Divergence", text: "When headline PCR and Long/Short PCR disagree, trust Long/Short — it filters out unwinding noise", color: "#f59e0b" },
-                    { label: "How to use", text: "Rising Long PCR + falling Short PCR = high-conviction bullish setup. The opposite = high-conviction bearish setup. Combine with S/R levels for entries." },
+                  subtitle="Decompose PCR into genuine bullish vs bearish writer commitment"
+                  overview={
+                    <>
+                      Headline PCR is noisy — it mixes fresh writing with unwinding, and long
+                      buildup with short covering. PCR Long/Short splits the ratio by{" "}
+                      <strong>OI change direction</strong> at each strike, so you see only the
+                      writers actually building conviction today. This is a much cleaner
+                      directional signal than raw PCR.
+                    </>
+                  }
+                  formula={{
+                    expression:
+                      "Long PCR  = ΣPut OI Added   ÷ ΣCall OI Added   (only strikes with +COI)\nShort PCR = ΣCall OI Reduced ÷ ΣPut OI Reduced (only strikes with -COI)",
+                    note: "Strikes with rising OI reflect fresh commitment; strikes with falling OI reflect exits. Segregating them isolates the true sentiment shift.",
+                  }}
+                  legend={[
+                    {
+                      label: "Long PCR ↑",
+                      text: "Fresh put writing outpacing fresh call writing — new bullish commitment being built.",
+                      color: "#059669",
+                    },
+                    {
+                      label: "Long PCR ↓",
+                      text: "Fresh call writing outpacing fresh put writing — new bearish commitment being built.",
+                      color: "#ef4444",
+                    },
+                    {
+                      label: "Short PCR ↑",
+                      text: "Call writers exiting faster than put writers — bears capitulating, bullish undertone.",
+                      color: "#34d399",
+                    },
+                    {
+                      label: "Short PCR ↓",
+                      text: "Put writers exiting faster than call writers — bulls capitulating, bearish undertone.",
+                      color: "#f87171",
+                    },
+                    {
+                      label: "Divergence",
+                      text: "When headline PCR and Long/Short PCR disagree, trust Long/Short — it filters out noise from unwinding.",
+                      color: "#f59e0b",
+                    },
+                  ]}
+                  sections={[
+                    {
+                      heading: "Why It's Better Than Headline PCR",
+                      body: (
+                        <>
+                          If PCR is rising because put writers are simply <em>closing</em>{" "}
+                          losing positions, headline PCR gives a false bullish signal.
+                          Long/Short PCR would show Short PCR rising (put writers exiting)
+                          while Long PCR stays flat or falls — correctly flagging the move as
+                          weakness, not strength.
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "Combined Reading Matrix",
+                      body: (
+                        <ul className="space-y-1 list-disc pl-5">
+                          <li>
+                            <strong>Long PCR ↑ + Short PCR ↑</strong> — strongest bullish setup: bulls building, bears exiting.
+                          </li>
+                          <li>
+                            <strong>Long PCR ↓ + Short PCR ↓</strong> — strongest bearish setup: bears building, bulls exiting.
+                          </li>
+                          <li>
+                            <strong>Long PCR ↑ + Short PCR ↓</strong> — mixed, both sides adding — expect volatility, no clear direction.
+                          </li>
+                          <li>
+                            <strong>Long PCR ↓ + Short PCR ↑</strong> — mixed, both sides exiting — trend exhaustion, watch for reversal.
+                          </li>
+                        </ul>
+                      ),
+                    },
+                  ]}
+                  howToUse={
+                    <>
+                      Use PCR Long/Short as your <strong>primary sentiment filter</strong> and
+                      headline PCR as confirmation. When both agree, conviction is highest.
+                      Take entries at Support/Resistance walls that align with the Long/Short
+                      bias — e.g. buy dips at Strong Support when Long PCR is rising.
+                    </>
+                  }
+                  tips={[
+                    "Best signals come from the first 90 minutes and last 60 minutes of the session.",
+                    "Ignore small moves — look for Long PCR shifts of 0.1+ within an hour for meaningful signals.",
+                    "Combine with FII index-futures data — matching bias = highest conviction trade.",
+                    "On expiry day, OI changes are dominated by settlement flow — use Volume PCR instead.",
                   ]}
                 />
                 <div className="flex items-center gap-1.5">
