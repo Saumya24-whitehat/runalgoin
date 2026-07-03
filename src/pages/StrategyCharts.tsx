@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
@@ -307,6 +308,10 @@ const StrategyCharts = () => {
 
         <ProFeatureGate featureName="Strategy Charts">
           <main className="container py-6 space-y-6">
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-foreground">Strategy OHLC Charts</h1>
+              <PageInfoButton title="Strategy OHLC Charts" description="Combined OHLC candlestick chart for a multi-leg option strategy, letting you visualize the strategy's price action as a single instrument." />
+            </div>
             {/* Controls */}
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-4">

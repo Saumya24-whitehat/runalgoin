@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useEffect, useRef, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -431,7 +432,10 @@ const OptionsChart = () => {
         <div className="flex-1 flex flex-col p-4">
           <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Options Chart</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold text-foreground">Options Chart</h1>
+              <PageInfoButton title="Options Chart" description="Intraday premium chart for a chosen strike/expiry with volume and OI overlays for visual analysis of option price action." />
+            </div>
             <p className="text-sm text-muted-foreground">Advanced TradingView charting with NSE/NFO data</p>
           </div>
           <Button variant="outline" size="sm" onClick={toggleFullscreen} className="gap-2">

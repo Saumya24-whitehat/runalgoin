@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -544,6 +545,7 @@ const TOI = () => {
                 )}
 
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+                <PageInfoButton title="Total Open Interest (TOI)" description="Aggregate OI across all strikes of an expiry. Rising TOI with rising price signals fresh longs; rising TOI with falling price signals fresh shorts." />
 
                 {countdown && (
                   <div className="flex items-center gap-1.5">

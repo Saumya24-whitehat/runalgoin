@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -16,7 +17,10 @@ const IPO = () => {
           <ArrowLeft className="w-4 h-4" />
           Back
         </Button>
-        <h1 className="text-lg font-semibold">IPO Timetable</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg font-semibold">IPO Timetable</h1>
+          <PageInfoButton title="IPO Timetable" description="Upcoming, ongoing, and recently closed IPOs with subscription dates, price bands, and listing schedules." />
+        </div>
       </div>
 
       <iframe src="https://ioptimetble.lovable.app/" className="flex-1 w-full border-0" title="IPO Timetable" />

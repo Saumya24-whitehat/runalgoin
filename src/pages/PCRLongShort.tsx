@@ -28,6 +28,7 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 import { fetchPCRLongShortData, LongShortTimeData, LongShortStrikeData } from "@/services/pcrLongShortApi";
 import { toast } from "sonner";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 
 interface SymbolsData {
   indexSymbols: string[];
@@ -435,6 +436,7 @@ const PCRLongShort = () => {
                   <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                 </div>
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+                <PageInfoButton title="PCR Long / Short" description="Segregates PCR into long buildup vs short buildup components to give a clearer view of whether option writing bias is bullish or bearish." />
                 <div className="flex items-center gap-1.5">
                   <Timer className="h-3.5 w-3.5" />
                   <span>Next Refresh: <span className="text-primary font-medium">{countdown || "--:--"}</span></span>

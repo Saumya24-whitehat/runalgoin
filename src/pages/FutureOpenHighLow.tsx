@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureOpenHighLow, fetchFutureExpiryDates, OpenHighLowItem } from "@/services/futureOpenHighLowApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -379,6 +380,7 @@ export default function FutureOpenHighLow() {
 
             {/* Last Updated */}
             <LastRefreshBadge lastRefresh={openHighLowData?.lastUpdated ? new Date(openHighLowData.lastUpdated) : null} isFetching={isFetching} />
+            <PageInfoButton title="Future Open-High / Open-Low" description="Highlights futures contracts whose open equals the day's high (bearish) or low (bullish) — often a strong intraday directional bias signal." />
 
             {/* Info Button */}
             <Popover>

@@ -40,6 +40,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureBuildup, fetchFutureExpiryDates, BuildupItem } from "@/services/futureBuilupApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -516,6 +517,7 @@ export default function FutureBuildup() {
           </div>
 
           <LastRefreshBadge lastRefresh={buildupData?.lastUpdated ? new Date(buildupData.lastUpdated) : null} isFetching={isFetching} />
+          <PageInfoButton title="Futures Buildup" description="Classifies stocks by price and Open Interest change into Long Buildup, Short Buildup, Long Unwinding, and Short Covering to reveal futures positioning." />
 
           {/* Info Button */}
           <Popover>

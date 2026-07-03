@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -590,6 +591,7 @@ export default function FII() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-6">
           <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
+          <PageInfoButton title="FII / DII Activity" description="Tracks daily buy/sell activity of Foreign and Domestic Institutional Investors across cash and derivatives segments. Positive net values indicate accumulation; negative values indicate distribution." />
             <TabsList className="bg-muted/50">
               <TabsTrigger
                 value="summary"

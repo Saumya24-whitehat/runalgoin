@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, Clock, RefreshCw, Timer, Info, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { format } from "date-fns";
 import OTRChart from "@/components/otr/OTRChart";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -738,6 +739,7 @@ const OTR = () => {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2">
                         <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
+                        <PageInfoButton title="Options Trading Range (OTR)" description="Uses Call and Put OI concentrations to project an expected intraday/expiry trading range. Buy/Sell markers appear on EMA 10/30 crossovers for directional bias." />
                         <Button
                           variant="ghost"
                           size="icon"

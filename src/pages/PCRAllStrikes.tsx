@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAllStrikesApi";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
@@ -967,6 +968,7 @@ export default function PCRAllStrikes() {
                   <div className="h-4 w-px bg-border" />
 
                   <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isRefreshing} />
+                  <PageInfoButton title="PCR — All Strikes" description="Displays Put-Call Ratio computed across every strike in the option chain, helping identify strike-level support/resistance based on OI imbalances." />
 
                   {countdown && (
                     <div className="flex items-center gap-1">

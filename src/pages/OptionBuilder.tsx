@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
 import { resolveExpiry } from "@/utils/resolveExpiryType";
@@ -713,6 +714,10 @@ const OptionBuilder = () => {
         {/* Header */}
         <div className="border-b border-border">
           <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center gap-2 mb-4">
+              <h1 className="text-xl font-bold">Option Strategy Builder</h1>
+              <PageInfoButton title="Option Strategy Builder" description="Build multi-leg option strategies with real-time payoff, Greeks, and P&L charts. Supports options and futures legs, custom templates, and saved strategies." />
+            </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
