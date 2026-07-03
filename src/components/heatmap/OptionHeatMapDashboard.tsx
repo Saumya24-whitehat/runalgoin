@@ -163,14 +163,106 @@ export function OptionHeatMapDashboard() {
               <div className="flex items-center gap-2">
                 <Flame className="h-5 w-5 text-orange-500" />
                 <h1 className="text-lg font-heading font-semibold">Option Heat Map</h1>
-                <PageInfoButton
+                <PageInfoModal
                   title="Option Heat Map"
-                  description="Visualizes OI and IV concentrations across strikes and expiries in a color-graded grid so you can spot institutional positioning at a glance."
-                  details={[
-                    { label: "Dark green cells", text: "Highest OI / IV in that column — strongest support if PE, strongest resistance if CE", color: "#10b981" },
-                    { label: "Dark red cells", text: "Lowest OI / IV — areas of thin liquidity, price often moves quickly through them", color: "#ef4444" },
-                    { label: "Amber cells", text: "Moderate positioning — watch for shifts across refreshes", color: "#f59e0b" },
-                    { label: "How to use", text: "Compare current expiry vs next expiries to see if positions are rolling out (bullish continuation) or being unwound. Sudden color changes in a strike often precede breakouts." },
+                  subtitle="Visualize OI and IV concentrations across every strike and expiry at a glance"
+                  overview={
+                    <>
+                      The Heat Map compresses the entire option chain into a color-graded grid.
+                      Rows are strikes, columns are expiries, and cell color intensity encodes
+                      the metric (Open Interest or Implied Volatility). Instead of scrolling
+                      through hundreds of numbers, you spot institutional positioning in one
+                      glance — where the walls are, where money is rolling to, and where
+                      liquidity is thin.
+                    </>
+                  }
+                  legend={[
+                    {
+                      label: "Deep Green",
+                      text: "Highest value in that column. For OI on Put side = strongest support; on Call side = strongest resistance.",
+                      color: "#059669",
+                    },
+                    {
+                      label: "Light Green",
+                      text: "Elevated positioning — secondary support/resistance level worth watching.",
+                      color: "#34d399",
+                    },
+                    {
+                      label: "Amber / Neutral",
+                      text: "Moderate positioning. Watch for shifts across refreshes — a cell turning amber → green mid-session signals fresh writer commitment.",
+                      color: "#f59e0b",
+                    },
+                    {
+                      label: "Light Red",
+                      text: "Below-average OI/IV — thin liquidity zone; price can move quickly through it.",
+                      color: "#f87171",
+                    },
+                    {
+                      label: "Deep Red",
+                      text: "Lowest OI/IV in the column — practically empty strike, no writer defense.",
+                      color: "#dc2626",
+                    },
+                  ]}
+                  sections={[
+                    {
+                      heading: "OI Heat Map",
+                      body: (
+                        <>
+                          Colors are scaled by absolute Open Interest per expiry column. Dark
+                          green blocks on the Put side identify the market's floor; dark green
+                          on the Call side identify the ceiling. Multi-expiry green columns on
+                          the same strike = a very strong long-term level.
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "IV Heat Map",
+                      body: (
+                        <>
+                          Colors are scaled by Implied Volatility. IV skew is instantly
+                          visible: if OTM Puts glow red-hot while OTM Calls stay cool, the
+                          market is paying up for downside protection — a classic sign of
+                          hedging / fear.
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "Multi-Expiry View",
+                      body: (
+                        <>
+                          Compare the current expiry against next-month and quarterly expiries
+                          side-by-side. When OI on a strike is <strong>shifting outward</strong>{" "}
+                          (near expiry cooling, next expiry heating) that's a rollover — a
+                          bullish continuation signal. When it's shrinking everywhere, it's
+                          unwinding.
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "Strike Count Filter",
+                      body: (
+                        <>
+                          Limits the grid to N strikes around ATM. Keep it tight (10–15) for
+                          intraday decisions, widen it (30+) when studying long-term
+                          positioning or unusual OTM buildup.
+                        </>
+                      ),
+                    },
+                  ]}
+                  howToUse={
+                    <>
+                      Start with the OI map to locate the strongest S/R walls. Switch to the IV
+                      map to see if any strike is being aggressively bought (rising IV) — that's
+                      often smart-money positioning ahead of an event. Sudden color changes on
+                      the next refresh are your <strong>leading indicator</strong> — writers
+                      move first, price follows.
+                    </>
+                  }
+                  tips={[
+                    "Data auto-refreshes every 3 minutes during market hours to avoid API rate limits.",
+                    "A single deep-green cell isolated from its neighbours is often a targeted institutional trade — worth investigating.",
+                    "IV rising across all OTM strikes simultaneously = broad market fear (VIX-like signal).",
+                    "For directional bias: compare max-green Put strike vs max-green Call strike — the wider the gap, the more range-bound the expected move.",
                   ]}
                 />
               </div>
