@@ -739,7 +739,17 @@ const OTR = () => {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2">
                         <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                        <PageInfoButton title="Options Trading Range (OTR)" description="Uses Call and Put OI concentrations to project an expected intraday/expiry trading range. Buy/Sell markers appear on EMA 10/30 crossovers for directional bias." />
+                        <PageInfoButton
+                          title="Options Trading Range (OTR)"
+                          description="Projects an expected intraday / expiry trading range from Call and Put OI concentrations, with EMA 10/30 crossovers plotted as Buy/Sell signals."
+                          details={[
+                            { label: "Upper Range", text: "Derived from highest Call OI — expected ceiling for the session/expiry", color: "#ef4444" },
+                            { label: "Lower Range", text: "Derived from highest Put OI — expected floor for the session/expiry", color: "#10b981" },
+                            { label: "Buy Marker", text: "EMA 10 crosses above EMA 30 — bullish momentum trigger", color: "#22c55e" },
+                            { label: "Sell Marker", text: "EMA 10 crosses below EMA 30 — bearish momentum trigger", color: "#dc2626" },
+                            { label: "How to use", text: "Trade mean-reversion within the range; treat a decisive close outside the range as a breakout signal for the next OI wall. Signals near range edges have the best risk-reward." },
+                          ]}
+                        />
                         <Button
                           variant="ghost"
                           size="icon"
