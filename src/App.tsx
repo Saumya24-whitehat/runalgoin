@@ -145,6 +145,7 @@ const App = () => (
                 <Route path="/dev/candlestick-patterns" element={<CandlestickPatternChart />} />
                 <Route path="/api-monitor" element={<ApiMonitor />} />
                 <Route path="/holidays" element={<Holidays />} />
+                <Route path="/trending-stocks" element={<TrendingStocks />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
