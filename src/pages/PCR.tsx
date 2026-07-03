@@ -471,16 +471,114 @@ const PCR = () => {
                     <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                   </div>
                   <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isFetching} />
-                  <PageInfoButton
+                  <PageInfoModal
                     title="Put-Call Ratio (PCR)"
-                    description="Aggregate ratio of Put OI to Call OI for an expiry. A contrarian sentiment indicator that also reveals writer positioning."
-                    details={[
-                      { label: "Formula", text: "PCR = Total Put OI ÷ Total Call OI (also computed on volume and around ATM)" },
-                      { label: "PCR > 1.3", text: "Bullish — put writers confident, downside protected", color: "#10b981" },
-                      { label: "PCR 0.8 – 1.3", text: "Neutral / range-bound, no clear directional bias", color: "#f59e0b" },
-                      { label: "PCR < 0.7", text: "Bearish — call writers confident, upside capped", color: "#ef4444" },
-                      { label: "ATM PCR", text: "Focuses on strikes near spot — a faster, more sensitive read on intraday sentiment shifts than total PCR." },
-                      { label: "How to use", text: "Rising PCR through the day with rising spot = strong long buildup. Falling PCR with falling spot = strong short buildup. Cross-check with the Sentiment Gauge and Intraday chart." },
+                    subtitle="Aggregate sentiment gauge derived from options positioning"
+                    overview={
+                      <>
+                        The Put-Call Ratio is the single most widely-watched options sentiment
+                        metric. It compares the total Open Interest (or volume) of Puts against
+                        Calls for the selected expiry. Because option writers are typically
+                        institutional players defending their strikes, PCR reveals where the
+                        smart money has committed capital — not just what retail is buying.
+                      </>
+                    }
+                    formula={{
+                      expression:
+                        "PCR (OI)     = Total Put OI     ÷ Total Call OI\nPCR (Volume) = Total Put Volume ÷ Total Call Volume\nATM PCR      = Put OI ± N strikes ÷ Call OI ± N strikes",
+                      note: "OI PCR reflects standing positions; Volume PCR reflects today's fresh activity. ATM PCR is the most sensitive to intraday sentiment shifts.",
+                    }}
+                    legend={[
+                      {
+                        label: "PCR > 1.3",
+                        text: "Bullish — heavy put writing, market makers confident downside is protected.",
+                        color: "#059669",
+                      },
+                      {
+                        label: "PCR 1.0 – 1.3",
+                        text: "Mildly bullish — put writers modestly ahead of call writers.",
+                        color: "#34d399",
+                      },
+                      {
+                        label: "PCR 0.8 – 1.0",
+                        text: "Neutral / range-bound — balanced positioning, no directional bias.",
+                        color: "#f59e0b",
+                      },
+                      {
+                        label: "PCR 0.5 – 0.8",
+                        text: "Mildly bearish — call writers gaining confidence, upside capped.",
+                        color: "#f87171",
+                      },
+                      {
+                        label: "PCR < 0.5",
+                        text: "Bearish — heavy call writing, market expects downside or sideways action.",
+                        color: "#dc2626",
+                      },
+                    ]}
+                    sections={[
+                      {
+                        heading: "Contrarian Interpretation",
+                        body: (
+                          <>
+                            At <strong>extreme</strong> readings PCR flips into a contrarian
+                            signal. A PCR &gt; 1.8 in a euphoric market often marks a top
+                            (everyone's already long). A PCR &lt; 0.4 in a panicked market
+                            often marks a bottom (capitulation puts). Use the Sentiment Gauge
+                            below to visualize how far from neutral you are.
+                          </>
+                        ),
+                      },
+                      {
+                        heading: "ATM PCR — the leading indicator",
+                        body: (
+                          <>
+                            Total PCR includes deep OTM strikes that rarely trade. ATM PCR
+                            focuses on the strikes actually driving delta — this is what you
+                            watch <strong>tick-by-tick</strong> for intraday direction changes.
+                            Divergence between ATM PCR and Total PCR often precedes a reversal.
+                          </>
+                        ),
+                      },
+                      {
+                        heading: "Intraday Chart",
+                        body: (
+                          <>
+                            Tracks PCR through the session against spot price. Look for:
+                            <ul className="mt-2 space-y-1 list-disc pl-5">
+                              <li>PCR rising with spot rising = strong long buildup ✅</li>
+                              <li>PCR falling with spot falling = strong short buildup ❌</li>
+                              <li>PCR rising while spot falls = short covering into resistance</li>
+                              <li>PCR falling while spot rises = long unwinding, weak rally</li>
+                            </ul>
+                          </>
+                        ),
+                      },
+                      {
+                        heading: "Spot vs MMA",
+                        body: (
+                          <>
+                            Overlays spot on a Moving Momentum Average of PCR. When spot
+                            crosses the MMA with PCR confirming direction, momentum trades
+                            have the highest probability.
+                          </>
+                        ),
+                      },
+                    ]}
+                    howToUse={
+                      <>
+                        Don't trade PCR in isolation — combine it with{" "}
+                        <strong>price action</strong> and <strong>OI walls</strong>. A rising
+                        PCR near Strong Support is a high-conviction long setup; a falling PCR
+                        near Strong Resistance is a high-conviction short setup. On expiry
+                        days, PCR loses reliability as OI naturally collapses — switch to
+                        Volume PCR instead.
+                      </>
+                    }
+                    tips={[
+                      "Change the timeframe to smooth noise — 5-min for intraday, 15-min for swing bias.",
+                      "Compare index PCR vs Bank Nifty PCR — divergence often signals sector rotation.",
+                      "PCR resets at 9:15 — the first 30 minutes are noisy; wait for the trend to stabilize.",
+                      "For a cleaner directional read, use the PCR Long/Short page which strips out unwinding noise.",
                     ]}
                   />
                   <div className="flex items-center gap-1.5">
