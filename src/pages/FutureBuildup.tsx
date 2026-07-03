@@ -517,15 +517,87 @@ export default function FutureBuildup() {
           </div>
 
           <LastRefreshBadge lastRefresh={buildupData?.lastUpdated ? new Date(buildupData.lastUpdated) : null} isFetching={isFetching} />
-          <PageInfoButton
+          <PageInfoModal
             title="Futures Buildup"
-            description="Classifies every F&O stock by change in Price vs change in Open Interest to reveal how positions are being built in the futures segment."
-            details={[
-              { label: "Long Buildup", text: "Price ↑ + OI ↑ — fresh long positions, bullish conviction", color: "#10b981" },
-              { label: "Short Buildup", text: "Price ↓ + OI ↑ — fresh short positions, bearish conviction", color: "#ef4444" },
-              { label: "Short Covering", text: "Price ↑ + OI ↓ — shorts exiting, bounce (not fresh longs)", color: "#3b82f6" },
-              { label: "Long Unwinding", text: "Price ↓ + OI ↓ — longs booking profit, weakness (not fresh shorts)", color: "#f59e0b" },
-              { label: "How to use", text: "Filter by category to find stocks with the strongest institutional conviction. Long/Short Buildup lists are momentum candidates; Unwinding/Covering lists often mark trend exhaustion." },
+            subtitle="Classify every F&O stock by Price × OI change to reveal true positioning"
+            overview={
+              <>
+                Every F&O stock is classified into one of four buckets based on today's
+                <strong> price change </strong>vs today's <strong>Open Interest change</strong>.
+                This single 2×2 matrix cuts through the noise: it tells you whether a stock
+                is being <em>genuinely bought/sold</em> with fresh conviction, or whether
+                traders are merely closing existing positions.
+              </>
+            }
+            formula={{
+              label: "Classification Matrix",
+              expression:
+                "                  OI  ↑                    OI  ↓\nPrice ↑    Long Buildup          Short Covering\nPrice ↓    Short Buildup         Long Unwinding",
+              note: "Fresh positions require BOTH price and OI to move together. When they move apart, existing positions are being closed.",
+            }}
+            legend={[
+              {
+                label: "Long Buildup",
+                text: "Price ↑ + OI ↑ — fresh long positions, strong bullish conviction. Trend has fuel to continue.",
+                color: "#059669",
+              },
+              {
+                label: "Short Buildup",
+                text: "Price ↓ + OI ↑ — fresh short positions, strong bearish conviction. Downtrend has real weight.",
+                color: "#dc2626",
+              },
+              {
+                label: "Short Covering",
+                text: "Price ↑ + OI ↓ — shorts exiting under pressure. Bounce, not a fresh rally — often fades.",
+                color: "#3b82f6",
+              },
+              {
+                label: "Long Unwinding",
+                text: "Price ↓ + OI ↓ — longs booking profit / stopping out. Weakness, but not fresh shorts — often finds support.",
+                color: "#f59e0b",
+              },
+            ]}
+            sections={[
+              {
+                heading: "Why the Distinction Matters",
+                body: (
+                  <>
+                    A 3% up move looks the same on a chart whether it's Long Buildup or
+                    Short Covering — but their forward implications are opposite:
+                    <ul className="mt-2 space-y-1 list-disc pl-5">
+                      <li>Long Buildup rallies typically <strong>extend</strong> — buy dips.</li>
+                      <li>Short Covering rallies typically <strong>fade</strong> — sell strength.</li>
+                      <li>Short Buildup selloffs typically <strong>extend</strong> — sell bounces.</li>
+                      <li>Long Unwinding selloffs typically <strong>stabilize</strong> — nibble at support.</li>
+                    </ul>
+                  </>
+                ),
+              },
+              {
+                heading: "Filters & Sorting",
+                body: (
+                  <>
+                    Filter by category to focus on one type of setup. Sort by % OI change or
+                    % price change to surface the most extreme names — those are the ones
+                    with the strongest institutional participation today.
+                  </>
+                ),
+              },
+            ]}
+            howToUse={
+              <>
+                Screen the <strong>Long Buildup</strong> list for momentum long candidates
+                and the <strong>Short Buildup</strong> list for momentum shorts. Avoid
+                chasing Short Covering rallies and Long Unwinding dips — those often mark
+                trend exhaustion, not new trends. Confirm with sector strength and index
+                direction.
+              </>
+            }
+            tips={[
+              "Highest-conviction setups: Long/Short Buildup with >5% OI change and >2% price change.",
+              "Sector clusters matter — if 5+ IT stocks show Long Buildup, the whole sector is being accumulated.",
+              "Watch Buildup vs Rollover together: rising rollover + long buildup = highest-conviction bullish continuation.",
+              "In the last hour of expiry week, Unwinding/Covering dominate — normal settlement flow, don't over-read it.",
             ]}
           />
 
