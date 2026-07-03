@@ -178,7 +178,16 @@ const Indices = () => {
           </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Indices</h1>
-            <PageInfoButton title="Indices" description="Live snapshot of major Indian indices — Nifty, Bank Nifty, Sensex, and sectoral indices — with day change and constituent breadth." />
+            <PageInfoButton
+              title="Indices"
+              description="Live snapshot of major Indian indices — broad-market, sectoral, and thematic — with day change and constituent breadth."
+              details={[
+                { label: "LTP & Change %", text: "Real-time index level and percentage change from previous close", color: "#3b82f6" },
+                { label: "Advances / Declines", text: "Count of constituents up vs down — breadth confirms or contradicts the headline index move", color: "#10b981" },
+                { label: "Sectoral Indices", text: "Nifty IT, Bank, Auto, Pharma, FMCG etc. — spot rotation and where money is flowing today" },
+                { label: "How to use", text: "Click any index to drill into constituents, technicals, deliveries and shareholding. Weak breadth on an up day (few advances) often precedes reversals." },
+              ]}
+            />
           </div>
         </div>
 
