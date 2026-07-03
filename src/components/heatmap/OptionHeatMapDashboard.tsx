@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Flame, Clock, RefreshCw } from "lucide-react";
