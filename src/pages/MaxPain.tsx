@@ -29,7 +29,7 @@ import {
   Info,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   BarChart,
