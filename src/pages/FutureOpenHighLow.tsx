@@ -23,7 +23,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureOpenHighLow, fetchFutureExpiryDates, OpenHighLowItem } from "@/services/futureOpenHighLowApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -380,14 +380,84 @@ export default function FutureOpenHighLow() {
 
             {/* Last Updated */}
             <LastRefreshBadge lastRefresh={openHighLowData?.lastUpdated ? new Date(openHighLowData.lastUpdated) : null} isFetching={isFetching} />
-            <PageInfoButton
+            <PageInfoModal
               title="Future Open-High / Open-Low"
-              description="Identifies futures contracts where the day's Open equals the High (Open = High, bearish) or the Open equals the Low (Open = Low, bullish). One of the strongest single-day directional signals."
-              details={[
-                { label: "Open = Low", text: "Price never traded below the open — strong bullish bias, buyers in control from bell to close", color: "#10b981" },
-                { label: "Open = High", text: "Price never traded above the open — strong bearish bias, sellers dominant all day", color: "#ef4444" },
-                { label: "Confirmation", text: "Higher weight when accompanied by rising OI (fresh positions) and above-average volume", color: "#f59e0b" },
-                { label: "How to use", text: "Best used in the first 30–60 minutes of the session as an intraday bias filter. Combine with Buildup category for higher-conviction trades." },
+              subtitle="Identify futures with the strongest single-day directional signals"
+              overview={
+                <>
+                  When a futures contract opens at its <strong>low</strong> and never trades
+                  below (Open = Low), buyers were in control from bell to close — one of the
+                  most reliable single-day bullish signals in derivatives trading. The
+                  mirror pattern (Open = High) is equally powerful bearish evidence. This
+                  page scans the entire F&O universe for both patterns in real time.
+                </>
+              }
+              formula={{
+                label: "Detection Criteria",
+                expression:
+                  "Open = Low   →  Bullish   (Day Low  ≥ Open − ε)\nOpen = High  →  Bearish   (Day High ≤ Open + ε)\nε = small tolerance for tick noise",
+                note: "Best signals appear when the pattern is intact through the first 60 minutes and confirmed by rising OI + above-average volume.",
+              }}
+              legend={[
+                {
+                  label: "Open = Low (Bullish)",
+                  text: "Buyers dominated from open. Every dip was bought. High-probability continuation candidates.",
+                  color: "#059669",
+                },
+                {
+                  label: "Open = High (Bearish)",
+                  text: "Sellers dominated from open. Every bounce was sold. High-probability continuation shorts.",
+                  color: "#dc2626",
+                },
+                {
+                  label: "With rising OI",
+                  text: "Confirmation — fresh positions are being built, not just intraday scalping. Signal strength doubles.",
+                  color: "#3b82f6",
+                },
+                {
+                  label: "With falling OI",
+                  text: "Warning — the move is driven by short-covering (bullish case) or long-unwinding (bearish case). Fade risk higher.",
+                  color: "#f59e0b",
+                },
+              ]}
+              sections={[
+                {
+                  heading: "Why It Works",
+                  body: (
+                    <>
+                      A stock that never trades below its open has an extraordinarily
+                      one-sided order flow — every attempt to sell was met with a stronger
+                      bid. That imbalance rarely evaporates overnight; it typically extends
+                      into the next 1–3 sessions. Institutional accumulation often shows
+                      this footprint first.
+                    </>
+                  ),
+                },
+                {
+                  heading: "Best Time to Read",
+                  body: (
+                    <>
+                      Signals are most actionable in the <strong>first 30–60 minutes</strong>{" "}
+                      of the session while the pattern is still intact. If a stock still
+                      shows Open = Low at 10:30, the probability of a strong close-to-close
+                      move is significantly higher.
+                    </>
+                  ),
+                },
+              ]}
+              howToUse={
+                <>
+                  Filter by Bullish or Bearish to focus on one side of the market. Cross-check
+                  each name against the Futures Buildup page — Open = Low + Long Buildup is
+                  a near-textbook momentum long setup. Enter on a minor pullback with a stop
+                  just below the day's open.
+                </>
+              }
+              tips={[
+                "Best odds when the market itself (Nifty) is trending in the same direction.",
+                "Avoid the pattern on illiquid contracts — thin volume produces false positives.",
+                "If a stock breaks below its open after being Open = Low all morning, the failure itself is a short signal.",
+                "Track how many names show each pattern — >20 bullish patterns = broad market strength.",
               ]}
             />
 

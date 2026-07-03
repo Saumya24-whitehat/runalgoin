@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { fetchFutureRollover, fetchFutureExpiryDates, RolloverItem } from "@/services/futureRolloverApi";
 import { supabase } from "@/integrations/supabase/client";
@@ -316,16 +316,96 @@ export default function FutureRollover() {
             </div>
             <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} symbols</span>
             <LastRefreshBadge lastRefresh={rolloverData ? new Date() : null} isFetching={isFetching} />
-            <PageInfoButton
+            <PageInfoModal
               title="Futures Rollover"
-              description="Percentage of futures positions being carried forward from the near-month expiry to the next expiry — a key gauge of trader conviction in the ongoing trend."
-              details={[
-                { label: "Formula", text: "Rollover % = Next-month OI ÷ (Near-month OI + Next-month OI) × 100" },
-                { label: "> 50%", text: "High rollover — majority of positions rolled forward, strong conviction in current trend", color: "#10b981" },
-                { label: "30% – 50%", text: "Moderate rollover — mixed conviction, watch price for confirmation", color: "#f59e0b" },
-                { label: "< 30%", text: "Low rollover — positions being squared off, trend fatigue / reversal risk", color: "#ef4444" },
-                { label: "Cost of Carry", text: "High rollover at a positive premium (contango) is bullish; high rollover at a discount is bearish" },
-                { label: "How to use", text: "Most valuable in the last week of expiry. Compare a stock's rollover vs its 3-month average and vs Nifty rollover to spot outliers." },
+              subtitle="Track how positions migrate from near-month to next-month expiry"
+              overview={
+                <>
+                  In the final week of every expiry cycle, traders decide whether to close
+                  positions or <strong>roll them forward</strong> to the next month. Rollover %
+                  measures the share of open interest that got rolled — a direct read on
+                  trader <em>conviction</em> in the ongoing trend. High rollover with positive
+                  cost-of-carry is one of the strongest medium-term bullish signals in
+                  Indian derivatives.
+                </>
+              }
+              formula={{
+                expression:
+                  "Rollover % = Next-month OI ÷ (Near-month OI + Next-month OI) × 100\n\n3-Month Avg = mean(Rollover% for last 3 expiries)",
+                note: "Compare each stock's current rollover to its own 3-month average and to Nifty's rollover — outliers on either side are the interesting names.",
+              }}
+              legend={[
+                {
+                  label: "> 75%",
+                  text: "Exceptional conviction — trend expected to extend strongly into next month.",
+                  color: "#059669",
+                },
+                {
+                  label: "50% – 75%",
+                  text: "Healthy rollover — majority of positions carried forward, trend intact.",
+                  color: "#34d399",
+                },
+                {
+                  label: "30% – 50%",
+                  text: "Mixed — some doubt creeping in. Watch price for confirmation.",
+                  color: "#f59e0b",
+                },
+                {
+                  label: "< 30%",
+                  text: "Weak rollover — positions being squared off, trend fatigue / potential reversal.",
+                  color: "#dc2626",
+                },
+              ]}
+              sections={[
+                {
+                  heading: "Cost of Carry Reads the Direction",
+                  body: (
+                    <>
+                      Rollover % alone tells you conviction; combined with the cost-of-carry
+                      (next-month premium/discount vs near-month), it tells you direction:
+                      <ul className="mt-2 space-y-1 list-disc pl-5">
+                        <li><strong>High rollover + premium (contango)</strong> = bullish rollover — longs paying up to stay long.</li>
+                        <li><strong>High rollover + discount (backwardation)</strong> = bearish rollover — shorts paying up to stay short.</li>
+                        <li><strong>Low rollover + premium</strong> = longs booking profits — trend exhaustion up.</li>
+                        <li><strong>Low rollover + discount</strong> = shorts covering — potential reversal up.</li>
+                      </ul>
+                    </>
+                  ),
+                },
+                {
+                  heading: "When to Look",
+                  body: (
+                    <>
+                      Rollover data becomes meaningful in the <strong>last 5 sessions</strong>{" "}
+                      of the expiry cycle and is definitive on expiry day itself. Prior to
+                      that, low rollover is normal and shouldn't be over-interpreted.
+                    </>
+                  ),
+                },
+                {
+                  heading: "Comparing to Averages",
+                  body: (
+                    <>
+                      A stock rolling at 80% vs a 3-month average of 55% is unusually bullish —
+                      even if the market rolled at only 60% overall, this stock stands out.
+                      That relative comparison is where the alpha lives.
+                    </>
+                  ),
+                },
+              ]}
+              howToUse={
+                <>
+                  On expiry day, sort by rollover % and focus on names that are{" "}
+                  <strong>meaningfully above their 3-month average</strong>. Combine with
+                  price trend for direction: high rollover in an uptrend = long continuation
+                  candidate; high rollover in a downtrend = short continuation candidate.
+                </>
+              }
+              tips={[
+                "Nifty & Bank Nifty typical rollover: 70–80%. Individual stocks: 60–90% range.",
+                "Rollover under 40% for a whole sector often signals institutional exit — worth investigating.",
+                "Rollover cost (spread ÷ near-month price × 100) rising sharply = strong bullish carry demand.",
+                "The Avg Rollover badge shows the market-wide reading — compare individual names to that baseline.",
               ]}
             />
           </div>
