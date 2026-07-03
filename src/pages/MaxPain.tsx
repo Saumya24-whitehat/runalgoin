@@ -470,7 +470,17 @@ const MaxPain = () => {
 
               <div className="flex items-center gap-3">
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton title="Max Pain" description="The strike price at which option writers experience the least aggregate loss on expiry — commonly used as a gravity point that spot prices tend toward near expiry." />
+                <PageInfoButton
+                  title="Max Pain"
+                  description="The strike price at which option writers experience the least aggregate loss (and buyers the most pain) at expiry. Spot tends to gravitate toward this level as expiry approaches."
+                  details={[
+                    { label: "Formula", text: "For every strike, compute total value of all ITM CE + PE. The strike with the minimum total loss = Max Pain." },
+                    { label: "Spot > Max Pain", text: "Bearish pull — writers benefit if price drops toward Max Pain", color: "#ef4444" },
+                    { label: "Spot < Max Pain", text: "Bullish pull — writers benefit if price rises toward Max Pain", color: "#10b981" },
+                    { label: "Spot ≈ Max Pain", text: "Equilibrium — expect range-bound / pinning action", color: "#f59e0b" },
+                    { label: "How to use", text: "Most reliable in the final 1–2 sessions before expiry. Combine with OI walls (Strong Support / Resistance) for higher-conviction directional bias." },
+                  ]}
+                />
                 {countdown && (
                   <span className="flex items-center gap-1">
                     <Timer className="h-3 w-3" /> {countdown}
