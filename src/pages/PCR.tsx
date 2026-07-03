@@ -29,7 +29,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, TrendingUp, Clock, RefreshCw, Timer, ChevronLeft, ChevronRight } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { format } from "date-fns";
 
