@@ -517,7 +517,17 @@ export default function FutureBuildup() {
           </div>
 
           <LastRefreshBadge lastRefresh={buildupData?.lastUpdated ? new Date(buildupData.lastUpdated) : null} isFetching={isFetching} />
-          <PageInfoButton title="Futures Buildup" description="Classifies stocks by price and Open Interest change into Long Buildup, Short Buildup, Long Unwinding, and Short Covering to reveal futures positioning." />
+          <PageInfoButton
+            title="Futures Buildup"
+            description="Classifies every F&O stock by change in Price vs change in Open Interest to reveal how positions are being built in the futures segment."
+            details={[
+              { label: "Long Buildup", text: "Price ↑ + OI ↑ — fresh long positions, bullish conviction", color: "#10b981" },
+              { label: "Short Buildup", text: "Price ↓ + OI ↑ — fresh short positions, bearish conviction", color: "#ef4444" },
+              { label: "Short Covering", text: "Price ↑ + OI ↓ — shorts exiting, bounce (not fresh longs)", color: "#3b82f6" },
+              { label: "Long Unwinding", text: "Price ↓ + OI ↓ — longs booking profit, weakness (not fresh shorts)", color: "#f59e0b" },
+              { label: "How to use", text: "Filter by category to find stocks with the strongest institutional conviction. Long/Short Buildup lists are momentum candidates; Unwinding/Covering lists often mark trend exhaustion." },
+            ]}
+          />
 
           {/* Info Button */}
           <Popover>
