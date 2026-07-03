@@ -28,7 +28,7 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 import { fetchPCRLongShortData, LongShortTimeData, LongShortStrikeData } from "@/services/pcrLongShortApi";
 import { toast } from "sonner";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 
 interface SymbolsData {
   indexSymbols: string[];
