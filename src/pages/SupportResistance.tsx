@@ -532,7 +532,18 @@ const SupportResistance = () => {
           <MarketClosedBanner />
           <div className="flex justify-end mb-2">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
-            <PageInfoButton title="Support & Resistance" description="Derives intraday support and resistance levels from Call/Put OI concentrations. Highest Call OI acts as resistance; highest Put OI acts as support." />
+            <PageInfoButton
+              title="Support & Resistance"
+              description="Derives intraday support and resistance levels from Call and Put OI concentrations at each strike."
+              details={[
+                { label: "Strong Resistance", text: "Strike with the highest Call OI — heaviest call writing, hardest ceiling", color: "#dc2626" },
+                { label: "Resistance", text: "Strike with the 2nd-highest Call OI — secondary supply zone", color: "#f87171" },
+                { label: "Current Spot", text: "Live index / stock price, plotted between the S/R bands", color: "#e5e7eb" },
+                { label: "Support", text: "Strike with the 2nd-highest Put OI — secondary demand zone", color: "#34d399" },
+                { label: "Strong Support", text: "Strike with the highest Put OI — heaviest put writing, hardest floor", color: "#059669" },
+                { label: "How to use", text: "Trade the range between Strong Support and Strong Resistance. A decisive close beyond either usually triggers OI unwinding and a fast move to the next OI wall." },
+              ]}
+            />
           </div>
           {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">
