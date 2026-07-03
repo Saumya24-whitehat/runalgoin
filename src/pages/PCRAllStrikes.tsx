@@ -968,7 +968,17 @@ export default function PCRAllStrikes() {
                   <div className="h-4 w-px bg-border" />
 
                   <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isRefreshing} />
-                  <PageInfoButton title="PCR — All Strikes" description="Displays Put-Call Ratio computed across every strike in the option chain, helping identify strike-level support/resistance based on OI imbalances." />
+                  <PageInfoButton
+                    title="PCR — All Strikes"
+                    description="Displays Put-Call Ratio (PCR) at every strike of the chosen expiry. Reveals strike-level support/resistance and where option writers are most active."
+                    details={[
+                      { label: "Formula", text: "PCR = Put OI ÷ Call OI at each strike" },
+                      { label: "PCR > 1", text: "Put writing dominant → that strike acts as support", color: "#10b981" },
+                      { label: "PCR < 1", text: "Call writing dominant → that strike acts as resistance", color: "#ef4444" },
+                      { label: "PCR ≈ 1", text: "Balanced positioning, no strong bias at that level", color: "#f59e0b" },
+                      { label: "How to use", text: "Highest-PCR strike below spot = strong support; lowest-PCR strike above spot = strong resistance. Track how PCR shifts through the day for intraday bias." },
+                    ]}
+                  />
 
                   {countdown && (
                     <div className="flex items-center gap-1">
