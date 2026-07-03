@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { format } from "date-fns";
 
 interface SymbolGroup {
