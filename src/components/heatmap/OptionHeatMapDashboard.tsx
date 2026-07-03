@@ -163,7 +163,16 @@ export function OptionHeatMapDashboard() {
               <div className="flex items-center gap-2">
                 <Flame className="h-5 w-5 text-orange-500" />
                 <h1 className="text-lg font-heading font-semibold">Option Heat Map</h1>
-                <PageInfoButton title="Option Heat Map" description="Visualizes OI and IV concentrations across strikes and expiries in a heat-map layout to quickly spot institutional positioning." />
+                <PageInfoButton
+                  title="Option Heat Map"
+                  description="Visualizes OI and IV concentrations across strikes and expiries in a color-graded grid so you can spot institutional positioning at a glance."
+                  details={[
+                    { label: "Dark green cells", text: "Highest OI / IV in that column — strongest support if PE, strongest resistance if CE", color: "#10b981" },
+                    { label: "Dark red cells", text: "Lowest OI / IV — areas of thin liquidity, price often moves quickly through them", color: "#ef4444" },
+                    { label: "Amber cells", text: "Moderate positioning — watch for shifts across refreshes", color: "#f59e0b" },
+                    { label: "How to use", text: "Compare current expiry vs next expiries to see if positions are rolling out (bullish continuation) or being unwound. Sudden color changes in a strike often precede breakouts." },
+                  ]}
+                />
               </div>
 
               {/* Refresh Info */}
