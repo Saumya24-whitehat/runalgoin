@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useState, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -114,10 +115,13 @@ export default function StockScreeners() {
       <Navbar />
       <main className="flex-1 container mx-auto px-4 py-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold flex items-center gap-2">
-            <Search className="h-6 w-6 text-primary" />
-            Stock Screener
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold flex items-center gap-2">
+              <Search className="h-6 w-6 text-primary" />
+              Stock Screener
+            </h1>
+            <PageInfoButton title="Stock Screeners" description="Preset and custom scans across the market — technical, fundamental, and derivatives-based — to shortlist trading candidates." />
+          </div>
           <p className="text-muted-foreground text-sm mt-1">
             Scan stocks using technical, fundamental, and price-based conditions
           </p>

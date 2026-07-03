@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, Flame, Clock, RefreshCw } from "lucide-react";
@@ -162,6 +163,7 @@ export function OptionHeatMapDashboard() {
               <div className="flex items-center gap-2">
                 <Flame className="h-5 w-5 text-orange-500" />
                 <h1 className="text-lg font-heading font-semibold">Option Heat Map</h1>
+                <PageInfoButton title="Option Heat Map" description="Visualizes OI and IV concentrations across strikes and expiries in a heat-map layout to quickly spot institutional positioning." />
               </div>
 
               {/* Refresh Info */}

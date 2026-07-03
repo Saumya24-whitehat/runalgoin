@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
 import { resolveExpiry } from "@/utils/resolveExpiryType";
@@ -1191,6 +1192,10 @@ const OptionSimulator = () => {
 
       <ProFeatureGate featureName="Option Simulator">
         <main className="flex-1 container mx-auto px-2 py-3">
+          <div className="flex items-center gap-2 mb-4">
+            <h1 className="text-xl font-bold text-foreground">Option Simulator</h1>
+            <PageInfoButton title="Option Simulator" description="Historical replay of multi-leg option strategies with adjustment rules, tick-by-tick P&L, and Greeks. Simulate strategies across past sessions to validate ideas." />
+          </div>
           {/* Simulator Toolbar - Responsive */}
           <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">
             {/* Mobile: Simplified controls */}

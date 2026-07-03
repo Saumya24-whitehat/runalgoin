@@ -1,3 +1,4 @@
+import { PageInfoButton } from "@/components/PageInfoButton";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -175,7 +176,10 @@ const Indices = () => {
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="h-8 w-8">
             <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h1 className="text-2xl font-bold">Indices</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Indices</h1>
+            <PageInfoButton title="Indices" description="Live snapshot of major Indian indices — Nifty, Bank Nifty, Sensex, and sectoral indices — with day change and constituent breadth." />
+          </div>
         </div>
 
         {/* Tabs */}
