@@ -532,16 +532,90 @@ const SupportResistance = () => {
           <MarketClosedBanner />
           <div className="flex justify-end mb-2">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loading} />
-            <PageInfoButton
+            <PageInfoModal
               title="Support & Resistance"
-              description="Derives intraday support and resistance levels from Call and Put OI concentrations at each strike."
-              details={[
-                { label: "Strong Resistance", text: "Strike with the highest Call OI — heaviest call writing, hardest ceiling", color: "#dc2626" },
-                { label: "Resistance", text: "Strike with the 2nd-highest Call OI — secondary supply zone", color: "#f87171" },
-                { label: "Current Spot", text: "Live index / stock price, plotted between the S/R bands", color: "#e5e7eb" },
-                { label: "Support", text: "Strike with the 2nd-highest Put OI — secondary demand zone", color: "#34d399" },
-                { label: "Strong Support", text: "Strike with the highest Put OI — heaviest put writing, hardest floor", color: "#059669" },
-                { label: "How to use", text: "Trade the range between Strong Support and Strong Resistance. A decisive close beyond either usually triggers OI unwinding and a fast move to the next OI wall." },
+              subtitle="Intraday OI-derived support and resistance levels"
+              overview={
+                <>
+                  This page identifies the strongest intraday <strong>support</strong> and{" "}
+                  <strong>resistance</strong> levels for any F&O symbol by analyzing where option
+                  writers have built the largest positions. The core idea: option writers defend
+                  the strikes they've sold, so heavy Call OI acts as a ceiling and heavy Put OI
+                  acts as a floor.
+                </>
+              }
+              formula={{
+                label: "How Levels Are Derived",
+                expression:
+                  "Strong Resistance = Strike with MAX(Call OI)\nResistance     = Strike with 2nd MAX(Call OI)\nSupport        = Strike with 2nd MAX(Put OI)\nStrong Support = Strike with MAX(Put OI)",
+                note: "Calculated on the currently selected expiry only. Historical mode re-computes levels using OI snapshots for that date.",
+              }}
+              legend={[
+                {
+                  label: "Strong Resistance",
+                  text: "Strike with the highest Call OI — heaviest call writing, the hardest ceiling for the session.",
+                  color: "#dc2626",
+                },
+                {
+                  label: "Resistance",
+                  text: "Strike with the 2nd-highest Call OI — secondary supply zone, often tested before the main level.",
+                  color: "#f87171",
+                },
+                {
+                  label: "Current Spot",
+                  text: "Live index / stock price, plotted between the S/R bands so you can gauge distance to each wall.",
+                  color: "#94a3b8",
+                },
+                {
+                  label: "Support",
+                  text: "Strike with the 2nd-highest Put OI — secondary demand zone below current price.",
+                  color: "#34d399",
+                },
+                {
+                  label: "Strong Support",
+                  text: "Strike with the highest Put OI — heaviest put writing, the hardest floor for the session.",
+                  color: "#059669",
+                },
+              ]}
+              sections={[
+                {
+                  heading: "Why It Works",
+                  body: (
+                    <>
+                      Option writers are typically well-capitalized players (institutions,
+                      prop desks) who defend their positions actively. When spot approaches a
+                      heavy Call OI strike, writers hedge by shorting futures — creating real
+                      selling pressure. The reverse happens at heavy Put OI strikes. These
+                      dynamics turn OI concentrations into self-fulfilling price magnets.
+                    </>
+                  ),
+                },
+                {
+                  heading: "Intraday Chart",
+                  body: (
+                    <>
+                      The chart below tracks how these S/R levels evolve tick-by-tick through
+                      the session. Sudden shifts in Strong Support / Strong Resistance
+                      strikes often signal that writers are repositioning — a leading
+                      indicator of a breakout.
+                    </>
+                  ),
+                },
+              ]}
+              howToUse={
+                <>
+                  Trade mean-reversion within the range: buy near Strong Support with a stop
+                  just below it, sell near Strong Resistance with a stop just above. A{" "}
+                  <strong>decisive close</strong> outside either level usually triggers OI
+                  unwinding and a fast move to the next OI wall — treat that as a breakout
+                  signal, not a fade opportunity.
+                </>
+              }
+              tips={[
+                "Combine with PCR and Max Pain for high-conviction reversal or breakout trades.",
+                "On expiry day, spot often pins to the strike with the highest total OI (Max Pain) — check that page too.",
+                "If Strong Support and Strong Resistance are very close, expect low-volatility, range-bound action.",
+                "Watch for the S/R strikes changing during the session — that shift itself is a signal writers are losing conviction.",
               ]}
             />
           </div>
