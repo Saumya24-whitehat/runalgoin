@@ -29,7 +29,7 @@ import {
   Info,
 } from "lucide-react";
 import { format } from "date-fns";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import {
   BarChart,
@@ -470,15 +470,93 @@ const MaxPain = () => {
 
               <div className="flex items-center gap-3">
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton
+                <PageInfoModal
                   title="Max Pain"
-                  description="The strike price at which option writers experience the least aggregate loss (and buyers the most pain) at expiry. Spot tends to gravitate toward this level as expiry approaches."
-                  details={[
-                    { label: "Formula", text: "For every strike, compute total value of all ITM CE + PE. The strike with the minimum total loss = Max Pain." },
-                    { label: "Spot > Max Pain", text: "Bearish pull — writers benefit if price drops toward Max Pain", color: "#ef4444" },
-                    { label: "Spot < Max Pain", text: "Bullish pull — writers benefit if price rises toward Max Pain", color: "#10b981" },
-                    { label: "Spot ≈ Max Pain", text: "Equilibrium — expect range-bound / pinning action", color: "#f59e0b" },
-                    { label: "How to use", text: "Most reliable in the final 1–2 sessions before expiry. Combine with OI walls (Strong Support / Resistance) for higher-conviction directional bias." },
+                  subtitle="The expiry-day gravity point where option writers pay the least"
+                  overview={
+                    <>
+                      Max Pain is the strike at which the <strong>total value of all
+                      in-the-money options at expiry is minimized</strong> — meaning option
+                      buyers collectively lose the most (maximum pain) and option writers
+                      collectively lose the least. Since writers are typically institutions
+                      that hedge their positions aggressively, their delta-hedging activity
+                      exerts a real gravitational pull on spot toward this level as expiry
+                      approaches.
+                    </>
+                  }
+                  formula={{
+                    label: "Calculation",
+                    expression:
+                      "For each strike K:\n  Payout(K) = Σ Call OI[i] × max(K − Strike[i], 0)\n            + Σ Put  OI[i] × max(Strike[i] − K, 0)\n\nMax Pain = argmin(Payout(K))",
+                    note: "In plain terms: for every possible expiry price, sum what writers would owe. The price with the smallest total payout is Max Pain.",
+                  }}
+                  legend={[
+                    {
+                      label: "Spot > Max Pain",
+                      text: "Bearish pull — writers hedge by selling futures, pressuring price down toward Max Pain.",
+                      color: "#dc2626",
+                    },
+                    {
+                      label: "Spot < Max Pain",
+                      text: "Bullish pull — writers hedge by buying futures, lifting price up toward Max Pain.",
+                      color: "#059669",
+                    },
+                    {
+                      label: "Spot ≈ Max Pain",
+                      text: "Equilibrium — expect pinning / range-bound action, especially in the final expiry sessions.",
+                      color: "#f59e0b",
+                    },
+                  ]}
+                  sections={[
+                    {
+                      heading: "When Max Pain Works Best",
+                      body: (
+                        <>
+                          Max Pain's predictive power increases as expiry nears:
+                          <ul className="mt-2 space-y-1 list-disc pl-5">
+                            <li><strong>1 week before expiry:</strong> weak signal, don't trade off it alone.</li>
+                            <li><strong>3 days before:</strong> gravity starts showing, useful as a bias filter.</li>
+                            <li><strong>Expiry day:</strong> strongest signal — spot frequently pins ±0.5% of Max Pain by close.</li>
+                          </ul>
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "Intraday Max Pain Chart",
+                      body: (
+                        <>
+                          The chart below tracks how Max Pain <strong>shifts</strong> through
+                          the session. A rising Max Pain suggests writers are re-hedging
+                          upward (bullish); a falling Max Pain suggests the opposite. Sudden
+                          shifts often signal large block trades or event-driven positioning.
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "Payout Distribution",
+                      body: (
+                        <>
+                          The bar chart shows total writer payout at each strike. A sharp
+                          V-shape at Max Pain means strong pinning gravity; a flat curve means
+                          weak pull — spot can drift freely.
+                        </>
+                      ),
+                    },
+                  ]}
+                  howToUse={
+                    <>
+                      On expiry day, use Max Pain as your <strong>directional bias</strong>{" "}
+                      and OI walls as your <strong>entry/exit levels</strong>. Sell options
+                      whose strikes are far from Max Pain (they're likely to expire
+                      worthless). Avoid buying options betting <em>against</em> the Max Pain
+                      pull unless there's a strong external catalyst.
+                    </>
+                  }
+                  tips={[
+                    "Max Pain is a probabilistic magnet, not a certainty — news and events routinely override it.",
+                    "Combine with Strong Support / Strong Resistance: when all three align, expiry pinning is very likely.",
+                    "Watch Max Pain shift 30 min before expiry — the final resting point often locks in there.",
+                    "Historical mode: pick past expiries to see how reliably spot pinned to Max Pain in your instrument.",
                   ]}
                 />
                 {countdown && (

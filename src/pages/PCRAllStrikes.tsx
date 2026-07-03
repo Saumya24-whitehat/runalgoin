@@ -38,7 +38,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchPCRAllStrikesData, PCRAllStrikesTimeData } from "@/services/pcrAllStrikesApi";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
@@ -968,15 +968,99 @@ export default function PCRAllStrikes() {
                   <div className="h-4 w-px bg-border" />
 
                   <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isRefreshing} />
-                  <PageInfoButton
+                  <PageInfoModal
                     title="PCR — All Strikes"
-                    description="Displays Put-Call Ratio (PCR) at every strike of the chosen expiry. Reveals strike-level support/resistance and where option writers are most active."
-                    details={[
-                      { label: "Formula", text: "PCR = Put OI ÷ Call OI at each strike" },
-                      { label: "PCR > 1", text: "Put writing dominant → that strike acts as support", color: "#10b981" },
-                      { label: "PCR < 1", text: "Call writing dominant → that strike acts as resistance", color: "#ef4444" },
-                      { label: "PCR ≈ 1", text: "Balanced positioning, no strong bias at that level", color: "#f59e0b" },
-                      { label: "How to use", text: "Highest-PCR strike below spot = strong support; lowest-PCR strike above spot = strong resistance. Track how PCR shifts through the day for intraday bias." },
+                    subtitle="Strike-by-strike Put-Call Ratio revealing precise S/R zones"
+                    overview={
+                      <>
+                        Instead of one aggregate PCR number for the whole expiry, this page
+                        computes PCR at <strong>every single strike</strong>. The result is a
+                        map of exactly where put writers dominate (supports) and where call
+                        writers dominate (resistances) — with strike-level precision that
+                        aggregate PCR can never give you.
+                      </>
+                    }
+                    formula={{
+                      expression: "Strike PCR = Put OI at Strike ÷ Call OI at Strike",
+                      note: "Computed independently for each strike listed in the option chain.",
+                    }}
+                    legend={[
+                      {
+                        label: "PCR ≥ 2.0",
+                        text: "Overwhelming put writing — very strong support level, defended aggressively.",
+                        color: "#059669",
+                      },
+                      {
+                        label: "PCR 1.2 – 2.0",
+                        text: "Put writers dominant — reliable support zone.",
+                        color: "#34d399",
+                      },
+                      {
+                        label: "PCR 0.8 – 1.2",
+                        text: "Balanced positioning — neutral zone, no strong writer bias.",
+                        color: "#f59e0b",
+                      },
+                      {
+                        label: "PCR 0.5 – 0.8",
+                        text: "Call writers dominant — reliable resistance zone.",
+                        color: "#f87171",
+                      },
+                      {
+                        label: "PCR ≤ 0.5",
+                        text: "Overwhelming call writing — very strong resistance level, capped hard.",
+                        color: "#dc2626",
+                      },
+                    ]}
+                    sections={[
+                      {
+                        heading: "Reading the Table",
+                        body: (
+                          <>
+                            Scan the column top-to-bottom around the ATM strike. The pattern
+                            usually looks like: low PCR at OTM Calls (resistance), rising
+                            through ATM, then high PCR at OTM Puts (support). Anomalies — a
+                            strike with very high PCR sitting above spot, or very low PCR
+                            below spot — are the most interesting: they signal fresh
+                            positioning that hasn't yet been priced in.
+                          </>
+                        ),
+                      },
+                      {
+                        heading: "Historical Time-Travel",
+                        body: (
+                          <>
+                            Pick a past date to see how strike-PCR was distributed then.
+                            Excellent for reviewing whether S/R walls at critical event days
+                            (results, expiry, RBI) held or broke — and why.
+                          </>
+                        ),
+                      },
+                      {
+                        heading: "Intraday Evolution",
+                        body: (
+                          <>
+                            The most valuable use is watching how strike-PCR{" "}
+                            <strong>shifts through the day</strong>. A PCR jump on a
+                            near-spot strike within one hour is a lead-indicator that writers
+                            are building a new S/R level right now — trade with them.
+                          </>
+                        ),
+                      },
+                    ]}
+                    howToUse={
+                      <>
+                        Find the <strong>highest-PCR strike below spot</strong> — that's your
+                        support. Find the <strong>lowest-PCR strike above spot</strong> —
+                        that's your resistance. Trade the range with tight stops just beyond
+                        each wall. If price closes decisively through a wall, expect the next
+                        S/R to be hit quickly as writers unwind.
+                      </>
+                    }
+                    tips={[
+                      "Ignore very deep OTM strikes with tiny OI — the PCR number is unreliable at low liquidity.",
+                      "Sort by PCR to instantly rank strikes by writer conviction.",
+                      "Consecutive high-PCR strikes = a support zone, not just a level — very hard to break.",
+                      "Compare with Support & Resistance page: matching signals = highest-conviction levels.",
                     ]}
                   />
 

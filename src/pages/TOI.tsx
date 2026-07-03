@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -545,15 +545,86 @@ const TOI = () => {
                 )}
 
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton
+                <PageInfoModal
                   title="Total Open Interest (TOI)"
-                  description="Aggregate Open Interest across every strike of an expiry, tracked over the session. TOI trend combined with price trend reveals what kind of positions are being built."
-                  details={[
-                    { label: "Price ↑ + TOI ↑", text: "Long buildup — fresh bullish positions, trend likely to continue", color: "#10b981" },
-                    { label: "Price ↓ + TOI ↑", text: "Short buildup — fresh bearish positions, downtrend gaining strength", color: "#ef4444" },
-                    { label: "Price ↑ + TOI ↓", text: "Short covering — bounce, not a genuine reversal", color: "#f59e0b" },
-                    { label: "Price ↓ + TOI ↓", text: "Long unwinding — profit booking, weakness but not fresh shorts", color: "#f59e0b" },
-                    { label: "How to use", text: "Read TOI direction alongside spot on every refresh. Persistent divergence between price and OI often precedes a reversal." },
+                  subtitle="Session-long aggregate OI trend — the pulse of positional flow"
+                  overview={
+                    <>
+                      TOI is the sum of Open Interest across every Call (and separately every
+                      Put) strike of the selected expiry, tracked tick-by-tick through the
+                      session. On its own it's just a number — but paired with spot direction,
+                      it tells you exactly <strong>what kind of positions</strong> are being
+                      built or unwound in real time. This is the foundation of every
+                      OI-based analysis.
+                    </>
+                  }
+                  formula={{
+                    expression:
+                      "Call TOI = Σ Call OI across all strikes\nPut  TOI = Σ Put  OI across all strikes\nΔ TOI    = TOI(now) − TOI(prev close)",
+                    note: "Direction of ΔTOI paired with spot direction classifies the position type (see Interpretation).",
+                  }}
+                  legend={[
+                    {
+                      label: "Price ↑ + TOI ↑",
+                      text: "Long Buildup — fresh bullish positions being added, trend has fuel to continue.",
+                      color: "#059669",
+                    },
+                    {
+                      label: "Price ↓ + TOI ↑",
+                      text: "Short Buildup — fresh bearish positions being added, downtrend gaining strength.",
+                      color: "#dc2626",
+                    },
+                    {
+                      label: "Price ↑ + TOI ↓",
+                      text: "Short Covering — shorts exiting, bounce likely temporary (not fresh longs).",
+                      color: "#f59e0b",
+                    },
+                    {
+                      label: "Price ↓ + TOI ↓",
+                      text: "Long Unwinding — longs booking profit, weakness but not fresh shorts.",
+                      color: "#f97316",
+                    },
+                  ]}
+                  sections={[
+                    {
+                      heading: "Call TOI vs Put TOI",
+                      body: (
+                        <>
+                          Separating the two makes bias crystal clear:
+                          <ul className="mt-2 space-y-1 list-disc pl-5">
+                            <li>Put TOI rising faster than Call TOI = writers see downside as limited → bullish.</li>
+                            <li>Call TOI rising faster than Put TOI = writers see upside as capped → bearish.</li>
+                            <li>Both rising together = increased hedging, volatility ahead.</li>
+                            <li>Both falling together = position squaring, expect range contraction.</li>
+                          </ul>
+                        </>
+                      ),
+                    },
+                    {
+                      heading: "Divergence Signals",
+                      body: (
+                        <>
+                          Persistent divergence between price and TOI often precedes reversals.
+                          A market grinding higher while Call TOI keeps rising means writers
+                          are increasingly confident of a top — one bad session can trigger a
+                          sharp mean-reversion move.
+                        </>
+                      ),
+                    },
+                  ]}
+                  howToUse={
+                    <>
+                      Check the TOI classification on every refresh — it's the fastest way to
+                      confirm whether a price move is <strong>genuine</strong> (fresh
+                      buildup) or <strong>fake</strong> (just covering/unwinding). Trade with
+                      the buildup, fade the covering.
+                    </>
+                  }
+                  tips={[
+                    "TOI grows steadily through the expiry cycle — compare today's ΔTOI to typical weekly range for context.",
+                    "Big TOI jumps in the first hour usually signal event-driven positioning (news, block deals).",
+                    "TOI drops sharply on expiry day due to settlement — don't misread it as unwinding.",
+                    "Combine with Buildup page to see which specific stocks are driving the aggregate change.",
                   ]}
                 />
 
