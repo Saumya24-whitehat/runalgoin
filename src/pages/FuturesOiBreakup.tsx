@@ -130,9 +130,86 @@ export default function FuturesOiBreakup() {
             <p className="text-muted-foreground mt-1">Intraday OI analysis with price and VWAP correlation</p>
             <div className="flex items-center gap-2">
               <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
-              <PageInfoButton
+              <PageInfoModal
                 title="Futures OI Breakup"
-                description="Intraday analysis of futures Open Interest alongside price and VWAP. Helps identify buildup patterns and market sentiment through OI-price correlation."
+                subtitle="Intraday OI + Price + VWAP correlation for a single futures contract"
+                overview={
+                  <>
+                    Where the Buildup page classifies the whole market, this page drills into
+                    a <strong>single futures contract</strong> tick-by-tick. It overlays
+                    Open Interest, Price, and VWAP on one timeline so you can see the exact
+                    moments during the session when fresh positions were built, unwound,
+                    or flipped — with the context of whether price was above or below the
+                    session's fair value.
+                  </>
+                }
+                legend={[
+                  {
+                    label: "Price line",
+                    text: "Intraday futures LTP — the tape you're trying to trade.",
+                    color: "#3b82f6",
+                  },
+                  {
+                    label: "OI bars/line",
+                    text: "Cumulative Open Interest. Rising = fresh positions; falling = position closing.",
+                    color: "#8b5cf6",
+                  },
+                  {
+                    label: "VWAP",
+                    text: "Volume-Weighted Average Price — the day's true 'fair value'. Institutions use it as their execution benchmark.",
+                    color: "#f59e0b",
+                  },
+                  {
+                    label: "Price > VWAP + OI ↑",
+                    text: "Aggressive long buildup — buyers paying above fair value, high conviction.",
+                    color: "#059669",
+                  },
+                  {
+                    label: "Price < VWAP + OI ↑",
+                    text: "Aggressive short buildup — sellers hitting bids below fair value, high conviction.",
+                    color: "#dc2626",
+                  },
+                ]}
+                sections={[
+                  {
+                    heading: "Reading the Correlation",
+                    body: (
+                      <>
+                        The magic is watching Price, OI, and VWAP move together:
+                        <ul className="mt-2 space-y-1 list-disc pl-5">
+                          <li>Price + OI both rising above VWAP = trend day up, buy dips to VWAP.</li>
+                          <li>Price rising while OI falls = short covering rally, don't chase.</li>
+                          <li>Price + OI both falling below VWAP = trend day down, sell rallies to VWAP.</li>
+                          <li>Price falling while OI falls = long unwinding, dip likely to hold.</li>
+                        </ul>
+                      </>
+                    ),
+                  },
+                  {
+                    heading: "Why VWAP Matters",
+                    body: (
+                      <>
+                        Institutions execute large orders benchmarked to VWAP. When price
+                        holds above VWAP with OI rising, institutional buyers are willing to
+                        pay a premium to fair value — a very strong bullish tell.
+                      </>
+                    ),
+                  },
+                ]}
+                howToUse={
+                  <>
+                    Use this page for <strong>trade timing</strong> on a specific contract
+                    you're already directionally biased on. Enter longs when price pulls
+                    back to VWAP with OI still rising; enter shorts when price rallies to
+                    VWAP with OI still rising in a downtrend. Exit if OI direction reverses.
+                  </>
+                }
+                tips={[
+                  "Best on liquid index futures (Nifty, Bank Nifty) — thin stock futures produce noisy OI curves.",
+                  "OI spikes on 5-min bars often mark large block trades — worth investigating the print time.",
+                  "Persistent OI additions while price coils near VWAP = imminent breakout; direction follows the next OI push.",
+                  "Combine with the Options S/R page for the strike walls that price is likely to gravitate toward.",
+                ]}
               />
             </div>
           </div>
