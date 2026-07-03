@@ -16,7 +16,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import LTPCalculatorModal from "@/components/LTPCalculatorModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
 import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "lucide-react";
