@@ -120,7 +120,16 @@ export default function StockScreeners() {
               <Search className="h-6 w-6 text-primary" />
               Stock Screener
             </h1>
-            <PageInfoButton title="Stock Screeners" description="Preset and custom scans across the market — technical, fundamental, and derivatives-based — to shortlist trading candidates." />
+            <PageInfoButton
+              title="Stock Screeners"
+              description="Preset and custom scans across the entire NSE universe — technical, fundamental, and derivatives-based filters to shortlist trading candidates in seconds."
+              details={[
+                { label: "Preset Scans", text: "Ready-made categories — Breakouts, 52W Highs, Volume Shockers, RSI extremes, MA crossovers etc.", color: "#3b82f6" },
+                { label: "Custom Scan", text: "Build your own condition tree (Price, RSI, MACD, Volume, OI, PE ratio…) with AND / OR logic", color: "#10b981" },
+                { label: "Live Results", text: "Every scan re-runs against the latest market snapshot on refresh", color: "#f59e0b" },
+                { label: "How to use", text: "Start with a preset that matches your style, click any stock to open Stock Detail for deeper analysis, and save your best custom scans for one-click reuse." },
+              ]}
+            />
           </div>
           <p className="text-muted-foreground text-sm mt-1">
             Scan stocks using technical, fundamental, and price-based conditions

@@ -591,7 +591,18 @@ export default function FII() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-6">
           <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
-          <PageInfoButton title="FII / DII Activity" description="Tracks daily buy/sell activity of Foreign and Domestic Institutional Investors across cash and derivatives segments. Positive net values indicate accumulation; negative values indicate distribution." />
+          <PageInfoButton
+            title="FII / DII Activity"
+            description="Daily buy/sell activity of Foreign (FII) and Domestic (DII) Institutional Investors across cash and derivatives segments — the single biggest driver of Indian market direction."
+            details={[
+              { label: "Net Positive", text: "Institution is a net buyer — accumulation, supportive of prices", color: "#10b981" },
+              { label: "Net Negative", text: "Institution is a net seller — distribution, pressure on prices", color: "#ef4444" },
+              { label: "FII Cash", text: "FII flows in the equity cash segment — the most watched number by media & traders" },
+              { label: "FII Index Futures", text: "Positive net = FIIs long index futures (bullish hedge / directional bet)", color: "#3b82f6" },
+              { label: "FII Long / Short Ratio", text: "Ratio of open long vs short index-future positions; >1 = net long, <1 = net short — a strong medium-term sentiment gauge." },
+              { label: "How to use", text: "Sustained FII selling with DII buying = distribution days (correction risk). Both buying = strong uptrend. Watch the trend, not single-day prints." },
+            ]}
+          />
             <TabsList className="bg-muted/50">
               <TabsTrigger
                 value="summary"

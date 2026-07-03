@@ -1194,7 +1194,17 @@ const OptionSimulator = () => {
         <main className="flex-1 container mx-auto px-2 py-3">
           <div className="flex items-center gap-2 mb-4">
             <h1 className="text-xl font-bold text-foreground">Option Simulator</h1>
-            <PageInfoButton title="Option Simulator" description="Historical replay of multi-leg option strategies with adjustment rules, tick-by-tick P&L, and Greeks. Simulate strategies across past sessions to validate ideas." />
+            <PageInfoButton
+              title="Option Simulator"
+              description="Historical replay of multi-leg option strategies with adjustments, tick-by-tick P&L, and live Greeks — validate ideas against real past sessions."
+              details={[
+                { label: "Entry", text: "Pick a historical date & time; strategy legs are priced from real snapshots at that moment" },
+                { label: "Play / Step", text: "Advance the clock tick-by-tick or bar-by-bar to watch P&L and Greeks evolve", color: "#3b82f6" },
+                { label: "Adjustments", text: "Define Simple or Comparative triggers (e.g. spot > 24000, or CE_premium > PE_premium × 1.5) that auto-modify legs during replay", color: "#f59e0b" },
+                { label: "Multi-expiry", text: "Mix legs from different expiries — each leg's strike data is fetched in parallel for accurate combined P&L" },
+                { label: "How to use", text: "Backtest a strategy across event days (results, RBI policy, expiry) with realistic slippage and adjustments before deploying live." },
+              ]}
+            />
           </div>
           {/* Simulator Toolbar - Responsive */}
           <div className="flex flex-wrap items-center gap-1 mb-4 p-2 bg-card rounded-lg border">

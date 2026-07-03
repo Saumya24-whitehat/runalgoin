@@ -545,7 +545,17 @@ const TOI = () => {
                 )}
 
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton title="Total Open Interest (TOI)" description="Aggregate OI across all strikes of an expiry. Rising TOI with rising price signals fresh longs; rising TOI with falling price signals fresh shorts." />
+                <PageInfoButton
+                  title="Total Open Interest (TOI)"
+                  description="Aggregate Open Interest across every strike of an expiry, tracked over the session. TOI trend combined with price trend reveals what kind of positions are being built."
+                  details={[
+                    { label: "Price ↑ + TOI ↑", text: "Long buildup — fresh bullish positions, trend likely to continue", color: "#10b981" },
+                    { label: "Price ↓ + TOI ↑", text: "Short buildup — fresh bearish positions, downtrend gaining strength", color: "#ef4444" },
+                    { label: "Price ↑ + TOI ↓", text: "Short covering — bounce, not a genuine reversal", color: "#f59e0b" },
+                    { label: "Price ↓ + TOI ↓", text: "Long unwinding — profit booking, weakness but not fresh shorts", color: "#f59e0b" },
+                    { label: "How to use", text: "Read TOI direction alongside spot on every refresh. Persistent divergence between price and OI often precedes a reversal." },
+                  ]}
+                />
 
                 {countdown && (
                   <div className="flex items-center gap-1.5">

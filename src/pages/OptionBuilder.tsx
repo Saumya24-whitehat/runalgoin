@@ -716,7 +716,18 @@ const OptionBuilder = () => {
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center gap-2 mb-4">
               <h1 className="text-xl font-bold">Option Strategy Builder</h1>
-              <PageInfoButton title="Option Strategy Builder" description="Build multi-leg option strategies with real-time payoff, Greeks, and P&L charts. Supports options and futures legs, custom templates, and saved strategies." />
+              <PageInfoButton
+                title="Option Strategy Builder"
+                description="Build and analyze multi-leg option (and futures) strategies with live payoff, Greeks, and P&L — from a single naked leg to complex custom spreads."
+                details={[
+                  { label: "Payoff Chart", text: "X-axis auto-scales ±100 around your strikes; futures legs contribute linear P&L only", color: "#3b82f6" },
+                  { label: "Greeks Panel", text: "Aggregate Delta, Gamma, Theta, Vega for the entire position — track directional and time-decay exposure", color: "#f59e0b" },
+                  { label: "Spot Line", text: "Live vertical marker on the payoff chart shows current P&L at the live spot price" },
+                  { label: "Futures Legs", text: "Add LONG / SHORT futures to hedge or amplify — payoff range excludes futures, P&L includes them", color: "#10b981" },
+                  { label: "Save / Load", text: "Persist custom templates with target strikes (ATM, ATM+100, etc.) that resolve automatically on any symbol" },
+                  { label: "How to use", text: "Compose the strategy → review Max Profit / Max Loss / Breakevens → check Greeks → move it to the Simulator for a historical backtest before going live." },
+                ]}
+              />
             </div>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">

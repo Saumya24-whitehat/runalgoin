@@ -406,7 +406,17 @@ const PremiumDecay = () => {
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground invisible">Info</label>
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton title="Premium Decay" description="Tracks time-decay (theta erosion) of option premiums across strikes. Useful for option sellers to visualize how premiums bleed during the trading session." />
+                <PageInfoButton
+                  title="Premium Decay"
+                  description="Tracks how option premiums erode through the session — a direct visualization of theta at work. Essential for option sellers."
+                  details={[
+                    { label: "Decay Curve", text: "Premium of each strike plotted against time — steeper slope = faster theta erosion", color: "#3b82f6" },
+                    { label: "ATM Strikes", text: "Highest absolute theta — decay is fastest, but so is directional risk", color: "#f59e0b" },
+                    { label: "OTM Strikes", text: "Slower decay in absolute terms, but higher % decay — favoured by conservative sellers", color: "#10b981" },
+                    { label: "Expiry Day", text: "Decay accelerates non-linearly in the final hours — most rewarding but riskiest window", color: "#ef4444" },
+                    { label: "How to use", text: "Sell strikes where the curve is steepest relative to distance from spot. Avoid selling if IV is spiking — an IV jump can wipe out a full day of theta gains." },
+                  ]}
+                />
               </div>
             </div>
           </CardContent>

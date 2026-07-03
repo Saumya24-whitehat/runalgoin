@@ -19,7 +19,17 @@ const IPO = () => {
         </Button>
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">IPO Timetable</h1>
-          <PageInfoButton title="IPO Timetable" description="Upcoming, ongoing, and recently closed IPOs with subscription dates, price bands, and listing schedules." />
+          <PageInfoButton
+            title="IPO Timetable"
+            description="Calendar of Indian primary market activity — upcoming, ongoing, and recently listed IPOs with all subscription details."
+            details={[
+              { label: "Upcoming", text: "IPOs with an announced open date — plan your applications in advance" },
+              { label: "Open", text: "Currently accepting bids from investors — subscription window active", color: "#10b981" },
+              { label: "Closed / Listed", text: "Bidding done or already listed — review GMP, subscription and listing performance", color: "#3b82f6" },
+              { label: "Price Band", text: "Range within which retail investors must bid; final issue price is set within this band" },
+              { label: "How to use", text: "Check subscription levels across QIB / NII / Retail to gauge institutional demand before deciding to apply or track listing." },
+            ]}
+          />
         </div>
       </div>
 

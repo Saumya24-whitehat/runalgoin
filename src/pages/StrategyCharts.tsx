@@ -310,7 +310,16 @@ const StrategyCharts = () => {
           <main className="container py-6 space-y-6">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">Strategy OHLC Charts</h1>
-              <PageInfoButton title="Strategy OHLC Charts" description="Combined OHLC candlestick chart for a multi-leg option strategy, letting you visualize the strategy's price action as a single instrument." />
+              <PageInfoButton
+                title="Strategy OHLC Charts"
+                description="Combines every leg of a multi-leg option strategy into a single synthetic OHLC candlestick — read your strategy's price action the same way you read a stock chart."
+                details={[
+                  { label: "Synthetic Candle", text: "Each candle = net debit/credit of the strategy across all legs at that timestamp", color: "#3b82f6" },
+                  { label: "Bullish Candle", text: "Strategy value moved in your favour during the interval", color: "#10b981" },
+                  { label: "Bearish Candle", text: "Strategy value moved against you during the interval", color: "#ef4444" },
+                  { label: "How to use", text: "Apply standard chart analysis (support, resistance, trendlines) to the strategy itself — much cleaner than watching each leg individually. Great for spreads, straddles and iron condors." },
+                ]}
+              />
             </div>
             {/* Controls */}
             <Card className="bg-card/50 border-border/50">

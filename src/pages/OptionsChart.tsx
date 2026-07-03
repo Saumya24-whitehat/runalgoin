@@ -434,7 +434,16 @@ const OptionsChart = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">Options Chart</h1>
-              <PageInfoButton title="Options Chart" description="Intraday premium chart for a chosen strike/expiry with volume and OI overlays for visual analysis of option price action." />
+              <PageInfoButton
+                title="Options Chart"
+                description="Intraday premium chart for a chosen strike/expiry with volume and OI overlays, letting you read option price action like a stock chart."
+                details={[
+                  { label: "Price series", text: "Tick-by-tick LTP of the selected option contract during the session" },
+                  { label: "Volume", text: "Traded contracts per candle — spikes often mark entry/exit of large players", color: "#3b82f6" },
+                  { label: "OI overlay", text: "Change in Open Interest — rising OI + rising price = fresh buying; rising OI + falling price = fresh writing", color: "#f59e0b" },
+                  { label: "How to use", text: "Combine premium breakout with OI direction to distinguish genuine momentum from short-covering. Compare CE vs PE for the same strike to gauge directional conviction." },
+                ]}
+              />
             </div>
             <p className="text-sm text-muted-foreground">Advanced TradingView charting with NSE/NFO data</p>
           </div>

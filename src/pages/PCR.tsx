@@ -471,7 +471,18 @@ const PCR = () => {
                     <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                   </div>
                   <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isFetching} />
-                  <PageInfoButton title="Put-Call Ratio (PCR)" description="Ratio of Put OI to Call OI. Values >1 typically indicate bullish sentiment (put writing), values <1 indicate bearish sentiment (call writing). Includes ATM PCR and sentiment gauges." />
+                  <PageInfoButton
+                    title="Put-Call Ratio (PCR)"
+                    description="Aggregate ratio of Put OI to Call OI for an expiry. A contrarian sentiment indicator that also reveals writer positioning."
+                    details={[
+                      { label: "Formula", text: "PCR = Total Put OI ÷ Total Call OI (also computed on volume and around ATM)" },
+                      { label: "PCR > 1.3", text: "Bullish — put writers confident, downside protected", color: "#10b981" },
+                      { label: "PCR 0.8 – 1.3", text: "Neutral / range-bound, no clear directional bias", color: "#f59e0b" },
+                      { label: "PCR < 0.7", text: "Bearish — call writers confident, upside capped", color: "#ef4444" },
+                      { label: "ATM PCR", text: "Focuses on strikes near spot — a faster, more sensitive read on intraday sentiment shifts than total PCR." },
+                      { label: "How to use", text: "Rising PCR through the day with rising spot = strong long buildup. Falling PCR with falling spot = strong short buildup. Cross-check with the Sentiment Gauge and Intraday chart." },
+                    ]}
+                  />
                   <div className="flex items-center gap-1.5">
                     <Timer className="h-3.5 w-3.5" />
                     <span>Next Refresh: <span className="text-primary font-medium">{countdown || "--:--"}</span></span>

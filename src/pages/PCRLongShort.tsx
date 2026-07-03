@@ -436,7 +436,16 @@ const PCRLongShort = () => {
                   <span>Data Time: <span className="text-foreground font-medium">{currentTimeData?.time || "--:--"}</span></span>
                 </div>
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton title="PCR Long / Short" description="Segregates PCR into long buildup vs short buildup components to give a clearer view of whether option writing bias is bullish or bearish." />
+                <PageInfoButton
+                  title="PCR Long / Short"
+                  description="Decomposes PCR into long-buildup vs short-buildup components so you can tell whether option writing bias is genuinely bullish or bearish, not just a noisy ratio."
+                  details={[
+                    { label: "Long PCR", text: "Put OI growth vs Call OI growth on long-buildup strikes — rising = bullish writing pressure", color: "#10b981" },
+                    { label: "Short PCR", text: "Call OI growth vs Put OI growth on short-buildup strikes — rising = bearish writing pressure", color: "#ef4444" },
+                    { label: "Divergence", text: "When headline PCR and Long/Short PCR disagree, trust Long/Short — it filters out unwinding noise", color: "#f59e0b" },
+                    { label: "How to use", text: "Rising Long PCR + falling Short PCR = high-conviction bullish setup. The opposite = high-conviction bearish setup. Combine with S/R levels for entries." },
+                  ]}
+                />
                 <div className="flex items-center gap-1.5">
                   <Timer className="h-3.5 w-3.5" />
                   <span>Next Refresh: <span className="text-primary font-medium">{countdown || "--:--"}</span></span>

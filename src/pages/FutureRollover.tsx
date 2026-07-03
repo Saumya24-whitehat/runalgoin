@@ -316,7 +316,18 @@ export default function FutureRollover() {
             </div>
             <span className="text-xs text-muted-foreground">{filteredAndSortedData.length} symbols</span>
             <LastRefreshBadge lastRefresh={rolloverData ? new Date() : null} isFetching={isFetching} />
-            <PageInfoButton title="Futures Rollover" description="Shows rollover percentages of futures positions from the near month to the next expiry. Higher rollover with price/OI context indicates trader conviction in the ongoing trend." />
+            <PageInfoButton
+              title="Futures Rollover"
+              description="Percentage of futures positions being carried forward from the near-month expiry to the next expiry — a key gauge of trader conviction in the ongoing trend."
+              details={[
+                { label: "Formula", text: "Rollover % = Next-month OI ÷ (Near-month OI + Next-month OI) × 100" },
+                { label: "> 50%", text: "High rollover — majority of positions rolled forward, strong conviction in current trend", color: "#10b981" },
+                { label: "30% – 50%", text: "Moderate rollover — mixed conviction, watch price for confirmation", color: "#f59e0b" },
+                { label: "< 30%", text: "Low rollover — positions being squared off, trend fatigue / reversal risk", color: "#ef4444" },
+                { label: "Cost of Carry", text: "High rollover at a positive premium (contango) is bullish; high rollover at a discount is bearish" },
+                { label: "How to use", text: "Most valuable in the last week of expiry. Compare a stock's rollover vs its 3-month average and vs Nifty rollover to spot outliers." },
+              ]}
+            />
           </div>
 
           <Button onClick={handleExportCSV} variant="outline" className="gap-2">
