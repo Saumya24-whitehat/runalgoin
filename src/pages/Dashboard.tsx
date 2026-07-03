@@ -445,7 +445,11 @@ const Dashboard = () => {
         <Card className="bg-card border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2 px-3 sm:px-6">
             <CardTitle className="text-lg sm:text-xl font-semibold">Trending Stocks</CardTitle>
-            <a href="#" className="text-primary text-xs sm:text-sm hover:underline">
+            <a
+              href="/trending-stocks"
+              onClick={(e) => { e.preventDefault(); navigate("/trending-stocks"); }}
+              className="text-primary text-xs sm:text-sm hover:underline"
+            >
               View All ›
             </a>
           </CardHeader>
