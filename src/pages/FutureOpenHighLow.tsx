@@ -380,7 +380,16 @@ export default function FutureOpenHighLow() {
 
             {/* Last Updated */}
             <LastRefreshBadge lastRefresh={openHighLowData?.lastUpdated ? new Date(openHighLowData.lastUpdated) : null} isFetching={isFetching} />
-            <PageInfoButton title="Future Open-High / Open-Low" description="Highlights futures contracts whose open equals the day's high (bearish) or low (bullish) — often a strong intraday directional bias signal." />
+            <PageInfoButton
+              title="Future Open-High / Open-Low"
+              description="Identifies futures contracts where the day's Open equals the High (Open = High, bearish) or the Open equals the Low (Open = Low, bullish). One of the strongest single-day directional signals."
+              details={[
+                { label: "Open = Low", text: "Price never traded below the open — strong bullish bias, buyers in control from bell to close", color: "#10b981" },
+                { label: "Open = High", text: "Price never traded above the open — strong bearish bias, sellers dominant all day", color: "#ef4444" },
+                { label: "Confirmation", text: "Higher weight when accompanied by rising OI (fresh positions) and above-average volume", color: "#f59e0b" },
+                { label: "How to use", text: "Best used in the first 30–60 minutes of the session as an intraday bias filter. Combine with Buildup category for higher-conviction trades." },
+              ]}
+            />
 
             {/* Info Button */}
             <Popover>
