@@ -590,8 +590,8 @@ export default function FII() {
       <main className="flex-grow container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-6">
-          <PageInfoButton title="FII / DII Activity" description="Tracks daily buy/sell activity of Foreign and Domestic Institutional Investors across cash and derivatives segments. Positive net values indicate accumulation; negative values indicate distribution." />
           <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
+          <PageInfoButton title="FII / DII Activity" description="Tracks daily buy/sell activity of Foreign and Domestic Institutional Investors across cash and derivatives segments. Positive net values indicate accumulation; negative values indicate distribution." />
             <TabsList className="bg-muted/50">
               <TabsTrigger
                 value="summary"
