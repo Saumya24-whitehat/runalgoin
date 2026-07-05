@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -591,16 +591,32 @@ export default function FII() {
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <div className="flex items-center justify-between mb-6">
           <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
-          <PageInfoButton
+          <PageInfoModal
             title="FII / DII Activity"
-            description="Daily buy/sell activity of Foreign (FII) and Domestic (DII) Institutional Investors across cash and derivatives segments — the single biggest driver of Indian market direction."
-            details={[
-              { label: "Net Positive", text: "Institution is a net buyer — accumulation, supportive of prices", color: "#10b981" },
-              { label: "Net Negative", text: "Institution is a net seller — distribution, pressure on prices", color: "#ef4444" },
-              { label: "FII Cash", text: "FII flows in the equity cash segment — the most watched number by media & traders" },
-              { label: "FII Index Futures", text: "Positive net = FIIs long index futures (bullish hedge / directional bet)", color: "#3b82f6" },
-              { label: "FII Long / Short Ratio", text: "Ratio of open long vs short index-future positions; >1 = net long, <1 = net short — a strong medium-term sentiment gauge." },
-              { label: "How to use", text: "Sustained FII selling with DII buying = distribution days (correction risk). Both buying = strong uptrend. Watch the trend, not single-day prints." },
+            subtitle="The biggest single driver of Indian market direction"
+            overview="Daily buy/sell activity of Foreign (FII) and Domestic (DII) Institutional Investors across cash and derivatives segments. Nothing moves the Indian market like institutional flow."
+            legend={[
+              { label: "Net Positive", text: "Institution is a net buyer — accumulation, supportive", color: "#10b981" },
+              { label: "Net Negative", text: "Institution is a net seller — distribution, pressure", color: "#ef4444" },
+              { label: "FII Cash", text: "Equity cash flows — the most watched daily number", color: "#3b82f6" },
+              { label: "FII Index Futures", text: "Positive net = long futures (bullish bet/hedge)", color: "#8b5cf6" },
+              { label: "FII Long/Short Ratio", text: ">1 = net long, <1 = net short — medium-term sentiment gauge", color: "#f59e0b" },
+            ]}
+            sections={[
+              {
+                heading: "Reading the Combos",
+                body: "FII sell + DII buy = distribution (correction risk building). FII buy + DII buy = strong uptrend. FII buy + DII sell = short-term bounce, weak base. FII sell + DII sell = capitulation.",
+              },
+              {
+                heading: "The Trend, Not the Print",
+                body: "Single-day flows are noisy. 5-day and 20-day rolling sums are the real signal — that's where institutional intent shows.",
+              },
+            ]}
+            howToUse="Focus on the 5-day rolling flow, not any single day. Watch FII Long/Short ratio for medium-term positioning. Combine with breadth and PCR for confirmation."
+            tips={[
+              "FII Long/Short ratio dropping below 0.5 has historically preceded major corrections.",
+              "Persistent DII buying is what usually cushions FII selling during global sell-offs.",
+              "Cash + Futures net flow is a better read than either in isolation.",
             ]}
           />
             <TabsList className="bg-muted/50">

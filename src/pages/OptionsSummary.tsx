@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { Helmet } from "react-helmet";
 import { PageLayout } from "@/components/PageLayout";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -425,9 +425,28 @@ const OptionsSummary = () => {
           </div>
           <div className="flex items-center gap-2">
             <LastRefreshBadge lastRefresh={lastRefresh} />
-            <PageInfoButton
+            <PageInfoModal
               title="Options Summary"
-              description="Comprehensive options analytics dashboard showing OI profiles, support/resistance levels, PCR data, spot vs VWAP, and market breadth for the selected symbol and expiry."
+              subtitle="All-in-one options analytics dashboard"
+              overview="A single consolidated view of every important options metric for the selected symbol and expiry — OI profile, support/resistance, PCR, spot vs VWAP, and market breadth."
+              legend={[
+                { label: "OI Profile", text: "Horizontal Call vs Put OI across strikes — visualizes walls & pain zones", color: "#3b82f6" },
+                { label: "Support / Resistance", text: "Key strikes derived from OI clusters and Max Pain", color: "#10b981" },
+                { label: "PCR", text: "Put-Call Ratio — contrarian sentiment gauge", color: "#f59e0b" },
+                { label: "Spot vs VWAP", text: "Intraday premium/discount vs volume-weighted average", color: "#8b5cf6" },
+                { label: "Market Breadth", text: "Underlying index breadth to confirm/contradict options positioning", color: "#ef4444" },
+              ]}
+              sections={[
+                {
+                  heading: "Why One Screen",
+                  body: "Switching between 5 different pages breaks focus. Summary bundles the highest-signal metrics so you can form a directional bias in under 60 seconds.",
+                },
+              ]}
+              howToUse="Start with OI profile to see the walls, cross-check PCR for sentiment, confirm with spot-vs-VWAP for intraday bias, and finish with breadth for macro alignment."
+              tips={[
+                "Aligned signals across all 5 panels = highest-conviction trades.",
+                "One panel disagreeing is usually the early-warning signal for a shift.",
+              ]}
             />
           </div>
         </div>

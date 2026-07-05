@@ -16,7 +16,7 @@ import { fetchPCRData, PCRTimeData, PCRStrikeData } from "@/services/pcrApi";
 import { supabase } from "@/integrations/supabase/client";
 import { CalendarIcon, Loader2, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { format } from "date-fns";
 
 interface SymbolGroup {
@@ -201,9 +201,31 @@ const OIChangeTrend = () => {
         <main className="container px-3 sm:px-4 py-4 sm:py-6 space-y-4">
           <div className="flex items-center justify-end gap-2">
             <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
-            <PageInfoButton
+            <PageInfoModal
               title="OI Change Trend"
-              description="Track how Open Interest changes across strikes over time. Helps identify where smart money is positioning and key support/resistance levels forming."
+              subtitle="ATM-centered OI shift across time"
+              overview="Tracks how Open Interest changes at each strike over the session and across days. The ATM-centered PE Δ − CE Δ view reveals where smart money is building or unwinding positions."
+              formula={{
+                label: "Net OI Bias per Strike",
+                expression: "Net Δ = ΔPut OI − ΔCall OI",
+                note: "Positive = bullish positioning (put writers active). Negative = bearish (call writers active).",
+              }}
+              legend={[
+                { label: "Strong Put Add", text: "Large positive Δ — fresh support / bullish writers", color: "#10b981" },
+                { label: "Strong Call Add", text: "Large negative Δ — fresh resistance / bearish writers", color: "#ef4444" },
+                { label: "Neutral", text: "Small changes — no directional conviction", color: "#94a3b8" },
+              ]}
+              sections={[
+                {
+                  heading: "Reading the Table",
+                  body: "Scan rows for the ATM strike and 5-10 strikes on either side. Persistent one-directional additions signal a developing bias.",
+                },
+              ]}
+              howToUse="Use as a leading indicator — OI shifts often precede price moves. Combine with spot to confirm whether writers are being defended or overrun."
+              tips={[
+                "Big adds on ATM strikes are more meaningful than distant OTM adds.",
+                "Watch for reversal: heavy call writing that gets unwound = short-covering fuel.",
+              ]}
             />
           </div>
           {/* Controls */}

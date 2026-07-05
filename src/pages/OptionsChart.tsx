@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useEffect, useRef, useState } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -434,14 +434,25 @@ const OptionsChart = () => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">Options Chart</h1>
-              <PageInfoButton
+              <PageInfoModal
                 title="Options Chart"
-                description="Intraday premium chart for a chosen strike/expiry with volume and OI overlays, letting you read option price action like a stock chart."
-                details={[
-                  { label: "Price series", text: "Tick-by-tick LTP of the selected option contract during the session" },
-                  { label: "Volume", text: "Traded contracts per candle — spikes often mark entry/exit of large players", color: "#3b82f6" },
-                  { label: "OI overlay", text: "Change in Open Interest — rising OI + rising price = fresh buying; rising OI + falling price = fresh writing", color: "#f59e0b" },
-                  { label: "How to use", text: "Combine premium breakout with OI direction to distinguish genuine momentum from short-covering. Compare CE vs PE for the same strike to gauge directional conviction." },
+                subtitle="TradingView charting for option contracts"
+                overview="Full-featured intraday premium chart for a chosen strike/expiry with volume and OI overlays — read option price action with the same tools you use for stocks."
+                legend={[
+                  { label: "Price series", text: "Tick-by-tick LTP of the selected option contract", color: "#8b5cf6" },
+                  { label: "Volume", text: "Contracts per candle — spikes mark large-player entry/exit", color: "#3b82f6" },
+                  { label: "OI overlay", text: "Change in Open Interest — direction confirms buying vs writing", color: "#f59e0b" },
+                ]}
+                sections={[
+                  {
+                    heading: "Price + OI Combos",
+                    body: "Price ↑ + OI ↑ = fresh long buildup. Price ↑ + OI ↓ = short covering. Price ↓ + OI ↑ = fresh writing. Price ↓ + OI ↓ = long unwinding.",
+                  },
+                ]}
+                howToUse="Combine premium breakouts with OI direction to separate genuine momentum from short-covering. Compare CE vs PE on the same strike for directional conviction."
+                tips={[
+                  "Use standard indicators (EMA, VWAP, RSI) — they work on premium charts too.",
+                  "Look for premium consolidation before expiry — often a low-risk entry for directional bets.",
                 ]}
               />
             </div>

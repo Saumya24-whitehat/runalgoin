@@ -12,7 +12,7 @@ import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChar
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -200,9 +200,28 @@ const GreeksChart = () => {
         <main className="container py-6 space-y-6">
           <div className="flex items-center justify-end gap-2">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-            <PageInfoButton
+            <PageInfoModal
               title="Greeks Chart"
-              description="Visualize option Greeks (Delta, Gamma, Theta, Vega) for any strike over time. Track how Greeks change intraday to understand options pricing dynamics."
+              subtitle="Intraday visualization of option Greeks"
+              overview="Track Delta, Gamma, Theta and Vega for any strike over time. See how Greeks evolve intraday to understand the true forces driving option prices — not just the premium."
+              legend={[
+                { label: "Delta (Δ)", text: "Rate of change of premium vs spot. Range 0-1 for calls, 0 to -1 for puts", color: "#3b82f6" },
+                { label: "Gamma (Γ)", text: "Rate of change of Delta. Peaks at ATM, near expiry — the 'acceleration'", color: "#8b5cf6" },
+                { label: "Theta (Θ)", text: "Time decay per day. Negative for buyers, positive for sellers", color: "#f59e0b" },
+                { label: "Vega (ν)", text: "Sensitivity to IV changes. Highest for ATM and longer expiries", color: "#10b981" },
+              ]}
+              sections={[
+                {
+                  heading: "Intraday Behaviour",
+                  body: "Delta shifts with spot, Gamma explodes near ATM at expiry, Theta accelerates in the final hours, Vega collapses as IV crush hits post-events.",
+                },
+              ]}
+              howToUse="Sellers monitor Theta and Vega closely (want +ve Theta, low Vega risk). Buyers care about Delta and Gamma (need move + speed to overcome Theta)."
+              tips={[
+                "Gamma exposure is the hidden killer of short-option positions near expiry.",
+                "A rising Vega chart pre-event = market pricing in a move; sellers should reduce size.",
+                "Compare CE and PE Greeks at the same strike to spot skew opportunities.",
+              ]}
             />
           </div>
           {/* Controls Card */}

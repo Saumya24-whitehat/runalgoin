@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2 } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 
 interface TrendingStock {
   companyName: string;
@@ -155,15 +155,28 @@ export default function TrendingStocks() {
           <h1 className="text-xl sm:text-2xl font-semibold">Trending Stocks</h1>
           <div className="flex items-center gap-2">
             <LastRefreshBadge lastRefresh={lastRefresh} />
-            <PageInfoButton
+            <PageInfoModal
               title="Trending Stocks"
-              description="Live movers across the NSE — top gainers, losers, volume shockers, most-traded, 52-week highs/lows and popular tickers. Data refreshes every minute."
-              details={[
-                { label: "Top Gainers/Losers", text: "Largest % move vs previous close" },
-                { label: "Volume Shockers", text: "Unusual volume spikes vs their average" },
-                { label: "Top Volume", text: "Highest traded quantity today" },
-                { label: "52W High/Low", text: "Stocks hitting yearly extremes" },
-                { label: "Most Popular", text: "Most-viewed tickers on the platform" },
+              subtitle="Live movers across the NSE universe"
+              overview="Real-time snapshot of the most active names on the NSE — top gainers, losers, volume shockers, most-traded, 52-week highs/lows and popular tickers. Auto-refreshes every minute."
+              legend={[
+                { label: "Top Gainers / Losers", text: "Largest % move vs previous close", color: "#10b981" },
+                { label: "Volume Shockers", text: "Unusual volume spikes vs their 20-day average", color: "#f59e0b" },
+                { label: "Top Volume", text: "Highest traded quantity today", color: "#3b82f6" },
+                { label: "52W High / Low", text: "Stocks hitting yearly extremes — momentum extremes", color: "#ef4444" },
+                { label: "Most Popular", text: "Most-viewed tickers on the platform — crowd attention" },
+              ]}
+              sections={[
+                {
+                  heading: "Why It Matters",
+                  body: "Movers lists are the fastest way to spot rotation, news-driven bursts, and unusual institutional activity before it shows up in slower scans.",
+                },
+              ]}
+              howToUse="Scan gainers/losers for the day's leaders, cross-check volume shockers for genuine participation, and click any ticker to open Stock Detail for deeper analysis."
+              tips={[
+                "A gainer without volume support often fades — always confirm with volume.",
+                "Repeat appearances in volume shockers over 2-3 sessions signal accumulation/distribution.",
+                "52W highs breaking on high volume are stronger continuation candidates than isolated spikes.",
               ]}
             />
           </div>

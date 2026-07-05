@@ -8,7 +8,7 @@ import { ProFeatureGate } from "@/components/ProFeatureGate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { supabase } from "@/integrations/supabase/client";
 
 interface JackpotStock {
@@ -140,14 +140,32 @@ const JackpotScanner = () => {
             </div>
             <div className="flex items-center gap-2">
               <LastRefreshBadge lastRefresh={lastRefresh} />
-              <PageInfoButton
+              <PageInfoModal
                 title="Jackpot Scanner"
-                description="Identifies stocks with strong momentum signals by analyzing futures OI and price changes. Stocks are categorized into Long Buildup, Long Unwinding, Short Buildup, and Short Covering."
-                details={[
-                  { label: "Long Buildup", text: "Price ↑ + OI ↑ (Bullish)", color: "#4a90a4" },
-                  { label: "Long Unwinding", text: "Price ↓ + OI ↓ (Weak Bulls)", color: "#4a90a4" },
-                  { label: "Short Buildup", text: "Price ↓ + OI ↑ (Bearish)", color: "#d4837a" },
-                  { label: "Short Covering", text: "Price ↑ + OI ↓ (Weak Bears)", color: "#7cb987" },
+                subtitle="Momentum signals from futures OI + price"
+                overview="Cross-references futures Open Interest change against price change to classify every stock into one of four buildup categories — helping you identify where fresh smart money is entering and where positions are being unwound."
+                formula={{
+                  label: "Classification Matrix",
+                  expression: "Category = f(ΔPrice, ΔOI)",
+                  note: "Both ΔPrice and ΔOI measured vs previous close",
+                }}
+                legend={[
+                  { label: "Long Buildup", text: "Price ↑ + OI ↑ — fresh longs, bullish", color: "#10b981" },
+                  { label: "Short Covering", text: "Price ↑ + OI ↓ — bears exiting, weak bounce", color: "#7cb987" },
+                  { label: "Short Buildup", text: "Price ↓ + OI ↑ — fresh shorts, bearish", color: "#ef4444" },
+                  { label: "Long Unwinding", text: "Price ↓ + OI ↓ — bulls exiting, weak fall", color: "#f59e0b" },
+                ]}
+                sections={[
+                  {
+                    heading: "Reading the Signal",
+                    body: "Long Buildup + Short Buildup are the strongest directional signals (fresh conviction). Covering/Unwinding are exhaustion signals (existing positions closing).",
+                  },
+                ]}
+                howToUse="Filter by Long Buildup for bullish momentum plays, Short Buildup for bearish setups. Click any stock to view its full futures OI history and confirm the trend."
+                tips={[
+                  "Sector clustering matters — 3+ stocks in the same sector showing the same buildup is a stronger signal.",
+                  "Combine with volume — buildup on above-average volume is far more reliable.",
+                  "Avoid trading Long Unwinding as short — it's exit, not fresh selling.",
                 ]}
               />
             </div>

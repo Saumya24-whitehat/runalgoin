@@ -7,7 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
@@ -198,9 +198,35 @@ export default function MarketBreadth() {
       <ProFeatureGate featureName="Market Breadth Analysis">
         <div className="flex items-center justify-end gap-2 px-4 pt-2">
           <LastRefreshBadge lastRefresh={lastRefreshDate} isFetching={isLoading} />
-          <PageInfoButton
+          <PageInfoModal
             title="Market Breadth"
-            description="Visualize the internal strength of an index by showing advance/decline ratios, sector-wise breakdown, and individual stock performance within the selected index."
+            subtitle="Internal strength of an index"
+            overview="Reveals whether an index move is broad-based or driven by a handful of heavyweights. Combines advance/decline ratios, sector-wise breakdown, and per-stock performance within the selected index."
+            formula={{
+              label: "Advance / Decline Ratio",
+              expression: "A/D = (# stocks up) ÷ (# stocks down)",
+              note: "A/D > 1 = broad participation; A/D < 1 = narrow / weak rally",
+            }}
+            legend={[
+              { label: "Strong Breadth", text: "A/D > 2 — broad-based rally, sustainable", color: "#10b981" },
+              { label: "Neutral", text: "A/D between 0.5 and 2 — mixed action", color: "#f59e0b" },
+              { label: "Weak Breadth", text: "A/D < 0.5 — narrow move, reversal risk", color: "#ef4444" },
+            ]}
+            sections={[
+              {
+                heading: "Divergence Signals",
+                body: "Index up + breadth weak = distribution / topping. Index down + breadth strong = selling exhaustion / potential bottom.",
+              },
+              {
+                heading: "Sector Breakdown",
+                body: "Which sectors contributed most to the index move — spot rotation and confirm whether leadership is defensive or cyclical.",
+              },
+            ]}
+            howToUse="Use breadth to confirm the headline index — a big up move on weak breadth is a warning; consistent broad participation validates trends."
+            tips={[
+              "Watch for 5+ consecutive days of deteriorating breadth even as the index makes new highs.",
+              "Sector-level A/D helps identify the safest and weakest pockets in real time.",
+            ]}
           />
         </div>
         <div className="flex">

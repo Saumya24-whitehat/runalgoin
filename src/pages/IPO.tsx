@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -19,15 +19,27 @@ const IPO = () => {
         </Button>
         <div className="flex items-center gap-2">
           <h1 className="text-lg font-semibold">IPO Timetable</h1>
-          <PageInfoButton
+          <PageInfoModal
             title="IPO Timetable"
-            description="Calendar of Indian primary market activity — upcoming, ongoing, and recently listed IPOs with all subscription details."
-            details={[
-              { label: "Upcoming", text: "IPOs with an announced open date — plan your applications in advance" },
-              { label: "Open", text: "Currently accepting bids from investors — subscription window active", color: "#10b981" },
-              { label: "Closed / Listed", text: "Bidding done or already listed — review GMP, subscription and listing performance", color: "#3b82f6" },
-              { label: "Price Band", text: "Range within which retail investors must bid; final issue price is set within this band" },
-              { label: "How to use", text: "Check subscription levels across QIB / NII / Retail to gauge institutional demand before deciding to apply or track listing." },
+            subtitle="Indian primary market calendar"
+            overview="Complete calendar of Indian primary market activity — upcoming, ongoing, and recently listed IPOs with subscription levels, price bands, and listing performance."
+            legend={[
+              { label: "Upcoming", text: "Announced open date — plan applications in advance", color: "#8b5cf6" },
+              { label: "Open", text: "Currently accepting bids — subscription window active", color: "#10b981" },
+              { label: "Closed / Listed", text: "Bidding done or listed — review GMP & listing gains", color: "#3b82f6" },
+              { label: "Price Band", text: "Range within which retail must bid; final price set inside band", color: "#f59e0b" },
+            ]}
+            sections={[
+              {
+                heading: "Subscription Buckets",
+                body: "QIB (institutions), NII (HNIs) and Retail bid separately. Heavy QIB oversubscription is the strongest predictor of a positive listing.",
+              },
+            ]}
+            howToUse="Check subscription levels across QIB / NII / Retail before applying. Track listing performance to calibrate future application decisions."
+            tips={[
+              "QIB > 10x subscribed = strong institutional conviction, historically better listings.",
+              "Retail-only oversubscription with weak QIB is often a red flag.",
+              "GMP (grey-market premium) is indicative, not guaranteed — verify with subscription data.",
             ]}
           />
         </div>

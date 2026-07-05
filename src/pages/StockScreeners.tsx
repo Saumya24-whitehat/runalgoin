@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useState, useCallback } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -120,14 +120,26 @@ export default function StockScreeners() {
               <Search className="h-6 w-6 text-primary" />
               Stock Screener
             </h1>
-            <PageInfoButton
+            <PageInfoModal
               title="Stock Screeners"
-              description="Preset and custom scans across the entire NSE universe — technical, fundamental, and derivatives-based filters to shortlist trading candidates in seconds."
-              details={[
-                { label: "Preset Scans", text: "Ready-made categories — Breakouts, 52W Highs, Volume Shockers, RSI extremes, MA crossovers etc.", color: "#3b82f6" },
-                { label: "Custom Scan", text: "Build your own condition tree (Price, RSI, MACD, Volume, OI, PE ratio…) with AND / OR logic", color: "#10b981" },
-                { label: "Live Results", text: "Every scan re-runs against the latest market snapshot on refresh", color: "#f59e0b" },
-                { label: "How to use", text: "Start with a preset that matches your style, click any stock to open Stock Detail for deeper analysis, and save your best custom scans for one-click reuse." },
+              subtitle="Preset & custom scans across the NSE universe"
+              overview="Filter the entire NSE universe by technical, fundamental, and derivatives criteria. Shortlist high-probability trading candidates in seconds instead of hours."
+              legend={[
+                { label: "Preset Scans", text: "Ready-made — Breakouts, 52W Highs, Volume Shockers, RSI extremes, MA crossovers", color: "#3b82f6" },
+                { label: "Custom Scan", text: "Build a condition tree (Price, RSI, MACD, Volume, OI, PE) with AND / OR logic", color: "#10b981" },
+                { label: "Live Results", text: "Every scan re-runs against the latest market snapshot", color: "#f59e0b" },
+              ]}
+              sections={[
+                {
+                  heading: "Preset Categories",
+                  body: "Momentum, Reversal, Value, Breakout, Volume, Derivatives — each preset targets a specific edge. Start with the category matching your trading style.",
+                },
+              ]}
+              howToUse="Pick a preset → review the shortlist → click any stock for full Stock Detail → save top custom scans for one-click reuse next session."
+              tips={[
+                "Combine 2 orthogonal conditions (e.g. RSI oversold + volume spike) — kills most false positives.",
+                "Re-run scans mid-session — best setups often form after 11:00 AM.",
+                "Save your winning custom scans; the biggest edge is not re-inventing them daily.",
               ]}
             />
           </div>
