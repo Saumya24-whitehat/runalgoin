@@ -24,14 +24,19 @@ export default function MomentumReport() {
 
   useEffect(() => {
     if (isPro) return;
-    const show = () => setOpen(true);
-    const t = setTimeout(show, 3000); // first popup after 3s
-    const i = setInterval(show, POPUP_INTERVAL_MS);
+    // Registered (non-pro) users: show once on load.
+    if (user) {
+      const t = setTimeout(() => setOpen(true), 3000);
+      return () => clearTimeout(t);
+    }
+    // Unregistered users: show every minute.
+    const t = setTimeout(() => setOpen(true), 3000);
+    const i = setInterval(() => setOpen(true), POPUP_INTERVAL_MS);
     return () => {
       clearTimeout(t);
       clearInterval(i);
     };
-  }, [isPro]);
+  }, [isPro, user]);
 
   const startTrial = async () => {
     if (!user) {
