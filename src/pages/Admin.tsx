@@ -396,12 +396,17 @@ const Admin = () => {
                         <TableCell className="text-muted-foreground">
                           {format(new Date(u.created_at), "MMM d, yyyy")}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="sm" variant="outline" onClick={() => setManageUser(u)} className="gap-1">
+                            <Settings className="h-3 w-3" /> Manage
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
                   {filteredUsers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No users found
                       </TableCell>
                     </TableRow>
