@@ -40,6 +40,8 @@ import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionMana
 import { VideoManagement } from "@/components/admin/VideoManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
+import { AddUserDialog } from "@/components/admin/AddUserDialog";
+import { UserPlus } from "lucide-react";
 
 interface UserWithSubscription {
   user_id: string;
