@@ -13,6 +13,8 @@ import { Loader2 } from "lucide-react";
 // Eagerly loaded pages (landing + auth — needed immediately)
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import Welcome from "./pages/Welcome";
+import { FirstLoginGuard } from "@/components/FirstLoginGuard";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("./pages/Dashboard"));
