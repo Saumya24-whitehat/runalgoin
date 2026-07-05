@@ -151,6 +151,7 @@ const App = () => (
                 <Route path="/api-monitor" element={<ApiMonitor />} />
                 <Route path="/holidays" element={<Holidays />} />
                 <Route path="/trending-stocks" element={<TrendingStocks />} />
+                <Route path="/momentum-report" element={<MomentumReport />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
