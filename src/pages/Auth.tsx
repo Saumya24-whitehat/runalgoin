@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
-import logoAsset from "@/assets/logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -305,7 +304,7 @@ export default function Auth() {
         {/* Logo */}
         <div className="text-center mb-8">
           <a href="/" className="inline-block">
-            <img src={logoAsset.url} alt="OptionWorld" className="h-12 mx-auto" />
+            <img src="/logo.png" alt="OptionWorld" className="h-12 mx-auto" />
           </a>
         </div>
 

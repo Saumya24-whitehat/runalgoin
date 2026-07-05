@@ -1,5 +1,4 @@
 import { Mail, Phone } from "lucide-react";
-import logoAsset from "@/assets/logo.png.asset.json";
 
 const footerLinks = [
   {
@@ -40,7 +39,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2 sm:col-span-2 lg:col-span-2">
             <a href="/" className="flex items-center mb-3 sm:mb-4">
-              <img src={logoAsset.url} alt="OptionWorld" className="h-6 sm:h-8" />
+              <img src="/logo.png" alt="OptionWorld" className="h-6 sm:h-8" />
             </a>
             <p className="text-muted-foreground mb-4 sm:mb-6 max-w-sm text-xs sm:text-sm">
               Advanced tools for smart options trading in Indian markets. Make data-driven decisions with real-time

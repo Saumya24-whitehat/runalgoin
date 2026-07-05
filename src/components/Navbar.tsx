@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import logoAsset from "@/assets/logo.png.asset.json";
 
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -287,7 +286,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center">
-            <img src={logoAsset.url} alt="OptionWorld" className="h-8 sm:h-10" />
+            <img src="/logo.png" alt="OptionWorld" className="h-8 sm:h-10" />
           </Link>
 
           {/* Desktop Navigation */}
