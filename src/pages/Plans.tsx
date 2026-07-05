@@ -161,7 +161,7 @@ export default function Plans() {
       return;
     }
     // For now, just show a message - payment integration can be added later
-    if (planName === "Pro" && !isPro) {
+    if ((planName === "Pro Monthly" || planName === "Pro Yearly") && !isPro) {
       // Could integrate with payment gateway here
     }
   };
