@@ -251,10 +251,16 @@ const Admin = () => {
             <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
             <p className="text-muted-foreground mt-1">Manage users and subscriptions</p>
           </div>
-          <Button onClick={() => setShowSubscriptionManager(true)} className="gap-2">
-            <Users className="h-4 w-4" />
-            Manage Subscriptions
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowAddUser(true)} variant="outline" className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add User
+            </Button>
+            <Button onClick={() => setShowSubscriptionManager(true)} className="gap-2">
+              <Users className="h-4 w-4" />
+              Manage Subscriptions
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
