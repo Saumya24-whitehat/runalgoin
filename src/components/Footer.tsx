@@ -1,4 +1,4 @@
-import { TrendingUp, Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 
 const footerLinks = [
   {
@@ -38,9 +38,8 @@ export function Footer() {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-5 gap-6 sm:gap-8 lg:gap-12 mb-8 sm:mb-12">
           {/* Brand Column */}
           <div className="col-span-2 sm:col-span-2 lg:col-span-2">
-            <a href="/" className="flex items-center gap-2 mb-3 sm:mb-4">
-              <TrendingUp className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-              <span className="font-heading font-bold text-lg sm:text-xl text-foreground">Runalgo</span>
+            <a href="/" className="flex items-center mb-3 sm:mb-4">
+              <img src="/logo.png" alt="OptionWorld" className="h-6 sm:h-8" />
             </a>
             <p className="text-muted-foreground mb-4 sm:mb-6 max-w-sm text-xs sm:text-sm">
               Advanced tools for smart options trading in Indian markets. Make data-driven decisions with real-time

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { TrendingUp, Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Mail, Lock, User, ArrowLeft, Loader2, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -303,9 +303,8 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <a href="/" className="inline-flex items-center gap-2">
-            <TrendingUp className="h-10 w-10 text-primary" />
-            <span className="font-heading font-bold text-2xl text-foreground">Runalgo</span>
+          <a href="/" className="inline-block">
+            <img src="/logo.png" alt="OptionWorld" className="h-12 mx-auto" />
           </a>
         </div>
 
