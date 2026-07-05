@@ -432,6 +432,11 @@ const Admin = () => {
           checkAdminAndFetchData(); // Refresh data after closing
         }}
       />
+      <AddUserDialog
+        isOpen={showAddUser}
+        onClose={() => setShowAddUser(false)}
+        onCreated={() => checkAdminAndFetchData()}
+      />
     </div>
   );
 };
