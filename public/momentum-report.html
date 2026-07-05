@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OptionWorld.tech — Deep Momentum & Stock Screener Report</title>
+<style>
+  :root{
+    --bg:#08090c;
+    --panel:#0f1216;
+    --panel-2:#0c0f12;
+    --border:#1f262d;
+    --border-soft:#171c21;
+    --text:#dde5ea;
+    --muted:#7b8891;
+    --muted-2:#4c565e;
+    --blue:#38bdf8;
+    --blue-dim:#123044;
+    --green:#34d399;
+    --green-dim:#0e3527;
+    --red:#fb7185;
+    --red-dim:#3a1420;
+    --violet:#a78bfa;
+    --mono:'Courier New', ui-monospace, 'SF Mono', Menlo, monospace;
+    --sans:'Helvetica Neue', Arial, ui-sans-serif, sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{background:var(--bg);}
+  body{background:var(--bg); color:var(--text); font-family:var(--sans); line-height:1.55; -webkit-font-smoothing:antialiased;}
+  @page{ size:A4; margin:14mm 12mm; }
+  section{ page-break-inside:avoid; }
+  .frame{ page-break-inside:avoid; }
+  tr{ page-break-inside:avoid; }
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  .ticker{
+    background:var(--panel-2); border-bottom:1px solid var(--border-soft);
+    overflow:hidden; white-space:nowrap; font-family:var(--mono);
+    font-size:11px; letter-spacing:0.06em; color:var(--muted); padding:7px 0;
+  }
+  .ticker-track{display:inline-flex;}
+  .ticker span{padding:0 28px; display:inline-block;}
+  .ticker .up{color:var(--green);} .ticker .down{color:var(--red);}
+  .ticker-track span:nth-child(n+9){display:none;}
+
+  header{padding:56px 0 40px; border-bottom:1px solid var(--border-soft);}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:700;font-size:15px;letter-spacing:0.02em;color:var(--text);margin-bottom:28px;}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--blue);box-shadow:0 0 8px var(--blue);}
+  .brand .cursor{display:inline-block;width:8px;height:15px;background:var(--blue);margin-left:2px;}
+
+  .eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:0.14em;color:var(--blue);text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+  .eyebrow::before{content:"//";color:var(--muted-2);}
+
+  h1{font-family:var(--mono);font-weight:600;font-size:clamp(26px,4vw,40px);line-height:1.15;letter-spacing:-0.01em;color:var(--text);max-width:820px;}
+  h1 em{color:var(--blue); font-style:normal;}
+  .subhead{margin-top:18px;color:var(--muted);font-size:15px;max-width:660px;}
+
+  .meta-row{display:flex;gap:26px;flex-wrap:wrap;margin-top:32px;font-family:var(--mono);font-size:11px;color:var(--muted-2);letter-spacing:0.04em;}
+  .meta-row strong{color:var(--muted);font-weight:500;}
+
+  section{padding:60px 0;border-bottom:1px solid var(--border-soft);}
+  section:last-of-type{border-bottom:none;}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap;}
+  .sec-num{font-family:var(--mono);color:var(--muted-2);font-size:12px;letter-spacing:0.1em;}
+  h2{font-family:var(--mono);font-size:21px;font-weight:600;color:var(--text);letter-spacing:-0.01em;}
+  .lede{color:var(--muted);font-size:14.5px;max-width:680px;margin-bottom:24px;}
+
+  .frame{position:relative;border:1px solid var(--border);background:var(--panel);padding:24px 24px 20px;}
+  .frame::before,.frame::after{content:"";position:absolute;width:10px;height:10px;}
+  .frame::before{top:-1px;left:-1px;border-top:2px solid var(--blue);border-left:2px solid var(--blue);}
+  .frame::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--blue);border-right:2px solid var(--blue);}
+
+  table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;}
+  th{text-align:left;font-weight:500;color:var(--muted-2);text-transform:uppercase;font-size:10px;letter-spacing:0.07em;padding:0 8px 9px;border-bottom:1px solid var(--border);}
+  td{padding:9px 8px;border-bottom:1px solid var(--border-soft);color:var(--text);vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  .num{color:var(--muted);}
+  .rank-cell{color:var(--muted-2);width:28px;}
+  .idx-tags{color:var(--muted);font-size:11px;}
+  .sym{font-family:var(--sans);font-weight:600;color:var(--text);}
+  .sector{color:var(--muted-2);font-size:10.5px;display:block;margin-top:2px;font-family:var(--sans);}
+
+  .pill{display:inline-block;padding:3px 8px;border-radius:3px;font-size:10.5px;font-weight:600;letter-spacing:0.02em;white-space:nowrap;}
+  .pill-high{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,0.3);}
+  .pill-dev{background:rgba(56,189,248,0.08);color:var(--blue);border:1px solid rgba(56,189,248,0.28);}
+  .pill-weak{background:var(--red-dim);color:var(--red);border:1px solid rgba(251,113,133,0.28);}
+  .pill-buy{background:rgba(52,211,153,0.1);color:var(--green);border:1px solid rgba(52,211,153,0.3);}
+  .pill-sbuy{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,0.5);font-weight:700;}
+  .pill-neutral{background:rgba(124,138,144,0.08);color:var(--muted);border:1px solid var(--border);}
+  .pill-sell{background:var(--red-dim);color:var(--red);border:1px solid rgba(251,113,133,0.3);}
+
+  .row-top td:first-child .sym{color:var(--blue);}
+
+  .conviction{margin-top:26px;border:1px solid var(--blue-dim);background:linear-gradient(180deg, rgba(56,189,248,0.06), transparent);padding:20px 22px;}
+  .conviction .tag{font-family:var(--mono);font-size:11px;color:var(--blue);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:9px;display:block;}
+  .conviction p{color:var(--text);font-size:14px;}
+  .conviction .names{font-family:var(--mono);color:var(--blue);font-weight:600;}
+
+  .tier-block{margin-bottom:32px;}
+  .tier-title{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+  .tier-badge{font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--bg);background:var(--blue);padding:2px 8px;letter-spacing:0.04em;}
+  .tier-name{font-family:var(--mono);font-size:14px;color:var(--text);font-weight:600;}
+  .tier-desc{font-family:var(--sans);font-size:12.5px;color:var(--muted);margin-left:auto;}
+
+  .methodology-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);}
+  .m-card{background:var(--panel);padding:18px 18px 20px;}
+  .m-card .k{font-family:var(--mono);font-size:10.5px;color:var(--blue);letter-spacing:0.07em;text-transform:uppercase;margin-bottom:7px;display:block;}
+  .m-card p{font-size:13px;color:var(--muted);}
+  .m-card code{color:var(--violet);font-family:var(--mono);font-size:12px;}
+
+  footer{padding:40px 0 56px;}
+  .disclaimer{font-size:11.5px;color:var(--muted-2);line-height:1.7;border-top:1px solid var(--border-soft);padding-top:22px;margin-top:6px;max-width:820px;}
+  .footer-brand{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:22px;}
+  .footer-brand .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);display:inline-block;margin-right:8px;}
+</style>
+</head>
+<body>
+
+<div class="ticker">
+  <div class="ticker-track">
+    <span>TORNTPHARM <span class="up">▲ StrongBuy</span></span>
+    <span>IPCALAB <span class="up">▲ StrongBuy</span></span>
+    <span>LAURUSLABS <span class="up">▲ StrongBuy</span></span>
+    <span>AEGISLOG <span class="up">▲ 100.0</span></span>
+    <span>APOLLOHOSP <span class="up">▲ StrongBuy</span></span>
+    <span>NIFTY IT <span class="down">▼ WEAK</span></span>
+    <span>OPTIONWORLD.TECH — DEEP SCREEN DESK</span>
+    <span>TORNTPHARM <span class="up">▲ StrongBuy</span></span>
+    <span>IPCALAB <span class="up">▲ StrongBuy</span></span>
+    <span>LAURUSLABS <span class="up">▲ StrongBuy</span></span>
+    <span>AEGISLOG <span class="up">▲ 100.0</span></span>
+    <span>APOLLOHOSP <span class="up">▲ StrongBuy</span></span>
+    <span>NIFTY IT <span class="down">▼ WEAK</span></span>
+    <span>OPTIONWORLD.TECH — DEEP SCREEN DESK</span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span>OPTIONWORLD.TECH<span class="cursor"></span></div>
+    <div class="eyebrow">Deep Screen Desk / Stock-Level Momentum Report</div>
+    <h1>485 stocks scored against index momentum + technical rating — <em>here's where both agree.</em></h1>
+    <p class="subhead">Full-universe momentum scan (Daily/Weekly/Monthly, 13-factor checklist) merged with per-stock Technical Rating sweeps, then weighted into a single composite score per stock.</p>
+    <div class="meta-row">
+      <div><strong>Issued by</strong> OptionWorld.tech</div>
+      <div><strong>Universe</strong> 485 NSE stocks scanned &amp; rated</div>
+      <div><strong>Timeframes</strong> Daily · Weekly · Monthly</div>
+      <div><strong>Date</strong> 05 Jul 2026</div>
+    </div>
+  </header>
+
+  <!-- 00 SUMMARY -->
+  <section>
+    <div class="sec-head"><div><div class="sec-num">FEED://00</div><h2>Executive Summary</h2></div></div>
+    <p class="lede" style="max-width:760px;">
+      Widened the lens from a 21-index scan to the full 485-stock universe, scoring every name on its own
+      momentum checklist and blending that with its Technical Rating sweep across Daily/Weekly/Monthly.
+      The strongest composite scores cluster heavily in <strong style="color:var(--text)">Pharma</strong> —
+      <strong style="color:var(--text)">Torrent Pharma, IPCA Labs, JB Chemicals</strong> all hit a perfect
+      96/100 momentum read with a full Buy→StrongBuy→StrongBuy sweep. Smallcap and Midcap names
+      (Aegis Logistics, CGCL, OFSS, Phoenix Mills) confirm the sector-level story from the index scan,
+      while a handful of non-tagged large caps (Apollo Hospitals, Titan, Schneider Electric) also
+      clear the bar independently of any single sector theme.
+    </p>
+  </section>
+
+  <!-- 01 TOP 20 -->
+  <section>
+    <div class="sec-head"><div><div class="sec-num">FEED://01</div><h2>Top 20 — Composite Momentum + Rating Score</h2></div></div>
+    <p class="lede">Composite = 55% weighted momentum score (Daily×0.5 / Weekly×0.3 / Monthly×0.2) + 45% Technical Rating sweep, scaled to 100.</p>
+    <div class="frame">
+      <table>
+        <thead><tr><th>#</th><th>Stock</th><th>Index tags</th><th>Momentum</th><th>Composite</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead>
+        <tbody id="top20-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 02 TIERS -->
+  <section>
+    <div class="sec-head"><div><div class="sec-num">FEED://02</div><h2>Sector Tier Breakdown</h2></div></div>
+    <p class="lede">Best-scoring names within each of the momentum-leading indices identified in the sector-level scan.</p>
+
+    <div class="tier-block">
+      <div class="tier-title"><span class="tier-badge">TIER 1</span><span class="tier-name">Nifty Pharma</span><span class="tier-desc">8 names</span></div>
+      <div class="frame"><table><thead><tr><th>Stock</th><th>Index tags</th><th>Momentum</th><th>Composite</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead><tbody id="pharma-body"></tbody></table></div>
+    </div>
+
+    <div class="tier-block">
+      <div class="tier-title"><span class="tier-badge">TIER 2</span><span class="tier-name">Nifty Smallcap</span><span class="tier-desc">10 names</span></div>
+      <div class="frame"><table><thead><tr><th>Stock</th><th>Index tags</th><th>Momentum</th><th>Composite</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead><tbody id="small-body"></tbody></table></div>
+    </div>
+
+    <div class="tier-block">
+      <div class="tier-title"><span class="tier-badge">TIER 3</span><span class="tier-name">Nifty Midcap</span><span class="tier-desc">8 names</span></div>
+      <div class="frame"><table><thead><tr><th>Stock</th><th>Index tags</th><th>Momentum</th><th>Composite</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead><tbody id="mid-body"></tbody></table></div>
+    </div>
+
+    <div class="tier-block">
+      <div class="tier-title"><span class="tier-badge">TIER 4</span><span class="tier-name">Nifty MNC</span><span class="tier-desc">6 names</span></div>
+      <div class="frame"><table><thead><tr><th>Stock</th><th>Index tags</th><th>Momentum</th><th>Composite</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead><tbody id="mnc-body"></tbody></table></div>
+    </div>
+
+    <div class="tier-block" style="margin-bottom:0;">
+      <div class="tier-title"><span class="tier-badge">TIER 5</span><span class="tier-name">Nifty Auto</span><span class="tier-desc">6 names</span></div>
+      <div class="frame"><table><thead><tr><th>Stock</th><th>Index tags</th><th>Momentum</th><th>Composite</th><th>Daily</th><th>Weekly</th><th>Monthly</th></tr></thead><tbody id="auto-body"></tbody></table></div>
+    </div>
+
+    <div class="conviction">
+      <span class="tag">Highest conviction overlap</span>
+      <p><span class="names">Torrent Pharma, IPCA Labs, JB Chemicals, Laurus Labs, Zydus Lifesciences, Lupin</span> — every one of these clears a 90+ composite score, sits inside the #1 momentum index (Pharma), and carries a clean Buy→StrongBuy→StrongBuy sweep with no exceptions on any timeframe.</p>
+    </div>
+  </section>
+
+  <!-- 03 METHODOLOGY -->
+  <section>
+    <div class="sec-head"><div><div class="sec-num">FEED://03</div><h2>Methodology</h2></div></div>
+    <div class="methodology-grid">
+      <div class="m-card"><span class="k">Momentum score</span><p>Same 13-factor checklist used at index level, applied per stock: EMA stacking, RS vs Nifty 50 (12m &amp; 3m), proximity to 52w high, volume confirmation, 6m return, momentum persistence, trend intensity, ADR. Weighted <code>D×0.5 + W×0.3 + M×0.2</code>.</p></div>
+      <div class="m-card"><span class="k">Rating score</span><p>Technical Rating (avg of MA + Oscillator Rating) converted to a -2..+2 scale per timeframe, averaged across Daily/Weekly/Monthly, then rescaled to 0-100.</p></div>
+      <div class="m-card"><span class="k">Composite</span><p><code>Composite = Momentum×0.55 + Rating×0.45</code>. Momentum is weighted slightly higher since it directly encodes trend strength, RS, and volume rather than a discretized label.</p></div>
+      <div class="m-card"><span class="k">Universe &amp; filter</span><p>485 of 500 scanned stocks had complete data across both the momentum scan and the ratings feed; incomplete rows were dropped rather than estimated.</p></div>
+    </div>
+  </section>
+
+  <footer>
+    <div class="wrap" style="padding:0;">
+      <div class="footer-brand"><div><span class="dot"></span>OPTIONWORLD.TECH / DEEP SCREEN DESK</div><div>SNAPSHOT — 05 JUL 2026, 09:36 IST</div></div>
+      <p class="disclaimer">
+        This report is generated from a systematic scan of index and stock-level technical data and is published for informational purposes only.
+        It does not constitute investment advice, a recommendation, or a solicitation to buy or sell any security. Momentum and technical ratings
+        are backward-looking measures and are not predictive of future performance. Ratings are derived in part from a reverse-engineered mapping
+        of a third-party data feed's field order and, while cross-validated, may not perfectly match the original provider's exact classification
+        in every case. OptionWorld.tech is not a registered investment advisor. Readers should conduct independent due diligence and consult a
+        licensed financial advisor before making any investment decision.
+      </p>
+    </div>
+  </footer>
+</div>
+
+<script>
+function ratingPill(r){
+  if(r==="StrongBuy") return `<span class="pill pill-sbuy">StrongBuy</span>`;
+  if(r==="Buy") return `<span class="pill pill-buy">Buy</span>`;
+  if(r==="Neutral") return `<span class="pill pill-neutral">Neutral</span>`;
+  if(r==="Sell") return `<span class="pill pill-sell">Sell</span>`;
+  return `<span class="pill pill-sell">StrongSell</span>`;
+}
+function rowPlain(r){
+  const [sym,sector,tags,mom,comp,d,w,m] = r;
+  return `<tr>
+    <td><span class="sym">${sym}</span><span class="sector">${sector}</span></td>
+    <td class="idx-tags">${tags}</td>
+    <td class="num">${mom.toFixed(1)}</td>
+    <td class="num">${comp.toFixed(1)}</td>
+    <td>${ratingPill(d)}</td><td>${ratingPill(w)}</td><td>${ratingPill(m)}</td>
+  </tr>`;
+}
+function rowRanked(r, idx){
+  const [sym,sector,tags,mom,comp,d,w,m] = r;
+  return `<tr>
+    <td class="rank-cell">${idx+1}</td>
+    <td><span class="sym">${sym}</span><span class="sector">${sector}</span></td>
+    <td class="idx-tags">${tags}</td>
+    <td class="num">${mom.toFixed(1)}</td>
+    <td class="num">${comp.toFixed(1)}</td>
+    <td>${ratingPill(d)}</td><td>${ratingPill(w)}</td><td>${ratingPill(m)}</td>
+  </tr>`;
+}
+function fillRanked(id, rows){ document.getElementById(id).innerHTML = rows.map((r,i)=>rowRanked(r,i)).join(''); }
+function fill(id, rows){ document.getElementById(id).innerHTML = rows.map(rowPlain).join(''); }
+
+const top20 = [
+["JBCHEPHARM","Health Technology","Nifty Pharma, Nifty 500",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["VTL","Process Industries","Nifty 500",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["IPCALAB","Health Technology","Nifty Pharma, Nifty 500",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["TORNTPHARM","Health Technology","Nifty Pharma, Nifty 500, Nifty 200",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["AEGISLOG","Distribution Services","Nifty Smallcap, Nifty 500",100.0,92.5,"Buy","Buy","StrongBuy"],
+["APOLLOHOSP","Health Services","Nifty 500, Nifty Infra, Nifty 200",93.0,92.4,"Buy","StrongBuy","StrongBuy"],
+["CEMPRO","Industrial Services","Nifty 500",92.8,92.3,"Buy","StrongBuy","StrongBuy"],
+["LAURUSLABS","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",90.4,91.0,"Buy","StrongBuy","StrongBuy"],
+["ZYDUSLIFE","Health Technology","Nifty Pharma, Nifty 500, Nifty 200",89.6,90.5,"Buy","StrongBuy","StrongBuy"],
+["SCHNEIDER","Producer Manufacturing","Nifty 500",89.2,90.3,"Buy","StrongBuy","StrongBuy"],
+["USHAMART","Producer Manufacturing","Nifty 500",96.0,90.3,"Neutral","StrongBuy","StrongBuy"],
+["LUPIN","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",89.0,90.2,"Buy","StrongBuy","StrongBuy"],
+["OFSS","Technology Services","Nifty Midcap, Nifty MNC, Nifty 500, Nifty 200",88.0,89.7,"Buy","StrongBuy","StrongBuy"],
+["PHOENIXLTD","Finance","Nifty Midcap, Nifty 500, Nifty 200",86.4,88.8,"Buy","StrongBuy","StrongBuy"],
+["WELSPUNLIV","Consumer Non-Durables","Nifty 500",92.7,88.5,"Buy","StrongBuy","Buy"],
+["CGCL","Finance","Nifty Smallcap, Nifty 500",85.6,88.3,"Buy","StrongBuy","StrongBuy"],
+["DEEPAKFERT","Process Industries","Nifty Smallcap, Nifty 500",92.4,88.3,"Neutral","StrongBuy","StrongBuy"],
+["KIMS","Health Services","Nifty 500",85.2,88.1,"Buy","StrongBuy","StrongBuy"],
+["TITAN","Consumer Durables","Nifty 500, Nifty 200",92.0,88.1,"Buy","Buy","StrongBuy"],
+["ABCAPITAL","Finance","Nifty Midcap, Nifty 500, Nifty 200",84.4,87.7,"Buy","StrongBuy","StrongBuy"],
+];
+const pharma = [
+["TORNTPHARM","Health Technology","Nifty Pharma, Nifty 500, Nifty 200",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["IPCALAB","Health Technology","Nifty Pharma, Nifty 500",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["JBCHEPHARM","Health Technology","Nifty Pharma, Nifty 500",96.0,94.1,"Buy","StrongBuy","StrongBuy"],
+["LAURUSLABS","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",90.4,91.0,"Buy","StrongBuy","StrongBuy"],
+["ZYDUSLIFE","Health Technology","Nifty Pharma, Nifty 500, Nifty 200",89.6,90.5,"Buy","StrongBuy","StrongBuy"],
+["LUPIN","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",89.0,90.2,"Buy","StrongBuy","StrongBuy"],
+["BIOCON","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",81.3,86.0,"Buy","StrongBuy","StrongBuy"],
+["AUROPHARMA","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",86.4,85.0,"Neutral","StrongBuy","StrongBuy"],
+];
+const small = [
+["AEGISLOG","Distribution Services","Nifty Smallcap, Nifty 500",100.0,92.5,"Buy","Buy","StrongBuy"],
+["CGCL","Finance","Nifty Smallcap, Nifty 500",85.6,88.3,"Buy","StrongBuy","StrongBuy"],
+["DEEPAKFERT","Process Industries","Nifty Smallcap, Nifty 500",92.4,88.3,"Neutral","StrongBuy","StrongBuy"],
+["CREDITACC","Finance","Nifty Smallcap, Nifty 500",82.4,86.6,"Buy","StrongBuy","StrongBuy"],
+["NEULANDLAB","Health Technology","Nifty Smallcap, Nifty 500",96.0,86.6,"Neutral","Buy","StrongBuy"],
+["ANGELONE","Finance","Nifty Smallcap, Nifty 500",79.0,84.7,"Buy","StrongBuy","StrongBuy"],
+["HSCL","Process Industries","Nifty Smallcap, Nifty 500",85.8,84.7,"Buy","StrongBuy","Buy"],
+["MANAPPURAM","Finance","Nifty Smallcap, Nifty 500",85.2,84.4,"Buy","StrongBuy","Buy"],
+["ANANDRATHI","Finance","Nifty Smallcap, Nifty 500",74.4,82.2,"Buy","StrongBuy","StrongBuy"],
+["WELCORP","Producer Manufacturing","Nifty Smallcap, Nifty 500",93.6,81.5,"Neutral","Buy","Buy"],
+];
+const mid = [
+["LAURUSLABS","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",90.4,91.0,"Buy","StrongBuy","StrongBuy"],
+["LUPIN","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",89.0,90.2,"Buy","StrongBuy","StrongBuy"],
+["OFSS","Technology Services","Nifty Midcap, Nifty MNC, Nifty 500, Nifty 200",88.0,89.7,"Buy","StrongBuy","StrongBuy"],
+["PHOENIXLTD","Finance","Nifty Midcap, Nifty 500, Nifty 200",86.4,88.8,"Buy","StrongBuy","StrongBuy"],
+["ABCAPITAL","Finance","Nifty Midcap, Nifty 500, Nifty 200",84.4,87.7,"Buy","StrongBuy","StrongBuy"],
+["LTF","Finance","Nifty Midcap, Nifty 500, Nifty 200",83.4,87.1,"Buy","StrongBuy","StrongBuy"],
+["BIOCON","Health Technology","Nifty Pharma, Nifty Midcap, Nifty 500, Nifty 200",81.3,86.0,"Buy","StrongBuy","StrongBuy"],
+["MARICO","Consumer Non-Durables","Nifty Midcap, Nifty 500, Nifty 200",86.6,85.1,"Buy","Buy","StrongBuy"],
+];
+const mnc = [
+["OFSS","Technology Services","Nifty Midcap, Nifty MNC, Nifty 500, Nifty 200",88.0,89.7,"Buy","StrongBuy","StrongBuy"],
+["3MINDIA","Producer Manufacturing","Nifty MNC, Nifty 500",82.8,86.8,"Buy","StrongBuy","StrongBuy"],
+["NESTLEIND","Consumer Non-Durables","Nifty MNC, Nifty 500, Nifty 200",81.2,85.9,"Buy","StrongBuy","StrongBuy"],
+["BOSCHLTD","Producer Manufacturing","Nifty MNC, Nifty Auto, Nifty 500, Nifty 200",83.4,83.4,"Buy","Buy","StrongBuy"],
+["NAM_INDIA","Finance","Nifty MNC, Nifty 500",88.4,82.4,"Neutral","Buy","StrongBuy"],
+["MARUTI","Consumer Durables","Nifty MNC, Nifty Auto, Nifty 500, Nifty 200",76.4,72.0,"Sell","Buy","StrongBuy"],
+];
+const auto = [
+["BOSCHLTD","Producer Manufacturing","Nifty MNC, Nifty Auto, Nifty 500, Nifty 200",83.4,83.4,"Buy","Buy","StrongBuy"],
+["BHARATFORG","Producer Manufacturing","Nifty Midcap, Nifty Auto, Nifty 500, Nifty Infra, Nifty 200",96.0,82.8,"Sell","StrongBuy","Buy"],
+["EXIDEIND","Producer Manufacturing","Nifty Midcap, Nifty Auto, Nifty 500, Nifty 200",80.4,81.7,"Neutral","StrongBuy","StrongBuy"],
+["MOTHERSON","Producer Manufacturing","Nifty Auto, Nifty 500, Nifty Infra, Nifty 200",89.0,79.0,"Neutral","Buy","Buy"],
+["SONACOMS","Producer Manufacturing","Nifty Smallcap, Nifty Auto, Nifty 500",71.6,76.9,"Buy","Buy","StrongBuy"],
+["TVSMOTOR","Consumer Durables","Nifty Auto, Nifty 500, Nifty 200",70.3,72.4,"Neutral","Buy","StrongBuy"],
+];
+
+fillRanked('top20-body', top20);
+fill('pharma-body', pharma);
+fill('small-body', small);
+fill('mid-body', mid);
+fill('mnc-body', mnc);
+fill('auto-body', auto);
+</script>
+
+</body>
+</html>
