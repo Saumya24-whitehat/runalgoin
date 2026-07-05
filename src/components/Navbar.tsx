@@ -270,27 +270,7 @@ export function Navbar() {
     return items;
   }, [isAdmin]);
 
-  const bars = {
-    Bar1: useRef<SVGPathElement | null>(null),
-    Bar2: useRef<SVGPathElement | null>(null),
-    Bar3: useRef<SVGPathElement | null>(null),
-  };
-
-  useEffect(() => {
-    function updateColors() {
-      const keys = Object.keys(bars) as Array<keyof typeof bars>;
-      const shuffled = [...keys].sort(() => Math.random() - 0.5);
-      bars[shuffled[0]]?.current?.setAttribute("fill", "green");
-      bars[shuffled[1]]?.current?.setAttribute("fill", "green");
-      bars[shuffled[2]]?.current?.setAttribute("fill", "red");
-    }
-
-    updateColors(); // Run once
-
-    const interval = setInterval(updateColors, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  // Logo animation removed with old logo
   const toggleMobileDropdown = (label: string) => {
     setExpandedMobileItem(expandedMobileItem === label ? null : label);
   };
