@@ -22,9 +22,9 @@ const plans = [
     popular: false,
   },
   {
-    name: "Pro",
+    name: "Pro Monthly",
     price: "₹150",
-    period: "per month / ₹1,500 per year",
+    period: "per month",
     description: "For serious traders",
     features: [
       { name: "Option Chain", included: true },
@@ -40,6 +40,26 @@ const plans = [
     ],
     cta: "Upgrade to Pro",
     popular: true,
+  },
+  {
+    name: "Pro Yearly",
+    price: "₹1,500",
+    period: "per year",
+    description: "Save with annual billing",
+    features: [
+      { name: "Option Chain", included: true },
+      { name: "PCR Analysis", included: true },
+      { name: "PCR All Strikes", included: true },
+      { name: "Advanced Charts", included: true },
+      { name: "Option Heat Map", included: true },
+      { name: "Option Chain Analysis", included: true },
+      { name: "Option Builder", included: true },
+      { name: "TOI & IV Skew", included: true },
+      { name: "Advanced Screeners", included: true },
+      { name: "Sector Analysis", included: true },
+    ],
+    cta: "Upgrade to Pro",
+    popular: false,
   },
 ];
 
