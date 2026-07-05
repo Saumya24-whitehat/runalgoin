@@ -221,6 +221,30 @@ export type Database = {
         }
         Relationships: []
       }
+      trial_claims: {
+        Row: {
+          created_at: string
+          fingerprint: string | null
+          id: string
+          ip_address: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          fingerprint?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_preferences: {
         Row: {
           created_at: string
