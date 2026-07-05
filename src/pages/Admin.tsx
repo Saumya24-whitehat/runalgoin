@@ -40,6 +40,8 @@ import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionMana
 import { VideoManagement } from "@/components/admin/VideoManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
+import { AddUserDialog } from "@/components/admin/AddUserDialog";
+import { UserPlus } from "lucide-react";
 
 interface UserWithSubscription {
   user_id: string;
@@ -68,6 +70,7 @@ const Admin = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPlan, setFilterPlan] = useState<string>("all");
   const [showSubscriptionManager, setShowSubscriptionManager] = useState(false);
+  const [showAddUser, setShowAddUser] = useState(false);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     proUsers: 0,
@@ -248,10 +251,16 @@ const Admin = () => {
             <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
             <p className="text-muted-foreground mt-1">Manage users and subscriptions</p>
           </div>
-          <Button onClick={() => setShowSubscriptionManager(true)} className="gap-2">
-            <Users className="h-4 w-4" />
-            Manage Subscriptions
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setShowAddUser(true)} variant="outline" className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add User
+            </Button>
+            <Button onClick={() => setShowSubscriptionManager(true)} className="gap-2">
+              <Users className="h-4 w-4" />
+              Manage Subscriptions
+            </Button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -422,6 +431,11 @@ const Admin = () => {
           setShowSubscriptionManager(false);
           checkAdminAndFetchData(); // Refresh data after closing
         }}
+      />
+      <AddUserDialog
+        isOpen={showAddUser}
+        onClose={() => setShowAddUser(false)}
+        onCreated={() => checkAdminAndFetchData()}
       />
     </div>
   );
