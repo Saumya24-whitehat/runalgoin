@@ -259,6 +259,10 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                   <Label htmlFor="au-email">Email *</Label>
                   <Input id="au-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
+                <div>
+                  <Label htmlFor="au-password">Password (optional)</Label>
+                  <Input id="au-password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Leave blank to auto-generate" />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Plan *</Label>
