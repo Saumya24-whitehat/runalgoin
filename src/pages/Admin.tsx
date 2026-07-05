@@ -367,6 +367,7 @@ const Admin = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>Expires</TableHead>
                     <TableHead>Joined</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
