@@ -1,4 +1,5 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
+import logoAsset from "@/assets/logo.png.asset.json";
 
 import { useNavigate, Link } from "react-router-dom";
 import {
@@ -285,68 +286,8 @@ export function Navbar() {
       <div className="container mx-auto px-3 sm:px-4">
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-1.5 sm:gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              xmlnsXlink="http://www.w3.org/1999/xlink"
-              width={36}
-              height={36}
-              viewBox="0 0 375 375"
-              preserveAspectRatio="xMidYMid meet"
-              className="sm:w-[50px] sm:h-[50px]"
-            >
-              <defs>
-                <clipPath id="clip1">
-                  <path d="M231 13.414L261 13.414L261 211L231 211Z" />
-                </clipPath>
-
-                <clipPath id="clip2">
-                  <path d="M114 164L144 164L144 361.414L114 361.414Z" />
-                </clipPath>
-
-                <clipPath id="clip3">
-                  <path d="M42.0625 48L203 48L203 340L42.0625 340Z" />
-                </clipPath>
-              </defs>
-
-              <path
-                id="Bar1"
-                ref={bars.Bar1}
-                fill="#0f97e4"
-                d="M172.855469 117.667969H183.875V95.667969H191.128906V117.667969H202.144531V270.707031H191.128906V292.710938H183.875V270.707031H172.855469Z"
-              />
-
-              <g clipPath="url(#clip1)">
-                <path
-                  id="Bar2"
-                  ref={bars.Bar2}
-                  fill="#0f97e4"
-                  d="M231.433594 35.414062H242.449219V13.414062H249.703125V35.414062H260.722656V188.453125H249.703125V210.453125H242.449219V188.453125H231.433594Z"
-                />
-              </g>
-
-              <g clipPath="url(#clip2)">
-                <path
-                  id="Bar3"
-                  ref={bars.Bar3}
-                  fill="#0f97e4"
-                  d="M114.28125 186.535156H125.296875V164.53125H132.550781V186.535156H143.570312V339.574219H132.550781V361.578125H125.296875V339.574219H114.28125Z"
-                />
-              </g>
-
-              <g clipPath="url(#clip3)">
-                <path
-                  fill="#d9d9d9"
-                  d="M71.402344 198.019531V78.089844H202.144531V48.800781H42.113281V339.574219H71.402344Z"
-                />
-              </g>
-
-              <path
-                fill="#d9d9d9"
-                d="M303.597656 78.089844V310.285156H172.855469V339.574219H332.886719V48.800781H303.597656Z"
-              />
-            </svg>
-            <span className="font-heading font-bold text-lg sm:text-xl text-foreground">Runalgo</span>
+          <Link to="/dashboard" className="flex items-center">
+            <img src={logoAsset.url} alt="OptionWorld" className="h-8 sm:h-10" />
           </Link>
 
           {/* Desktop Navigation */}
