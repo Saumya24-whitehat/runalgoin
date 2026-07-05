@@ -95,9 +95,11 @@ const App = () => (
             <Toaster />
             <Sonner />
             <Suspense fallback={<PageLoader />}>
+              <FirstLoginGuard />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/welcome" element={<Welcome />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/option-chain" element={<OptionChain />} />
                 <Route path="/support-resistance" element={<SupportResistance />} />
