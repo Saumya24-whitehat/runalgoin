@@ -179,6 +179,12 @@ const baseNavItems: NavItem[] = [
     path: "/plans",
   },
   {
+    label: "Momentum Report",
+    icon: Flame,
+    hasDropdown: false,
+    path: "/momentum-report",
+  },
+  {
     label: "Algo",
     icon: Bot,
     hasDropdown: false,
