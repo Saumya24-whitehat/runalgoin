@@ -105,8 +105,8 @@ const plans = [
   },
   {
     name: "Pro",
-    price: "₹799",
-    period: "per year",
+    price: "₹150",
+    period: "per month / ₹1,500 per year",
     description: "Everything you need for serious trading",
     highlight: true,
     badge: "Most Popular",
