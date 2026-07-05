@@ -445,6 +445,12 @@ const Admin = () => {
         onClose={() => setShowAddUser(false)}
         onCreated={() => checkAdminAndFetchData()}
       />
+      <ManageUserDialog
+        isOpen={!!manageUser}
+        onClose={() => setManageUser(null)}
+        onChanged={() => checkAdminAndFetchData()}
+        user={manageUser ? { user_id: manageUser.user_id, name: manageUser.name, email: manageUser.email } : null}
+      />
     </div>
   );
 };
