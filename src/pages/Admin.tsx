@@ -41,7 +41,8 @@ import { VideoManagement } from "@/components/admin/VideoManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
-import { UserPlus } from "lucide-react";
+import { ManageUserDialog } from "@/components/admin/ManageUserDialog";
+import { UserPlus, Settings } from "lucide-react";
 
 interface UserWithSubscription {
   user_id: string;
@@ -71,6 +72,7 @@ const Admin = () => {
   const [filterPlan, setFilterPlan] = useState<string>("all");
   const [showSubscriptionManager, setShowSubscriptionManager] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [manageUser, setManageUser] = useState<UserWithSubscription | null>(null);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     proUsers: 0,
@@ -365,6 +367,7 @@ const Admin = () => {
                     <TableHead>Status</TableHead>
                     <TableHead>Expires</TableHead>
                     <TableHead>Joined</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -393,12 +396,17 @@ const Admin = () => {
                         <TableCell className="text-muted-foreground">
                           {format(new Date(u.created_at), "MMM d, yyyy")}
                         </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="sm" variant="outline" onClick={() => setManageUser(u)} className="gap-1">
+                            <Settings className="h-3 w-3" /> Manage
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
                   {filteredUsers.length === 0 && (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         No users found
                       </TableCell>
                     </TableRow>
@@ -436,6 +444,12 @@ const Admin = () => {
         isOpen={showAddUser}
         onClose={() => setShowAddUser(false)}
         onCreated={() => checkAdminAndFetchData()}
+      />
+      <ManageUserDialog
+        isOpen={!!manageUser}
+        onClose={() => setManageUser(null)}
+        onChanged={() => checkAdminAndFetchData()}
+        user={manageUser ? { user_id: manageUser.user_id, name: manageUser.name, email: manageUser.email } : null}
       />
     </div>
   );

@@ -23,10 +23,10 @@ type CreatedUser = {
   error?: string;
 };
 
-const SAMPLE_CSV = `name,username,email,plan,expires_at
-John Doe,johndoe,john@example.com,pro,2027-01-31
-Jane Smith,janesmith,jane@example.com,free,
-Acme User,acme01,user@acme.com,enterprise,2026-12-31
+const SAMPLE_CSV = `name,username,email,plan,expires_at,password
+John Doe,johndoe,john@example.com,pro,2027-01-31,MyPass@123
+Jane Smith,janesmith,jane@example.com,free,,
+Acme User,acme01,user@acme.com,enterprise,2026-12-31,
 `;
 
 function parseCsv(text: string): Array<Record<string, string>> {
@@ -63,6 +63,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [plan, setPlan] = useState<"free" | "pro" | "enterprise">("pro");
   const [expiresAt, setExpiresAt] = useState<string>(() => {
     const d = new Date();
@@ -80,7 +81,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const [results, setResults] = useState<CreatedUser[] | null>(null);
 
   const reset = () => {
-    setName(""); setUsername(""); setEmail(""); setPlan("pro");
+    setName(""); setUsername(""); setEmail(""); setPassword(""); setPlan("pro");
     setCsvRows([]); setCsvName(""); setBulkProgress(null);
     setResults(null);
   };
@@ -88,7 +89,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const handleClose = () => { reset(); onClose(); };
 
   const createOne = async (payload: {
-    name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt: string | null;
+    name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt: string | null; password?: string | null;
   }): Promise<CreatedUser> => {
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
       body: {
@@ -97,6 +98,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
         email: payload.email,
         plan: payload.plan,
         expiresAt: payload.plan === "free" ? null : (payload.expiresAt ? new Date(payload.expiresAt).toISOString() : null),
+        password: payload.password || null,
       },
     });
     if (error || (data as any)?.error) {
@@ -119,6 +121,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
       email: email.trim().toLowerCase(),
       plan,
       expiresAt: plan === "free" ? null : expiresAt,
+      password: password.trim() || null,
     });
     setLoading(false);
     setResults([r]);
@@ -154,6 +157,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
         email: (row.email || "").toLowerCase(),
         plan: ["free", "pro", "enterprise"].includes(p) ? p : "free",
         expiresAt: row.expires_at || row["expires_at"] || null,
+        password: (row.password || "").trim() || null,
       });
       out.push(r);
       setBulkProgress({ done: i + 1, total: csvRows.length });
@@ -255,6 +259,10 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                   <Label htmlFor="au-email">Email *</Label>
                   <Input id="au-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
+                <div>
+                  <Label htmlFor="au-password">Password (optional)</Label>
+                  <Input id="au-password" type="text" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Leave blank to auto-generate" />
+                </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <Label>Plan *</Label>
@@ -287,7 +295,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                 <div className="flex items-center justify-between rounded border border-border p-3 bg-muted/30">
                   <div className="text-sm">
                     <div className="font-medium">CSV format</div>
-                    <div className="text-xs text-muted-foreground">Columns: name, username, email, plan (free/pro/enterprise), expires_at (YYYY-MM-DD, blank for free)</div>
+                    <div className="text-xs text-muted-foreground">Columns: name, username, email, plan (free/pro/enterprise), expires_at (YYYY-MM-DD, blank for free), password (optional — leave blank to auto-generate)</div>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={downloadSample}>
                     <Download className="h-3 w-3 mr-1" /> Sample CSV
