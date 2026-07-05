@@ -72,6 +72,7 @@ const Admin = () => {
   const [filterPlan, setFilterPlan] = useState<string>("all");
   const [showSubscriptionManager, setShowSubscriptionManager] = useState(false);
   const [showAddUser, setShowAddUser] = useState(false);
+  const [manageUser, setManageUser] = useState<UserWithSubscription | null>(null);
   const [stats, setStats] = useState<AdminStats>({
     totalUsers: 0,
     proUsers: 0,
