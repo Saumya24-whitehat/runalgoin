@@ -89,7 +89,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const handleClose = () => { reset(); onClose(); };
 
   const createOne = async (payload: {
-    name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt: string | null;
+    name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt: string | null; password?: string | null;
   }): Promise<CreatedUser> => {
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
       body: {
@@ -98,6 +98,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
         email: payload.email,
         plan: payload.plan,
         expiresAt: payload.plan === "free" ? null : (payload.expiresAt ? new Date(payload.expiresAt).toISOString() : null),
+        password: payload.password || null,
       },
     });
     if (error || (data as any)?.error) {
