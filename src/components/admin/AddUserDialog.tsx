@@ -81,7 +81,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const [results, setResults] = useState<CreatedUser[] | null>(null);
 
   const reset = () => {
-    setName(""); setUsername(""); setEmail(""); setPlan("pro");
+    setName(""); setUsername(""); setEmail(""); setPassword(""); setPlan("pro");
     setCsvRows([]); setCsvName(""); setBulkProgress(null);
     setResults(null);
   };
