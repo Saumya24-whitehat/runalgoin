@@ -121,6 +121,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
       email: email.trim().toLowerCase(),
       plan,
       expiresAt: plan === "free" ? null : expiresAt,
+      password: password.trim() || null,
     });
     setLoading(false);
     setResults([r]);
