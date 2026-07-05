@@ -221,7 +221,7 @@ export default function Plans() {
         {/* Pricing Cards */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {plans.map((plan, index) => (
                 <div
                   key={index}
@@ -272,15 +272,15 @@ export default function Plans() {
                     variant={plan.ctaVariant}
                     size="lg"
                     onClick={() => handlePlanAction(plan.name)}
-                    disabled={(plan.name === "Pro" && isPro) || (plan.name === "Free" && !isPro)}
+                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) || (plan.name === "Free" && !isPro)}
                     className={`w-full text-lg py-6 ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
                         : ""
-                    } ${plan.name === "Pro" && isPro ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
-                    {plan.name === "Pro" && isPro ? (
+                    {((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) ? (
                       <>
                         <Check className="h-5 w-5 mr-2" />
                         Current Plan
