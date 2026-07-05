@@ -40,14 +40,18 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { name, username, email, plan, expiresAt } = body as {
-      name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt?: string | null;
+    const { name, username, email, plan, expiresAt, password } = body as {
+      name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt?: string | null; password?: string | null;
     };
     if (!name || !email || !plan) {
       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const tempPassword = genPassword(12);
+    const providedPassword = (password ?? "").toString().trim();
+    if (providedPassword && providedPassword.length < 6) {
+      return new Response(JSON.stringify({ error: "Password must be at least 6 characters" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const tempPassword = providedPassword || genPassword(12);
 
     // Create auth user, auto-confirmed
     const { data: created, error: createErr } = await admin.auth.admin.createUser({
