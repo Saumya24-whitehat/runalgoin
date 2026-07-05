@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Loader2, TrendingUp, TrendingDown, RefreshCw, ChevronDown, ChevronRight, Search } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   groupedIndices,
@@ -351,9 +351,26 @@ const SectorAnalysis = () => {
 
             <div className="flex items-center gap-2">
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
-              <PageInfoButton
+              <PageInfoModal
                 title="Sector Analysis"
-                description="Analyze sector-wise performance with advance/decline ratios, stock-level breakdown, and sector rotation patterns. Helps identify which sectors are leading or lagging."
+                subtitle="Where money is flowing across sectors"
+                overview="Sector-wise performance with advance/decline ratios, stock-level breakdown, and rotation patterns. Instantly see which sectors are leading and lagging."
+                legend={[
+                  { label: "Outperformer", text: "Sector A/D ratio > 2 and index up strongly", color: "#10b981" },
+                  { label: "Neutral", text: "Mixed A/D and modest movement", color: "#f59e0b" },
+                  { label: "Underperformer", text: "A/D < 0.5 with sector index declining", color: "#ef4444" },
+                ]}
+                sections={[
+                  {
+                    heading: "Rotation Reads",
+                    body: "Money moving from Defensives (FMCG/Pharma) to Cyclicals (Auto/Metals) = risk-on. Reverse = risk-off. Persistent rotation into IT during a rupee weakness = macro-driven.",
+                  },
+                ]}
+                howToUse="Rank sectors by day/week performance. Drill into the leader to find its strongest stocks and the laggard for potential shorts or avoids."
+                tips={[
+                  "A leading sector with weak breadth is often driven by 1-2 heavyweights — fragile leadership.",
+                  "Broad-based sector rotation into cyclicals is a classic early-bull-cycle signal.",
+                ]}
               />
               <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />

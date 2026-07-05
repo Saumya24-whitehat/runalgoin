@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar } from "@/components/Navbar";
@@ -178,14 +178,26 @@ const Indices = () => {
           </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">Indices</h1>
-            <PageInfoButton
+            <PageInfoModal
               title="Indices"
-              description="Live snapshot of major Indian indices — broad-market, sectoral, and thematic — with day change and constituent breadth."
-              details={[
-                { label: "LTP & Change %", text: "Real-time index level and percentage change from previous close", color: "#3b82f6" },
-                { label: "Advances / Declines", text: "Count of constituents up vs down — breadth confirms or contradicts the headline index move", color: "#10b981" },
-                { label: "Sectoral Indices", text: "Nifty IT, Bank, Auto, Pharma, FMCG etc. — spot rotation and where money is flowing today" },
-                { label: "How to use", text: "Click any index to drill into constituents, technicals, deliveries and shareholding. Weak breadth on an up day (few advances) often precedes reversals." },
+              subtitle="Live view of broad-market, sectoral and thematic indices"
+              overview="Real-time snapshot of every major Indian index — broad-market, sectoral, and thematic — with day change, breadth and drill-down navigation to constituents."
+              legend={[
+                { label: "LTP & Change %", text: "Real-time index level and % change from previous close", color: "#3b82f6" },
+                { label: "Advances / Declines", text: "Constituents up vs down — breadth confirms or contradicts the headline move", color: "#10b981" },
+                { label: "Sectoral Indices", text: "Nifty IT, Bank, Auto, Pharma, FMCG… — spot rotation and money flow", color: "#f59e0b" },
+                { label: "Thematic Indices", text: "Momentum, Value, Low-Vol — factor exposure at a glance", color: "#8b5cf6" },
+              ]}
+              sections={[
+                {
+                  heading: "Sector Rotation",
+                  body: "The gap between best- and worst-performing sectors tells you whether the market is trending broadly or rotating between styles.",
+                },
+              ]}
+              howToUse="Click any index to open detail — constituents, technicals, deliveries and shareholding. Weak breadth on an up day (few advances) often precedes reversals."
+              tips={[
+                "Bank Nifty leading Nifty by >0.5% often signals continuation; lagging = caution.",
+                "Defensive sectors (FMCG, Pharma) outperforming = risk-off; cyclicals leading = risk-on.",
               ]}
             />
           </div>

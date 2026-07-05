@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
 import { resolveExpiry } from "@/utils/resolveExpiryType";
@@ -1194,15 +1194,31 @@ const OptionSimulator = () => {
         <main className="flex-1 container mx-auto px-2 py-3">
           <div className="flex items-center gap-2 mb-4">
             <h1 className="text-xl font-bold text-foreground">Option Simulator</h1>
-            <PageInfoButton
+            <PageInfoModal
               title="Option Simulator"
-              description="Historical replay of multi-leg option strategies with adjustments, tick-by-tick P&L, and live Greeks — validate ideas against real past sessions."
-              details={[
-                { label: "Entry", text: "Pick a historical date & time; strategy legs are priced from real snapshots at that moment" },
-                { label: "Play / Step", text: "Advance the clock tick-by-tick or bar-by-bar to watch P&L and Greeks evolve", color: "#3b82f6" },
-                { label: "Adjustments", text: "Define Simple or Comparative triggers (e.g. spot > 24000, or CE_premium > PE_premium × 1.5) that auto-modify legs during replay", color: "#f59e0b" },
-                { label: "Multi-expiry", text: "Mix legs from different expiries — each leg's strike data is fetched in parallel for accurate combined P&L" },
-                { label: "How to use", text: "Backtest a strategy across event days (results, RBI policy, expiry) with realistic slippage and adjustments before deploying live." },
+              subtitle="Historical replay of multi-leg strategies"
+              overview="Backtest any option or futures strategy against real historical sessions — with tick-by-tick P&L, live Greeks, and rule-based adjustments — before risking capital live."
+              legend={[
+                { label: "Entry", text: "Pick a historical date/time; legs are priced from real snapshots", color: "#3b82f6" },
+                { label: "Play / Step", text: "Advance tick-by-tick or bar-by-bar to watch P&L evolve", color: "#8b5cf6" },
+                { label: "Adjustments", text: "Simple or Comparative triggers auto-modify legs during replay", color: "#f59e0b" },
+                { label: "Multi-expiry", text: "Mix legs from different expiries — parallel data fetch for accuracy", color: "#10b981" },
+              ]}
+              sections={[
+                {
+                  heading: "Adjustment Types",
+                  body: "Simple: spot > 24000, IV > 20, time > 14:30. Comparative: CE_premium > PE_premium × 1.5, delta_leg1 > delta_leg2. Chain them for realistic management rules.",
+                },
+                {
+                  heading: "Event-Day Testing",
+                  body: "The real value is stress-testing against known volatile sessions — results, RBI policy, budget, expiry — where live intuition breaks down.",
+                },
+              ]}
+              howToUse="Compose in Builder → move to Simulator → pick a historical date → play → refine adjustments → repeat until edge is proven."
+              tips={[
+                "Test the same strategy across 10+ different event days before trusting it live.",
+                "Comparative triggers survive symbol changes; absolute triggers don't.",
+                "A strategy that survives worst-case days with defined losses is production-ready.",
               ]}
             />
           </div>

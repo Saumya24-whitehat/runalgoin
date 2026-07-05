@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { supabase } from "@/integrations/supabase/client";
 import { ChevronDown, ChevronUp, Minus, Plus } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 
 interface TrendingStock {
   companyName: string;
@@ -430,9 +430,27 @@ const Dashboard = () => {
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <div className="flex items-center justify-end gap-2">
           <LastRefreshBadge lastRefresh={lastRefresh} />
-          <PageInfoButton
+          <PageInfoModal
             title="Dashboard"
-            description="Your central hub for market overview including trending stocks, FII/DII activity, indices performance, and chart patterns. Data refreshes every 1 minute automatically."
+            subtitle="Your central market overview hub"
+            overview="One consolidated view of everything that matters at the open — trending stocks, FII/DII activity, indices performance and fresh chart patterns. Auto-refreshes every minute."
+            legend={[
+              { label: "Trending Stocks", text: "Real-time movers — gainers, losers, volume shockers", color: "#3b82f6" },
+              { label: "FII / DII Activity", text: "Latest institutional flows across cash & derivatives", color: "#10b981" },
+              { label: "Indices", text: "Live prices for broad-market and sectoral indices", color: "#f59e0b" },
+              { label: "Chart Patterns", text: "Freshly detected candlestick & technical patterns", color: "#8b5cf6" },
+            ]}
+            sections={[
+              {
+                heading: "Morning Routine",
+                body: "Scan indices for the mood → check FII/DII for institutional bias → glance at trending stocks for standout movers → dig into pattern detections for actionable setups.",
+              },
+            ]}
+            howToUse="Click any card to drill into its dedicated page. Use as your first stop every morning and after any major intraday event."
+            tips={[
+              "Cross-check trending stocks against sector performance — leaders in strong sectors are the best trades.",
+              "Persistent divergence between indices and FII flows deserves attention.",
+            ]}
           />
         </div>
         {/* Indices Section */}

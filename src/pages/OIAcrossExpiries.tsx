@@ -18,7 +18,7 @@ import { fetchPCRData, PCRTimeData } from "@/services/pcrApi";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3 } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import {
   BarChart,
   Bar,
@@ -448,9 +448,26 @@ const OIAcrossExpiries = () => {
               </div>
               <div className="flex items-center gap-2">
                 <LastRefreshBadge lastRefresh={lastRefreshed} />
-                <PageInfoButton
+                <PageInfoModal
                   title="OI Across Expiries"
-                  description="Compare Open Interest distribution across all active expiries. Helps identify where the maximum OI concentration exists and how positioning differs between near and far expiries."
+                  subtitle="Multi-expiry OI comparison"
+                  overview="Compares Open Interest distribution across every active expiry side-by-side. Reveals whether positioning is concentrated in the near-term or spread out to future months."
+                  legend={[
+                    { label: "Near Expiry", text: "Highest activity — reflects short-term positioning", color: "#3b82f6" },
+                    { label: "Mid Expiry", text: "Medium-term views — often positional swing traders", color: "#f59e0b" },
+                    { label: "Far Expiry", text: "Long-term hedges & institutional positions", color: "#8b5cf6" },
+                  ]}
+                  sections={[
+                    {
+                      heading: "What Shifts Mean",
+                      body: "OI flowing from near to far expiry = position rollover / longer conviction. OI concentrated near = event-driven speculation.",
+                    },
+                  ]}
+                  howToUse="Compare Call and Put walls across expiries. If the same strike is a wall across 3 expiries, that's a very strong technical level."
+                  tips={[
+                    "Rollovers usually peak in the last week — watch for early rollovers as a conviction signal.",
+                    "Far-expiry OI is 'sticky' — sudden changes are highly meaningful.",
+                  ]}
                 />
               </div>
             </div>

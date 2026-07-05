@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { CustomStrategyDefinition } from "@/components/optionBuilder/CreateCustomStrategyModal";
 import { resolveExpiry } from "@/utils/resolveExpiryType";
@@ -716,16 +716,32 @@ const OptionBuilder = () => {
           <div className="container mx-auto px-4 py-3">
             <div className="flex items-center gap-2 mb-4">
               <h1 className="text-xl font-bold">Option Strategy Builder</h1>
-              <PageInfoButton
+              <PageInfoModal
                 title="Option Strategy Builder"
-                description="Build and analyze multi-leg option (and futures) strategies with live payoff, Greeks, and P&L — from a single naked leg to complex custom spreads."
-                details={[
+                subtitle="Compose, analyze and save multi-leg strategies"
+                overview="Build any option or futures strategy — from a single naked leg to complex custom spreads — with live payoff, aggregate Greeks, real-time P&L and reusable templates."
+                legend={[
                   { label: "Payoff Chart", text: "X-axis auto-scales ±100 around your strikes; futures legs contribute linear P&L only", color: "#3b82f6" },
-                  { label: "Greeks Panel", text: "Aggregate Delta, Gamma, Theta, Vega for the entire position — track directional and time-decay exposure", color: "#f59e0b" },
-                  { label: "Spot Line", text: "Live vertical marker on the payoff chart shows current P&L at the live spot price" },
-                  { label: "Futures Legs", text: "Add LONG / SHORT futures to hedge or amplify — payoff range excludes futures, P&L includes them", color: "#10b981" },
-                  { label: "Save / Load", text: "Persist custom templates with target strikes (ATM, ATM+100, etc.) that resolve automatically on any symbol" },
-                  { label: "How to use", text: "Compose the strategy → review Max Profit / Max Loss / Breakevens → check Greeks → move it to the Simulator for a historical backtest before going live." },
+                  { label: "Greeks Panel", text: "Aggregate Delta, Gamma, Theta, Vega for the whole position", color: "#f59e0b" },
+                  { label: "Spot Line", text: "Live vertical marker shows current P&L at spot", color: "#8b5cf6" },
+                  { label: "Futures Legs", text: "LONG / SHORT futures to hedge or amplify — P&L includes them", color: "#10b981" },
+                  { label: "Save / Load", text: "Templates with target strikes (ATM, ATM+100…) resolve on any symbol" },
+                ]}
+                sections={[
+                  {
+                    heading: "Workflow",
+                    body: "Compose the strategy → review Max Profit / Max Loss / Breakevens → check Greeks → move it to the Simulator for a historical backtest before going live.",
+                  },
+                  {
+                    heading: "Custom Templates",
+                    body: "Save your favourite structures with relative strikes (ATM, ATM+200, ATM-100). When loaded on a different symbol, strikes auto-resolve to the correct absolute levels.",
+                  },
+                ]}
+                howToUse="Add legs from the chain, tweak lots/action, and watch the payoff update instantly. Use the Greeks panel to size the position for your risk tolerance."
+                tips={[
+                  "Neutral Delta ≠ risk-free — Gamma and Vega can still bite hard.",
+                  "Theta positive strategies (short options) need a plan for adverse moves — always define a stop.",
+                  "Save-as-template only after you've simulated the strategy across a few event days.",
                 ]}
               />
             </div>

@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, RefreshCw, Timer } from "lucide-react";
 import { format } from "date-fns";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import {
   LineChart,
   Line,
@@ -406,15 +406,32 @@ const PremiumDecay = () => {
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground invisible">Info</label>
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                <PageInfoButton
+                <PageInfoModal
                   title="Premium Decay"
-                  description="Tracks how option premiums erode through the session — a direct visualization of theta at work. Essential for option sellers."
-                  details={[
-                    { label: "Decay Curve", text: "Premium of each strike plotted against time — steeper slope = faster theta erosion", color: "#3b82f6" },
-                    { label: "ATM Strikes", text: "Highest absolute theta — decay is fastest, but so is directional risk", color: "#f59e0b" },
-                    { label: "OTM Strikes", text: "Slower decay in absolute terms, but higher % decay — favoured by conservative sellers", color: "#10b981" },
-                    { label: "Expiry Day", text: "Decay accelerates non-linearly in the final hours — most rewarding but riskiest window", color: "#ef4444" },
-                    { label: "How to use", text: "Sell strikes where the curve is steepest relative to distance from spot. Avoid selling if IV is spiking — an IV jump can wipe out a full day of theta gains." },
+                  subtitle="Theta visualization for option sellers"
+                  overview="Tracks how option premiums erode through the session — a direct visualization of theta at work. The go-to page for premium sellers and iron-condor traders."
+                  formula={{
+                    label: "Theta (Time Decay)",
+                    expression: "Theta ≈ −∂Premium / ∂Time",
+                    note: "Non-linear — accelerates as expiry approaches, especially in the final trading hours",
+                  }}
+                  legend={[
+                    { label: "Decay Curve", text: "Premium vs time — steeper slope = faster erosion", color: "#3b82f6" },
+                    { label: "ATM Strikes", text: "Highest absolute theta — fastest decay, highest directional risk", color: "#f59e0b" },
+                    { label: "OTM Strikes", text: "Slower absolute decay, higher % decay — conservative sellers' pick", color: "#10b981" },
+                    { label: "Expiry Day", text: "Non-linear acceleration in the final hours", color: "#ef4444" },
+                  ]}
+                  sections={[
+                    {
+                      heading: "The IV Trap",
+                      body: "A sudden IV spike can wipe out an entire day of theta gains in minutes. Always monitor IV alongside decay.",
+                    },
+                  ]}
+                  howToUse="Sell strikes where the decay curve is steepest relative to their distance from spot. Combine with OI walls to pick strikes that are unlikely to be breached."
+                  tips={[
+                    "Never sell into rising IV — wait for it to stabilize or contract.",
+                    "Expiry-day theta is highest but so is gamma risk; size positions smaller.",
+                    "Compare CE and PE decay to spot skew opportunities.",
                   ]}
                 />
               </div>

@@ -1,4 +1,4 @@
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { Helmet } from "react-helmet";
 import { Navbar } from "@/components/Navbar";
@@ -310,14 +310,30 @@ const StrategyCharts = () => {
           <main className="container py-6 space-y-6">
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">Strategy OHLC Charts</h1>
-              <PageInfoButton
+              <PageInfoModal
                 title="Strategy OHLC Charts"
-                description="Combines every leg of a multi-leg option strategy into a single synthetic OHLC candlestick — read your strategy's price action the same way you read a stock chart."
-                details={[
-                  { label: "Synthetic Candle", text: "Each candle = net debit/credit of the strategy across all legs at that timestamp", color: "#3b82f6" },
-                  { label: "Bullish Candle", text: "Strategy value moved in your favour during the interval", color: "#10b981" },
-                  { label: "Bearish Candle", text: "Strategy value moved against you during the interval", color: "#ef4444" },
-                  { label: "How to use", text: "Apply standard chart analysis (support, resistance, trendlines) to the strategy itself — much cleaner than watching each leg individually. Great for spreads, straddles and iron condors." },
+                subtitle="Synthetic candles for multi-leg positions"
+                overview="Combines every leg of a multi-leg option strategy into a single synthetic OHLC candlestick — read your strategy's price action the same way you read a stock chart."
+                formula={{
+                  label: "Synthetic Candle Value",
+                  expression: "Value = Σ (leg premium × qty × action)",
+                  note: "action = +1 for BUY, −1 for SELL; each candle aggregates the OHLC of this net value over the interval",
+                }}
+                legend={[
+                  { label: "Synthetic Candle", text: "Net debit/credit of the strategy at each timestamp", color: "#3b82f6" },
+                  { label: "Bullish Candle", text: "Strategy value moved in your favour", color: "#10b981" },
+                  { label: "Bearish Candle", text: "Strategy value moved against you", color: "#ef4444" },
+                ]}
+                sections={[
+                  {
+                    heading: "Why This Matters",
+                    body: "Watching each leg individually hides the true P&L path. A synthetic candle isolates the actual thing you own — the spread itself.",
+                  },
+                ]}
+                howToUse="Apply standard chart analysis (support, resistance, trendlines, patterns) to the strategy chart. Especially powerful for spreads, straddles, iron condors and calendar spreads."
+                tips={[
+                  "Draw trendlines on the synthetic chart to set objective exits.",
+                  "Volatile wicks often mark early exits by other spread traders — potential reversal zones.",
                 ]}
               />
             </div>

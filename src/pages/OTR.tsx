@@ -24,7 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CalendarIcon, Loader2, Clock, RefreshCw, Timer, Info, TrendingUp, TrendingDown, Activity } from "lucide-react";
 import { format } from "date-fns";
 import OTRChart from "@/components/otr/OTRChart";
-import { PageInfoButton } from "@/components/PageInfoButton";
+import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
@@ -739,15 +739,32 @@ const OTR = () => {
                     <div className="text-center">
                       <div className="flex items-center justify-center gap-2">
                         <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
-                        <PageInfoButton
+                        <PageInfoModal
                           title="Options Trading Range (OTR)"
-                          description="Projects an expected intraday / expiry trading range from Call and Put OI concentrations, with EMA 10/30 crossovers plotted as Buy/Sell signals."
-                          details={[
-                            { label: "Upper Range", text: "Derived from highest Call OI — expected ceiling for the session/expiry", color: "#ef4444" },
-                            { label: "Lower Range", text: "Derived from highest Put OI — expected floor for the session/expiry", color: "#10b981" },
-                            { label: "Buy Marker", text: "EMA 10 crosses above EMA 30 — bullish momentum trigger", color: "#22c55e" },
-                            { label: "Sell Marker", text: "EMA 10 crosses below EMA 30 — bearish momentum trigger", color: "#dc2626" },
-                            { label: "How to use", text: "Trade mean-reversion within the range; treat a decisive close outside the range as a breakout signal for the next OI wall. Signals near range edges have the best risk-reward." },
+                          subtitle="Expected range + EMA momentum signals"
+                          overview="Projects an expected intraday / expiry trading range from Call and Put OI concentrations, overlaid with EMA 10/30 crossovers as objective Buy/Sell triggers."
+                          formula={{
+                            label: "Range Construction",
+                            expression: "Upper = Strike(max Call OI)   |   Lower = Strike(max Put OI)",
+                            note: "OI walls act as psychological ceilings/floors because option writers defend them",
+                          }}
+                          legend={[
+                            { label: "Upper Range", text: "Highest Call OI — expected ceiling", color: "#ef4444" },
+                            { label: "Lower Range", text: "Highest Put OI — expected floor", color: "#10b981" },
+                            { label: "Buy Marker", text: "EMA 10 crosses above EMA 30 — bullish trigger", color: "#22c55e" },
+                            { label: "Sell Marker", text: "EMA 10 crosses below EMA 30 — bearish trigger", color: "#dc2626" },
+                          ]}
+                          sections={[
+                            {
+                              heading: "Two Ways to Trade",
+                              body: "Inside the range: fade the edges (mean reversion). Outside the range: ride the breakout toward the next OI wall.",
+                            },
+                          ]}
+                          howToUse="Signals near range edges have the best risk-reward. A decisive close outside the range invalidates mean-reversion and signals a breakout."
+                          tips={[
+                            "Range redraws intraday as OI shifts — always use the latest snapshot.",
+                            "Ignore crossovers deep inside the range without volume confirmation.",
+                            "OI walls weaken as expiry approaches — treat them as advisory in the final session.",
                           ]}
                         />
                         <Button
