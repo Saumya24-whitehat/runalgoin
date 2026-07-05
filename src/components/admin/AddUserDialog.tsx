@@ -157,6 +157,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
         email: (row.email || "").toLowerCase(),
         plan: ["free", "pro", "enterprise"].includes(p) ? p : "free",
         expiresAt: row.expires_at || row["expires_at"] || null,
+        password: (row.password || "").trim() || null,
       });
       out.push(r);
       setBulkProgress({ done: i + 1, total: csvRows.length });
