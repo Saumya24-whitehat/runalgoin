@@ -15,7 +15,7 @@ const POPUP_INTERVAL_MS = 60_000;
 export default function MomentumReport() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { isPro, refetch } = useSubscription();
+  const { isPro, isAdmin, refetch } = useSubscription();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
