@@ -63,6 +63,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [plan, setPlan] = useState<"free" | "pro" | "enterprise">("pro");
   const [expiresAt, setExpiresAt] = useState<string>(() => {
     const d = new Date();
