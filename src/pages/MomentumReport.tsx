@@ -24,7 +24,7 @@ export default function MomentumReport() {
   }, []);
 
   useEffect(() => {
-    if (isPro) return;
+    if (isPro || isAdmin) return;
     // Registered (non-pro) users: show once on load.
     if (user) {
       const t = setTimeout(() => setOpen(true), 3000);
@@ -37,7 +37,7 @@ export default function MomentumReport() {
       clearTimeout(t);
       clearInterval(i);
     };
-  }, [isPro, user]);
+  }, [isPro, isAdmin, user]);
 
   const startTrial = async () => {
     if (!user) {
