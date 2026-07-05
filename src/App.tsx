@@ -67,6 +67,7 @@ const CandlestickPatternChart = lazy(() => import("./pages/dev/CandlestickPatter
 const ApiMonitor = lazy(() => import("./pages/ApiMonitor"));
 const Holidays = lazy(() => import("./pages/Holidays"));
 const TrendingStocks = lazy(() => import("./pages/TrendingStocks"));
+const MomentumReport = lazy(() => import("./pages/MomentumReport"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -150,6 +151,7 @@ const App = () => (
                 <Route path="/api-monitor" element={<ApiMonitor />} />
                 <Route path="/holidays" element={<Holidays />} />
                 <Route path="/trending-stocks" element={<TrendingStocks />} />
+                <Route path="/momentum-report" element={<MomentumReport />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

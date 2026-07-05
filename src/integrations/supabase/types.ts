@@ -130,6 +130,7 @@ export type Database = {
           plan_type: string
           started_at: string
           status: string
+          trial_used: boolean
           updated_at: string
           user_id: string
         }
@@ -140,6 +141,7 @@ export type Database = {
           plan_type?: string
           started_at?: string
           status?: string
+          trial_used?: boolean
           updated_at?: string
           user_id: string
         }
@@ -150,6 +152,7 @@ export type Database = {
           plan_type?: string
           started_at?: string
           status?: string
+          trial_used?: boolean
           updated_at?: string
           user_id?: string
         }
