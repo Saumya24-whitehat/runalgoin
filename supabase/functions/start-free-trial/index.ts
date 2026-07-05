@@ -5,6 +5,16 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function getClientIp(req: Request): string | null {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return (
+    req.headers.get("cf-connecting-ip") ||
+    req.headers.get("x-real-ip") ||
+    null
+  );
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
@@ -35,8 +45,18 @@ Deno.serve(async (req) => {
       });
     }
 
+    let body: { fingerprint?: string } = {};
+    try {
+      body = await req.json();
+    } catch (_) {
+      // no body — treat as missing fingerprint
+    }
+    const fingerprint = (body.fingerprint || "").toString().slice(0, 128) || null;
+    const ipAddress = getClientIp(req);
+
     const admin = createClient(supabaseUrl, serviceKey);
 
+    // 1. Per-user check
     const { data: existing } = await admin
       .from("subscriptions")
       .select("id, trial_used, plan_type, status, expires_at")
@@ -45,9 +65,33 @@ Deno.serve(async (req) => {
 
     if (existing?.trial_used) {
       return new Response(
-        JSON.stringify({ error: "Free trial already used" }),
+        JSON.stringify({ error: "Free trial already used on this account" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+
+    // 2. Per-device / per-IP check — block if this device or network
+    //    has already claimed a trial under a different account.
+    if (fingerprint || ipAddress) {
+      const orParts: string[] = [];
+      if (fingerprint) orParts.push(`fingerprint.eq.${fingerprint}`);
+      if (ipAddress) orParts.push(`ip_address.eq.${ipAddress}`);
+      const { data: dup } = await admin
+        .from("trial_claims")
+        .select("id, user_id")
+        .or(orParts.join(","))
+        .neq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (dup) {
+        return new Response(
+          JSON.stringify({
+            error:
+              "A free trial has already been claimed from this device or network. Only one free trial is allowed per device.",
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
     }
 
     const now = new Date();
@@ -76,6 +120,13 @@ Deno.serve(async (req) => {
       });
       if (error) throw error;
     }
+
+    // Record the claim for future device/IP checks
+    await admin.from("trial_claims").insert({
+      user_id: user.id,
+      fingerprint,
+      ip_address: ipAddress,
+    });
 
     return new Response(JSON.stringify({ success: true, expires_at: expires }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

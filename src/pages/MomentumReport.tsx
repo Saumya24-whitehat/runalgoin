@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useSubscription } from "@/hooks/useSubscription";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 
 const POPUP_INTERVAL_MS = 60_000;
 
@@ -39,7 +40,10 @@ export default function MomentumReport() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke("start-free-trial");
+      const fingerprint = await getDeviceFingerprint();
+      const { data, error } = await supabase.functions.invoke("start-free-trial", {
+        body: { fingerprint },
+      });
       if (error || (data as any)?.error) {
         throw new Error((data as any)?.error || error?.message || "Failed to start trial");
       }
