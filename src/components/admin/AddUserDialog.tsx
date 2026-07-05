@@ -23,10 +23,10 @@ type CreatedUser = {
   error?: string;
 };
 
-const SAMPLE_CSV = `name,username,email,plan,expires_at
-John Doe,johndoe,john@example.com,pro,2027-01-31
-Jane Smith,janesmith,jane@example.com,free,
-Acme User,acme01,user@acme.com,enterprise,2026-12-31
+const SAMPLE_CSV = `name,username,email,plan,expires_at,password
+John Doe,johndoe,john@example.com,pro,2027-01-31,MyPass@123
+Jane Smith,janesmith,jane@example.com,free,,
+Acme User,acme01,user@acme.com,enterprise,2026-12-31,
 `;
 
 function parseCsv(text: string): Array<Record<string, string>> {
