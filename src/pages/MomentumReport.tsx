@@ -10,6 +10,8 @@ import { toast } from "sonner";
 import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 import { PageLayout } from "@/components/PageLayout";
 
+const POPUP_INTERVAL_MS = 60_000;
+
 export default function MomentumReport() {
   const navigate = useNavigate();
   const { user } = useAuth();
