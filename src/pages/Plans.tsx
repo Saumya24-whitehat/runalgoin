@@ -104,12 +104,34 @@ const plans = [
     ctaVariant: "outline" as const,
   },
   {
-    name: "Pro",
+    name: "Pro Monthly",
     price: "₹150",
-    period: "per month / ₹1,500 per year",
+    period: "per month",
     description: "Everything you need for serious trading",
     highlight: true,
     badge: "Most Popular",
+    features: [
+      "All Free features",
+      "Option Builder & Simulator",
+      "Greeks & IV Analysis",
+      "Future Buildup & Rollover",
+      "Market Breadth & Sectors",
+      "Advanced Screeners",
+      "Max Pain & Premium Decay",
+      "Real-time data refresh",
+      "Priority support",
+    ],
+    limitations: [],
+    cta: "Upgrade to Pro",
+    ctaVariant: "default" as const,
+  },
+  {
+    name: "Pro Yearly",
+    price: "₹1,500",
+    period: "per year",
+    description: "Save with annual billing",
+    highlight: false,
+    badge: "Best Value",
     features: [
       "All Free features",
       "Option Builder & Simulator",
@@ -139,7 +161,7 @@ export default function Plans() {
       return;
     }
     // For now, just show a message - payment integration can be added later
-    if (planName === "Pro" && !isPro) {
+    if ((planName === "Pro Monthly" || planName === "Pro Yearly") && !isPro) {
       // Could integrate with payment gateway here
     }
   };
@@ -199,7 +221,7 @@ export default function Plans() {
         {/* Pricing Cards */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
               {plans.map((plan, index) => (
                 <div
                   key={index}
@@ -250,15 +272,15 @@ export default function Plans() {
                     variant={plan.ctaVariant}
                     size="lg"
                     onClick={() => handlePlanAction(plan.name)}
-                    disabled={(plan.name === "Pro" && isPro) || (plan.name === "Free" && !isPro)}
+                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) || (plan.name === "Free" && !isPro)}
                     className={`w-full text-lg py-6 ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
                         : ""
-                    } ${plan.name === "Pro" && isPro ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
-                    {plan.name === "Pro" && isPro ? (
+                    {((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) ? (
                       <>
                         <Check className="h-5 w-5 mr-2" />
                         Current Plan
