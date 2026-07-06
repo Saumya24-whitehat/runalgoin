@@ -23,6 +23,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const spotSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const futureSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const vwapSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const isInitialFetch = useRef(true);
 
@@ -105,11 +106,18 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
 
     chartRef.current = chart;
 
-    // Spot Price Series
+    // Spot Price Series (underlying)
     spotSeriesRef.current = chart.addSeries(LineSeries, {
       color: "#22c55e",
       lineWidth: 2,
       title: "Spot",
+    });
+
+    // Future Price Series
+    futureSeriesRef.current = chart.addSeries(LineSeries, {
+      color: "#f59e0b",
+      lineWidth: 2,
+      title: "Future",
     });
 
     // VWAP Series
@@ -120,57 +128,59 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
       title: "VWAP",
     });
 
-    // Prepare data - filter out 0 VWAP or use previous value
     const spotData: { time: any; value: number }[] = [];
+    const futureData: { time: any; value: number }[] = [];
     const vwapData: { time: any; value: number }[] = [];
 
     let lastValidVWAP = 0;
     let lastValidFuture = 0;
-    // console.log(data);
-    data.forEach((item, idx) => {
-      // Always add spot data
+    let lastValidSpot = 0;
 
-      // Handle VWAP - skip if 0, or use previous valid value
+    // Sort + dedupe by timestamp
+    const seen = new Set<number>();
+    const sorted = [...data]
+      .filter((d) => Number.isFinite(d.timestamp as number))
+      .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+      .filter((d) => {
+        const t = Math.floor((d.timestamp as number) / 1000);
+        if (seen.has(t)) return false;
+        seen.add(t);
+        return true;
+      });
+
+    sorted.forEach((item) => {
+      const t = Math.floor((item.timestamp as number) / 1000);
+
+      // Spot (underlying)
+      let spotValue = item.underlyning || 0;
+      if (spotValue === 0) {
+        if (lastValidSpot > 0) spotValue = lastValidSpot;
+      } else {
+        lastValidSpot = spotValue;
+      }
+      if (spotValue > 0) spotData.push({ time: t, value: spotValue });
+
+      // Future
       let futureValue = item.Future || 0;
-
       if (futureValue === 0) {
-        // Use previous valid VWAP if available
-        if (lastValidFuture > 0) {
-          futureValue = lastValidFuture;
-        } else {
-          // Skip this point if no valid VWAP yet
-          return;
-        }
+        if (lastValidFuture > 0) futureValue = lastValidFuture;
       } else {
         lastValidFuture = futureValue;
       }
-      spotData.push({
-        time: item.timestamp,
-        value: futureValue || 0,
-      });
+      if (futureValue > 0) futureData.push({ time: t, value: futureValue });
 
-      // Handle VWAP - skip if 0, or use previous valid value
+      // VWAP
       let vwapValue = item.VWAP || 0;
-
       if (vwapValue === 0) {
-        // Use previous valid VWAP if available
-        if (lastValidVWAP > 0) {
-          vwapValue = lastValidVWAP;
-        } else {
-          // Skip this point if no valid VWAP yet
-          return;
-        }
+        if (lastValidVWAP > 0) vwapValue = lastValidVWAP;
       } else {
         lastValidVWAP = vwapValue;
       }
-
-      vwapData.push({
-        time: item.timestamp,
-        value: vwapValue,
-      });
+      if (vwapValue > 0) vwapData.push({ time: t, value: vwapValue });
     });
 
     spotSeriesRef.current.setData(spotData);
+    futureSeriesRef.current.setData(futureData);
     vwapSeriesRef.current.setData(vwapData);
 
     chart.timeScale().fitContent();
@@ -198,23 +208,20 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     };
   }, []);
 
-  // Get latest data with valid VWAP
+  // Get latest data with valid VWAP + Future
   const getLatestData = () => {
     if (data.length === 0) return null;
-
-    // Find the last entry with valid VWAP
+    let vwap = 0;
+    let future = 0;
     for (let i = data.length - 1; i >= 0; i--) {
-      if (data[i].VWAP && data[i].VWAP > 0) {
-        return {
-          spot: data[data.length - 1].underlyning,
-          vwap: data[i].VWAP,
-        };
-      }
+      if (!vwap && data[i].VWAP && data[i].VWAP > 0) vwap = data[i].VWAP;
+      if (!future && data[i].Future && data[i].Future > 0) future = data[i].Future;
+      if (vwap && future) break;
     }
-
     return {
       spot: data[data.length - 1].underlyning,
-      vwap: 0,
+      vwap,
+      future,
     };
   };
 
@@ -224,18 +231,25 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   return (
     <Card className="bg-card border-border">
       <CardHeader className="py-2 px-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <LineChart className="h-4 w-4 text-primary" />
-            Spot vs VWAP
+            Spot vs Future vs VWAP
           </CardTitle>
           {latestData && (
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span className="text-muted-foreground">Spot:</span>
                 <span className="font-medium">{latestData.spot?.toFixed(2)}</span>
               </span>
+              {latestData.future > 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="text-muted-foreground">Future:</span>
+                  <span className="font-medium">{latestData.future?.toFixed(2)}</span>
+                </span>
+              )}
               {latestData.vwap > 0 && (
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-purple-500" />

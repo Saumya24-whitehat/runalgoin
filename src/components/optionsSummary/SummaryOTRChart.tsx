@@ -105,14 +105,6 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       chartRef.current = null;
     }
 
-    // console.log(data);
-    // Calculate TOI (dataFinal) = Total_Put_OI - Total_Call_OI
-    const toiValues = data.map((d) => d[1] ?? 0);
-
-    // Calculate EMAs
-    const ema10Values = calculateEMA(toiValues, 10);
-    const ema30Values = calculateEMA(toiValues, 30);
-
     const chart = createChart(containerRef.current, {
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
@@ -124,20 +116,36 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       },
       width: containerRef.current.clientWidth,
       height: 200,
-      rightPriceScale: {
-        borderColor: "rgba(255, 255, 255, 0.1)",
-      },
+      rightPriceScale: { borderColor: "rgba(255, 255, 255, 0.1)" },
       timeScale: {
         borderColor: "rgba(255, 255, 255, 0.1)",
         visible: true,
         timeVisible: true,
       },
-      crosshair: {
-        mode: 1,
-      },
+      crosshair: { mode: 1 },
     });
-
     chartRef.current = chart;
+
+    // Normalize + dedupe + sort by time before EMA calculation
+    // dataFinal comes as [timestamp_ms, value] tuples
+    const normalized = (data as any[])
+      .map((d) => ({
+        time: Number(d?.[0]),
+        value: Number(d?.[1]),
+      }))
+      .filter((d) => Number.isFinite(d.time) && Number.isFinite(d.value))
+      .sort((a, b) => a.time - b.time);
+
+    // Dedupe by timestamp (keep last)
+    const dedupedMap = new Map<number, number>();
+    normalized.forEach((d) => dedupedMap.set(Math.floor(d.time / 1000), d.value));
+    const series = Array.from(dedupedMap.entries())
+      .map(([time, value]) => ({ time, value }))
+      .sort((a, b) => a.time - b.time);
+
+    const toiValues = series.map((s) => s.value);
+    const ema10Values = calculateEMA(toiValues, 10);
+    const ema30Values = calculateEMA(toiValues, 30);
 
     // TOI (dataFinal) Series - Blue
     toiSeriesRef.current = chart.addSeries(LineSeries, {
@@ -160,30 +168,13 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       title: "EMA 30",
     });
 
-    // Prepare data
-    const toiData = toiValues
-      .map((value, idx) => ({
-        time: data[idx][0] / 1000,
-        value: value,
-      }))
-      .filter((d) => d.value != null && !isNaN(d.value));
-
-    const ema10Data: { time: any; value: number }[] = [];
-    ema10Values.forEach((value, idx) => {
-      if (value !== null) {
-        ema10Data.push({ time: data[idx][0] / 1000, value });
-      }
-    });
-
-    const ema30Data: { time: any; value: number }[] = [];
-    ema30Values.forEach((value, idx) => {
-      if (value !== null) {
-        ema30Data.push({ time: data[idx][0] / 1000, value });
-      }
-    });
-    toiData.sort((a, b) => a.time - b.time);
-    ema10Data.sort((a, b) => a.time - b.time);
-    ema30Data.sort((a, b) => a.time - b.time);
+    const toiData = series.map((s) => ({ time: s.time, value: s.value }));
+    const ema10Data = ema10Values
+      .map((v, i) => (v !== null && Number.isFinite(v) ? { time: series[i].time, value: v } : null))
+      .filter(Boolean) as { time: number; value: number }[];
+    const ema30Data = ema30Values
+      .map((v, i) => (v !== null && Number.isFinite(v) ? { time: series[i].time, value: v } : null))
+      .filter(Boolean) as { time: number; value: number }[];
 
     toiSeriesRef.current.setData(toiData as any);
     ema10SeriesRef.current.setData(ema10Data as any);
