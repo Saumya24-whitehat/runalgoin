@@ -23,6 +23,7 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const spotSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
+  const futureSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const vwapSeriesRef = useRef<ISeriesApi<"Line"> | null>(null);
   const isInitialFetch = useRef(true);
 
