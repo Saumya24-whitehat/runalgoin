@@ -105,6 +105,27 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       chartRef.current = null;
     }
 
+    const chart = createChart(containerRef.current, {
+      layout: {
+        background: { type: ColorType.Solid, color: "transparent" },
+        textColor: "#9ca3af",
+      },
+      grid: {
+        vertLines: { color: "rgba(255, 255, 255, 0.03)" },
+        horzLines: { color: "rgba(255, 255, 255, 0.03)" },
+      },
+      width: containerRef.current.clientWidth,
+      height: 200,
+      rightPriceScale: { borderColor: "rgba(255, 255, 255, 0.1)" },
+      timeScale: {
+        borderColor: "rgba(255, 255, 255, 0.1)",
+        visible: true,
+        timeVisible: true,
+      },
+      crosshair: { mode: 1 },
+    });
+    chartRef.current = chart;
+
     // Normalize + dedupe + sort by time before EMA calculation
     // dataFinal comes as [timestamp_ms, value] tuples
     const normalized = (data as any[])
