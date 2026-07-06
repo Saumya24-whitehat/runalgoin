@@ -208,23 +208,20 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     };
   }, []);
 
-  // Get latest data with valid VWAP
+  // Get latest data with valid VWAP + Future
   const getLatestData = () => {
     if (data.length === 0) return null;
-
-    // Find the last entry with valid VWAP
+    let vwap = 0;
+    let future = 0;
     for (let i = data.length - 1; i >= 0; i--) {
-      if (data[i].VWAP && data[i].VWAP > 0) {
-        return {
-          spot: data[data.length - 1].underlyning,
-          vwap: data[i].VWAP,
-        };
-      }
+      if (!vwap && data[i].VWAP && data[i].VWAP > 0) vwap = data[i].VWAP;
+      if (!future && data[i].Future && data[i].Future > 0) future = data[i].Future;
+      if (vwap && future) break;
     }
-
     return {
       spot: data[data.length - 1].underlyning,
-      vwap: 0,
+      vwap,
+      future,
     };
   };
 
@@ -234,18 +231,25 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
   return (
     <Card className="bg-card border-border">
       <CardHeader className="py-2 px-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-2">
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <LineChart className="h-4 w-4 text-primary" />
-            Spot vs VWAP
+            Spot vs Future vs VWAP
           </CardTitle>
           {latestData && (
-            <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-3 text-xs flex-wrap">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-500" />
                 <span className="text-muted-foreground">Spot:</span>
                 <span className="font-medium">{latestData.spot?.toFixed(2)}</span>
               </span>
+              {latestData.future > 0 && (
+                <span className="flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-amber-500" />
+                  <span className="text-muted-foreground">Future:</span>
+                  <span className="font-medium">{latestData.future?.toFixed(2)}</span>
+                </span>
+              )}
               {latestData.vwap > 0 && (
                 <span className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-purple-500" />
