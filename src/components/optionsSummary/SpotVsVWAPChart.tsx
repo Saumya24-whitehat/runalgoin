@@ -106,11 +106,18 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
 
     chartRef.current = chart;
 
-    // Spot Price Series
+    // Spot Price Series (underlying)
     spotSeriesRef.current = chart.addSeries(LineSeries, {
       color: "#22c55e",
       lineWidth: 2,
       title: "Spot",
+    });
+
+    // Future Price Series
+    futureSeriesRef.current = chart.addSeries(LineSeries, {
+      color: "#f59e0b",
+      lineWidth: 2,
+      title: "Future",
     });
 
     // VWAP Series
@@ -121,57 +128,59 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
       title: "VWAP",
     });
 
-    // Prepare data - filter out 0 VWAP or use previous value
     const spotData: { time: any; value: number }[] = [];
+    const futureData: { time: any; value: number }[] = [];
     const vwapData: { time: any; value: number }[] = [];
 
     let lastValidVWAP = 0;
     let lastValidFuture = 0;
-    // console.log(data);
-    data.forEach((item, idx) => {
-      // Always add spot data
+    let lastValidSpot = 0;
 
-      // Handle VWAP - skip if 0, or use previous valid value
+    // Sort + dedupe by timestamp
+    const seen = new Set<number>();
+    const sorted = [...data]
+      .filter((d) => Number.isFinite(d.timestamp as number))
+      .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
+      .filter((d) => {
+        const t = Math.floor((d.timestamp as number) / 1000);
+        if (seen.has(t)) return false;
+        seen.add(t);
+        return true;
+      });
+
+    sorted.forEach((item) => {
+      const t = Math.floor((item.timestamp as number) / 1000);
+
+      // Spot (underlying)
+      let spotValue = item.underlyning || 0;
+      if (spotValue === 0) {
+        if (lastValidSpot > 0) spotValue = lastValidSpot;
+      } else {
+        lastValidSpot = spotValue;
+      }
+      if (spotValue > 0) spotData.push({ time: t, value: spotValue });
+
+      // Future
       let futureValue = item.Future || 0;
-
       if (futureValue === 0) {
-        // Use previous valid VWAP if available
-        if (lastValidFuture > 0) {
-          futureValue = lastValidFuture;
-        } else {
-          // Skip this point if no valid VWAP yet
-          return;
-        }
+        if (lastValidFuture > 0) futureValue = lastValidFuture;
       } else {
         lastValidFuture = futureValue;
       }
-      spotData.push({
-        time: item.timestamp,
-        value: futureValue || 0,
-      });
+      if (futureValue > 0) futureData.push({ time: t, value: futureValue });
 
-      // Handle VWAP - skip if 0, or use previous valid value
+      // VWAP
       let vwapValue = item.VWAP || 0;
-
       if (vwapValue === 0) {
-        // Use previous valid VWAP if available
-        if (lastValidVWAP > 0) {
-          vwapValue = lastValidVWAP;
-        } else {
-          // Skip this point if no valid VWAP yet
-          return;
-        }
+        if (lastValidVWAP > 0) vwapValue = lastValidVWAP;
       } else {
         lastValidVWAP = vwapValue;
       }
-
-      vwapData.push({
-        time: item.timestamp,
-        value: vwapValue,
-      });
+      if (vwapValue > 0) vwapData.push({ time: t, value: vwapValue });
     });
 
     spotSeriesRef.current.setData(spotData);
+    futureSeriesRef.current.setData(futureData);
     vwapSeriesRef.current.setData(vwapData);
 
     chart.timeScale().fitContent();
