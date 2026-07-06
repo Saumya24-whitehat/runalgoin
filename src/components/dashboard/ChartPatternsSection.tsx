@@ -138,13 +138,17 @@ export function ChartPatternsSection() {
   };
 
   const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
+    // API returns UTC epoch ms; always display in IST regardless of the user's browser TZ
+    const ts = timestamp < 1e12 ? timestamp * 1000 : timestamp;
+    const date = new Date(ts);
     return date.toLocaleString("en-IN", {
+      timeZone: "Asia/Kolkata",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: true,
     });
   };
 
