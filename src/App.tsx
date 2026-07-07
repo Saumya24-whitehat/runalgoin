@@ -27,13 +27,13 @@ const PCRAllStrikes = lazy(() => import("./pages/PCRAllStrikes"));
 const TOI = lazy(() => import("./pages/TOI"));
 const MaxPain = lazy(() => import("./pages/MaxPain"));
 const OTR = lazy(() => import("./pages/OTR"));
-const Algo = lazy(() => import("./pages/Algo"));
+
 const OptionBuilder = lazy(() => import("./pages/OptionBuilder"));
 const OptionSimulator = lazy(() => import("./pages/OptionSimulator"));
 const FutureBuildup = lazy(() => import("./pages/FutureBuildup"));
 const FutureOpenHighLow = lazy(() => import("./pages/FutureOpenHighLow"));
 const FutureRollover = lazy(() => import("./pages/FutureRollover"));
-const FuturesOiBreakup = lazy(() => import("./pages/FuturesOiBreakup"));
+
 const MarketBreadth = lazy(() => import("./pages/MarketBreadth"));
 const OptionsChart = lazy(() => import("./pages/OptionsChart"));
 const GreeksChart = lazy(() => import("./pages/GreeksChart"));
@@ -111,13 +111,13 @@ const App = () => (
                 <Route path="/toi" element={<TOI />} />
                 <Route path="/max-pain" element={<MaxPain />} />
                 <Route path="/otr" element={<OTR />} />
-                <Route path="/algo" element={<Algo />} />
+                
                 <Route path="/option-builder" element={<OptionBuilder />} />
                 <Route path="/option-simulator" element={<OptionSimulator />} />
                 <Route path="/future-buildup" element={<FutureBuildup />} />
                 <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
                 <Route path="/future-rollover" element={<FutureRollover />} />
-                <Route path="/futures-oi-breakup" element={<FuturesOiBreakup />} />
+                
                 <Route path="/market-breadth" element={<MarketBreadth />} />
                 <Route path="/options-chart" element={<OptionsChart />} />
                 <Route path="/greeks-chart" element={<GreeksChart />} />

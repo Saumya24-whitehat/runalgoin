@@ -76,11 +76,10 @@ const baseNavItems: NavItem[] = [
       {
         title: "ANALYSIS",
         items: [
-          { icon: Star, label: "Summary Score", iconColor: "text-yellow-500" },
-          { icon: Bot, label: "AI Analysis", iconColor: "text-emerald-500" },
           { icon: Layers, label: "Options Summary", iconColor: "text-primary", path: "/options-summary" },
         ],
       },
+
       {
         title: "OPTION CHAIN",
         items: [
@@ -92,7 +91,7 @@ const baseNavItems: NavItem[] = [
             path: "/support-resistance",
           },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500", path: "/option-heatmap" },
-          { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
+          
           { icon: Wrench, label: "Option Builder", iconColor: "text-primary", path: "/option-builder" },
           { icon: Play, label: "Option Simulator", iconColor: "text-yellow-500", path: "/option-simulator" },
         ],
@@ -136,7 +135,6 @@ const baseNavItems: NavItem[] = [
             path: "/future-open-high-low",
           },
           { icon: Activity, label: "Future Rollover", iconColor: "text-emerald-500", path: "/future-rollover" },
-          { icon: BarChart2, label: "Futures OI Breakup", iconColor: "text-primary", path: "/futures-oi-breakup" },
         ],
       },
     ],
@@ -185,12 +183,7 @@ const baseNavItems: NavItem[] = [
     path: "/momentum-report",
   },
   {
-    label: "Algo",
-    icon: Bot,
-    hasDropdown: false,
-    path: "/algo",
-  },
-  {
+
     label: "Info",
     icon: Activity,
     hasDropdown: true,
