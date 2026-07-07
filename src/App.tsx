@@ -33,7 +33,7 @@ const OptionSimulator = lazy(() => import("./pages/OptionSimulator"));
 const FutureBuildup = lazy(() => import("./pages/FutureBuildup"));
 const FutureOpenHighLow = lazy(() => import("./pages/FutureOpenHighLow"));
 const FutureRollover = lazy(() => import("./pages/FutureRollover"));
-const FuturesOiBreakup = lazy(() => import("./pages/FuturesOiBreakup"));
+
 const MarketBreadth = lazy(() => import("./pages/MarketBreadth"));
 const OptionsChart = lazy(() => import("./pages/OptionsChart"));
 const GreeksChart = lazy(() => import("./pages/GreeksChart"));
