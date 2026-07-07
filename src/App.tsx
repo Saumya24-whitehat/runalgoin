@@ -117,7 +117,7 @@ const App = () => (
                 <Route path="/future-buildup" element={<FutureBuildup />} />
                 <Route path="/future-open-high-low" element={<FutureOpenHighLow />} />
                 <Route path="/future-rollover" element={<FutureRollover />} />
-                <Route path="/futures-oi-breakup" element={<FuturesOiBreakup />} />
+                
                 <Route path="/market-breadth" element={<MarketBreadth />} />
                 <Route path="/options-chart" element={<OptionsChart />} />
                 <Route path="/greeks-chart" element={<GreeksChart />} />
