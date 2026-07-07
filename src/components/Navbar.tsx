@@ -76,11 +76,10 @@ const baseNavItems: NavItem[] = [
       {
         title: "ANALYSIS",
         items: [
-          { icon: Star, label: "Summary Score", iconColor: "text-yellow-500" },
-          { icon: Bot, label: "AI Analysis", iconColor: "text-emerald-500" },
           { icon: Layers, label: "Options Summary", iconColor: "text-primary", path: "/options-summary" },
         ],
       },
+
       {
         title: "OPTION CHAIN",
         items: [
