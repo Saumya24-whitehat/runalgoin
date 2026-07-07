@@ -27,7 +27,7 @@ const PCRAllStrikes = lazy(() => import("./pages/PCRAllStrikes"));
 const TOI = lazy(() => import("./pages/TOI"));
 const MaxPain = lazy(() => import("./pages/MaxPain"));
 const OTR = lazy(() => import("./pages/OTR"));
-const Algo = lazy(() => import("./pages/Algo"));
+
 const OptionBuilder = lazy(() => import("./pages/OptionBuilder"));
 const OptionSimulator = lazy(() => import("./pages/OptionSimulator"));
 const FutureBuildup = lazy(() => import("./pages/FutureBuildup"));
