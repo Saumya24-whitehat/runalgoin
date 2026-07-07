@@ -111,7 +111,7 @@ const App = () => (
                 <Route path="/toi" element={<TOI />} />
                 <Route path="/max-pain" element={<MaxPain />} />
                 <Route path="/otr" element={<OTR />} />
-                <Route path="/algo" element={<Algo />} />
+                
                 <Route path="/option-builder" element={<OptionBuilder />} />
                 <Route path="/option-simulator" element={<OptionSimulator />} />
                 <Route path="/future-buildup" element={<FutureBuildup />} />
