@@ -91,7 +91,7 @@ const baseNavItems: NavItem[] = [
             path: "/support-resistance",
           },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500", path: "/option-heatmap" },
-          { icon: Filter, label: "Option Chain Screener", iconColor: "text-primary" },
+          
           { icon: Wrench, label: "Option Builder", iconColor: "text-primary", path: "/option-builder" },
           { icon: Play, label: "Option Simulator", iconColor: "text-yellow-500", path: "/option-simulator" },
         ],
