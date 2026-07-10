@@ -75,9 +75,7 @@ const baseNavItems: NavItem[] = [
     sections: [
       {
         title: "ANALYSIS",
-        items: [
-          { icon: Layers, label: "Options Summary", iconColor: "text-primary", path: "/options-summary" },
-        ],
+        items: [{ icon: Layers, label: "Options Summary", iconColor: "text-primary", path: "/options-summary" }],
       },
 
       {
@@ -91,7 +89,7 @@ const baseNavItems: NavItem[] = [
             path: "/support-resistance",
           },
           { icon: Flame, label: "Open Heat Map", iconColor: "text-orange-500", path: "/option-heatmap" },
-          
+
           { icon: Wrench, label: "Option Builder", iconColor: "text-primary", path: "/option-builder" },
           { icon: Play, label: "Option Simulator", iconColor: "text-yellow-500", path: "/option-simulator" },
         ],
@@ -183,16 +181,13 @@ const baseNavItems: NavItem[] = [
     path: "/momentum-report",
   },
   {
-
     label: "Info",
     icon: Activity,
     hasDropdown: true,
     sections: [
       {
         title: "INFORMATION",
-        items: [
-          { icon: Activity, label: "NSE Holidays", iconColor: "text-red-500", path: "/holidays" },
-        ],
+        items: [{ icon: Activity, label: "NSE Holidays", iconColor: "text-red-500", path: "/holidays" }],
       },
     ],
   },
@@ -285,7 +280,7 @@ export function Navbar() {
         <div className="flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link to="/dashboard" className="flex items-center">
-            <img src="/logo.png" alt="OptionWorld" className="h-10 sm:h-14" />
+            <img src="/logo.png" alt="OptionWorld" className="h-16 sm:h-16" />
           </Link>
 
           {/* Desktop Navigation */}
