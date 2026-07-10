@@ -433,10 +433,6 @@ const Admin = () => {
           <VideoManagement />
         </div>
 
-        {/* Blog Management */}
-        <div className="mt-8">
-          <BlogManagement />
-        </div>
       </main>
 
       <UserSubscriptionManager
