@@ -708,10 +708,18 @@ const OptionChain = () => {
               </Button>
             </div>
 
-            {/* Option Chain Table */}
+            {/* Option Chain Table (desktop) / Cards (mobile) */}
+            {isMobile && !loadingChain && filteredData.length > 0 ? (
+              <MobileOptionChain
+                rows={filteredData}
+                spotPrice={spotPrice}
+                maxCallOI={maxCallOI}
+                maxPutOI={maxPutOI}
+              />
+            ) : (
             <div
               ref={tableContainerRef}
-              className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact max-h-[70vh] overflow-y-auto"
+              className={`overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact max-h-[70vh] overflow-y-auto ${isMobile ? "hidden" : ""}`}
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {loadingChain ? (
