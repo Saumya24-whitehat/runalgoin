@@ -2,6 +2,7 @@
  import { TickerRibbon } from "@/components/TickerRibbon";
  import { Footer } from "@/components/Footer";
  import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+ import { SEO } from "@/components/SEO";
  
  const faqs = [
    {
@@ -39,8 +40,23 @@
  ];
  
  const FAQ = () => {
+   const faqSchema = {
+     "@context": "https://schema.org",
+     "@type": "FAQPage",
+     mainEntity: faqs.map((f) => ({
+       "@type": "Question",
+       name: f.question,
+       acceptedAnswer: { "@type": "Answer", text: f.answer },
+     })),
+   };
    return (
      <div className="min-h-screen bg-background flex flex-col">
+       <SEO
+         title="FAQ — OptionWorld Options Analytics"
+         description="Answers to common questions about OptionWorld's options analytics platform, data accuracy, plans, and support for Indian NSE traders."
+         path="/faq"
+         jsonLd={faqSchema}
+       />
        <div className="sticky top-0 z-50">
          <TickerRibbon />
          <Navbar />
