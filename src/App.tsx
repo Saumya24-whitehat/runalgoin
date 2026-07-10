@@ -164,6 +164,7 @@ const App = () => (
                 <Route path="/admin/blog/:id" element={<BlogEditor />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <MobileBottomNav />
             </Suspense>
           </TooltipProvider>
         </AuthProvider>
