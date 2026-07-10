@@ -148,9 +148,9 @@ export default function StockScreeners() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-[calc(100vh-240px)] min-h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:h-[calc(100vh-240px)] lg:min-h-[600px]">
           {/* Left Panel - Scan Selection */}
-          <div className="lg:col-span-4 xl:col-span-3">
+          <div className="lg:col-span-4 xl:col-span-3 h-[70vh] lg:h-auto">
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-2">
                 <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "presets" | "custom")}>
@@ -184,7 +184,7 @@ export default function StockScreeners() {
           </div>
 
           {/* Right Panel - Results */}
-          <div className="lg:col-span-8 xl:col-span-9">
+          <div className="lg:col-span-8 xl:col-span-9 h-[70vh] lg:h-auto">
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
