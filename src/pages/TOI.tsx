@@ -661,7 +661,7 @@ const TOI = () => {
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-auto max-h-[450px]">
-                <Table>
+                <Table className="min-w-[900px]">
                   <TableHeader className="sticky top-0">
                     <TableRow className="bg-muted">
                       <TableHead rowSpan={2} className="text-center border-r border-border/50 align-middle">
