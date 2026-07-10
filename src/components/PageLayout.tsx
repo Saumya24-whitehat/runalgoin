@@ -10,7 +10,7 @@ interface PageLayoutProps {
 
 export function PageLayout({ children, showFooter = true }: PageLayoutProps) {
   return (
-    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-background flex flex-col [overflow-x:clip]">
       <div
         className="sticky top-0 z-50"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
@@ -18,7 +18,7 @@ export function PageLayout({ children, showFooter = true }: PageLayoutProps) {
         <TickerRibbon />
         <Navbar />
       </div>
-      <main className="flex-1 w-full max-w-full overflow-x-hidden">
+      <main className="flex-1 w-full max-w-full [overflow-x:clip]">
         {children}
       </main>
       {showFooter && (
