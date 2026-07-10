@@ -428,7 +428,7 @@ const MaxPain = () => {
             </div>
 
             {/* Refresh Info Bar with Time Navigation */}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-between gap-3 mt-3 pt-3 border-t border-border/50 text-[10px] text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
