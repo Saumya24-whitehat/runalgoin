@@ -191,14 +191,14 @@ const JackpotDetail = () => {
 
       <main className="flex-1 container mx-auto px-4 py-6">
         {/* Header with back button and symbol selector */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           <Button variant="outline" size="icon" onClick={() => navigate("/jackpot-scanner")}>
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <div className="flex items-center gap-2">
-            <span className="text-foreground font-medium">Select Symbol:</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-foreground font-medium text-sm sm:text-base">Select Symbol:</span>
             <Select value={symbol} onValueChange={handleSymbolChange}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[140px] sm:w-[180px]">
                 <SelectValue placeholder="Select symbol" />
               </SelectTrigger>
               <SelectContent>
@@ -213,7 +213,7 @@ const JackpotDetail = () => {
           <Button onClick={() => navigate("/jackpot-scanner")} className="bg-primary">
             Screener
           </Button>
-          <div className="ml-auto">
+          <div className="w-full sm:w-auto sm:ml-auto">
             <LastRefreshBadge lastRefresh={lastRefresh} isFetching={isLoading} />
           </div>
         </div>
