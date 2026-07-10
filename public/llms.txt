@@ -1,0 +1,36 @@
+# OptionWorld
+
+> Institutional-grade options analytics platform for Indian (NSE) markets — real-time option chain, PCR, OI analytics, max pain, strategy builder and simulator.
+
+OptionWorld helps Indian options traders analyze the NSE derivatives market with real-time data, technical charts, and advanced options analytics.
+
+## Pages
+
+- [Home](/): Overview of OptionWorld's dashboard and analytics.
+- [About](/about): Our mission and what OptionWorld offers.
+- [Plans](/plans): Subscription plans and pricing.
+- [FAQ](/faq): Common questions about the platform.
+- [Contact](/contact): How to reach the OptionWorld team.
+- [Documentation](/documentation): Feature and metric documentation.
+- [Video Tutorials](/videos): Walkthroughs of key platform features.
+- [NSE Holidays](/holidays): NSE market holidays.
+
+## Analytics
+
+- [Option Chain](/option-chain): Live NSE option chain with OI, IV and Greeks.
+- [Option Heatmap](/option-heatmap): Visual heatmap of option activity.
+- [PCR](/pcr): Put-Call Ratio dashboard.
+- [Max Pain](/max-pain): Expiry-wise max pain analysis.
+- [OI Across Expiries](/oi-across-expiries): Multi-expiry OI distribution.
+- [OI Change Trend](/oi-change-trend): Intraday OI change trend.
+- [Options Summary](/options-summary): All-in-one options metrics dashboard.
+- [Strategy Builder](/option-builder): Build multi-leg option strategies.
+- [Strategy Simulator](/option-simulator): Simulate strategy P&L over time.
+- [Market Breadth](/market-breadth): Advance/decline and sector breadth.
+- [FII Data](/fii): FII/DII derivatives activity.
+- [Stock Screeners](/stock-screeners): Preset and custom stock scans.
+
+## Optional
+
+- [Privacy Policy](/privacy-policy)
+- [Terms](/terms)

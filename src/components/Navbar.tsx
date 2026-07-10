@@ -371,6 +371,8 @@ export function Navbar() {
             <button
               className="lg:hidden p-2 rounded-lg hover:bg-secondary transition-colors"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
                 <X className="h-6 w-6 text-foreground" />

@@ -3,6 +3,7 @@
  import { Footer } from "@/components/Footer";
  import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
  import { Book, Code, Database, LineChart, Settings, Shield } from "lucide-react";
+ import { SEO } from "@/components/SEO";
  
  const docs = [
    {
@@ -39,8 +40,13 @@
  
  const Documentation = () => {
    return (
-     <div className="min-h-screen bg-background flex flex-col">
-       <div className="sticky top-0 z-50">
+      <div className="min-h-screen bg-background flex flex-col">
+        <SEO
+          title="Documentation — OptionWorld"
+          description="OptionWorld feature documentation: guides for option chain analysis, market data, algo setup, and platform metrics."
+          path="/documentation"
+        />
+        <div className="sticky top-0 z-50">
          <TickerRibbon />
          <Navbar />
        </div>

@@ -13,6 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SEO } from "@/components/SEO";
 
 interface Video {
   id: string;
@@ -71,8 +72,27 @@ export default function Videos() {
     return videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : null;
   };
 
+  const videoSchema = videos.map((v) => {
+    const videoId = extractYouTubeId(v.youtube_url);
+    return {
+      "@context": "https://schema.org",
+      "@type": "VideoObject",
+      name: v.title,
+      description: v.description || v.title,
+      thumbnailUrl: v.thumbnail_url || (videoId ? `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` : undefined),
+      embedUrl: videoId ? `https://www.youtube.com/embed/${videoId}` : v.youtube_url,
+      uploadDate: new Date().toISOString().split("T")[0],
+    };
+  });
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Video Tutorials — OptionWorld"
+        description="Watch OptionWorld video tutorials — walkthroughs of option chain analysis, strategy builder, PCR, max pain, and other platform features."
+        path="/videos"
+        jsonLd={videoSchema}
+      />
       <div className="sticky top-0 z-50">
         <TickerRibbon />
         <Navbar />
