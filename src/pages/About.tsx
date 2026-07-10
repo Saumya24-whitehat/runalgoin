@@ -3,6 +3,7 @@ import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUp, Users, Target, Award } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const stats = [
   { label: "Active Traders", value: "50,000+", icon: Users },
@@ -14,6 +15,11 @@ const stats = [
 const About = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="About OptionWorld — Institutional-Grade Options Analytics"
+        description="Learn about OptionWorld, our mission to deliver institutional-grade options analytics to Indian NSE traders, and the team behind the platform."
+        path="/about"
+      />
       <div className="sticky top-0 z-50">
         <TickerRibbon />
         <Navbar />

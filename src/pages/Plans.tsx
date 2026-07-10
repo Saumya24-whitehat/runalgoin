@@ -168,6 +168,11 @@ export default function Plans() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="Plans & Pricing — OptionWorld"
+        description="OptionWorld subscription plans and pricing. Choose Free, Pro, or Business plan to unlock advanced options analytics for Indian NSE markets."
+        path="/plans"
+      />
       <div className="sticky top-0 z-50">
         <TickerRibbon />
         <Navbar />

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Mail, Phone } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { SEO } from "@/components/SEO";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -28,6 +29,11 @@ const Contact = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <SEO
+        title="Contact OptionWorld — Support & Sales"
+        description="Get in touch with OptionWorld. Contact our team for support, sales queries, or feedback on our options analytics platform for Indian markets."
+        path="/contact"
+      />
       <div className="sticky top-0 z-50">
         <TickerRibbon />
         <Navbar />
