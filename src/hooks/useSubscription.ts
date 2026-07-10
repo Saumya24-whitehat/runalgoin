@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -61,9 +62,28 @@ export function useSubscription() {
   });
 
   const loading = subLoading || adminLoading;
-  const sub = subscription || (user ? null : { plan_type: "free" as const, status: "active" as const, expires_at: null });
+  const rawSub = subscription || (user ? null : { plan_type: "free" as const, status: "active" as const, expires_at: null });
 
-  const isPro = sub?.plan_type === "pro" || sub?.plan_type === "enterprise";
+  // Treat expired subscriptions as free
+  const isExpired = !!rawSub?.expires_at && new Date(rawSub.expires_at).getTime() < Date.now();
+  const sub = rawSub && isExpired
+    ? { ...rawSub, plan_type: "free" as const, status: "expired" as const }
+    : rawSub;
+
+  // Persist the downgrade to the DB once, so admin views stay consistent
+  useEffect(() => {
+    if (!user || !rawSub || !isExpired) return;
+    if (rawSub.plan_type === "free" && rawSub.status === "expired") return;
+    supabase
+      .from("subscriptions")
+      .update({ plan_type: "free", status: "expired" })
+      .eq("user_id", user.id)
+      .then(({ error }) => {
+        if (error) console.error("Failed to downgrade expired subscription:", error);
+      });
+  }, [user, rawSub, isExpired]);
+
+  const isPro = (sub?.plan_type === "pro" || sub?.plan_type === "enterprise");
   const isEnterprise = sub?.plan_type === "enterprise";
 
   return {
