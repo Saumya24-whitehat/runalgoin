@@ -73,6 +73,9 @@ const MomentumReport = lazy(() => import("./pages/MomentumReport"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BlogEditor = lazy(() => import("./pages/admin/BlogEditor"));
+const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
+const InvoiceView = lazy(() => import("./pages/InvoiceView"));
+const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
