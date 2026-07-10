@@ -99,6 +99,7 @@ const OptionChain = () => {
   const { user, loading: authLoading } = useAuth();
   const { isTodayClosed, lastWorkingDay } = useMarketStatus();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
   const urlExpiry = searchParams.get("expiry");
