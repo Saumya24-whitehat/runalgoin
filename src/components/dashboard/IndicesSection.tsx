@@ -652,7 +652,7 @@ export function IndicesSection() {
         <h3 className="font-semibold mb-2 sm:mb-3 text-sm sm:text-base">Advances/Declines</h3>
 
         {/* Scrollable - only shows 3 items initially, scroll for more */}
-        <ScrollArea className="h-[40vh] sm:h-[50vh] md:h-[200px]">
+        <ScrollArea className="lg:h-[200px]">
           <div className="space-y-2 sm:space-y-3 pr-2">
             {advanceDeclineItems.map((item, idx) => (
               <AdvanceDeclineBar key={idx} item={item} />
