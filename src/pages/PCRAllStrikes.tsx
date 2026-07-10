@@ -948,7 +948,7 @@ export default function PCRAllStrikes() {
                 </div>
 
                 {/* Right side - refresh info and alert toggle */}
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
                   {/* Alert Toggle */}
                   <div className="flex items-center gap-2">
                     <Switch id="alert-toggle" checked={alertEnabled} onCheckedChange={setAlertEnabled} />
