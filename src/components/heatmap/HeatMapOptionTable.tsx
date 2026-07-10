@@ -44,7 +44,8 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
   const isPutITM = (strike: number) => strike > spotPrice;
 
   const renderOITable = () => (
-    <table className="options-table w-full text-xs">
+    <table className="options-table w-full min-w-[560px] text-xs">
+
       <thead>
         <tr>
           <th colSpan={3} className="border-b border-border bg-red-800 text-white py-2">CALL</th>
@@ -110,7 +111,8 @@ export function HeatMapOptionTable({ data, atm, type, spotPrice }: HeatMapOption
   );
 
   const renderLTPTable = () => (
-    <table className="options-table w-full text-xs">
+    <table className="options-table w-full min-w-[560px] text-xs">
+
       <thead>
         <tr>
           <th colSpan={3} className="border-b border-border bg-red-800 text-white py-2">CALL</th>
