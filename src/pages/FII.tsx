@@ -589,7 +589,7 @@ export default function FII() {
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
           <PageInfoModal
             title="FII / DII Activity"
