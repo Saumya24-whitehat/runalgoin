@@ -710,7 +710,8 @@ const SupportResistance = () => {
 
         {/* Main Table */}
         <div className="overflow-auto max-h-[450px] bg-card rounded-lg border border-border">
-          <Table className="w-full text-xs">
+          <Table className="w-full min-w-[820px] text-xs">
+
             <TableHeader className="sticky top-0">
               {/* Header Row 1 - CALL | IDV | PUT */}
               <TableRow className="border-b border-border">
