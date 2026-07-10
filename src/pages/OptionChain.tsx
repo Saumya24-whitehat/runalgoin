@@ -1118,6 +1118,7 @@ const OptionChain = () => {
                 <div className="text-center py-12 text-muted-foreground">Loading option chain data...</div>
               )}
             </div>
+            )}
           </CardContent>
         </Card>
         </div>
