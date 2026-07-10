@@ -230,14 +230,23 @@ const Profile = () => {
                 )}
               </div>
 
-              {!isPro && (
-                <div className="pt-4 border-t">
+              <div className="pt-4 border-t flex flex-wrap gap-2">
+                {!isPro && (
                   <Button onClick={() => navigate("/plans")} className="gap-2">
                     <Crown className="h-4 w-4" />
                     Upgrade to Pro
                   </Button>
-                </div>
-              )}
+                )}
+                <Button variant="outline" onClick={() => navigate("/payments")} className="gap-2">
+                  Payment History
+                </Button>
+                {isAdmin && (
+                  <Button variant="outline" onClick={() => navigate("/admin/audit-log")} className="gap-2">
+                    <Shield className="h-4 w-4" />
+                    Audit Log
+                  </Button>
+                )}
+              </div>
             </CardContent>
           </Card>
 
