@@ -1648,7 +1648,7 @@ const OptionSimulator = () => {
               {isLoading ? "Loading..." : "Load Data"}
             </Button>
 
-            <div className="flex-1" />
+            <div className="hidden sm:block flex-1" />
 
             {/* Spot Price Display */}
             {currentPrice > 0 && (
@@ -1657,7 +1657,8 @@ const OptionSimulator = () => {
               </div>
             )}
 
-            {/* Action Buttons */}
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+
             <Button
               variant={adjustmentRules.filter((r) => r.isActive).length > 0 ? "default" : "outline"}
               size="icon"
