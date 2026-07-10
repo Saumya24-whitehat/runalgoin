@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { format } from "date-fns";
 import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionManager";
 import { VideoManagement } from "@/components/admin/VideoManagement";
+import { BlogManagement } from "@/components/admin/BlogManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
@@ -430,6 +431,11 @@ const Admin = () => {
         {/* Video Management */}
         <div className="mt-8">
           <VideoManagement />
+        </div>
+
+        {/* Blog Management */}
+        <div className="mt-8">
+          <BlogManagement />
         </div>
       </main>
 
