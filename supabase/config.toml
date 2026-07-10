@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.razorpay-webhook]
 verify_jwt = false
+
+[functions.auto-expire-subscriptions]
+verify_jwt = false
