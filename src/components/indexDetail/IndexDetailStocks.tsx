@@ -87,7 +87,7 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
           </Button>
         </div>
 
-        <div className="relative flex-1 max-w-xs ml-auto">
+        <div className="relative w-full sm:flex-1 sm:max-w-xs sm:ml-auto">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search stocks..."
@@ -96,12 +96,14 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
             className="pl-9"
           />
         </div>
+
       </div>
 
       {/* Table */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <Table>
+      <div className="border border-border rounded-lg overflow-x-auto">
+        <Table className="min-w-[640px]">
           <TableHeader>
+
             <TableRow className="bg-muted/30">
               <TableHead className="w-[300px]">Stock</TableHead>
               <TableHead
