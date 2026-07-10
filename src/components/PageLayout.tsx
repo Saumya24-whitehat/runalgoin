@@ -18,7 +18,7 @@ export function PageLayout({ children, showFooter = true }: PageLayoutProps) {
         <TickerRibbon />
         <Navbar />
       </div>
-      <main className="flex-1 w-full max-w-full overflow-x-hidden pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0">
+      <main className="flex-1 w-full max-w-full overflow-x-hidden">
         {children}
       </main>
       {showFooter && (

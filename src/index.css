@@ -194,6 +194,13 @@
     overflow-x: hidden;
   }
 
+  /* Reserve space for fixed mobile bottom nav on small screens */
+  @media (max-width: 1023px) {
+    body {
+      padding-bottom: calc(64px + env(safe-area-inset-bottom));
+    }
+  }
+
   body {
     @apply bg-background text-foreground font-sans antialiased text-[11px] sm:text-[11px];
     font-family: "Inter", sans-serif;
