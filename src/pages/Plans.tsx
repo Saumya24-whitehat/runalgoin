@@ -156,16 +156,15 @@ export default function Plans() {
   const navigate = useNavigate();
   const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
 
   const handlePlanAction = (planName: string) => {
     if (!user) {
       navigate("/auth");
       return;
     }
-    // For now, just show a message - payment integration can be added later
-    if ((planName === "Pro Monthly" || planName === "Pro Yearly") && !isPro) {
-      // Could integrate with payment gateway here
-    }
+    if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
+    else if (planName === "Pro Yearly" && !isPro) startCheckout("yearly");
   };
 
   return (
