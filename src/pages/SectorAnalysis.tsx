@@ -252,9 +252,9 @@ const SectorAnalysis = () => {
         <Navbar />
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="w-72 border-r border-border bg-card min-h-[calc(100vh-8rem)]">
+        <div className="w-full lg:w-72 border-b lg:border-b-0 lg:border-r border-border bg-card lg:min-h-[calc(100vh-8rem)]">
           <div className="p-3 border-b border-border">
             <h2 className="font-semibold text-foreground">Select Sector</h2>
           </div>
