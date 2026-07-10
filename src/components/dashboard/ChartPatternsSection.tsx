@@ -309,7 +309,7 @@ export function ChartPatternsSection() {
       {/* Patterns List */}
       <Card className="bg-card border-border">
         <CardContent className="p-0">
-          <ScrollArea className="h-[350px]">
+          <ScrollArea className="lg:h-[350px]">
             <div className="divide-y divide-border">
               {[...filteredPatterns].reverse().slice(0, 50).map((pattern) => (
                 <div key={pattern.id} className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors">
