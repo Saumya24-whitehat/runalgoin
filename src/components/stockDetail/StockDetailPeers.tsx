@@ -123,8 +123,9 @@ export const StockDetailPeers = ({ symbol, sector }: StockDetailPeersProps) => {
           className="w-full px-2 py-1.5 text-sm rounded-md border border-border bg-background text-foreground outline-none focus:ring-2 focus:ring-primary"
         />
       </CardHeader>
-      <CardContent className="pt-0">
-        <Table>
+      <CardContent className="pt-0 overflow-x-auto">
+        <Table className="min-w-[720px]">
+
           <TableHeader>
             <TableRow className="border-border bg-background/50 cursor-pointer">
               <TableHead onClick={() => handleSort("company_name")} className="text-xs font-medium">
