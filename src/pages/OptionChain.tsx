@@ -18,6 +18,8 @@ import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
+import MobileOptionChain from "@/components/mobile/MobileOptionChain";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface OptionData {
   strike_price: number;
