@@ -61,9 +61,15 @@ export function useSubscription() {
   });
 
   const loading = subLoading || adminLoading;
-  const sub = subscription || (user ? null : { plan_type: "free" as const, status: "active" as const, expires_at: null });
+  const rawSub = subscription || (user ? null : { plan_type: "free" as const, status: "active" as const, expires_at: null });
 
-  const isPro = sub?.plan_type === "pro" || sub?.plan_type === "enterprise";
+  // Treat expired subscriptions as free
+  const isExpired = !!rawSub?.expires_at && new Date(rawSub.expires_at).getTime() < Date.now();
+  const sub = rawSub && isExpired
+    ? { ...rawSub, plan_type: "free" as const, status: "expired" as const }
+    : rawSub;
+
+  const isPro = (sub?.plan_type === "pro" || sub?.plan_type === "enterprise");
   const isEnterprise = sub?.plan_type === "enterprise";
 
   return {
