@@ -33,10 +33,13 @@ export function renderMarkdown(md: string): string {
         /!\[([^\]]*)\]\(([^)]+)\)/g,
         '<img alt="$1" src="$2" class="rounded-lg my-4 max-w-full" />'
       )
-      .replace(
-        /\[([^\]]+)\]\(([^)]+)\)/g,
-        '<a href="$2" class="text-primary underline">$1</a>'
-      );
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, text, href) => {
+        const isHash = href.startsWith("#");
+        const attrs = isHash
+          ? ""
+          : ' target="_blank" rel="noopener noreferrer"';
+        return `<a href="${href}" class="text-primary underline"${attrs}>${text}</a>`;
+      });
 
   const lines = source.split(/\r?\n/);
   const out: string[] = [];
