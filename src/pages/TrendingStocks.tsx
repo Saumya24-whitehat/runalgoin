@@ -85,7 +85,7 @@ export default function TrendingStocks() {
     }
     return (
       <div className="overflow-x-auto">
-        <table className="w-full text-xs sm:text-sm">
+        <table className="w-full text-xs sm:text-sm min-w-[760px]">
           <thead>
             <tr className="border-b border-border text-muted-foreground text-left">
               <th className="py-2 px-2 font-medium">#</th>

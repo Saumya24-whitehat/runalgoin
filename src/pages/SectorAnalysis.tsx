@@ -252,14 +252,14 @@ const SectorAnalysis = () => {
         <Navbar />
       </div>
 
-      <div className="flex">
+      <div className="flex flex-col lg:flex-row">
         {/* Sidebar */}
-        <div className="w-72 border-r border-border bg-card min-h-[calc(100vh-8rem)]">
+        <div className="w-full lg:w-72 border-b lg:border-b-0 lg:border-r border-border bg-card lg:min-h-[calc(100vh-8rem)]">
           <div className="p-3 border-b border-border">
             <h2 className="font-semibold text-foreground">Select Sector</h2>
           </div>
 
-          <ScrollArea className="h-[calc(100vh-12rem)]">
+          <ScrollArea className="h-[40vh] lg:h-[calc(100vh-12rem)]">
             <div className="p-2 space-y-1">
               {groupedIndices.map((group) => (
                 <div key={group.name} className="space-y-1">
@@ -330,8 +330,8 @@ const SectorAnalysis = () => {
         {/* Main Content */}
         <div className="flex-1 p-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground">
                 {selectedIndexInfo?.displayName || "Sector Analysis"}
               </h1>

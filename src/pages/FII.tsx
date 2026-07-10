@@ -589,7 +589,7 @@ export default function FII() {
       <Navbar />
       <main className="flex-grow container mx-auto px-4 py-6">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
           <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFiiRefetching} />
           <PageInfoModal
             title="FII / DII Activity"
@@ -619,32 +619,34 @@ export default function FII() {
               "Cash + Futures net flow is a better read than either in isolation.",
             ]}
           />
-            <TabsList className="bg-muted/50">
-              <TabsTrigger
-                value="summary"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Summary
-              </TabsTrigger>
-              <TabsTrigger
-                value="futures-options"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Futures and Options
-              </TabsTrigger>
-              <TabsTrigger
-                value="cash-market"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                Cash Market
-              </TabsTrigger>
-              <TabsTrigger
-                value="fii-history"
-                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
-              >
-                FII History
-              </TabsTrigger>
-            </TabsList>
+            <div className="w-full overflow-x-auto">
+              <TabsList className="bg-muted/50 w-max">
+                <TabsTrigger
+                  value="summary"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Summary
+                </TabsTrigger>
+                <TabsTrigger
+                  value="futures-options"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Futures and Options
+                </TabsTrigger>
+                <TabsTrigger
+                  value="cash-market"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  Cash Market
+                </TabsTrigger>
+                <TabsTrigger
+                  value="fii-history"
+                  className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+                >
+                  FII History
+                </TabsTrigger>
+              </TabsList>
+            </div>
           </div>
 
           {/* Summary Tab */}
