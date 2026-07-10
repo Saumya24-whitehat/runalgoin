@@ -278,7 +278,7 @@ export default function Plans() {
                     variant={plan.ctaVariant}
                     size="lg"
                     onClick={() => handlePlanAction(plan.name)}
-                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) || (plan.name === "Free" && !isPro)}
+                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && (isPro || checkoutLoading)) || (plan.name === "Free" && !isPro)}
                     className={`w-full text-lg py-6 ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
