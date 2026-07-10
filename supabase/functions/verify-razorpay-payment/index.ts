@@ -43,6 +43,7 @@ Deno.serve(async (req) => {
       });
     }
     const userId = userData.user.id;
+    const userEmail = userData.user.email;
 
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, plan } = await req.json();
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !plan) {
@@ -71,6 +72,32 @@ Deno.serve(async (req) => {
       });
     }
 
+    const amount = plan === 'monthly' ? 150 * 100 : 1500 * 100;
+
+    // Get prior subscription for audit
+    const { data: prior } = await supabase
+      .from('subscriptions')
+      .select('plan_type, status')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    // Upsert payment (webhook may also do this — onConflict keeps them in sync)
+    await supabase.from('payments').upsert(
+      {
+        user_id: userId,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        plan,
+        amount,
+        currency: 'INR',
+        status: 'captured',
+        email: userEmail,
+        notes: { plan, user_id: userId },
+      },
+      { onConflict: 'razorpay_order_id' },
+    );
+
     const { error: upErr } = await supabase.from('subscriptions').upsert(
       {
         user_id: userId,
@@ -90,8 +117,50 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Invoice
+    const invoiceNumber = `INV-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-${razorpay_payment_id.slice(-8).toUpperCase()}`;
+    const { data: paymentRow } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('razorpay_order_id', razorpay_order_id)
+      .maybeSingle();
+
+    await supabase.from('invoices').upsert(
+      {
+        user_id: userId,
+        payment_id: paymentRow?.id,
+        invoice_number: invoiceNumber,
+        plan,
+        amount,
+        currency: 'INR',
+        period_start: now.toISOString(),
+        period_end: expires.toISOString(),
+        razorpay_order_id,
+        razorpay_payment_id,
+        customer_email: userEmail,
+      },
+      { onConflict: 'invoice_number' },
+    );
+
+    // Audit
+    await supabase.from('subscription_audit_log').insert({
+      user_id: userId,
+      user_email: userEmail,
+      action: prior?.plan_type === 'pro' ? 'renewal' : 'upgrade',
+      old_plan: prior?.plan_type ?? 'free',
+      new_plan: 'pro',
+      old_status: prior?.status ?? null,
+      new_status: 'active',
+      expires_at: expires.toISOString(),
+      reason: 'verify_razorpay_payment',
+      actor: 'user',
+      razorpay_order_id,
+      razorpay_payment_id,
+      metadata: { amount, plan },
+    });
+
     return new Response(
-      JSON.stringify({ success: true, expires_at: expires.toISOString() }),
+      JSON.stringify({ success: true, expires_at: expires.toISOString(), invoice_number: invoiceNumber }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
     );
   } catch (e) {

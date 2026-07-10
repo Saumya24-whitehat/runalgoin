@@ -73,6 +73,9 @@ const MomentumReport = lazy(() => import("./pages/MomentumReport"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BlogEditor = lazy(() => import("./pages/admin/BlogEditor"));
+const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
+const InvoiceView = lazy(() => import("./pages/InvoiceView"));
+const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -141,7 +144,10 @@ const App = () => (
                 <Route path="/stock-detail" element={<StockDetail />} />
                 <Route path="/plans" element={<Plans />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/admin/audit-log" element={<AuditLog />} />
                 <Route path="/profile" element={<Profile />} />
+                <Route path="/payments" element={<PaymentHistory />} />
+                <Route path="/invoices/:id" element={<InvoiceView />} />
                 <Route path="/options-summary" element={<OptionsSummary />} />
                 <Route path="/documentation" element={<Documentation />} />
                 <Route path="/videos" element={<Videos />} />
