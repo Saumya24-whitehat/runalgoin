@@ -259,7 +259,7 @@ const SectorAnalysis = () => {
             <h2 className="font-semibold text-foreground">Select Sector</h2>
           </div>
 
-          <ScrollArea className="h-[calc(100vh-12rem)]">
+          <ScrollArea className="h-[40vh] lg:h-[calc(100vh-12rem)]">
             <div className="p-2 space-y-1">
               {groupedIndices.map((group) => (
                 <div key={group.name} className="space-y-1">
