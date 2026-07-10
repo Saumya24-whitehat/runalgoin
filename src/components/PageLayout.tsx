@@ -2,8 +2,6 @@ import { ReactNode } from "react";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
-import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
-import { OfflineBanner } from "@/components/mobile/OfflineBanner";
 
 interface PageLayoutProps {
   children: ReactNode;
@@ -20,10 +18,7 @@ export function PageLayout({ children, showFooter = true }: PageLayoutProps) {
         <TickerRibbon />
         <Navbar />
       </div>
-      <OfflineBanner />
-      <main
-        className="flex-1 w-full max-w-full overflow-x-hidden pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0"
-      >
+      <main className="flex-1 w-full max-w-full overflow-x-hidden pb-[calc(64px+env(safe-area-inset-bottom))] lg:pb-0">
         {children}
       </main>
       {showFooter && (
@@ -31,7 +26,7 @@ export function PageLayout({ children, showFooter = true }: PageLayoutProps) {
           <Footer />
         </div>
       )}
-      <MobileBottomNav />
     </div>
   );
 }
+
