@@ -27,6 +27,7 @@ import {
   Play,
   User,
   Shield,
+  Receipt,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -343,10 +344,20 @@ export function Navbar() {
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/payments")}>
+                    <Receipt className="h-4 w-4 mr-2" />
+                    Payment History
+                  </DropdownMenuItem>
                   {isAdmin && (
                     <DropdownMenuItem onClick={() => navigate("/admin")}>
                       <Shield className="h-4 w-4 mr-2" />
                       Admin Panel
+                    </DropdownMenuItem>
+                  )}
+                  {isAdmin && (
+                    <DropdownMenuItem onClick={() => navigate("/admin/audit-log")}>
+                      <Shield className="h-4 w-4 mr-2" />
+                      Audit Log
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => navigate("/plans")}>
@@ -465,6 +476,14 @@ export function Navbar() {
                   <User className="h-5 w-5 text-primary" />
                   <span className="font-medium">Profile</span>
                 </Link>
+                <Link
+                  to="/payments"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                >
+                  <Receipt className="h-5 w-5 text-primary" />
+                  <span className="font-medium">Payment History</span>
+                </Link>
                 {isAdmin && (
                   <Link
                     to="/admin"
@@ -473,6 +492,16 @@ export function Navbar() {
                   >
                     <Shield className="h-5 w-5 text-primary" />
                     <span className="font-medium">Admin Panel</span>
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link
+                    to="/admin/audit-log"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
+                  >
+                    <Shield className="h-5 w-5 text-primary" />
+                    <span className="font-medium">Audit Log</span>
                   </Link>
                 )}
                 <Link
