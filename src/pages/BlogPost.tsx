@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
+import { renderMarkdown } from "@/lib/markdown";
 
 interface BlogPost {
   id: string;
@@ -21,72 +22,6 @@ interface BlogPost {
   published_at: string | null;
 }
 
-// Minimal safe markdown-ish renderer: headings, paragraphs, lists, bold/italic, links.
-// Escapes HTML first to prevent XSS.
-function renderMarkdown(md: string): string {
-  const esc = md
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-
-  const lines = esc.split(/\r?\n/);
-  const out: string[] = [];
-  let inList = false;
-  const closeList = () => {
-    if (inList) {
-      out.push("</ul>");
-      inList = false;
-    }
-  };
-
-  const inline = (s: string) =>
-    s
-      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-      .replace(/\*(.+?)\*/g, "<em>$1</em>")
-      .replace(
-        /\[([^\]]+)\]\(([^)]+)\)/g,
-        '<a href="$2" class="text-primary underline" target="_blank" rel="noopener noreferrer">$1</a>'
-      );
-
-  for (const raw of lines) {
-    const line = raw.trimEnd();
-    if (!line.trim()) {
-      closeList();
-      continue;
-    }
-    let m;
-    if ((m = line.match(/^######\s+(.*)/))) {
-      closeList();
-      out.push(`<h6 class="text-base font-semibold mt-4">${inline(m[1])}</h6>`);
-    } else if ((m = line.match(/^#####\s+(.*)/))) {
-      closeList();
-      out.push(`<h5 class="text-lg font-semibold mt-4">${inline(m[1])}</h5>`);
-    } else if ((m = line.match(/^####\s+(.*)/))) {
-      closeList();
-      out.push(`<h4 class="text-xl font-semibold mt-5">${inline(m[1])}</h4>`);
-    } else if ((m = line.match(/^###\s+(.*)/))) {
-      closeList();
-      out.push(`<h3 class="text-2xl font-semibold mt-6">${inline(m[1])}</h3>`);
-    } else if ((m = line.match(/^##\s+(.*)/))) {
-      closeList();
-      out.push(`<h2 class="text-3xl font-bold mt-8">${inline(m[1])}</h2>`);
-    } else if ((m = line.match(/^#\s+(.*)/))) {
-      closeList();
-      out.push(`<h2 class="text-3xl font-bold mt-8">${inline(m[1])}</h2>`);
-    } else if ((m = line.match(/^[-*]\s+(.*)/))) {
-      if (!inList) {
-        out.push('<ul class="list-disc pl-6 space-y-1">');
-        inList = true;
-      }
-      out.push(`<li>${inline(m[1])}</li>`);
-    } else {
-      closeList();
-      out.push(`<p class="leading-7">${inline(line)}</p>`);
-    }
-  }
-  closeList();
-  return out.join("\n");
-}
 
 const BlogPostPage = () => {
   const { slug } = useParams<{ slug: string }>();
