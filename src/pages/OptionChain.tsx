@@ -18,6 +18,8 @@ import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { MarketClosedBanner } from "@/components/MarketClosedBanner";
 import { useMarketStatus } from "@/hooks/useMarketStatus";
+import MobileOptionChain from "@/components/mobile/MobileOptionChain";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface OptionData {
   strike_price: number;
@@ -97,6 +99,7 @@ const OptionChain = () => {
   const { user, loading: authLoading } = useAuth();
   const { isTodayClosed, lastWorkingDay } = useMarketStatus();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
   const urlExpiry = searchParams.get("expiry");
@@ -705,10 +708,18 @@ const OptionChain = () => {
               </Button>
             </div>
 
-            {/* Option Chain Table */}
+            {/* Option Chain Table (desktop) / Cards (mobile) */}
+            {isMobile && !loadingChain && filteredData.length > 0 ? (
+              <MobileOptionChain
+                rows={filteredData}
+                spotPrice={spotPrice}
+                maxCallOI={maxCallOI}
+                maxPutOI={maxPutOI}
+              />
+            ) : (
             <div
               ref={tableContainerRef}
-              className="overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact max-h-[70vh] overflow-y-auto"
+              className={`overflow-x-auto scrollbar-thin scrollbar-track-muted/20 scrollbar-thumb-muted/50 optionchain-compact max-h-[70vh] overflow-y-auto ${isMobile ? "hidden" : ""}`}
               style={{ WebkitOverflowScrolling: "touch" }}
             >
               {loadingChain ? (
@@ -1107,6 +1118,7 @@ const OptionChain = () => {
                 <div className="text-center py-12 text-muted-foreground">Loading option chain data...</div>
               )}
             </div>
+            )}
           </CardContent>
         </Card>
         </div>
