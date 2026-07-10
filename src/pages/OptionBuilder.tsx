@@ -895,7 +895,7 @@ const OptionBuilder = () => {
                   </div>
                 </div>
                 {showOptionChain && (
-                  <>
+                  <div className="overflow-x-auto -mx-4 px-4">
                   <FuturesPanel
                     futures={futureContracts}
                     lotSize={lotSize}
@@ -914,8 +914,9 @@ const OptionBuilder = () => {
                     putColumns={settings.putColumns}
                     liveData={liveOptionData}
                   />
-                  </>
+                  </div>
                 )}
+
               </CardContent>
             </Card>
           </div>
