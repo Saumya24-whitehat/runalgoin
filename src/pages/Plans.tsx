@@ -25,6 +25,7 @@ import { useSubscription } from "@/hooks/useSubscription";
 import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionManager";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { SEO } from "@/components/SEO";
 
 const features = [
   {
