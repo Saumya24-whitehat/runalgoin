@@ -100,9 +100,10 @@ export const IndexDetailStocks = ({ indexSymbol }: IndexDetailStocksProps) => {
       </div>
 
       {/* Table */}
-      <div className="border border-border rounded-lg overflow-hidden">
-        <Table>
+      <div className="border border-border rounded-lg overflow-x-auto">
+        <Table className="min-w-[640px]">
           <TableHeader>
+
             <TableRow className="bg-muted/30">
               <TableHead className="w-[300px]">Stock</TableHead>
               <TableHead
