@@ -59,6 +59,128 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string | null
+          id: string
+          invoice_number: string
+          payment_id: string | null
+          period_end: string
+          period_start: string
+          plan: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          invoice_number: string
+          payment_id?: string | null
+          period_end: string
+          period_start: string
+          plan: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string | null
+          id?: string
+          invoice_number?: string
+          payment_id?: string | null
+          period_end?: string
+          period_start?: string
+          plan?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          contact: string | null
+          created_at: string
+          currency: string
+          email: string | null
+          id: string
+          method: string | null
+          notes: Json | null
+          plan: string
+          razorpay_order_id: string
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          refund_amount: number | null
+          refund_id: string | null
+          refunded_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contact?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          method?: string | null
+          notes?: Json | null
+          plan: string
+          razorpay_order_id: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          refund_amount?: number | null
+          refund_id?: string | null
+          refunded_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contact?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          method?: string | null
+          notes?: Json | null
+          plan?: string
+          razorpay_order_id?: string
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          refund_amount?: number | null
+          refund_id?: string | null
+          refunded_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -164,6 +286,60 @@ export type Database = {
           trading_hours?: string | null
           type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      subscription_audit_log: {
+        Row: {
+          action: string
+          actor: string | null
+          created_at: string
+          expires_at: string | null
+          id: string
+          metadata: Json | null
+          new_plan: string | null
+          new_status: string | null
+          old_plan: string | null
+          old_status: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          reason: string | null
+          user_email: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          actor?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_plan?: string | null
+          new_status?: string | null
+          old_plan?: string | null
+          old_status?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          reason?: string | null
+          user_email?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          actor?: string | null
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          metadata?: Json | null
+          new_plan?: string | null
+          new_status?: string | null
+          old_plan?: string | null
+          old_status?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          reason?: string | null
+          user_email?: string | null
+          user_id?: string
         }
         Relationships: []
       }
