@@ -184,7 +184,7 @@ export default function StockScreeners() {
           </div>
 
           {/* Right Panel - Results */}
-          <div className="lg:col-span-8 xl:col-span-9">
+          <div className="lg:col-span-8 xl:col-span-9 h-[70vh] lg:h-auto">
             <Card className="h-full flex flex-col">
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
