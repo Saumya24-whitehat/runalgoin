@@ -316,7 +316,7 @@ const JackpotDetail = () => {
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[500px]">
-                  <table className="w-full text-xs">
+                  <table className="w-full text-xs min-w-[900px]">
                     <thead className="sticky top-0 bg-secondary/50 z-10">
                       <tr className="border-b border-border">
                         <th className="p-2 text-left text-muted-foreground">Date</th>
