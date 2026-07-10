@@ -745,69 +745,10 @@ const OptionBuilder = () => {
                 ]}
               />
             </div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
               <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder={loadingSymbols ? "Loading..." : "Select Symbol"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {symbols.indexSymbols.length > 0 && (
-                    <>
-                      <SelectItem
-                        value="__index_header"
-                        disabled
-                        className="font-semibold text-xs text-muted-foreground"
-                      >
-                        INDEX
-                      </SelectItem>
-                      {symbols.indexSymbols.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {symbols.stockSymbols.length > 0 && (
-                    <>
-                      <SelectItem
-                        value="__stock_header"
-                        disabled
-                        className="font-semibold text-xs text-muted-foreground mt-2"
-                      >
-                        STOCKS
-                      </SelectItem>
-                      {symbols.stockSymbols.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
-                  {symbols.indexSymbols.length === 0 && symbols.stockSymbols.length === 0 && (
-                    <>
-                      <SelectItem value="Nifty 50">NIFTY</SelectItem>
-                      <SelectItem value="Nifty Bank">BANKNIFTY</SelectItem>
-                      <SelectItem value="Nifty Fin Service">FINNIFTY</SelectItem>
-                      <SelectItem value="Nifty Mid Select">MIDCPNIFTY</SelectItem>
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-              {/* WebSocket status indicator */}
-              <div className="flex items-center gap-1 text-xs">
-                {wsConnected ? (
-                  <Wifi className="h-3 w-3 text-emerald-500" />
-                ) : (
-                  <WifiOff className="h-3 w-3 text-muted-foreground" />
-                )}
-                <span className={wsConnected ? "text-emerald-500" : "text-muted-foreground"}>
-                  {wsConnected ? "Live" : "Offline"}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
+                <SelectTrigger className="w-[140px] sm:w-[160px]">
               <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} disabled={!hasPositions}>
                 <Save className="h-4 w-4 mr-1" />
                 Save
