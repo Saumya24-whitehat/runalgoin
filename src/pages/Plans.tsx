@@ -26,6 +26,7 @@ import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionMana
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
+import { useRazorpayCheckout } from "@/hooks/useRazorpayCheckout";
 
 const features = [
   {
@@ -155,16 +156,15 @@ export default function Plans() {
   const navigate = useNavigate();
   const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
 
   const handlePlanAction = (planName: string) => {
     if (!user) {
       navigate("/auth");
       return;
     }
-    // For now, just show a message - payment integration can be added later
-    if ((planName === "Pro Monthly" || planName === "Pro Yearly") && !isPro) {
-      // Could integrate with payment gateway here
-    }
+    if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
+    else if (planName === "Pro Yearly" && !isPro) startCheckout("yearly");
   };
 
   return (
@@ -278,7 +278,7 @@ export default function Plans() {
                     variant={plan.ctaVariant}
                     size="lg"
                     onClick={() => handlePlanAction(plan.name)}
-                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) || (plan.name === "Free" && !isPro)}
+                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && (isPro || checkoutLoading)) || (plan.name === "Free" && !isPro)}
                     className={`w-full text-lg py-6 ${
                       plan.highlight
                         ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
