@@ -8,6 +8,8 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SessionManager } from "@/components/SessionManager";
 import { useTableStyles } from "@/components/admin/TableStyleSettings";
+import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
+import { OfflineBanner } from "@/components/mobile/OfflineBanner";
 import { Loader2 } from "lucide-react";
 
 // Eagerly loaded pages (landing + auth — needed immediately)
@@ -100,6 +102,7 @@ const App = () => (
             <Sonner />
             <Suspense fallback={<PageLoader />}>
               <FirstLoginGuard />
+              <OfflineBanner />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -161,6 +164,7 @@ const App = () => (
                 <Route path="/admin/blog/:id" element={<BlogEditor />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              <MobileBottomNav />
             </Suspense>
           </TooltipProvider>
         </AuthProvider>
