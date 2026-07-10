@@ -745,42 +745,30 @@ const OptionBuilder = () => {
                 ]}
               />
             </div>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
               <Select value={symbol} onValueChange={setSymbol} disabled={loadingSymbols}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-[140px] sm:w-[160px]">
                   <SelectValue placeholder={loadingSymbols ? "Loading..." : "Select Symbol"} />
                 </SelectTrigger>
                 <SelectContent>
                   {symbols.indexSymbols.length > 0 && (
                     <>
-                      <SelectItem
-                        value="__index_header"
-                        disabled
-                        className="font-semibold text-xs text-muted-foreground"
-                      >
+                      <SelectItem value="__index_header" disabled className="font-semibold text-xs text-muted-foreground">
                         INDEX
                       </SelectItem>
                       {symbols.indexSymbols.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
                       ))}
                     </>
                   )}
                   {symbols.stockSymbols.length > 0 && (
                     <>
-                      <SelectItem
-                        value="__stock_header"
-                        disabled
-                        className="font-semibold text-xs text-muted-foreground mt-2"
-                      >
+                      <SelectItem value="__stock_header" disabled className="font-semibold text-xs text-muted-foreground mt-2">
                         STOCKS
                       </SelectItem>
                       {symbols.stockSymbols.map((s) => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
                       ))}
                     </>
                   )}
@@ -794,7 +782,6 @@ const OptionBuilder = () => {
                   )}
                 </SelectContent>
               </Select>
-              {/* WebSocket status indicator */}
               <div className="flex items-center gap-1 text-xs">
                 {wsConnected ? (
                   <Wifi className="h-3 w-3 text-emerald-500" />
@@ -807,7 +794,7 @@ const OptionBuilder = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto order-3 sm:order-none">
               <Button variant="outline" size="sm" onClick={() => setSaveDialogOpen(true)} disabled={!hasPositions}>
                 <Save className="h-4 w-4 mr-1" />
                 Save
@@ -830,6 +817,7 @@ const OptionBuilder = () => {
                 <Settings className="h-4 w-4" />
               </Button>
             </div>
+
 
             <div className="flex items-center gap-4 text-sm">
               <span className="text-muted-foreground">
@@ -907,7 +895,7 @@ const OptionBuilder = () => {
                   </div>
                 </div>
                 {showOptionChain && (
-                  <>
+                  <div className="overflow-x-auto -mx-4 px-4">
                   <FuturesPanel
                     futures={futureContracts}
                     lotSize={lotSize}
@@ -926,8 +914,9 @@ const OptionBuilder = () => {
                     putColumns={settings.putColumns}
                     liveData={liveOptionData}
                   />
-                  </>
+                  </div>
                 )}
+
               </CardContent>
             </Card>
           </div>
