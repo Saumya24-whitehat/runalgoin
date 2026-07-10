@@ -27,6 +27,7 @@ import {
   Play,
   User,
   Shield,
+  Receipt,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
