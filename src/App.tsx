@@ -68,6 +68,8 @@ const ApiMonitor = lazy(() => import("./pages/ApiMonitor"));
 const Holidays = lazy(() => import("./pages/Holidays"));
 const TrendingStocks = lazy(() => import("./pages/TrendingStocks"));
 const MomentumReport = lazy(() => import("./pages/MomentumReport"));
+const Blog = lazy(() => import("./pages/Blog"));
+const BlogPost = lazy(() => import("./pages/BlogPost"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -152,6 +154,8 @@ const App = () => (
                 <Route path="/holidays" element={<Holidays />} />
                 <Route path="/trending-stocks" element={<TrendingStocks />} />
                 <Route path="/momentum-report" element={<MomentumReport />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
