@@ -317,15 +317,15 @@ export default function MarketBreadth() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-4">
+        <div className="flex-1 p-4 min-w-0">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <h1 className="text-2xl font-bold text-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground">
                 {selectedIndexInfo?.displayName || "Market Breadth"}
               </h1>
               {!isLoading && stocks.length > 0 && (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <span className="flex items-center gap-1 px-3 py-1 rounded-full bg-success/10 text-success text-sm font-medium">
                     <TrendingUp className="h-4 w-4" />
                     {advances} Advances
@@ -338,7 +338,7 @@ export default function MarketBreadth() {
               )}
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               {lastUpdated && <span className="text-xs text-muted-foreground">Last updated: {lastUpdated}</span>}
               <Button variant="outline" size="sm" onClick={fetchData} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-1 ${isLoading ? "animate-spin" : ""}`} />
@@ -349,8 +349,9 @@ export default function MarketBreadth() {
           </div>
 
           {/* Filter Options */}
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-muted-foreground">Filter:</span>
+          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+            <span className="text-sm text-muted-foreground shrink-0">Filter:</span>
+
             {(["+5", "+3", "+1", "0", "-1", "-3", "-5"] as ChangeFilter[]).map((val) => {
               const isActive = changeFilter === val;
               const isPositive = val && val.startsWith("+");
