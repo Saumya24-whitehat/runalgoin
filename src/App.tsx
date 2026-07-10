@@ -70,6 +70,7 @@ const TrendingStocks = lazy(() => import("./pages/TrendingStocks"));
 const MomentumReport = lazy(() => import("./pages/MomentumReport"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const BlogEditor = lazy(() => import("./pages/admin/BlogEditor"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -156,6 +157,8 @@ const App = () => (
                 <Route path="/momentum-report" element={<MomentumReport />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/admin/blog/new" element={<BlogEditor />} />
+                <Route path="/admin/blog/:id" element={<BlogEditor />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>
