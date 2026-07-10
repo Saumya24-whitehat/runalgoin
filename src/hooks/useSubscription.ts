@@ -70,6 +70,19 @@ export function useSubscription() {
     ? { ...rawSub, plan_type: "free" as const, status: "expired" as const }
     : rawSub;
 
+  // Persist the downgrade to the DB once, so admin views stay consistent
+  useEffect(() => {
+    if (!user || !rawSub || !isExpired) return;
+    if (rawSub.plan_type === "free" && rawSub.status === "expired") return;
+    supabase
+      .from("subscriptions")
+      .update({ plan_type: "free", status: "expired" })
+      .eq("user_id", user.id)
+      .then(({ error }) => {
+        if (error) console.error("Failed to downgrade expired subscription:", error);
+      });
+  }, [user, rawSub, isExpired]);
+
   const isPro = (sub?.plan_type === "pro" || sub?.plan_type === "enterprise");
   const isEnterprise = sub?.plan_type === "enterprise";
 
