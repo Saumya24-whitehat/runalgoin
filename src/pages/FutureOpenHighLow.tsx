@@ -259,8 +259,8 @@ export default function FutureOpenHighLow() {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="rounded-md border overflow-hidden">
-          <div className="max-h-[400px] overflow-y-auto">
-            <Table>
+          <div className="max-h-[400px] overflow-auto">
+            <Table className="min-w-[560px]">
               <TableHeader className="sticky top-0 bg-background z-10">
                 <TableRow>
                   <SortableHeader
