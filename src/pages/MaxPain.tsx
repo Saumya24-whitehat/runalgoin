@@ -468,7 +468,7 @@ const MaxPain = () => {
                 </Button>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 flex-wrap">
                 <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingData} />
                 <PageInfoModal
                   title="Max Pain"
