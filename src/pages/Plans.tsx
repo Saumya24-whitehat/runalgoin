@@ -26,6 +26,7 @@ import { UserSubscriptionManager } from "@/components/admin/UserSubscriptionMana
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
+import { useRazorpayCheckout } from "@/hooks/useRazorpayCheckout";
 
 const features = [
   {
