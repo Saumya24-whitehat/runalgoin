@@ -103,10 +103,11 @@ export const CombinedGreeksChart = ({
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <CardTitle className="text-base sm:text-lg">
             {symbol} {expiry} {strike} - Combined Greeks
           </CardTitle>
+
           <div className="flex flex-wrap gap-2">
             {dataPointOptions.map((opt) => (
               <Button
