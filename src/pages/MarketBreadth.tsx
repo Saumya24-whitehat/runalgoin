@@ -248,7 +248,7 @@ export default function MarketBreadth() {
           </div>
 
           {/* Index List with Advance/Decline Bars */}
-          <ScrollArea className="h-[calc(100vh-12rem)]">
+          <ScrollArea className="h-[300px] lg:h-[calc(100vh-12rem)]">
             <div className="p-2 space-y-2">
               {groupedIndices.map((group) => (
                 <div key={group.name} className="space-y-1">
