@@ -426,7 +426,7 @@ const PCR = () => {
               </div>
 
               {/* Refresh Info Bar with Time Navigation */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
+              <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-4 border-t border-border/50 text-xs text-muted-foreground">
                 {/* Time Navigation Controls */}
                 <div className="flex items-center gap-2">
                   <Button
