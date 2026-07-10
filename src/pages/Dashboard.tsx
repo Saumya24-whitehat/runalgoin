@@ -669,7 +669,7 @@ const Dashboard = () => {
                   ) : releasedResults.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">No released results</div>
                   ) : (
-                    <ScrollArea className="h-[280px]">
+                    <ScrollArea className="lg:h-[280px]">
                       <div className="space-y-2">
                         {releasedResults.map((result, idx) => (
                           <div key={idx} className="flex items-center gap-3 p-3 rounded-lg bg-secondary/30">
