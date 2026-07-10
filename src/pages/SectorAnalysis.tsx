@@ -330,8 +330,8 @@ const SectorAnalysis = () => {
         {/* Main Content */}
         <div className="flex-1 p-4">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-2xl font-bold text-foreground">
                 {selectedIndexInfo?.displayName || "Sector Analysis"}
               </h1>
