@@ -229,9 +229,10 @@ export default function MarketBreadth() {
             ]}
           />
         </div>
-        <div className="flex">
+        <div className="flex flex-col lg:flex-row">
           {/* Sidebar */}
-        <div className="w-80 border-r border-border bg-card min-h-[calc(100vh-8rem)]">
+        <div className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-border bg-card lg:min-h-[calc(100vh-8rem)]">
+
           {/* Exchange Tabs */}
           <div className="border-b border-border p-2">
             <Tabs value={selectedExchange} onValueChange={(v) => setSelectedExchange(v as "NSE" | "BSE")}>
