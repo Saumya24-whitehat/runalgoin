@@ -17,7 +17,7 @@ import { useSelfDeclaredPayment } from "@/hooks/useSelfDeclaredPayment";
 
 const UPI_ID = "9276251260@cnrb";
 const PAYEE_NAME = "OptionWorld";
-const PAYPAL_ME = "https://www.paypal.com/paypalme/optionworld";
+const PAYPAL_ME = "https://paypal.me/saumya2427";
 
 type Method = "upi" | "paypal";
 type Plan = "monthly" | "yearly";
@@ -70,8 +70,7 @@ export function AlternatePaymentModal({ open, onOpenChange, method, plan }: Prop
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {method === "upi" ? "Pay via UPI" : "Pay via PayPal"} — Pro{" "}
-            {plan === "monthly" ? "Monthly" : "Yearly"}
+            {method === "upi" ? "Pay via UPI" : "Pay via PayPal"} — Pro {plan === "monthly" ? "Monthly" : "Yearly"}
           </DialogTitle>
           <DialogDescription>
             {method === "upi"
@@ -91,12 +90,7 @@ export function AlternatePaymentModal({ open, onOpenChange, method, plan }: Prop
                   <span className="text-muted-foreground">UPI ID</span>
                   <div className="flex items-center gap-2">
                     <code className="font-mono">{UPI_ID}</code>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-7 w-7"
-                      onClick={() => copy(UPI_ID, "UPI ID")}
-                    >
+                    <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(UPI_ID, "UPI ID")}>
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
                   </div>
@@ -126,16 +120,13 @@ export function AlternatePaymentModal({ open, onOpenChange, method, plan }: Prop
                 </a>
               </Button>
               <p className="text-xs text-muted-foreground">
-                After completing payment on PayPal, copy the transaction ID from the confirmation
-                and paste it below.
+                After completing payment on PayPal, copy the transaction ID from the confirmation and paste it below.
               </p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="txn">
-              {method === "upi" ? "UPI Transaction ID (UTR)" : "PayPal Transaction ID"}
-            </Label>
+            <Label htmlFor="txn">{method === "upi" ? "UPI Transaction ID (UTR)" : "PayPal Transaction ID"}</Label>
             <Input
               id="txn"
               value={txnId}
