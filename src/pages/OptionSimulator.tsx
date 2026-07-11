@@ -1745,19 +1745,33 @@ const OptionSimulator = () => {
                   />
                   <div ref={chainContainerRef} className="max-h-[500px] overflow-auto">
                     {simulatorData && simulatorData.strikes.length > 0 ? (
-                      <SimulatorOptionChain
-                        simulatorData={simulatorData}
-                        symbol={symbol}
-                        currentPrice={currentPrice}
-                        lotSize={lotSize}
-                        selectedDate={selectedDate}
-                        activeExpiry={activeExpiry}
-                        addPosition={addPosition}
-                        callColumns={settings.callColumns}
-                        putColumns={settings.putColumns}
-                        atmRowRef={atmRowRef}
-                        hasScrolledRef={hasScrolledRef}
-                      />
+                      isMobile ? (
+                        <MobileSimulatorOptionChain
+                          simulatorData={simulatorData}
+                          symbol={symbol}
+                          currentPrice={currentPrice}
+                          lotSize={lotSize}
+                          selectedDate={selectedDate}
+                          activeExpiry={activeExpiry}
+                          addPosition={addPosition}
+                          atmRowRef={atmRowRef}
+                          hasScrolledRef={hasScrolledRef}
+                        />
+                      ) : (
+                        <SimulatorOptionChain
+                          simulatorData={simulatorData}
+                          symbol={symbol}
+                          currentPrice={currentPrice}
+                          lotSize={lotSize}
+                          selectedDate={selectedDate}
+                          activeExpiry={activeExpiry}
+                          addPosition={addPosition}
+                          callColumns={settings.callColumns}
+                          putColumns={settings.putColumns}
+                          atmRowRef={atmRowRef}
+                          hasScrolledRef={hasScrolledRef}
+                        />
+                      )
                     ) : !isLoading ? (
                       <div className="text-center text-muted-foreground py-10">
                         Select date, time, and expiry to load data
