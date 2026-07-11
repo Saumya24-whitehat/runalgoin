@@ -26,6 +26,7 @@ import { format } from "date-fns";
 import OTRChart from "@/components/otr/OTRChart";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface SymbolGroup {
