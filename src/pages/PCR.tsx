@@ -20,6 +20,7 @@ import {
 
 import { PCROptionsChain } from "@/components/pcr/PCROptionsChain";
 import MobilePCROptionsChain from "@/components/mobile/MobilePCROptionsChain";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PCRIntradayAnalysis } from "@/components/pcr/PCRIntradayAnalysis";
 import { PCRSupportResistance } from "@/components/pcr/PCRSupportResistance";
@@ -305,7 +306,73 @@ const PCR = () => {
           {/* Controls Card */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-3 sm:p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-4 items-end">
+              {/* Mobile compact controls */}
+              <MobileSymbolExpiryBar
+                indexSymbols={symbols.indexSymbols}
+                stockSymbols={symbols.stockSymbols}
+                selectedSymbol={selectedSymbol}
+                onSymbolChange={setSelectedSymbol}
+                loadingSymbols={loadingSymbols}
+                expiryDates={expiryDates}
+                selectedExpiry={selectedExpiry}
+                onExpiryChange={setSelectedExpiry}
+                loadingExpiry={loadingExpiry}
+                actions={
+                  <Button
+                    onClick={handleGo}
+                    disabled={loadingData || !selectedSymbol || !selectedExpiry}
+                    size="sm"
+                    className="h-9 bg-primary hover:bg-primary/90"
+                  >
+                    {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
+                  </Button>
+                }
+                filtersContent={
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary h-9 text-xs">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-50" align="start">
+                          <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} defaultMonth={historicalDate} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Timeframe</label>
+                      <Select value={selectedTimeframe} onValueChange={(v) => setSelectedTimeframe(v as PCRTimeframe)}>
+                        <SelectTrigger className="w-full bg-secondary h-9 text-xs"><SelectValue /></SelectTrigger>
+                        <SelectContent className="bg-popover border-border z-50">
+                          <SelectItem value="3min">3 Min</SelectItem>
+                          <SelectItem value="5min">5 Min</SelectItem>
+                          <SelectItem value="15min">15 Min</SelectItem>
+                          <SelectItem value="30min">30 Min</SelectItem>
+                          <SelectItem value="1hr">1 Hour</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Strikes around ATM</label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={strikeCount}
+                        onChange={(e) => setStrikeCount(parseInt(e.target.value) || 5)}
+                        className="bg-secondary h-9 text-xs"
+                      />
+                    </div>
+                  </>
+                }
+              />
+
+              <div className="hidden md:grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-4 items-end">
+
                 {/* Symbol Selector */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Symbol</label>

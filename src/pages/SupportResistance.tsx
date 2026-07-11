@@ -23,6 +23,7 @@ import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "luc
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
 import SupportResistanceChart from "@/components/supportResistance/SupportResistanceChart";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 
 interface OptionData {
   strike_price: number;
@@ -620,7 +621,57 @@ const SupportResistance = () => {
           {/* Header Controls */}
         <Card className="mb-4 bg-card border-border">
           <CardContent className="p-3">
-            <div className="flex flex-wrap items-center gap-2 md:gap-4">
+            {/* Mobile controls */}
+            <MobileSymbolExpiryBar
+              indexSymbols={indexSymbols}
+              stockSymbols={stockSymbols}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              expiryDates={expiryDates}
+              selectedExpiry={selectedExpiry}
+              onExpiryChange={setSelectedExpiry}
+              actions={
+                <Button variant="outline" size="sm" onClick={fetchOptionChain} disabled={loading} className="h-9">
+                  <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+                </Button>
+              }
+              filtersContent={
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Mode</label>
+                    <Button variant={isLive ? "default" : "outline"} size="sm" onClick={toggleLiveMode} className="w-full h-9">
+                      <Clock className="h-3 w-3 mr-1" />
+                      {isLive ? "Live" : "Historical"}
+                    </Button>
+                  </div>
+                  {!isLive && (
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Historical Time</label>
+                      <div className="flex items-center gap-1">
+                        <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleTimeChange("prev")}>
+                          <ChevronLeft className="h-4 w-4" />
+                        </Button>
+                        <span className="text-xs font-medium px-2 bg-muted rounded py-2 flex-1 text-center">
+                          {formatTimeDisplay(historicalTime)}
+                        </span>
+                        <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => handleTimeChange("next")}>
+                          <ChevronRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Settings</label>
+                    <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="w-full h-9">
+                      <Settings className="h-3 w-3 mr-1" />
+                      Open settings
+                    </Button>
+                  </div>
+                </>
+              }
+            />
+            <div className="hidden md:flex flex-wrap items-center gap-2 md:gap-4">
+
               {/* Symbol Select */}
               <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
                 <SelectTrigger className="w-32 md:w-40 bg-muted border-border text-xs md:text-sm">

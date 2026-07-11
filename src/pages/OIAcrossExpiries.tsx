@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3 } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import {
   BarChart,
   Bar,
@@ -386,7 +387,34 @@ const OIAcrossExpiries = () => {
           {/* Controls */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-3 sm:p-4">
-              <div className="flex flex-wrap gap-3 items-end">
+              {/* Mobile controls */}
+              <MobileSymbolExpiryBar
+                indexSymbols={symbols.indexSymbols}
+                stockSymbols={symbols.stockSymbols}
+                selectedSymbol={selectedSymbol}
+                onSymbolChange={setSelectedSymbol}
+                loadingSymbols={loadingSymbols}
+                actions={
+                  <Button onClick={handleGo} disabled={loadingData || loadingExpiry || expiryDates.length === 0} size="sm" className="h-9">
+                    {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : <BarChart3 className="h-4 w-4" />}
+                  </Button>
+                }
+                filtersContent={
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Strikes around ATM</label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={strikeCount}
+                      onChange={(e) => setStrikeCount(parseInt(e.target.value) || 5)}
+                      className="bg-secondary h-9 text-xs"
+                    />
+                  </div>
+                }
+              />
+              <div className="hidden md:flex flex-wrap gap-3 items-end">
+
                 <div className="space-y-1.5 min-w-[160px]">
                   <label className="text-xs font-medium text-muted-foreground">Symbol</label>
                   <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>

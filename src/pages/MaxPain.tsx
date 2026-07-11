@@ -31,6 +31,7 @@ import {
 import { format } from "date-fns";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import {
   BarChart,
   Bar,
@@ -335,7 +336,46 @@ const MaxPain = () => {
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-3">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 items-end">
+            {/* Mobile controls */}
+            <MobileSymbolExpiryBar
+              indexSymbols={symbols.indexSymbols}
+              stockSymbols={symbols.stockSymbols}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              loadingSymbols={loadingSymbols}
+              expiryDates={expiryDates}
+              selectedExpiry={selectedExpiry}
+              onExpiryChange={setSelectedExpiry}
+              loadingExpiry={loadingExpiry}
+              actions={
+                <Button
+                  onClick={handleGo}
+                  disabled={loadingData || !selectedSymbol || !selectedExpiry}
+                  size="sm"
+                  className="h-9 bg-primary hover:bg-primary/90"
+                >
+                  {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
+                </Button>
+              }
+              filtersContent={
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary h-9 text-xs">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "Pick a date"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0 z-50" align="start">
+                      <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} defaultMonth={historicalDate} initialFocus />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              }
+            />
+            <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 items-end">
+
               {/* Symbol Selector */}
               <div className="space-y-1">
                 <label className="text-[10px] font-medium text-muted-foreground">Symbol</label>
