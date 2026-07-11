@@ -57,12 +57,16 @@ export function MobileSymbolExpiryBar({
                     Filters
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+                <SheetContent
+                  side="bottom"
+                  className="max-h-[85dvh] overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+                >
                   <SheetHeader>
                     <SheetTitle>Filters</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4 space-y-4">{filtersContent}</div>
+                  <div className="mt-4 space-y-4 pb-24">{filtersContent}</div>
                 </SheetContent>
+
               </Sheet>
             )}
           </div>
