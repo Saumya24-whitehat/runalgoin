@@ -28,6 +28,8 @@ import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { format } from "date-fns";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -38,6 +40,7 @@ const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute // 3 minutes
 
 const TOI = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
   const urlExpiry = searchParams.get("expiry");
