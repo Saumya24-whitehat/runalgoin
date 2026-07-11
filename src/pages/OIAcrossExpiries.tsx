@@ -19,6 +19,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, BarChart3 } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import {
   BarChart,
   Bar,
