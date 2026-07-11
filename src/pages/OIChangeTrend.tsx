@@ -18,6 +18,8 @@ import { CalendarIcon, Loader2, RefreshCw } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { format } from "date-fns";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -67,6 +69,7 @@ function formatNumber(value: number): string {
 const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute
 
 const OIChangeTrend = () => {
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
   const urlExpiry = searchParams.get("expiry");
@@ -231,7 +234,59 @@ const OIChangeTrend = () => {
           {/* Controls */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-3 sm:p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 items-end">
+              <MobileSymbolExpiryBar
+                indexSymbols={symbols.indexSymbols}
+                stockSymbols={symbols.stockSymbols}
+                selectedSymbol={selectedSymbol}
+                onSymbolChange={setSelectedSymbol}
+                loadingSymbols={loadingSymbols}
+                expiryDates={expiryDates}
+                selectedExpiry={selectedExpiry}
+                onExpiryChange={setSelectedExpiry}
+                loadingExpiry={loadingExpiry}
+                actions={
+                  <Button onClick={() => refetch()} disabled={isFetching} size="sm" variant="outline" className="h-9">
+                    <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} />
+                  </Button>
+                }
+                filtersContent={
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Strikes</label>
+                      <Input
+                        type="number"
+                        value={strikeCount}
+                        onChange={(e) => setStrikeCount(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="h-9 text-xs bg-background/50"
+                        min={1}
+                        max={30}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full h-9 text-xs bg-background/50 justify-start">
+                            <CalendarIcon className="mr-1 h-3 w-3" />
+                            {historicalDate ? format(historicalDate, "dd MMM") : "Live"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 bg-popover" align="start">
+                          <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} />
+                          {historicalDate && (
+                            <div className="p-2 border-t border-border">
+                              <Button variant="ghost" size="sm" className="w-full text-xs" onClick={() => setHistoricalDate(undefined)}>
+                                Clear
+                              </Button>
+                            </div>
+                          )}
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  </>
+                }
+              />
+              <div className="hidden md:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-4 items-end">
                 {/* Symbol */}
                 <div className="space-y-1.5">
                   <label className="text-[10px] sm:text-xs font-medium text-muted-foreground">Symbol</label>
