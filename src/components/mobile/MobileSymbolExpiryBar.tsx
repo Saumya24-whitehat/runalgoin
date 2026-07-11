@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -42,6 +42,36 @@ export function MobileSymbolExpiryBar({
   actions,
   topLeft,
 }: MobileSymbolExpiryBarProps) {
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    const visualViewport = window.visualViewport;
+
+    const updateViewport = () => {
+      if (!visualViewport) {
+        setViewportHeight(window.innerHeight);
+        setKeyboardInset(0);
+        return;
+      }
+
+      const inset = Math.max(0, window.innerHeight - visualViewport.height - visualViewport.offsetTop);
+      setViewportHeight(visualViewport.height);
+      setKeyboardInset(inset);
+    };
+
+    updateViewport();
+    visualViewport?.addEventListener("resize", updateViewport);
+    visualViewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("orientationchange", updateViewport);
+
+    return () => {
+      visualViewport?.removeEventListener("resize", updateViewport);
+      visualViewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("orientationchange", updateViewport);
+    };
+  }, []);
+
   return (
     <div className="mb-3 space-y-2 md:hidden">
       {(topLeft || actions || filtersContent) && (
@@ -59,12 +89,18 @@ export function MobileSymbolExpiryBar({
                 </SheetTrigger>
                 <SheetContent
                   side="bottom"
-                  className="max-h-[85dvh] overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+                  className="z-[120] flex max-h-[85dvh] flex-col overflow-hidden rounded-t-[10px] pb-[env(safe-area-inset-bottom)]"
+                  style={{
+                    bottom: keyboardInset ? `${keyboardInset}px` : undefined,
+                    maxHeight: viewportHeight ? `${Math.floor(viewportHeight * 0.82)}px` : undefined,
+                  }}
                 >
-                  <SheetHeader>
+                  <SheetHeader className="shrink-0">
                     <SheetTitle>Filters</SheetTitle>
                   </SheetHeader>
-                  <div className="mt-4 space-y-4 pb-24">{filtersContent}</div>
+                  <div className="mt-4 min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain pb-28">
+                    {filtersContent}
+                  </div>
                 </SheetContent>
 
               </Sheet>
