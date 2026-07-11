@@ -56,6 +56,8 @@ import {
 } from "recharts";
 import SpotMMAChart from "@/components/pcr/SpotMMAChart";
 import ATMPCRChart from "@/components/pcr/ATMPCRChart";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -75,6 +77,7 @@ const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute
 
 export default function PCRAllStrikes() {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
   const [selectedSymbol, setSelectedSymbol] = useState("Nifty 50");
@@ -660,7 +663,72 @@ export default function PCRAllStrikes() {
           {/* Controls Card */}
           <Card className="bg-card/50 border-border/50">
             <CardContent className="p-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+              <MobileSymbolExpiryBar
+                indexSymbols={symbols.indexSymbols}
+                stockSymbols={symbols.stockSymbols}
+                selectedSymbol={selectedSymbol}
+                onSymbolChange={setSelectedSymbol}
+                loadingSymbols={loadingSymbols}
+                expiryDates={expiryDates}
+                selectedExpiry={selectedExpiry}
+                onExpiryChange={setSelectedExpiry}
+                loadingExpiry={loadingExpiry}
+                actions={
+                  <Button
+                    onClick={handleGo}
+                    disabled={loadingData || !selectedSymbol || !selectedExpiry}
+                    size="sm"
+                    className="h-9 bg-primary hover:bg-primary/90"
+                  >
+                    {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
+                  </Button>
+                }
+                filtersContent={
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary h-9 text-xs">
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0 z-50" align="start">
+                          <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} defaultMonth={historicalDate} initialFocus />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Center Strike</label>
+                      <CenterStrikePicker
+                        value={useCustomStrike && selectedCustomStrike ? selectedCustomStrike : "auto"}
+                        strikes={availableStrikes}
+                        loading={loadingStrikes}
+                        disabled={availableStrikes.length === 0}
+                        onChange={(val) => {
+                          if (val === "auto") {
+                            setUseCustomStrike(false);
+                            setSelectedCustomStrike("");
+                            return;
+                          }
+
+                          setUseCustomStrike(true);
+                          setSelectedCustomStrike(val);
+
+                          if (strikes.length > 0 && !strikes.includes(val)) {
+                            toast({
+                              title: "Strike not available",
+                              description: `Selected strike ${val} is not present in PCR data right now.`,
+                            });
+                          }
+                        }}
+                      />
+                    </div>
+                  </>
+                }
+              />
+              <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
                 {/* Symbol Selector */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">Symbol</label>
