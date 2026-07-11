@@ -31,6 +31,7 @@ import {
 import { format } from "date-fns";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import {
   BarChart,
   Bar,
