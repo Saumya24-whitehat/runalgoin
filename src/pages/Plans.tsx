@@ -473,6 +473,12 @@ export default function Plans() {
 
       {/* Admin Panel Modal */}
       <UserSubscriptionManager isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
+      <AlternatePaymentModal
+        open={altModal.open}
+        onOpenChange={(o) => setAltModal((prev) => ({ ...prev, open: o }))}
+        method={altModal.method}
+        plan={altModal.plan}
+      />
     </div>
   );
 }
