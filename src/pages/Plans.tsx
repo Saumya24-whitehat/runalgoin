@@ -27,6 +27,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
 import { useRazorpayCheckout } from "@/hooks/useRazorpayCheckout";
+import { AlternatePaymentModal } from "@/components/AlternatePaymentModal";
+import { QrCode, Wallet } from "lucide-react";
 
 const features = [
   {
@@ -157,6 +159,14 @@ export default function Plans() {
   const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
+  const [altModal, setAltModal] = useState<{
+    open: boolean;
+    method: "upi" | "paypal";
+    plan: "monthly" | "yearly";
+  }>({ open: false, method: "upi", plan: "monthly" });
+
+  const planKey = (planName: string): "monthly" | "yearly" | null =>
+    planName === "Pro Monthly" ? "monthly" : planName === "Pro Yearly" ? "yearly" : null;
 
   const handlePlanAction = (planName: string) => {
     if (!user) {
@@ -165,6 +175,16 @@ export default function Plans() {
     }
     if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
     else if (planName === "Pro Yearly" && !isPro) startCheckout("yearly");
+  };
+
+  const openAlt = (planName: string, method: "upi" | "paypal") => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    const p = planKey(planName);
+    if (!p) return;
+    setAltModal({ open: true, method, plan: p });
   };
 
   return (
