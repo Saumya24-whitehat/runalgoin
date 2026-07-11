@@ -520,18 +520,49 @@ export default function FutureOpenHighLow() {
           expiryDates={expiryDates}
           selectedExpiry={selectedExpiry}
           onExpiryChange={setSelectedExpiry}
+          actions={
+            <Button onClick={() => refetch()} variant="default" size="sm" className="h-9 gap-1.5" disabled={isFetching}>
+              <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+            </Button>
+          }
           filtersContent={
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search symbol..."
-                value={searchFilter}
-                onChange={(e) => setSearchFilter(e.target.value)}
-                className="pl-9 h-9 text-xs"
-              />
-            </div>
+            <>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground font-medium">Filter symbols</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search symbol..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="pl-9 h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3 border rounded-lg px-3 py-2 bg-muted/30">
+                <Switch id="auto-refresh-mobile" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+                <Label htmlFor="auto-refresh-mobile" className="text-sm cursor-pointer">Auto refresh</Label>
+                {autoRefresh && (
+                  <Select value={refreshInterval.toString()} onValueChange={(v) => setRefreshInterval(Number(v))}>
+                    <SelectTrigger className="w-20 h-7 text-xs ml-auto">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="30000">30s</SelectItem>
+                      <SelectItem value="60000">1min</SelectItem>
+                      <SelectItem value="300000">5min</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <Button onClick={handleExportCSV} variant="outline" className="gap-2 w-full">
+                <Download className="h-4 w-4" />
+                Export CSV
+              </Button>
+            </>
           }
         />
+
         <div className="hidden md:flex flex-wrap items-center gap-3">
           <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
             <SelectTrigger className="w-[180px]">
