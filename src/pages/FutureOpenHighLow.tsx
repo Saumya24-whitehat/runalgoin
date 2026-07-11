@@ -351,7 +351,7 @@ export default function FutureOpenHighLow() {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="hidden md:flex flex-wrap items-center gap-3">
             {/* Auto Refresh Toggle */}
             <div className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-muted/30">
               <Switch id="auto-refresh" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
