@@ -444,6 +444,168 @@ const OptionChain = () => {
           <MarketClosedBanner />
           <Card className="bg-card border-border/30 shadow-xl">
             <CardContent className="p-3 sm:p-6">
+              {/* Mobile compact controls */}
+              {isMobile && (
+                <div className="mb-4 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
+                    <div className="flex items-center gap-1">
+                      <Button
+                        onClick={fetchOptionChain}
+                        disabled={loadingChain}
+                        size="icon"
+                        className="h-9 w-9 bg-primary hover:bg-primary/90"
+                        title="Refresh"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${loadingChain ? "animate-spin" : ""}`} />
+                      </Button>
+                      <Sheet>
+                        <SheetTrigger asChild>
+                          <Button variant="outline" size="sm" className="h-9 gap-1.5 border-primary/50">
+                            <SlidersHorizontal className="h-4 w-4" />
+                            Filters
+                          </Button>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="max-h-[80vh] overflow-y-auto">
+                          <SheetHeader>
+                            <SheetTitle>Filters</SheetTitle>
+                          </SheetHeader>
+                          <div className="mt-4 space-y-5">
+                            <div className="space-y-2">
+                              <label className="text-xs text-muted-foreground font-medium">Strikes around ATM</label>
+                              <div className="grid grid-cols-4 gap-2">
+                                {["5", "7", "9", "11", "15", "20", "25"].map((count) => (
+                                  <Button
+                                    key={count}
+                                    variant={strikeCount === count ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setStrikeCount(count)}
+                                    className="h-9"
+                                  >
+                                    {count}
+                                  </Button>
+                                ))}
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-xs text-muted-foreground font-medium">View Mode</label>
+                              <div className="grid grid-cols-2 gap-2">
+                                {([
+                                  { key: "ltp_oi", label: "LTP & OI" },
+                                  { key: "oi_iv", label: "OI & IV" },
+                                  { key: "ltp_greeks", label: "LTP & Greeks" },
+                                  { key: "oi_greeks", label: "OI & Greeks" },
+                                ] as const).map((v) => (
+                                  <Button
+                                    key={v.key}
+                                    variant={viewMode === v.key ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => setViewMode(v.key)}
+                                    className="h-9"
+                                  >
+                                    {v.label}
+                                  </Button>
+                                ))}
+                              </div>
+                              <p className="text-[10px] text-muted-foreground">View mode applies to the desktop table layout.</p>
+                            </div>
+                            <div className="pt-2">
+                              <PageInfoModal
+                                title="Option Chain"
+                                subtitle="The complete real-time options table for any F&O symbol"
+                                overview={<>Tap a strike to expand full Greeks. Use the Symbol, Expiry and Time controls above to switch context.</>}
+                                sections={[]}
+                                tips={[
+                                  "OI concentrations mark likely support/resistance.",
+                                  "Watch COI intraday to see where fresh positions build.",
+                                  "Historical mode replays past chains — great for post-mortems.",
+                                ]}
+                              />
+                            </div>
+                          </div>
+                        </SheetContent>
+                      </Sheet>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select value={selectedSymbol} onValueChange={setSelectedSymbol} disabled={loadingSymbols}>
+                      <SelectTrigger className="h-9 bg-background/50">
+                        <SelectValue placeholder="Symbol" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px] bg-popover">
+                        {indexSymbols.length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">INDEX</div>
+                            {indexSymbols.map((sym) => (
+                              <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                            ))}
+                          </>
+                        )}
+                        {stockSymbols.length > 0 && (
+                          <>
+                            <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50 mt-1">STOCKS</div>
+                            {stockSymbols.map((sym) => (
+                              <SelectItem key={sym} value={sym}>{sym}</SelectItem>
+                            ))}
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <Select value={selectedExpiry} onValueChange={setSelectedExpiry} disabled={loadingExpiry}>
+                      <SelectTrigger className="h-9 bg-background/50">
+                        <SelectValue placeholder="Expiry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {expiryDates.map((date) => (
+                          <SelectItem key={date} value={date}>{date}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 border-primary/50 shrink-0"
+                      onClick={() => { enableHistoricalMode(); handleTimeChange("prev"); }}
+                      disabled={!isHistoricalMode || TIME_SLOTS.indexOf(selectedTime) <= 0}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant={isHistoricalMode ? "default" : "outline"}
+                      className={`h-9 flex-1 flex items-center justify-center gap-2 ${isHistoricalMode ? "bg-cyan-600 hover:bg-cyan-700" : "border-primary/50"}`}
+                      onClick={enableHistoricalMode}
+                    >
+                      <Clock className="h-4 w-4" />
+                      <span className="text-sm font-medium">
+                        {isHistoricalMode ? formatTimeDisplay(selectedTime) : "Live"}
+                      </span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 border-primary/50 shrink-0"
+                      onClick={() => { enableHistoricalMode(); handleTimeChange("next"); }}
+                      disabled={!isHistoricalMode || TIME_SLOTS.indexOf(selectedTime) >= TIME_SLOTS.length - 1}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    {isHistoricalMode && (
+                      <Button
+                        variant="default"
+                        size="icon"
+                        className="h-9 w-9 bg-cyan-600 hover:bg-cyan-700 shrink-0"
+                        onClick={resetToLive}
+                        title="Reset to Live"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Controls */}
             <div className={`flex-wrap gap-3 mb-4 items-end ${isMobile ? "hidden" : "flex"}`}>
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
