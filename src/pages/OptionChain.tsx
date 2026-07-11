@@ -676,7 +676,7 @@ const OptionChain = () => {
             </div>
 
             {/* View Mode Tabs */}
-            <div className="flex flex-nowrap items-center gap-2 mb-4 pb-4 border-b border-border/30 overflow-x-auto whitespace-nowrap -mx-2 px-2">
+            <div className={`flex-nowrap items-center gap-2 mb-4 pb-4 border-b border-border/30 overflow-x-auto whitespace-nowrap -mx-2 px-2 ${isMobile ? "hidden" : "flex"}`}>
               <Button
                 variant={viewMode === "ltp_oi" ? "default" : "outline"}
                 size="sm"
