@@ -445,7 +445,7 @@ const OptionChain = () => {
           <Card className="bg-card border-border/30 shadow-xl">
             <CardContent className="p-3 sm:p-6">
               {/* Controls */}
-            <div className="flex flex-wrap gap-3 mb-4 items-end">
+            <div className={`flex-wrap gap-3 mb-4 items-end ${isMobile ? "hidden" : "flex"}`}>
               <LastRefreshBadge lastRefresh={lastRefresh} isFetching={loadingChain} />
               <PageInfoModal
                 title="Option Chain"
