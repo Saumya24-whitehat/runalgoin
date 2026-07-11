@@ -26,6 +26,7 @@ import {
 import { fetchFutureOiBreakup, processFutureOiData, ProcessedFutureOiData } from "@/services/futureOiBreakupApi";
 import { RefreshCw, TrendingUp, TrendingDown, Activity, BarChart3, Loader2, Calendar } from "lucide-react";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { PageInfoModal } from "@/components/PageInfoModal";
 
 const SYMBOLS = [
@@ -214,7 +215,21 @@ export default function FuturesOiBreakup() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <MobileSymbolExpiryBar
+            indexSymbols={SYMBOLS.map((s) => s.value)}
+            stockSymbols={[]}
+            selectedSymbol={symbol}
+            onSymbolChange={setSymbol}
+            expiryDates={expiries.map((e) => e.value)}
+            selectedExpiry={expiry}
+            onExpiryChange={setExpiry}
+            actions={
+              <Button variant="outline" size="icon" className="h-9 w-9" onClick={() => refetch()} disabled={isFetching}>
+                <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+              </Button>
+            }
+          />
+          <div className="hidden md:flex items-center gap-3">
             <Select value={symbol} onValueChange={setSymbol}>
               <SelectTrigger className="w-36">
                 <SelectValue placeholder="Select Symbol" />

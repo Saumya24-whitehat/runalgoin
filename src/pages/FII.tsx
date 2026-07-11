@@ -12,6 +12,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { SlidersHorizontal } from "lucide-react";
 import { CalendarIcon, ChevronLeft, ChevronRight, ChevronDown, Info, TrendingUp, PlayCircle } from "lucide-react";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
@@ -32,6 +34,8 @@ import {
   ReferenceLine,
 } from "recharts";
 import { format, parseISO } from "date-fns";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface FIIDataItem {
   Date: string;
@@ -212,6 +216,7 @@ const getSentimentBadgeSimple = (value: number) => {
 };
 
 export default function FII() {
+  const isMobile = useIsMobile();
   const [activeTab, setActiveTab] = useState("summary");
   const [selectedDate, setSelectedDate] = useState(0);
   const [showLabels, setShowLabels] = useState(true);
@@ -651,9 +656,72 @@ export default function FII() {
 
           {/* Summary Tab */}
           <TabsContent value="summary" className="mt-0">
+            {/* Mobile Filters Bar */}
+            <div className="mb-3 md:hidden">
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-1.5 border-primary/50 w-full justify-center">
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4 space-y-6">
+                    <div>
+                      <h4 className="font-medium text-sm mb-3">Participant</h4>
+                      <div className="space-y-2">
+                        {Object.entries(participantFilters).map(([key, value]) => (
+                          <div key={key} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`m-participant-${key}`}
+                              checked={value}
+                              onCheckedChange={(checked) =>
+                                setParticipantFilters((prev) => ({ ...prev, [key]: !!checked }))
+                              }
+                            />
+                            <label htmlFor={`m-participant-${key}`} className="text-sm cursor-pointer">
+                              {key}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm mb-3">Segment</h4>
+                      <div className="space-y-2">
+                        {Object.entries(segmentFilters).map(([key, value]) => (
+                          <div key={key} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`m-segment-${key}`}
+                              checked={value}
+                              onCheckedChange={(checked) =>
+                                setSegmentFilters((prev) => ({ ...prev, [key]: !!checked }))
+                              }
+                            />
+                            <label htmlFor={`m-segment-${key}`} className="text-sm cursor-pointer">
+                              {key}
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div>
+                        <span className="text-sm font-medium">Show Labels</span>
+                        <p className="text-xs text-muted-foreground">(Strong/Medium/Mild)</p>
+                      </div>
+                      <Switch checked={showLabels} onCheckedChange={setShowLabels} />
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
             <div className="grid grid-cols-12 gap-6">
               {/* Left Sidebar - Filters */}
-              <div className="col-span-12 lg:col-span-2">
+              <div className="hidden md:block col-span-12 lg:col-span-2">
                 <Card className="bg-card border-border">
                   <CardHeader className="pb-3">
                     <div className="flex items-center justify-between">
