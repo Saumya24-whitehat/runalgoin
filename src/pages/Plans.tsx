@@ -27,6 +27,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { SEO } from "@/components/SEO";
 import { useRazorpayCheckout } from "@/hooks/useRazorpayCheckout";
+import { AlternatePaymentModal } from "@/components/AlternatePaymentModal";
+import { QrCode, Wallet } from "lucide-react";
 
 const features = [
   {
@@ -157,6 +159,14 @@ export default function Plans() {
   const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
+  const [altModal, setAltModal] = useState<{
+    open: boolean;
+    method: "upi" | "paypal";
+    plan: "monthly" | "yearly";
+  }>({ open: false, method: "upi", plan: "monthly" });
+
+  const planKey = (planName: string): "monthly" | "yearly" | null =>
+    planName === "Pro Monthly" ? "monthly" : planName === "Pro Yearly" ? "yearly" : null;
 
   const handlePlanAction = (planName: string) => {
     if (!user) {
@@ -165,6 +175,16 @@ export default function Plans() {
     }
     if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
     else if (planName === "Pro Yearly" && !isPro) startCheckout("yearly");
+  };
+
+  const openAlt = (planName: string, method: "upi" | "paypal") => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    const p = planKey(planName);
+    if (!p) return;
+    setAltModal({ open: true, method, plan: p });
   };
 
   return (
@@ -297,6 +317,36 @@ export default function Plans() {
                       plan.cta
                     )}
                   </Button>
+
+                  {(plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && !isPro && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs text-muted-foreground">or pay via</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAlt(plan.name, "upi")}
+                          className="gap-1.5"
+                        >
+                          <QrCode className="h-4 w-4" />
+                          UPI QR
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAlt(plan.name, "paypal")}
+                          className="gap-1.5"
+                        >
+                          <Wallet className="h-4 w-4" />
+                          PayPal
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -423,6 +473,12 @@ export default function Plans() {
 
       {/* Admin Panel Modal */}
       <UserSubscriptionManager isOpen={showAdminPanel} onClose={() => setShowAdminPanel(false)} />
+      <AlternatePaymentModal
+        open={altModal.open}
+        onOpenChange={(o) => setAltModal((prev) => ({ ...prev, open: o }))}
+        method={altModal.method}
+        plan={altModal.plan}
+      />
     </div>
   );
 }
