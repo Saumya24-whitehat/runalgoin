@@ -14,6 +14,7 @@ import { OptionChainResponse, GroupedSymbols } from "@/types/optionChain";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { ProFeatureGate } from "@/components/ProFeatureGate";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 
 const REFRESH_INTERVAL = 3 * 60 * 1000; // 3 minutes
 
