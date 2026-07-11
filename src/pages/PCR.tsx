@@ -20,6 +20,7 @@ import {
 
 import { PCROptionsChain } from "@/components/pcr/PCROptionsChain";
 import MobilePCROptionsChain from "@/components/mobile/MobilePCROptionsChain";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { PCRIntradayAnalysis } from "@/components/pcr/PCRIntradayAnalysis";
 import { PCRSupportResistance } from "@/components/pcr/PCRSupportResistance";
