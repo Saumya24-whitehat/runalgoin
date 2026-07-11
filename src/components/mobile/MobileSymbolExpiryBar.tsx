@@ -68,7 +68,7 @@ export function MobileSymbolExpiryBar({
           </div>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-2">
+      <div className={onExpiryChange ? "grid grid-cols-2 gap-2" : ""}>
         <Select value={selectedSymbol} onValueChange={onSymbolChange} disabled={loadingSymbols}>
           <SelectTrigger className="h-9 bg-background/50 text-xs">
             <SelectValue placeholder="Symbol" />
@@ -92,21 +92,24 @@ export function MobileSymbolExpiryBar({
             )}
           </SelectContent>
         </Select>
-        <Select
-          value={selectedExpiry}
-          onValueChange={onExpiryChange}
-          disabled={loadingExpiry || expiryDates.length === 0}
-        >
-          <SelectTrigger className="h-9 bg-background/50 text-xs">
-            <SelectValue placeholder={loadingExpiry ? "Loading..." : "Expiry"} />
-          </SelectTrigger>
-          <SelectContent className="bg-popover border-border z-50">
-            {expiryDates.map((date) => (
-              <SelectItem key={date} value={date}>{date}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {onExpiryChange && (
+          <Select
+            value={selectedExpiry}
+            onValueChange={onExpiryChange}
+            disabled={loadingExpiry || !expiryDates || expiryDates.length === 0}
+          >
+            <SelectTrigger className="h-9 bg-background/50 text-xs">
+              <SelectValue placeholder={loadingExpiry ? "Loading..." : "Expiry"} />
+            </SelectTrigger>
+            <SelectContent className="bg-popover border-border z-50">
+              {(expiryDates || []).map((date) => (
+                <SelectItem key={date} value={date}>{date}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
+
     </div>
   );
 }
