@@ -14,16 +14,19 @@ interface OptionData {
   };
 }
 
+type ViewMode = "ltp_oi" | "oi_iv" | "ltp_greeks" | "oi_greeks";
+
 interface Props {
   rows: OptionData[];
   spotPrice: number;
   maxCallOI: number;
   maxPutOI: number;
+  viewMode?: ViewMode;
 }
 
 const pctColor = (v: number) => (v > 0 ? "text-oc-positive" : v < 0 ? "text-oc-negative" : "text-muted-foreground");
 
-const MobileOptionChain = ({ rows, spotPrice, maxCallOI, maxPutOI }: Props) => {
+const MobileOptionChain = ({ rows, spotPrice, maxCallOI, maxPutOI, viewMode = "ltp_oi" }: Props) => {
   const [expanded, setExpanded] = useState<number | null>(null);
   const spotRef = useRef<HTMLTableRowElement>(null);
   const scrolledRef = useRef(false);
@@ -48,6 +51,66 @@ const MobileOptionChain = ({ rows, spotPrice, maxCallOI, maxPutOI }: Props) => {
 
   if (rows.length === 0) return null;
 
+  // Renders the primary + secondary line for a call/put cell based on viewMode
+  const renderSide = (
+    side: "call" | "put",
+    md: OptionData["call_options"]["market_data"],
+    gr: OptionData["call_options"]["option_greeks"],
+  ) => {
+    const close = md.close_price || md.ltp;
+    const chgPct = close ? ((md.ltp - close) / close) * 100 : 0;
+    const coi = md.oi - (md.prev_oi || 0);
+    const ltpColor = side === "call" ? "text-red-300" : "text-emerald-300";
+    const align = side === "call" ? "" : "justify-end";
+    const alignText = side === "call" ? "" : "text-right";
+
+    const primary = (main: string, mainCls: string, sub?: { text: string; cls?: string }) => (
+      <>
+        <div className={`flex items-baseline gap-1.5 ${align}`}>
+          {side === "put" && sub && <span className={`text-[10px] font-bold ${sub.cls ?? "text-muted-foreground"}`}>{sub.text}</span>}
+          <span className={`font-bold text-[12.5px] ${mainCls}`}>{main}</span>
+          {side === "call" && sub && <span className={`text-[10px] font-bold ${sub.cls ?? "text-muted-foreground"}`}>{sub.text}</span>}
+        </div>
+      </>
+    );
+
+    const secondary = (label: string) => (
+      <div className={`text-[9.5px] text-muted-foreground mt-0.5 ${alignText}`}>{label}</div>
+    );
+
+    switch (viewMode) {
+      case "oi_iv":
+        return (
+          <>
+            {primary(formatCompactIndian(md.oi), "text-foreground", { text: `IV ${gr.iv.toFixed(1)}` })}
+            {secondary(`ΔOI ${coi >= 0 ? "+" : ""}${formatCompactIndian(coi)}`)}
+          </>
+        );
+      case "ltp_greeks":
+        return (
+          <>
+            {primary(md.ltp.toFixed(2), ltpColor, { text: `${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%`, cls: pctColor(chgPct) })}
+            {secondary(`Δ ${gr.delta.toFixed(2)}  IV ${gr.iv.toFixed(1)}`)}
+          </>
+        );
+      case "oi_greeks":
+        return (
+          <>
+            {primary(formatCompactIndian(md.oi), "text-foreground", { text: `Δ ${gr.delta.toFixed(2)}` })}
+            {secondary(`IV ${gr.iv.toFixed(1)}  θ ${gr.theta.toFixed(2)}`)}
+          </>
+        );
+      case "ltp_oi":
+      default:
+        return (
+          <>
+            {primary(md.ltp.toFixed(2), ltpColor, { text: `${chgPct >= 0 ? "+" : ""}${chgPct.toFixed(1)}%`, cls: pctColor(chgPct) })}
+            {secondary(`OI ${formatCompactIndian(md.oi)}`)}
+          </>
+        );
+    }
+  };
+
   return (
     <div
       className="max-h-[75vh] overflow-y-auto rounded-md border border-border/60 bg-card"
@@ -67,10 +130,6 @@ const MobileOptionChain = ({ rows, spotPrice, maxCallOI, maxPutOI }: Props) => {
             const putMd = row.put_options.market_data;
             const callGr = row.call_options.option_greeks;
             const putGr = row.put_options.option_greeks;
-            const callClose = callMd.close_price || callMd.ltp;
-            const putClose = putMd.close_price || putMd.ltp;
-            const callChgPct = callClose ? ((callMd.ltp - callClose) / callClose) * 100 : 0;
-            const putChgPct = putClose ? ((putMd.ltp - putClose) / putClose) * 100 : 0;
             const isATM = idx === atmIdx;
             const isOpen = expanded === row.strike_price;
             const showSpot = idx === atmIdx;
@@ -96,22 +155,14 @@ const MobileOptionChain = ({ rows, spotPrice, maxCallOI, maxPutOI }: Props) => {
                   className={`cursor-pointer transition-colors ${isATM ? "bg-primary/10" : ""} ${isOpen ? "bg-muted/40" : ""}`}
                 >
                   <td className={`px-3 py-2 border-b border-border/40 ${isATM ? "border-l border-t border-b border-primary" : ""} ${callMd.oi === maxCallOI ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="font-bold text-[12.5px] text-red-300">{callMd.ltp.toFixed(2)}</span>
-                      <span className={`text-[10px] font-bold ${pctColor(callChgPct)}`}>{callChgPct >= 0 ? "+" : ""}{callChgPct.toFixed(1)}%</span>
-                    </div>
-                    <div className="text-[9.5px] text-muted-foreground mt-0.5">OI {formatCompactIndian(callMd.oi)}</div>
+                    {renderSide("call", callMd, callGr)}
                   </td>
                   <td className={`px-1 py-2 text-center border-b border-border/40 ${isATM ? "border-x border-t border-b border-primary bg-primary/5" : ""}`}>
                     <div className="font-bold text-[12.5px] text-foreground">{row.strike_price.toLocaleString("en-IN")}</div>
                     <div className="text-[9px] text-muted-foreground mt-0.5">PCR {row.pcr?.toFixed(2) ?? "-"}</div>
                   </td>
                   <td className={`px-3 py-2 text-right border-b border-border/40 ${isATM ? "border-r border-t border-b border-primary" : ""} ${putMd.oi === maxPutOI ? "ring-1 ring-inset ring-cyan-500/30" : ""}`}>
-                    <div className="flex items-baseline gap-1.5 justify-end">
-                      <span className={`text-[10px] font-bold ${pctColor(putChgPct)}`}>{putChgPct >= 0 ? "+" : ""}{putChgPct.toFixed(1)}%</span>
-                      <span className="font-bold text-[12.5px] text-emerald-300">{putMd.ltp.toFixed(2)}</span>
-                    </div>
-                    <div className="text-[9.5px] text-muted-foreground mt-0.5">OI {formatCompactIndian(putMd.oi)}</div>
+                    {renderSide("put", putMd, putGr)}
                   </td>
                 </tr>
                 {isOpen && (
