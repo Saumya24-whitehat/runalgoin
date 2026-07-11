@@ -10,9 +10,10 @@ interface MobileSymbolExpiryBarProps {
   selectedSymbol: string;
   onSymbolChange: (v: string) => void;
   loadingSymbols?: boolean;
-  expiryDates: string[];
-  selectedExpiry: string;
-  onExpiryChange: (v: string) => void;
+  /** If omitted, only the symbol selector is shown */
+  expiryDates?: string[];
+  selectedExpiry?: string;
+  onExpiryChange?: (v: string) => void;
   loadingExpiry?: boolean;
   /** Extra controls shown inside the Filters sheet */
   filtersContent?: ReactNode;
