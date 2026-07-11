@@ -23,6 +23,7 @@ import { RefreshCw, Settings, ChevronLeft, ChevronRight, Clock, Info } from "luc
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { fetchKundaliData, KundaliTimeData } from "@/services/kundaliApi";
 import SupportResistanceChart from "@/components/supportResistance/SupportResistanceChart";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 
 interface OptionData {
   strike_price: number;
