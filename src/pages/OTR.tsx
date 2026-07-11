@@ -446,7 +446,66 @@ const OTR = () => {
             {/* Controls Card */}
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-end">
+                {/* Mobile controls */}
+                <MobileSymbolExpiryBar
+                  indexSymbols={symbols.indexSymbols}
+                  stockSymbols={symbols.stockSymbols}
+                  selectedSymbol={selectedSymbol}
+                  onSymbolChange={setSelectedSymbol}
+                  loadingSymbols={loadingSymbols}
+                  expiryDates={expiryDates}
+                  selectedExpiry={selectedExpiry}
+                  onExpiryChange={setSelectedExpiry}
+                  loadingExpiry={loadingExpiry}
+                  actions={
+                    <Button
+                      onClick={handleGo}
+                      disabled={loadingData || !selectedSymbol || !selectedExpiry}
+                      size="sm"
+                      className="h-9 bg-primary hover:bg-primary/90"
+                    >
+                      {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "Go"}
+                    </Button>
+                  }
+                  filtersContent={
+                    <>
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground font-medium">Strikes</label>
+                        <Select value={selectedStrikes.toString()} onValueChange={(v) => setSelectedStrikes(parseInt(v))}>
+                          <SelectTrigger className="w-full bg-secondary h-9 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-popover border-border z-50">
+                            {STRIKE_OPTIONS.map((c) => <SelectItem key={c} value={c.toString()}>{c}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground font-medium">Timeframe</label>
+                        <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                          <SelectTrigger className="w-full bg-secondary h-9 text-xs"><SelectValue /></SelectTrigger>
+                          <SelectContent className="bg-popover border-border z-50">
+                            {TIMEFRAME_OPTIONS.map((tf) => <SelectItem key={tf.value} value={tf.value}>{tf.label}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary h-9 text-xs">
+                              <CalendarIcon className="mr-2 h-4 w-4" />
+                              {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "Pick a date"}
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-auto p-0 z-50" align="start">
+                            <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} defaultMonth={historicalDate} initialFocus />
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    </>
+                  }
+                />
+                <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 items-end">
+
                   {/* Symbol Selector */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">Symbol</label>
