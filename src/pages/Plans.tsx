@@ -153,6 +153,10 @@ const plans = [
   },
 ];
 
+// Razorpay is temporarily disabled until account verification completes.
+// Keep the hook wired so we can flip this back to true without code changes.
+const RAZORPAY_ENABLED = false;
+
 export default function Plans() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -294,37 +298,46 @@ export default function Plans() {
                     ))}
                   </div>
 
-                  <Button
-                    variant={plan.ctaVariant}
-                    size="lg"
-                    onClick={() => handlePlanAction(plan.name)}
-                    disabled={((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && (isPro || checkoutLoading)) || (plan.name === "Free" && !isPro)}
-                    className={`w-full text-lg py-6 ${
-                      plan.highlight
-                        ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
-                        : ""
-                    } ${((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) ? "opacity-50 cursor-not-allowed" : ""}`}
-                  >
-                    {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
-                    {((plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && isPro) ? (
-                      <>
-                        <Check className="h-5 w-5 mr-2" />
-                        Current Plan
-                      </>
-                    ) : plan.name === "Free" && !isPro ? (
-                      "Current Plan"
-                    ) : (
-                      plan.cta
-                    )}
-                  </Button>
+                  {(() => {
+                    const isProPlan = plan.name === "Pro Monthly" || plan.name === "Pro Yearly";
+                    // Hide the main CTA for Pro plans while Razorpay is disabled — users pay via UPI/PayPal instead.
+                    if (isProPlan && !RAZORPAY_ENABLED && !isPro) return null;
+                    return (
+                      <Button
+                        variant={plan.ctaVariant}
+                        size="lg"
+                        onClick={() => handlePlanAction(plan.name)}
+                        disabled={(isProPlan && (isPro || checkoutLoading)) || (plan.name === "Free" && !isPro)}
+                        className={`w-full text-lg py-6 ${
+                          plan.highlight
+                            ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
+                            : ""
+                        } ${(isProPlan && isPro) ? "opacity-50 cursor-not-allowed" : ""}`}
+                      >
+                        {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
+                        {(isProPlan && isPro) ? (
+                          <>
+                            <Check className="h-5 w-5 mr-2" />
+                            Current Plan
+                          </>
+                        ) : plan.name === "Free" && !isPro ? (
+                          "Current Plan"
+                        ) : (
+                          plan.cta
+                        )}
+                      </Button>
+                    );
+                  })()}
 
                   {(plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && !isPro && (
                     <div className="mt-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-xs text-muted-foreground">or pay via</span>
-                        <div className="h-px flex-1 bg-border" />
-                      </div>
+                      {RAZORPAY_ENABLED && (
+                        <div className="flex items-center gap-2">
+                          <div className="h-px flex-1 bg-border" />
+                          <span className="text-xs text-muted-foreground">or pay via</span>
+                          <div className="h-px flex-1 bg-border" />
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           variant="outline"
