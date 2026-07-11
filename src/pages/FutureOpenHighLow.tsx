@@ -25,6 +25,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { fetchFutureOpenHighLow, fetchFutureExpiryDates, OpenHighLowItem } from "@/services/futureOpenHighLowApi";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -511,7 +512,27 @@ export default function FutureOpenHighLow() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-wrap items-center gap-3">
+        <MobileSymbolExpiryBar
+          indexSymbols={INDEX_SYMBOLS}
+          stockSymbols={allSymbols.filter((s) => !INDEX_SYMBOLS.includes(s))}
+          selectedSymbol={selectedSymbol}
+          onSymbolChange={setSelectedSymbol}
+          expiryDates={expiryDates}
+          selectedExpiry={selectedExpiry}
+          onExpiryChange={setSelectedExpiry}
+          filtersContent={
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search symbol..."
+                value={searchFilter}
+                onChange={(e) => setSearchFilter(e.target.value)}
+                className="pl-9 h-9 text-xs"
+              />
+            </div>
+          }
+        />
+        <div className="hidden md:flex flex-wrap items-center gap-3">
           <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select Symbol" />

@@ -28,6 +28,8 @@ import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { format } from "date-fns";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -38,6 +40,7 @@ const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute // 3 minutes
 
 const TOI = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
   const urlExpiry = searchParams.get("expiry");
@@ -349,7 +352,78 @@ const TOI = () => {
         {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+            <MobileSymbolExpiryBar
+              indexSymbols={symbols.indexSymbols}
+              stockSymbols={symbols.stockSymbols}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              loadingSymbols={loadingSymbols}
+              expiryDates={expiryDates}
+              selectedExpiry={selectedExpiry}
+              onExpiryChange={setSelectedExpiry}
+              loadingExpiry={loadingExpiry}
+              actions={
+                <Button
+                  onClick={handleGo}
+                  disabled={loadingData || !selectedSymbol || !selectedExpiry || selectedStrikes.length === 0}
+                  size="sm"
+                  className="h-9 bg-primary hover:bg-primary/90"
+                >
+                  {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
+                </Button>
+              }
+              filtersContent={
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Strikes</label>
+                    <div className="flex gap-2 mb-2">
+                      <Button size="sm" variant="outline" onClick={selectAllStrikes} className="flex-1 text-xs h-8">
+                        Select All
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={clearAllStrikes} className="flex-1 text-xs h-8">
+                        Clear All
+                      </Button>
+                    </div>
+                    <div className="max-h-[200px] overflow-y-auto space-y-1 border border-border rounded-md p-2">
+                      {availableStrikes.map((strike) => (
+                        <div
+                          key={strike}
+                          className={`flex items-center space-x-2 p-1.5 rounded-md hover:bg-muted cursor-pointer ${
+                            strike === atmStrike ? "bg-primary/10 border border-primary/30" : ""
+                          }`}
+                          onClick={() => toggleStrike(strike)}
+                        >
+                          <Checkbox
+                            id={`m-strike-${strike}`}
+                            checked={selectedStrikes.includes(strike)}
+                            onCheckedChange={() => toggleStrike(strike)}
+                          />
+                          <label htmlFor={`m-strike-${strike}`} className="text-sm cursor-pointer flex-1">
+                            {strike}
+                            {strike === atmStrike && <span className="ml-2 text-xs text-primary">(ATM)</span>}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="w-full justify-start text-left font-normal bg-secondary h-9 text-xs">
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-50" align="start">
+                        <Calendar mode="single" selected={historicalDate} onSelect={setHistoricalDate} defaultMonth={historicalDate} initialFocus />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </>
+              }
+            />
+            <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
               {/* Symbol Selector */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Symbol</label>

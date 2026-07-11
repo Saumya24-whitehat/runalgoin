@@ -29,6 +29,8 @@ import { fetchPCRLongShortData, LongShortTimeData, LongShortStrikeData } from "@
 import { toast } from "sonner";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SymbolsData {
   indexSymbols: string[];
@@ -55,6 +57,7 @@ const formatRatio = (value: number): string => {
 const AUTO_REFRESH_INTERVAL = 60 * 1000; // 1 minute // 3 minutes
 
 const PCRLongShort = () => {
+  const isMobile = useIsMobile();
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
@@ -292,7 +295,66 @@ const PCRLongShort = () => {
         {/* Controls Card */}
         <Card className="bg-card/50 backdrop-blur border-border/30">
           <CardContent className="p-4">
-            <div className="flex flex-wrap gap-3 items-end">
+            <MobileSymbolExpiryBar
+              indexSymbols={symbols.indexSymbols}
+              stockSymbols={symbols.stockSymbols}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              loadingSymbols={loadingSymbols}
+              expiryDates={expiryDates}
+              selectedExpiry={selectedExpiry}
+              onExpiryChange={setSelectedExpiry}
+              loadingExpiry={loadingExpiry}
+              actions={
+                <Button
+                  onClick={() => fetchData()}
+                  disabled={loadingData || !selectedExpiry}
+                  size="sm"
+                  className="h-9 bg-primary hover:bg-primary/90"
+                >
+                  {loadingData ? <Loader2 className="w-4 h-4 animate-spin" /> : "Go"}
+                </Button>
+              }
+              filtersContent={
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Strikes</label>
+                    <Select value={strikeCount} onValueChange={setStrikeCount}>
+                      <SelectTrigger className="w-full bg-background/50 h-9 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {["3", "5", "7", "9", "11"].map((count) => (
+                          <SelectItem key={count} value={count}>{count}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Historical Date</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start text-left font-normal bg-background/50 h-9 text-xs"
+                        >
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {historicalDate ? format(historicalDate, "dd/MM/yyyy") : "dd/mm/yyyy"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 z-50" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={historicalDate}
+                          onSelect={setHistoricalDate}
+                          defaultMonth={historicalDate}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </>
+              }
+            />
+            <div className="hidden md:flex flex-wrap gap-3 items-end">
               {/* Symbol Selector */}
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Symbol</label>

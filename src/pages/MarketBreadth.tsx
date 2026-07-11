@@ -20,6 +20,10 @@ import {
   AdvanceDeclineData,
 } from "@/services/marketBreadthApi";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SlidersHorizontal } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type SortOption = "name";
 type SortDirection = "asc" | "desc";
@@ -39,6 +43,7 @@ const indexToAdvDeclineKey: Record<string, string> = {
 };
 
 export default function MarketBreadth() {
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   
@@ -230,8 +235,100 @@ export default function MarketBreadth() {
           />
         </div>
         <div className="flex flex-col lg:flex-row">
+          {/* Mobile compact index + filters bar */}
+          <div className="md:hidden px-4 pt-2 pb-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <Select value={selectedIndex} onValueChange={setSelectedIndex}>
+                <SelectTrigger className="h-9 bg-background/50 text-xs flex-1">
+                  <SelectValue placeholder="Select Index" />
+                </SelectTrigger>
+                <SelectContent className="max-h-[300px] bg-popover">
+                  {groupedIndices.map((group) => (
+                    <div key={group.name}>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-primary bg-muted/50">{group.name}</div>
+                      {group.indices
+                        .filter((idx) => (selectedExchange === "NSE" ? idx.symbol.includes("NSE") : idx.symbol.includes("BSE")))
+                        .map((index) => (
+                          <SelectItem key={index.symbol} value={index.symbol}>{index.displayName}</SelectItem>
+                        ))}
+                    </div>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-1.5 border-primary/50">
+                    <SlidersHorizontal className="h-4 w-4" />
+                    Filters
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+                  <SheetHeader>
+                    <SheetTitle>Filters</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Exchange</h4>
+                      <Tabs value={selectedExchange} onValueChange={(v) => setSelectedExchange(v as "NSE" | "BSE")}>
+                        <TabsList className="w-full">
+                          <TabsTrigger value="NSE" className="flex-1">NSE</TabsTrigger>
+                          <TabsTrigger value="BSE" className="flex-1">BSE</TabsTrigger>
+                        </TabsList>
+                      </Tabs>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Change Filter</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {(["+5", "+3", "+1", "0", "-1", "-3", "-5"] as ChangeFilter[]).map((val) => {
+                          const isActive = changeFilter === val;
+                          return (
+                            <Button
+                              key={val}
+                              variant="outline"
+                              size="sm"
+                              className={`min-w-10 h-8 ${isActive ? "bg-primary text-primary-foreground" : ""}`}
+                              onClick={() => setChangeFilter(changeFilter === val ? null : val)}
+                            >
+                              {val}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">Sort</h4>
+                      <div className="flex gap-2">
+                        <Button
+                          variant={sortBy === "name" && sortDirection === "asc" ? "default" : "outline"}
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            setSortBy(sortBy === "name" && sortDirection === "asc" ? null : "name");
+                            setSortDirection("asc");
+                          }}
+                        >
+                          A-Z
+                        </Button>
+                        <Button
+                          variant={sortBy === "name" && sortDirection === "desc" ? "default" : "outline"}
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => {
+                            setSortBy(sortBy === "name" && sortDirection === "desc" ? null : "name");
+                            setSortDirection("desc");
+                          }}
+                        >
+                          Z-A
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </div>
           {/* Sidebar */}
-        <div className="w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-border bg-card lg:min-h-[calc(100vh-8rem)]">
+        <div className="hidden md:block w-full lg:w-80 border-b lg:border-b-0 lg:border-r border-border bg-card lg:min-h-[calc(100vh-8rem)]">
 
           {/* Exchange Tabs */}
           <div className="border-b border-border p-2">
@@ -349,7 +446,7 @@ export default function MarketBreadth() {
           </div>
 
           {/* Filter Options */}
-          <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1">
+          <div className="hidden md:flex items-center gap-2 mb-4 overflow-x-auto pb-1">
             <span className="text-sm text-muted-foreground shrink-0">Filter:</span>
 
             {(["+5", "+3", "+1", "0", "-1", "-3", "-5"] as ChangeFilter[]).map((val) => {
