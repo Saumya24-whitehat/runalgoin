@@ -331,11 +331,13 @@ export default function Plans() {
 
                   {(plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && !isPro && (
                     <div className="mt-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <div className="h-px flex-1 bg-border" />
-                        <span className="text-xs text-muted-foreground">or pay via</span>
-                        <div className="h-px flex-1 bg-border" />
-                      </div>
+                      {RAZORPAY_ENABLED && (
+                        <div className="flex items-center gap-2">
+                          <div className="h-px flex-1 bg-border" />
+                          <span className="text-xs text-muted-foreground">or pay via</span>
+                          <div className="h-px flex-1 bg-border" />
+                        </div>
+                      )}
                       <div className="grid grid-cols-2 gap-2">
                         <Button
                           variant="outline"
