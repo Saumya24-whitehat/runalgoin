@@ -14,6 +14,7 @@ import { CalendarIcon, Loader2, RefreshCw, Timer } from "lucide-react";
 import { format } from "date-fns";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import {
   LineChart,
   Line,
