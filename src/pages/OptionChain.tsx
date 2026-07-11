@@ -655,17 +655,19 @@ const OptionChain = () => {
                   <Button
                     variant="default"
                     size="sm"
-                    className="h-9 bg-cyan-600 hover:bg-cyan-700"
+                    className="h-9 bg-cyan-600 hover:bg-cyan-700 px-2 sm:px-3"
                     onClick={resetToLive}
+                    title="Reset to Live"
                   >
-                    Reset
+                    <RefreshCw className="w-4 h-4 sm:hidden" />
+                    <span className="hidden sm:inline">Reset</span>
                   </Button>
                 )}
               </div>
 
-              <Button onClick={fetchOptionChain} disabled={loadingChain} className="bg-primary hover:bg-primary/90 h-9">
-                {loadingChain ? <RefreshCw className="w-4 h-4 animate-spin mr-2" /> : null}
-                Refresh
+              <Button onClick={fetchOptionChain} disabled={loadingChain} className="bg-primary hover:bg-primary/90 h-9 px-3" title="Refresh">
+                {loadingChain ? <RefreshCw className="w-4 h-4 animate-spin sm:mr-2" /> : <RefreshCw className="w-4 h-4 sm:mr-2 sm:hidden" />}
+                <span className="hidden sm:inline">Refresh</span>
               </Button>
 
               {/* Admin Palette Button */}
@@ -678,35 +680,40 @@ const OptionChain = () => {
                 variant={viewMode === "ltp_oi" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("ltp_oi")}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "ltp_oi" ? "bg-cyan-600 hover:bg-cyan-700 border-cyan-600" : "border-border/50"}`}
+                className={`shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-[10px] sm:text-sm ${viewMode === "ltp_oi" ? "bg-cyan-600 hover:bg-cyan-700 border-cyan-600" : "border-border/50"}`}
               >
-                LTP & OI
+                <span className="sm:hidden">LTP+OI</span>
+                <span className="hidden sm:inline">LTP & OI</span>
               </Button>
               <Button
                 variant={viewMode === "oi_iv" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("oi_iv")}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "oi_iv" ? "bg-cyan-600 hover:bg-cyan-700 border-cyan-600" : "border-border/50"}`}
+                className={`shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-[10px] sm:text-sm ${viewMode === "oi_iv" ? "bg-cyan-600 hover:bg-cyan-700 border-cyan-600" : "border-border/50"}`}
               >
-                OI & IV
+                <span className="sm:hidden">OI+IV</span>
+                <span className="hidden sm:inline">OI & IV</span>
               </Button>
               <Button
                 variant={viewMode === "ltp_greeks" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("ltp_greeks")}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "ltp_greeks" ? "bg-emerald-600 hover:bg-emerald-700 border-emerald-600" : "border-border/50"}`}
+                className={`shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-[10px] sm:text-sm ${viewMode === "ltp_greeks" ? "bg-emerald-600 hover:bg-emerald-700 border-emerald-600" : "border-border/50"}`}
               >
-                LTP & Greeks
+                <span className="sm:hidden">LTP+Grk</span>
+                <span className="hidden sm:inline">LTP & Greeks</span>
               </Button>
               <Button
                 variant={viewMode === "oi_greeks" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setViewMode("oi_greeks")}
-                className={`shrink-0 h-8 sm:h-9 px-2.5 sm:px-3 text-[11px] sm:text-sm ${viewMode === "oi_greeks" ? "bg-amber-600 hover:bg-amber-700 border-amber-600" : "border-border/50"}`}
+                className={`shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-[10px] sm:text-sm ${viewMode === "oi_greeks" ? "bg-amber-600 hover:bg-amber-700 border-amber-600" : "border-border/50"}`}
               >
-                OI & Greeks
+                <span className="sm:hidden">OI+Grk</span>
+                <span className="hidden sm:inline">OI & Greeks</span>
               </Button>
             </div>
+
 
             {/* Option Chain Table (desktop) / Cards (mobile) */}
             {isMobile && !loadingChain && filteredData.length > 0 ? (
