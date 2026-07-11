@@ -56,6 +56,7 @@ import { SummaryOTRChart } from "@/components/optionsSummary/SummaryOTRChart";
 import { SpotVsVWAPChart } from "@/components/optionsSummary/SpotVsVWAPChart";
 import { SummarySupportResistanceChart } from "@/components/optionsSummary/SummarySupportResistanceChart";
 import { IndexOIProfileChart } from "@/components/optionsSummary/IndexOIProfileChart";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 
 interface SummaryData {
   // Basic Info
@@ -454,7 +455,31 @@ const OptionsSummary = () => {
         {/* Symbol & Expiry Selection */}
         <Card className="bg-card border-border">
           <CardContent className="pt-4 sm:pt-6 px-3 sm:px-6">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+            {/* Mobile compact controls */}
+            <MobileSymbolExpiryBar
+              indexSymbols={symbols.indexSymbols}
+              stockSymbols={symbols.stockSymbols}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={setSelectedSymbol}
+              loadingSymbols={loadingSymbols}
+              expiryDates={expiryDates}
+              selectedExpiry={selectedExpiry}
+              onExpiryChange={setSelectedExpiry}
+              loadingExpiry={loadingExpiry}
+              actions={
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={fetchAllData}
+                  disabled={loading || !selectedSymbol || !selectedExpiry}
+                  className="bg-secondary h-9 w-9"
+                >
+                  <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+                </Button>
+              }
+            />
+
+            <div className="hidden md:flex flex-wrap items-center gap-2 sm:gap-4">
               {/* Symbol Dropdown */}
               <div className="flex items-center gap-2">
                 <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap hidden sm:inline">Symbol:</span>

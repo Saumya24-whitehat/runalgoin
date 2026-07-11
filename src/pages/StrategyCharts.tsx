@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Loader2, Plus, Minus, Trash2, TrendingUp, TrendingDown, BarChart3, RefreshCw } from "lucide-react";
 import { fetchStrategyChartData, ChartPosition, OHLCDataPoint } from "@/services/strategyChartApi";
 import StrategyOHLCChart from "@/components/strategyChart/StrategyOHLCChart";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 
 interface SymbolGroup {
   indexSymbols: string[];
@@ -340,7 +341,62 @@ const StrategyCharts = () => {
             {/* Controls */}
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
+                {/* Mobile compact controls */}
+                <MobileSymbolExpiryBar
+                  indexSymbols={symbols.indexSymbols}
+                  stockSymbols={symbols.stockSymbols}
+                  selectedSymbol={selectedSymbol}
+                  onSymbolChange={setSelectedSymbol}
+                  loadingSymbols={loadingSymbols}
+                  expiryDates={expiryDates}
+                  selectedExpiry={selectedExpiry}
+                  onExpiryChange={setSelectedExpiry}
+                  loadingExpiry={loadingExpiry}
+                  actions={
+                    <>
+                      <Button
+                        onClick={fetchChart}
+                        disabled={loadingChart || positions.length === 0}
+                        size="sm"
+                        className="h-9"
+                      >
+                        {loadingChart ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <BarChart3 className="h-4 w-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={fetchChart}
+                        disabled={loadingChart || positions.length === 0}
+                        className="h-9"
+                      >
+                        <RefreshCw className={`h-4 w-4 ${loadingChart ? "animate-spin" : ""}`} />
+                      </Button>
+                    </>
+                  }
+                  filtersContent={
+                    <div className="space-y-2">
+                      <label className="text-xs text-muted-foreground font-medium">Timeframe</label>
+                      <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                        <SelectTrigger className="w-full bg-secondary h-9 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border-border z-50">
+                          {TIMEFRAME_OPTIONS.map((tf) => (
+                            <SelectItem key={tf.value} value={tf.value}>
+                              {tf.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  }
+                />
+
+                <div className="hidden md:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
                   {/* Symbol Selector */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-medium text-muted-foreground">Symbol</label>

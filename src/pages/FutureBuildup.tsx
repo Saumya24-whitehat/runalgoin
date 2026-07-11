@@ -42,6 +42,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { AdminPaletteButton } from "@/components/admin/AdminPaletteButton";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { fetchFutureBuildup, fetchFutureExpiryDates, BuildupItem } from "@/services/futureBuilupApi";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -424,7 +425,68 @@ export default function FutureBuildup() {
       <ProFeatureGate featureName="Future Buildup Analysis">
         <div className="container mx-auto px-4 py-6 space-y-6">
           {/* Header Controls */}
-        <div className="flex flex-wrap items-center gap-4">
+        <MobileSymbolExpiryBar
+          indexSymbols={INDEX_SYMBOLS}
+          stockSymbols={allSymbols.filter((s) => !INDEX_SYMBOLS.includes(s))}
+          selectedSymbol={selectedSymbol}
+          onSymbolChange={setSelectedSymbol}
+          expiryDates={expiryDates}
+          selectedExpiry={selectedExpiry}
+          onExpiryChange={setSelectedExpiry}
+          actions={
+            <Button onClick={() => refetch()} variant="default" size="sm" className="h-9 gap-1.5" disabled={isFetching}>
+              <Search className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
+            </Button>
+          }
+          filtersContent={
+            <>
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground font-medium">Filter symbols</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Filter symbols..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="pl-9 h-9 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center gap-3 border rounded-lg px-3 py-2 bg-muted/30">
+                <div className="flex items-center gap-2">
+                  {autoRefresh ? (
+                    <RefreshCw className={`h-4 w-4 text-emerald-500 ${isFetching ? "animate-spin" : ""}`} />
+                  ) : (
+                    <Pause className="h-4 w-4 text-muted-foreground" />
+                  )}
+                  <Label htmlFor="auto-refresh-mobile" className="text-sm cursor-pointer">
+                    Auto
+                  </Label>
+                  <Switch id="auto-refresh-mobile" checked={autoRefresh} onCheckedChange={setAutoRefresh} />
+                </div>
+                {autoRefresh && (
+                  <Select value={String(refreshInterval)} onValueChange={(v) => setRefreshInterval(Number(v))}>
+                    <SelectTrigger className="w-[70px] h-7 text-xs">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {REFRESH_INTERVALS.map((interval) => (
+                        <SelectItem key={interval.value} value={String(interval.value)}>
+                          {interval.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              <Button onClick={handleExportCSV} variant="outline" className="gap-2 w-full">
+                <Download className="h-4 w-4" />
+                CSV
+              </Button>
+            </>
+          }
+        />
+        <div className="hidden md:flex flex-wrap items-center gap-4">
           <Select value={selectedSymbol} onValueChange={setSelectedSymbol}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select Symbol" />
