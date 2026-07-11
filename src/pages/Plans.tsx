@@ -317,6 +317,36 @@ export default function Plans() {
                       plan.cta
                     )}
                   </Button>
+
+                  {(plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && !isPro && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="h-px flex-1 bg-border" />
+                        <span className="text-xs text-muted-foreground">or pay via</span>
+                        <div className="h-px flex-1 bg-border" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAlt(plan.name, "upi")}
+                          className="gap-1.5"
+                        >
+                          <QrCode className="h-4 w-4" />
+                          UPI QR
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openAlt(plan.name, "paypal")}
+                          className="gap-1.5"
+                        >
+                          <Wallet className="h-4 w-4" />
+                          PayPal
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
