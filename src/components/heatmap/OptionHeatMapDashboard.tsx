@@ -286,8 +286,27 @@ export function OptionHeatMapDashboard() {
               )}
             </div>
 
-            {/* Controls Row */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            {/* Mobile controls */}
+            <MobileSymbolExpiryBar
+              indexSymbols={symbols.indexSymbols}
+              stockSymbols={symbols.stockSymbols}
+              selectedSymbol={selectedSymbol}
+              onSymbolChange={handleSymbolChange}
+              loadingSymbols={symbolsLoading}
+              expiryDates={expiryData?.expiry_dates || []}
+              selectedExpiry={selectedExpiry}
+              onExpiryChange={setSelectedExpiry}
+              loadingExpiry={expiryLoading}
+              filtersContent={
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground font-medium">Strikes around ATM</label>
+                  <HeatMapStrikeCountInput value={strikeCount} onChange={setStrikeCount} />
+                </div>
+              }
+            />
+            {/* Controls Row (desktop) */}
+            <div className="hidden md:grid grid-cols-3 gap-2 sm:gap-4">
+
               <div className="space-y-1">
                 <label className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">Symbol</label>
                 <Select value={selectedSymbol} onValueChange={handleSymbolChange} disabled={symbolsLoading}>
