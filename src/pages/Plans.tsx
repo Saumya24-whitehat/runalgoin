@@ -153,6 +153,10 @@ const plans = [
   },
 ];
 
+// Razorpay is temporarily disabled until account verification completes.
+// Keep the hook wired so we can flip this back to true without code changes.
+const RAZORPAY_ENABLED = false;
+
 export default function Plans() {
   const { user } = useAuth();
   const navigate = useNavigate();
