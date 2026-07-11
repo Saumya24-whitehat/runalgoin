@@ -35,6 +35,8 @@ import OptionBuilderGreeks from "@/components/optionBuilder/OptionBuilderGreeks"
 import OptionBuilderMetrics from "@/components/optionBuilder/OptionBuilderMetrics";
 import OptionBuilderStrategies from "@/components/optionBuilder/OptionBuilderStrategies";
 import OptionBuilderChain from "@/components/optionBuilder/OptionBuilderChain";
+import MobileOptionBuilderChain from "@/components/mobile/MobileOptionBuilderChain";
+import { useIsMobile } from "@/hooks/use-mobile";
 import FuturesPanel, { FutureContract } from "@/components/optionBuilder/FuturesPanel";
 import OptionBuilderSettings, {
   OptionBuilderSettingsConfig,
@@ -66,6 +68,7 @@ const STORAGE_KEY_SETTINGS = "optionBuilder_settings";
 
 const OptionBuilder = () => {
   const { user, loading } = useAuth();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
@@ -902,18 +905,31 @@ const OptionBuilder = () => {
                     date={new Date().toISOString().split("T")[0]}
                     onAddPosition={addPosition}
                   />
-                  <OptionBuilderChain
-                    symbol={symbol}
-                    expiry={activeExpiry}
-                    currentPrice={currentPrice}
-                    lotSize={lotSize}
-                    expiryData={currentExpiryData}
-                    isLoading={isLoading}
-                    onAddPosition={addPosition}
-                    callColumns={settings.callColumns}
-                    putColumns={settings.putColumns}
-                    liveData={liveOptionData}
-                  />
+                  {isMobile ? (
+                    <MobileOptionBuilderChain
+                      symbol={symbol}
+                      expiry={activeExpiry}
+                      currentPrice={currentPrice}
+                      lotSize={lotSize}
+                      expiryData={currentExpiryData}
+                      isLoading={isLoading}
+                      onAddPosition={addPosition}
+                      liveData={liveOptionData}
+                    />
+                  ) : (
+                    <OptionBuilderChain
+                      symbol={symbol}
+                      expiry={activeExpiry}
+                      currentPrice={currentPrice}
+                      lotSize={lotSize}
+                      expiryData={currentExpiryData}
+                      isLoading={isLoading}
+                      onAddPosition={addPosition}
+                      callColumns={settings.callColumns}
+                      putColumns={settings.putColumns}
+                      liveData={liveOptionData}
+                    />
+                  )}
                   </div>
                 )}
 

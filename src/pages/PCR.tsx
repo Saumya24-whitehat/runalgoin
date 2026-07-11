@@ -19,6 +19,8 @@ import {
 } from "@/components/ui/select";
 
 import { PCROptionsChain } from "@/components/pcr/PCROptionsChain";
+import MobilePCROptionsChain from "@/components/mobile/MobilePCROptionsChain";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { PCRIntradayAnalysis } from "@/components/pcr/PCRIntradayAnalysis";
 import { PCRSupportResistance } from "@/components/pcr/PCRSupportResistance";
 import { PCRSentimentGauge } from "@/components/pcr/PCRSentimentGauge";
@@ -132,6 +134,7 @@ function fillLatestData(data: PCRTimeData[], index: number): PCRTimeData & { fut
 
 const PCR = () => {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");
@@ -652,13 +655,24 @@ const PCR = () => {
               </div>
 
               {/* Options Chain */}
-              <PCROptionsChain
-                data={latestData.dataThis}
-                atm={latestData.atm}
-                spotPrice={latestData.underlyning}
-                pcrOI={latestData.PCR_OI}
-                pcrCOI={latestData.PCR_COI}
-              />
+              {isMobile ? (
+                <MobilePCROptionsChain
+                  data={latestData.dataThis}
+                  atm={latestData.atm}
+                  spotPrice={latestData.underlyning}
+                  pcrOI={latestData.PCR_OI}
+                  pcrCOI={latestData.PCR_COI}
+                />
+              ) : (
+                <PCROptionsChain
+                  data={latestData.dataThis}
+                  atm={latestData.atm}
+                  spotPrice={latestData.underlyning}
+                  pcrOI={latestData.PCR_OI}
+                  pcrCOI={latestData.PCR_COI}
+                />
+              )}
+
 
               {/* Intraday Analysis */}
               <PCRIntradayAnalysis data={pcrData} />
