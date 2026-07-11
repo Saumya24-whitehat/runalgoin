@@ -68,6 +68,7 @@ const STORAGE_KEY_SETTINGS = "optionBuilder_settings";
 
 const OptionBuilder = () => {
   const { user, loading } = useAuth();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSymbol = searchParams.get("symbol");

@@ -65,6 +65,7 @@ import AdjustmentModal, {
 } from "@/components/optionBuilder/AdjustmentModal";
 import PLHistoryChart from "@/components/optionBuilder/PLHistoryChart";
 import SimulatorOptionChain from "@/components/optionBuilder/SimulatorOptionChain";
+import MobileSimulatorOptionChain from "@/components/mobile/MobileSimulatorOptionChain";
 import FuturesPanel, { FutureContract } from "@/components/optionBuilder/FuturesPanel";
 import {
   Position,
