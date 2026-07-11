@@ -507,7 +507,7 @@ const OptionChain = () => {
                                   </Button>
                                 ))}
                               </div>
-                              <p className="text-[10px] text-muted-foreground">View mode applies to the desktop table layout.</p>
+                              
                             </div>
                             <div className="pt-2">
                               <PageInfoModal
@@ -885,6 +885,7 @@ const OptionChain = () => {
                 spotPrice={spotPrice}
                 maxCallOI={maxCallOI}
                 maxPutOI={maxPutOI}
+                viewMode={viewMode}
               />
             ) : (
             <div
