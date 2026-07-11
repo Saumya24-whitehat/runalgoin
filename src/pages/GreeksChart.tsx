@@ -231,26 +231,73 @@ const GreeksChart = () => {
           {/* Controls Card */}
         <Card className="bg-card/50 border-border/50">
           <CardContent className="p-4">
-            <GreeksChartControls
-              symbols={symbols}
-              expiryDates={expiryDates}
-              strikes={strikes}
+            {/* Mobile controls */}
+            <MobileSymbolExpiryBar
+              indexSymbols={symbols.indexSymbols}
+              stockSymbols={symbols.stockSymbols}
               selectedSymbol={selectedSymbol}
-              selectedExpiry={selectedExpiry}
-              selectedStrike={selectedStrike}
-              selectedTimeframe={selectedTimeframe}
-              loadingSymbols={loadingSymbols}
-              loadingExpiry={loadingExpiry}
-              loadingStrikes={loadingStrikes}
-              loadingData={loadingData}
               onSymbolChange={setSelectedSymbol}
+              loadingSymbols={loadingSymbols}
+              expiryDates={expiryDates}
+              selectedExpiry={selectedExpiry}
               onExpiryChange={setSelectedExpiry}
-              onStrikeChange={setSelectedStrike}
-              onTimeframeChange={setSelectedTimeframe}
-              onGo={handleGo}
+              loadingExpiry={loadingExpiry}
+              actions={
+                <Button
+                  onClick={handleGo}
+                  disabled={loadingData || !selectedSymbol || !selectedExpiry || !selectedStrike}
+                  size="sm"
+                  className="h-9 bg-primary hover:bg-primary/90"
+                >
+                  {loadingData ? <Loader2 className="h-4 w-4 animate-spin" /> : "GO"}
+                </Button>
+              }
+              filtersContent={
+                <>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Strike</label>
+                    <Select value={selectedStrike.toString()} onValueChange={(v) => setSelectedStrike(parseInt(v))} disabled={loadingStrikes || strikes.length === 0}>
+                      <SelectTrigger className="w-full bg-secondary h-9 text-xs"><SelectValue placeholder={loadingStrikes ? "Loading..." : "Strike"} /></SelectTrigger>
+                      <SelectContent className="max-h-[300px] bg-popover">
+                        {strikes.map((s) => <SelectItem key={s} value={s.toString()}>{s}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground font-medium">Timeframe</label>
+                    <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+                      <SelectTrigger className="w-full bg-secondary h-9 text-xs"><SelectValue /></SelectTrigger>
+                      <SelectContent className="bg-popover">
+                        {["1min","3min","5min","15min","30min","60min"].map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              }
             />
+            <div className="hidden md:block">
+              <GreeksChartControls
+                symbols={symbols}
+                expiryDates={expiryDates}
+                strikes={strikes}
+                selectedSymbol={selectedSymbol}
+                selectedExpiry={selectedExpiry}
+                selectedStrike={selectedStrike}
+                selectedTimeframe={selectedTimeframe}
+                loadingSymbols={loadingSymbols}
+                loadingExpiry={loadingExpiry}
+                loadingStrikes={loadingStrikes}
+                loadingData={loadingData}
+                onSymbolChange={setSelectedSymbol}
+                onExpiryChange={setSelectedExpiry}
+                onStrikeChange={setSelectedStrike}
+                onTimeframeChange={setSelectedTimeframe}
+                onGo={handleGo}
+              />
+            </div>
           </CardContent>
         </Card>
+
 
         {/* Charts Section */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
