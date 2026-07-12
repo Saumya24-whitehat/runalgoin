@@ -435,10 +435,16 @@ const Admin = () => {
           <SpecialTradingDaysManagement />
         </div>
 
+        {/* Momentum Reports */}
+        <div className="mt-8">
+          <MomentumReportManagement />
+        </div>
+
         {/* Video Management */}
         <div className="mt-8">
           <VideoManagement />
         </div>
+
 
       </main>
 
