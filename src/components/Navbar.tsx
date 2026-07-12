@@ -474,7 +474,7 @@ export function Navbar() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                 >
                   <User className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Profile</span>
+                  <span className="font-medium text-sm">Profile</span>
                 </Link>
                 <Link
                   to="/payments"
@@ -482,7 +482,7 @@ export function Navbar() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                 >
                   <Receipt className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Payment History</span>
+                  <span className="font-medium text-sm">Payment History</span>
                 </Link>
                 {isAdmin && (
                   <Link
@@ -491,7 +491,7 @@ export function Navbar() {
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                   >
                     <Shield className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Admin Panel</span>
+                    <span className="font-medium text-sm">Admin Panel</span>
                   </Link>
                 )}
                 {isAdmin && (
@@ -501,7 +501,7 @@ export function Navbar() {
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                   >
                     <Shield className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Audit Log</span>
+                    <span className="font-medium text-sm">Audit Log</span>
                   </Link>
                 )}
                 <Link
@@ -510,14 +510,14 @@ export function Navbar() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                 >
                   <Crown className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Plans</span>
+                  <span className="font-medium text-sm">Plans</span>
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Logout</span>
+                  <span className="font-medium text-sm">Logout</span>
                 </button>
               </>
             ) : (
@@ -526,7 +526,7 @@ export function Navbar() {
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-colors w-full"
               >
                 <LogIn className="h-5 w-5" />
-                <span className="font-medium">Login</span>
+                <span className="font-medium text-sm">Login</span>
               </button>
             )}
           </div>
