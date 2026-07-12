@@ -118,6 +118,36 @@ export type Database = {
           },
         ]
       }
+      momentum_reports: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          uploaded_by: string | null
+          week_of: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          title: string
+          updated_at?: string
+          uploaded_by?: string | null
+          week_of: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          uploaded_by?: string | null
+          week_of?: string
+        }
+        Relationships: []
+      }
       payments: {
         Row: {
           amount: number
