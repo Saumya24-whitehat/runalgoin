@@ -49,7 +49,7 @@ export function AdminSidebar({
   const collapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="!top-16 !h-[calc(100svh-4rem)]">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Admin</SidebarGroupLabel>
