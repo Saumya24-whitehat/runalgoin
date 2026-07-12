@@ -210,7 +210,7 @@ function NavDropdown({
       <div className="flex gap-8">
         {sections.map((section, idx) => (
           <div key={idx} className="min-w-[180px]">
-            <h4 className="text-xs font-semibold text-muted-foreground mb-3 tracking-wide">{section.title}</h4>
+            <h4 className="text-[10px] font-semibold text-muted-foreground mb-3 tracking-wide">{section.title}</h4>
             <ul className="space-y-1">
               {section.items.map((item, itemIdx) => (
                 <li key={itemIdx}>
@@ -218,13 +218,13 @@ function NavDropdown({
                     <Link
                       to={item.path}
                       onClick={onItemClick}
-                      className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-sm text-foreground"
+                      className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-xs text-foreground"
                     >
                       <item.icon className={`h-4 w-4 ${item.iconColor || "text-primary"}`} />
                       <span>{item.label}</span>
                     </Link>
                   ) : (
-                    <span className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-sm text-foreground cursor-pointer opacity-60">
+                    <span className="flex items-center gap-2 px-2 py-2 rounded-md hover:bg-dropdown-hover transition-colors text-xs text-foreground cursor-pointer opacity-60">
                       <item.icon className={`h-4 w-4 ${item.iconColor || "text-primary"}`} />
                       <span>{item.label}</span>
                     </span>
@@ -296,14 +296,14 @@ export function Navbar() {
                 {item.path && !item.hasDropdown ? (
                   <Link
                     to={item.path}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-secondary text-foreground"
+                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-secondary text-foreground"
                   >
                     {item.icon && <item.icon className="h-4 w-4 text-primary" />}
                     <span>{item.label}</span>
                   </Link>
                 ) : (
                   <button
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors hover:bg-secondary ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-secondary ${
                       activeDropdown === item.label ? "bg-secondary text-primary" : "text-foreground"
                     }`}
                   >
@@ -333,46 +333,46 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+                  <Button variant="ghost" className="hidden sm:flex items-center gap-2 text-xs">
                     <User className="h-4 w-4" />
                     <span>{user.user_metadata?.name?.split(" ")[0] || "Account"}</span>
                     <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="text-xs">
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/payments")}>
+                  <DropdownMenuItem onClick={() => navigate("/payments")} className="text-xs">
                     <Receipt className="h-4 w-4 mr-2" />
                     Payment History
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <DropdownMenuItem onClick={() => navigate("/admin")} className="text-xs">
                       <Shield className="h-4 w-4 mr-2" />
                       Admin Panel
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin/audit-log")}>
+                    <DropdownMenuItem onClick={() => navigate("/admin/audit-log")} className="text-xs">
                       <Shield className="h-4 w-4 mr-2" />
                       Audit Log
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => navigate("/plans")}>
+                  <DropdownMenuItem onClick={() => navigate("/plans")} className="text-xs">
                     <Crown className="h-4 w-4 mr-2" />
                     Plans
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={handleLogout} className="text-xs">
                     <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="default" onClick={() => navigate("/auth")} className="hidden sm:flex items-center gap-2">
+              <Button variant="default" onClick={() => navigate("/auth")} className="hidden sm:flex items-center gap-2 text-xs">
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
               </Button>
@@ -408,7 +408,7 @@ export function Navbar() {
                       className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full min-h-[44px]"
                     >
                       {item.icon && <item.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
-                      <span className="font-medium text-sm sm:text-base">{item.label}</span>
+                      <span className="font-medium text-xs sm:text-sm">{item.label}</span>
                       <ChevronDown
                         className={`h-4 w-4 ml-auto transition-transform duration-200 ${
                           expandedMobileItem === item.label ? "rotate-180" : ""
@@ -429,13 +429,13 @@ export function Navbar() {
                                     <Link
                                       to={subItem.path}
                                       onClick={() => setIsMobileMenuOpen(false)}
-                                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm text-foreground"
+                                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-xs text-foreground"
                                     >
                                       <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
                                       <span>{subItem.label}</span>
                                     </Link>
                                   ) : (
-                                    <span className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-sm text-foreground cursor-pointer opacity-60">
+                                    <span className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-xs text-foreground cursor-pointer opacity-60">
                                       <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
                                       <span>{subItem.label}</span>
                                     </span>
@@ -455,12 +455,12 @@ export function Navbar() {
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                   >
                     {item.icon && <item.icon className="h-5 w-5 text-primary" />}
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-medium text-sm">{item.label}</span>
                   </Link>
                 ) : (
                   <span className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors opacity-60 cursor-not-allowed">
                     {item.icon && <item.icon className="h-5 w-5 text-primary" />}
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-medium text-sm">{item.label}</span>
                   </span>
                 )}
               </div>
@@ -474,7 +474,7 @@ export function Navbar() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                 >
                   <User className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Profile</span>
+                  <span className="font-medium text-sm">Profile</span>
                 </Link>
                 <Link
                   to="/payments"
@@ -482,7 +482,7 @@ export function Navbar() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                 >
                   <Receipt className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Payment History</span>
+                  <span className="font-medium text-sm">Payment History</span>
                 </Link>
                 {isAdmin && (
                   <Link
@@ -491,7 +491,7 @@ export function Navbar() {
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                   >
                     <Shield className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Admin Panel</span>
+                    <span className="font-medium text-sm">Admin Panel</span>
                   </Link>
                 )}
                 {isAdmin && (
@@ -501,7 +501,7 @@ export function Navbar() {
                     className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                   >
                     <Shield className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Audit Log</span>
+                    <span className="font-medium text-sm">Audit Log</span>
                   </Link>
                 )}
                 <Link
@@ -510,14 +510,14 @@ export function Navbar() {
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors"
                 >
                   <Crown className="h-5 w-5 text-primary" />
-                  <span className="font-medium">Plans</span>
+                  <span className="font-medium text-sm">Plans</span>
                 </Link>
                 <button
                   onClick={handleLogout}
                   className="flex items-center gap-3 px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full"
                 >
                   <LogOut className="h-5 w-5" />
-                  <span className="font-medium">Logout</span>
+                  <span className="font-medium text-sm">Logout</span>
                 </button>
               </>
             ) : (
@@ -526,7 +526,7 @@ export function Navbar() {
                 className="flex items-center gap-3 px-4 py-3 rounded-lg text-primary-foreground bg-primary hover:bg-primary/90 transition-colors w-full"
               >
                 <LogIn className="h-5 w-5" />
-                <span className="font-medium">Login</span>
+                <span className="font-medium text-sm">Login</span>
               </button>
             )}
           </div>
