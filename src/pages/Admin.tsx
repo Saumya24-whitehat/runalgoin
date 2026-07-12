@@ -41,6 +41,7 @@ import { VideoManagement } from "@/components/admin/VideoManagement";
 import { BlogManagement } from "@/components/admin/BlogManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
+import { MomentumReportManagement } from "@/components/admin/MomentumReportManagement";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
 import { ManageUserDialog } from "@/components/admin/ManageUserDialog";
 import { UserPlus, Settings } from "lucide-react";
@@ -434,10 +435,16 @@ const Admin = () => {
           <SpecialTradingDaysManagement />
         </div>
 
+        {/* Momentum Reports */}
+        <div className="mt-8">
+          <MomentumReportManagement />
+        </div>
+
         {/* Video Management */}
         <div className="mt-8">
           <VideoManagement />
         </div>
+
 
       </main>
 
