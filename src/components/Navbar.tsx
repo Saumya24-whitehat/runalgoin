@@ -333,46 +333,46 @@ export function Navbar() {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="hidden sm:flex items-center gap-2">
+                  <Button variant="ghost" className="hidden sm:flex items-center gap-2 text-xs">
                     <User className="h-4 w-4" />
                     <span>{user.user_metadata?.name?.split(" ")[0] || "Account"}</span>
                     <ChevronDown className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate("/profile")} className="text-xs">
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/payments")}>
+                  <DropdownMenuItem onClick={() => navigate("/payments")} className="text-xs">
                     <Receipt className="h-4 w-4 mr-2" />
                     Payment History
                   </DropdownMenuItem>
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                    <DropdownMenuItem onClick={() => navigate("/admin")} className="text-xs">
                       <Shield className="h-4 w-4 mr-2" />
                       Admin Panel
                     </DropdownMenuItem>
                   )}
                   {isAdmin && (
-                    <DropdownMenuItem onClick={() => navigate("/admin/audit-log")}>
+                    <DropdownMenuItem onClick={() => navigate("/admin/audit-log")} className="text-xs">
                       <Shield className="h-4 w-4 mr-2" />
                       Audit Log
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onClick={() => navigate("/plans")}>
+                  <DropdownMenuItem onClick={() => navigate("/plans")} className="text-xs">
                     <Crown className="h-4 w-4 mr-2" />
                     Plans
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={handleLogout} className="text-xs">
                     <LogOut className="h-4 w-4 mr-2" />
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="default" onClick={() => navigate("/auth")} className="hidden sm:flex items-center gap-2">
+              <Button variant="default" onClick={() => navigate("/auth")} className="hidden sm:flex items-center gap-2 text-xs">
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
               </Button>
