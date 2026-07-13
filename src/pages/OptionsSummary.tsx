@@ -226,6 +226,18 @@ const OptionsSummary = () => {
 
       // Get latest entries
       const latestPCR = pcrData?.dataWhole?.[pcrData.dataWhole.length - 1];
+
+      // Find last valid Future and VWAP (they may be 0 in the latest tick)
+      let latestFuture = 0;
+      let latestVWAP = 0;
+      if (Array.isArray(pcrData?.dataWhole)) {
+        for (let i = pcrData.dataWhole.length - 1; i >= 0; i--) {
+          const row = pcrData.dataWhole[i];
+          if (!latestFuture && row?.Future && row.Future > 0) latestFuture = row.Future;
+          if (!latestVWAP && row?.VWAP && row.VWAP > 0) latestVWAP = row.VWAP;
+          if (latestFuture && latestVWAP) break;
+        }
+      }
       const latestMaxPain = maxPainData?.DataWhole?.[maxPainData.DataWhole.length - 1];
       const latestOTR = otrData?.data?.[otrData.data.length - 1];
 
@@ -274,8 +286,8 @@ const OptionsSummary = () => {
       setSummaryData({
         symbol: selectedSymbol,
         spotPrice,
-        futurePrice: latestPCR?.Future || spotPrice,
-        vwap: latestPCR?.VWAP || spotPrice,
+        futurePrice: latestFuture || spotPrice,
+        vwap: latestVWAP || spotPrice,
         atm: latestPCR?.atm || latestMaxPain?.atm || 0,
         lastUpdated: latestPCR?.time || latestMaxPain?.Time || "",
 
