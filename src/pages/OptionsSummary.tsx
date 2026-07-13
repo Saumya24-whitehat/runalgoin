@@ -286,8 +286,8 @@ const OptionsSummary = () => {
       setSummaryData({
         symbol: selectedSymbol,
         spotPrice,
-        futurePrice: latestPCR?.Future || spotPrice,
-        vwap: latestPCR?.VWAP || spotPrice,
+        futurePrice: latestFuture || spotPrice,
+        vwap: latestVWAP || spotPrice,
         atm: latestPCR?.atm || latestMaxPain?.atm || 0,
         lastUpdated: latestPCR?.time || latestMaxPain?.Time || "",
 
