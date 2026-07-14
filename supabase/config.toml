@@ -1,103 +1,73 @@
 project_id = "ucvstbihgvuuaficfjsu"
 
-[functions.ticker-data]
-verify_jwt = false
-
-[functions.fii-data]
-verify_jwt = false
-
-[functions.advance-decline]
-verify_jwt = false
-
-[functions.chart-patterns]
-verify_jwt = false
-
-[functions.option-chain]
-verify_jwt = false
-
-[functions.option-chain-proxy]
-verify_jwt = false
-
-[functions.pcr-data]
-verify_jwt = false
-
-[functions.kundali-data]
-verify_jwt = false
-
-[functions.pcr-long-short]
-verify_jwt = false
-
-[functions.toi-data]
-verify_jwt = false
-
-[functions.maxpain-data]
-verify_jwt = false
-
-[functions.otr-data]
-verify_jwt = false
-
-[functions.pcr-all-strikes]
-verify_jwt = false
-
-[functions.option-builder-data]
-verify_jwt = false
-
-[functions.option-simulator-data]
-verify_jwt = false
-
-[functions.upstox-websocket]
-verify_jwt = false
-
-[functions.future-buildup]
-verify_jwt = false
-
-[functions.future-open-high-low]
-verify_jwt = false
-
-[functions.future-rollover]
-verify_jwt = false
-
-[functions.market-breadth]
-verify_jwt = false
-
-[functions.indices-data]
-verify_jwt = false
-
-[functions.fii-summary]
-verify_jwt = false
-
-[functions.deals-data]
-verify_jwt = false
-
-[functions.market-actions]
-verify_jwt = false
-
-[functions.trending-stocks]
-verify_jwt = false
-
-[functions.jackpot-scanner]
-verify_jwt = false
-
-[functions.jackpot-symbol-data]
-verify_jwt = false
-
-[functions.index-detail]
-verify_jwt = false
-
-[functions.stock-detail-data]
-verify_jwt = false
-
-[functions.greeks-data]
-verify_jwt = false
-
-[functions.premium-decay-data]
-verify_jwt = false
-
-[functions.razorpay-webhook]
-verify_jwt = false
-
-[functions.auto-expire-subscriptions]
-verify_jwt = false
-
-[functions.process-email-queue]
-verify_jwt = true
+[functions]
+  [functions.advance-decline]
+    verify_jwt = false
+  [functions.auth-email-hook]
+    verify_jwt = false
+  [functions.auto-expire-subscriptions]
+    verify_jwt = false
+  [functions.chart-patterns]
+    verify_jwt = false
+  [functions.deals-data]
+    verify_jwt = false
+  [functions.fii-data]
+    verify_jwt = false
+  [functions.fii-summary]
+    verify_jwt = false
+  [functions.future-buildup]
+    verify_jwt = false
+  [functions.future-open-high-low]
+    verify_jwt = false
+  [functions.future-rollover]
+    verify_jwt = false
+  [functions.greeks-data]
+    verify_jwt = false
+  [functions.index-detail]
+    verify_jwt = false
+  [functions.indices-data]
+    verify_jwt = false
+  [functions.jackpot-scanner]
+    verify_jwt = false
+  [functions.jackpot-symbol-data]
+    verify_jwt = false
+  [functions.kundali-data]
+    verify_jwt = false
+  [functions.market-actions]
+    verify_jwt = false
+  [functions.market-breadth]
+    verify_jwt = false
+  [functions.maxpain-data]
+    verify_jwt = false
+  [functions.option-builder-data]
+    verify_jwt = false
+  [functions.option-chain]
+    verify_jwt = false
+  [functions.option-chain-proxy]
+    verify_jwt = false
+  [functions.option-simulator-data]
+    verify_jwt = false
+  [functions.otr-data]
+    verify_jwt = false
+  [functions.pcr-all-strikes]
+    verify_jwt = false
+  [functions.pcr-data]
+    verify_jwt = false
+  [functions.pcr-long-short]
+    verify_jwt = false
+  [functions.premium-decay-data]
+    verify_jwt = false
+  [functions.process-email-queue]
+    verify_jwt = true
+  [functions.razorpay-webhook]
+    verify_jwt = false
+  [functions.stock-detail-data]
+    verify_jwt = false
+  [functions.ticker-data]
+    verify_jwt = false
+  [functions.toi-data]
+    verify_jwt = false
+  [functions.trending-stocks]
+    verify_jwt = false
+  [functions.upstox-websocket]
+    verify_jwt = false
