@@ -32,7 +32,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email to support
     const emailResponse = await resend.emails.send({
-      from: "Runalgo Support <noreply@runalgo.in>",
+      from: "OptionWorld Support <noreplay@mail.optionworld.tech>",
       to: ["rm.rakesh@gmail.com"],
       subject: `Support Request: ${subject}`,
       replyTo: email,
@@ -44,7 +44,7 @@ const handler = async (req: Request): Promise<Response> => {
         <h3>Message:</h3>
         <p>${message.replace(/\n/g, "<br />")}</p>
         <hr />
-        <p style="color: #666; font-size: 12px;">This message was sent from the Runalgo support form.</p>
+        <p style="color: #666; font-size: 12px;">This message was sent from the OptionWorld support form.</p>
       `,
     });
 
