@@ -37,9 +37,9 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 
 // Configuration
 const SITE_NAME = "OptionWorld"
-const SENDER_DOMAIN = "mail.optionworld.tech"
+const SENDER_DOMAIN = "email.optionworld.tech"
 const ROOT_DOMAIN = "optionworld.tech"
-const FROM_ADDRESS = "noreplay@mail.optionworld.tech"
+const FROM_ADDRESS = "noreply@email.optionworld.tech"
 
 
 // Sample data for preview mode ONLY (not used in actual email sending).
