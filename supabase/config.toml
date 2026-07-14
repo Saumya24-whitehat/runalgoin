@@ -98,3 +98,6 @@ verify_jwt = false
 
 [functions.auto-expire-subscriptions]
 verify_jwt = false
+
+[functions.process-email-queue]
+verify_jwt = true
