@@ -538,11 +538,22 @@ export default function Plans() {
               Join thousands of traders who are already using our advanced analytics tools
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button
+                size="lg"
+                className="text-lg px-8 py-6"
+                onClick={startFreeTrial}
+                disabled={trialLoading || isPro || trialUsed}
+              >
                 <Zap className="h-5 w-5 mr-2" />
-                Start Pro Trial
+                {isPro
+                  ? "Pro Active"
+                  : trialUsed
+                  ? "Trial Already Used"
+                  : trialLoading
+                  ? "Activating…"
+                  : "Start 15-day Free Trial"}
               </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+              <Button variant="outline" size="lg" className="text-lg px-8 py-6" onClick={() => navigate("/dashboard")}>
                 View Demo
               </Button>
             </div>
