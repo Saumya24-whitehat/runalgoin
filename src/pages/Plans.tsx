@@ -176,6 +176,7 @@ export default function Plans() {
   }>({ open: false, method: "upi", plan: "monthly" });
   const [trialUsed, setTrialUsed] = useState<boolean>(false);
   const [trialLoading, setTrialLoading] = useState(false);
+  const [abuseModal, setAbuseModal] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
   useEffect(() => {
     if (!user) {
