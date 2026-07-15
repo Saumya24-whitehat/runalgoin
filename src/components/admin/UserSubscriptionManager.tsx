@@ -198,9 +198,9 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
         // Use the custom date directly
         newExpiry = customEndDate.toISOString();
       } else {
-        // Calculate new expiry based on days
-        const currentExpiry = userSub.expires_at ? new Date(userSub.expires_at) : new Date();
-        const baseDate = currentExpiry > new Date() ? currentExpiry : new Date();
+        // Calculate new expiry based on days (supports negative to shorten).
+        // Always base off current expiry (or now if none) so admins can push it back.
+        const baseDate = userSub.expires_at ? new Date(userSub.expires_at) : new Date();
         newExpiry = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000).toISOString();
       }
 
