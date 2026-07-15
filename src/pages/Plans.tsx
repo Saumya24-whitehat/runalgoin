@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Check,
   X,
@@ -15,6 +15,7 @@ import {
   Shield,
   Clock,
   Settings,
+  Gift,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -29,6 +30,9 @@ import { SEO } from "@/components/SEO";
 import { useRazorpayCheckout } from "@/hooks/useRazorpayCheckout";
 import { AlternatePaymentModal } from "@/components/AlternatePaymentModal";
 import { QrCode, Wallet } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 
 const features = [
   {
@@ -160,7 +164,7 @@ const RAZORPAY_ENABLED = false;
 export default function Plans() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
+  const { subscription, loading: subLoading, isPro, isAdmin, refetch: refetchSub } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
   const [altModal, setAltModal] = useState<{
@@ -168,6 +172,21 @@ export default function Plans() {
     method: "upi" | "paypal";
     plan: "monthly" | "yearly";
   }>({ open: false, method: "upi", plan: "monthly" });
+  const [trialUsed, setTrialUsed] = useState<boolean>(false);
+  const [trialLoading, setTrialLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setTrialUsed(false);
+      return;
+    }
+    supabase
+      .from("subscriptions")
+      .select("trial_used")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setTrialUsed(!!data?.trial_used));
+  }, [user]);
 
   const planKey = (planName: string): "monthly" | "yearly" | null =>
     planName === "Pro Monthly" ? "monthly" : planName === "Pro Yearly" ? "yearly" : null;
@@ -179,6 +198,30 @@ export default function Plans() {
     }
     if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
     else if (planName === "Pro Yearly" && !isPro) startCheckout("yearly");
+  };
+
+  const startFreeTrial = async () => {
+    if (!user) {
+      navigate("/auth?redirect=/plans");
+      return;
+    }
+    setTrialLoading(true);
+    try {
+      const fingerprint = await getDeviceFingerprint();
+      const { data, error } = await supabase.functions.invoke("start-free-trial", {
+        body: { fingerprint },
+      });
+      if (error || (data as any)?.error) {
+        throw new Error((data as any)?.error || error?.message || "Failed to start trial");
+      }
+      toast.success("Your 15-day Pro trial is now active!");
+      setTrialUsed(true);
+      await refetchSub();
+    } catch (e: any) {
+      toast.error(e.message || "Could not start trial");
+    } finally {
+      setTrialLoading(false);
+    }
   };
 
   const openAlt = (planName: string, method: "upi" | "paypal") => {
@@ -358,6 +401,31 @@ export default function Plans() {
                           PayPal
                         </Button>
                       </div>
+
+                      {!trialUsed && (
+                        <>
+                          <div className="flex items-center gap-2 pt-1">
+                            <div className="h-px flex-1 bg-border" />
+                            <span className="text-xs text-muted-foreground">or try free</span>
+                            <div className="h-px flex-1 bg-border" />
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={startFreeTrial}
+                            disabled={trialLoading}
+                            className="w-full gap-1.5"
+                          >
+                            <Gift className="h-4 w-4" />
+                            {trialLoading ? "Activating…" : "Start 15-day Free Trial"}
+                          </Button>
+                        </>
+                      )}
+                      {trialUsed && !isPro && (
+                        <p className="text-xs text-muted-foreground text-center pt-1">
+                          Free trial already used on this account
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
@@ -470,11 +538,22 @@ export default function Plans() {
               Join thousands of traders who are already using our advanced analytics tools
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button size="lg" className="text-lg px-8 py-6">
+              <Button
+                size="lg"
+                className="text-lg px-8 py-6"
+                onClick={startFreeTrial}
+                disabled={trialLoading || isPro || trialUsed}
+              >
                 <Zap className="h-5 w-5 mr-2" />
-                Start Pro Trial
+                {isPro
+                  ? "Pro Active"
+                  : trialUsed
+                  ? "Trial Already Used"
+                  : trialLoading
+                  ? "Activating…"
+                  : "Start 15-day Free Trial"}
               </Button>
-              <Button variant="outline" size="lg" className="text-lg px-8 py-6">
+              <Button variant="outline" size="lg" className="text-lg px-8 py-6" onClick={() => navigate("/dashboard")}>
                 View Demo
               </Button>
             </div>
