@@ -136,23 +136,31 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     let lastValidFuture = 0;
     let lastValidSpot = 0;
 
-    // Sort + dedupe by timestamp. Shift by IST offset (+5h30m) so
-    // lightweight-charts (which renders in UTC) shows IST wall-clock times.
-    const IST_OFFSET_SEC = 5.5 * 3600;
+    // Parse the "HH:MM" time string as IST wall-clock on today's IST date
+    // and encode as a UTC timestamp so lightweight-charts (UTC renderer)
+    // shows the correct IST time on the x-axis. The `timestamp` field
+    // from this API is unreliable (small values that render as 1970).
+    const nowIST = new Date(Date.now() + 5.5 * 3600 * 1000);
+    const y = nowIST.getUTCFullYear();
+    const mo = nowIST.getUTCMonth();
+    const dd = nowIST.getUTCDate();
+
     const seen = new Set<number>();
-    const sorted = [...data]
-      .filter((d) => Number.isFinite(d.timestamp as number))
-      .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
-      .filter((d) => {
-        const t = Math.floor((d.timestamp as number) / 1000) + IST_OFFSET_SEC;
-        if (seen.has(t)) return false;
-        seen.add(t);
-        return true;
-      });
+    const sorted: { t: number; item: PCRTimeData }[] = [];
+    for (const item of data) {
+      if (!item.time || typeof item.time !== "string") continue;
+      const parts = item.time.split(":");
+      const hh = parseInt(parts[0], 10);
+      const mm = parseInt(parts[1] ?? "0", 10);
+      if (!Number.isFinite(hh) || !Number.isFinite(mm)) continue;
+      const t = Math.floor(Date.UTC(y, mo, dd, hh, mm) / 1000);
+      if (seen.has(t)) continue;
+      seen.add(t);
+      sorted.push({ t, item });
+    }
+    sorted.sort((a, b) => a.t - b.t);
 
-    sorted.forEach((item) => {
-      const t = Math.floor((item.timestamp as number) / 1000) + IST_OFFSET_SEC;
-
+    sorted.forEach(({ t, item }) => {
       // Spot (underlying)
       let spotValue = item.underlyning || 0;
       if (spotValue === 0) {
