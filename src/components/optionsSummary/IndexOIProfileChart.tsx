@@ -190,8 +190,9 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   }, []);
 
   const maxOI = useMemo(() => {
-    return Math.max(...strikeOIData.map(s => Math.max(s.callOI, s.putOI)), 1);
+    return Math.max(...strikeOIData.map(s => Math.max(Math.abs(s.callCOI), Math.abs(s.putCOI))), 1);
   }, [strikeOIData]);
+
 
   // Filter strikes within visible Y domain
   const visibleStrikes = useMemo(() => {
