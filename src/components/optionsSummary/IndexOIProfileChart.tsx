@@ -274,7 +274,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
           <ResponsiveContainer width="100%" height="100%">
             <ComposedChart
               data={spotData}
-              margin={{ top: 10, right: 80, left: 10, bottom: 20 }}
+              margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
             >
               <XAxis 
                 dataKey="time" 
@@ -290,8 +290,8 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 axisLine={{ stroke: "hsl(var(--border))" }}
                 tickLine={{ stroke: "hsl(var(--border))" }}
                 tickFormatter={(value) => value.toLocaleString("en-IN")}
-                orientation="left"
-                width={60}
+                orientation="right"
+                width={70}
               />
               
               <Tooltip
@@ -307,11 +307,24 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 ]}
               />
               
-              {/* OI Profile as horizontal reference lines with bars */}
+              {/* OI Profile: horizontal bars extending leftward from right edge, Upstox-style */}
               {visibleStrikes.map((strike) => {
-                const callWidth = (strike.callOI / maxOI) * 12;
-                const putWidth = (strike.putOI / maxOI) * 12;
-                
+                // Determine per-strike bar height in pixels based on strike spacing
+                const strikes = visibleStrikes.map(s => s.strike).sort((a, b) => a - b);
+                const idx = strikes.indexOf(strike.strike);
+                const neighborGap =
+                  idx > 0 ? strike.strike - strikes[idx - 1] :
+                  idx < strikes.length - 1 ? strikes[idx + 1] - strike.strike : 50;
+                const rangePx = 320; // approx plot height
+                const priceRange = yDomain[1] - yDomain[0];
+                const barTotalH = Math.max(6, Math.min(28, (neighborGap / priceRange) * rangePx * 0.85));
+                const halfH = barTotalH / 2;
+
+                // Max bar width (in px) at right edge — occupies right ~35% of plot
+                const MAX_BAR_PX = 180;
+                const callW = Math.max(1, (strike.callOI / maxOI) * MAX_BAR_PX);
+                const putW = Math.max(1, (strike.putOI / maxOI) * MAX_BAR_PX);
+
                 return (
                   <ReferenceLine
                     key={strike.strike}
@@ -319,13 +332,12 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                     y={strike.strike}
                     stroke="transparent"
                     label={{
-                      value: "",
-                      position: "right",
                       content: ({ viewBox }: any) => {
                         if (!viewBox) return null;
-                        const { y } = viewBox;
+                        const { x, y, width } = viewBox;
+                        const rightEdge = x + width;
                         const isHovered = hoveredStrike?.strike === strike.strike;
-                        
+
                         return (
                           <g
                             style={{ cursor: "pointer" }}
@@ -333,10 +345,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                               setHoveredStrike(strike);
                               const rect = chartContainerRef.current?.getBoundingClientRect();
                               if (rect) {
-                                setTooltipPos({ 
-                                  x: e.clientX - rect.left, 
-                                  y: e.clientY - rect.top 
-                                });
+                                setTooltipPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
                               }
                             }}
                             onMouseLeave={() => {
@@ -344,33 +353,23 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                               setTooltipPos(null);
                             }}
                           >
-                            {/* Invisible hit area for hover */}
+                            {/* Call OI bar (red/pink) — upper half, extends left */}
                             <rect
-                              x={viewBox.width + 10}
-                              y={y - 8}
-                              width={Math.max(callWidth + putWidth + 10, 30)}
-                              height={16}
-                              fill="transparent"
+                              x={rightEdge - callW}
+                              y={y - halfH}
+                              width={callW}
+                              height={halfH - 0.5}
+                              fill="hsl(0 72% 60%)"
+                              opacity={isHovered ? 0.9 : 0.55}
                             />
-                            {/* Call OI bar (red) */}
+                            {/* Put OI bar (green) — lower half, extends left */}
                             <rect
-                              x={viewBox.width + 15}
-                              y={y - 4}
-                              width={Math.max(callWidth, 2)}
-                              height={8}
-                              fill="hsl(var(--destructive))"
-                              opacity={isHovered ? 1 : 0.7}
-                              rx={2}
-                            />
-                            {/* Put OI bar (green) */}
-                            <rect
-                              x={viewBox.width + 17 + callWidth}
-                              y={y - 4}
-                              width={Math.max(putWidth, 2)}
-                              height={8}
-                              fill="hsl(var(--success))"
-                              opacity={isHovered ? 1 : 0.7}
-                              rx={2}
+                              x={rightEdge - putW}
+                              y={y + 0.5}
+                              width={putW}
+                              height={halfH - 0.5}
+                              fill="hsl(142 70% 45%)"
+                              opacity={isHovered ? 0.9 : 0.55}
                             />
                           </g>
                         );
@@ -400,10 +399,17 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                   stroke="hsl(var(--primary))"
                   strokeDasharray="3 3"
                   strokeOpacity={0.5}
+                  label={{
+                    value: spotPrice.toLocaleString("en-IN", { maximumFractionDigits: 2 }),
+                    position: "right",
+                    fill: "hsl(var(--primary))",
+                    fontSize: 10,
+                  }}
                 />
               )}
             </ComposedChart>
           </ResponsiveContainer>
+
           
           {/* OI Hover Tooltip */}
           {hoveredStrike && tooltipPos && (
