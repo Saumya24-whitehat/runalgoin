@@ -646,7 +646,7 @@ export default function PCRAllStrikes() {
   return (
     <>
       <Helmet>
-        <title>PCR All Strikes - Real-time PCR Analysis | Runalgo</title>
+        <title>PCR All Strikes - Real-time PCR Analysis | OptionWorld</title>
         <meta
           name="description"
           content="Track PCR (Put-Call Ratio) changes across all strike prices in real-time for Indian indices and stocks."

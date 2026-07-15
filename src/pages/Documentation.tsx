@@ -34,7 +34,7 @@
    {
      icon: Book,
      title: "Getting Started",
-     description: "New to Runalgo? Start here for a complete walkthrough.",
+     description: "New to OptionWorld? Start here for a complete walkthrough.",
    },
  ];
  
@@ -54,7 +54,7 @@
          <div className="max-w-4xl mx-auto">
            <h1 className="text-4xl font-bold mb-4">Documentation</h1>
            <p className="text-muted-foreground text-lg mb-8">
-             Everything you need to master options trading with Runalgo.
+             Everything you need to master options trading with OptionWorld.
            </p>
            <div className="grid md:grid-cols-2 gap-6">
              {docs.map((doc, index) => (

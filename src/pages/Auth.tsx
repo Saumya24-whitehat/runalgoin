@@ -178,7 +178,7 @@ export default function Auth() {
         } else {
           toast({
             title: "Account Created!",
-            description: "Welcome to Runalgo! You are now logged in.",
+            description: "Welcome to OptionWorld! You are now logged in.",
           });
           navigate("/dashboard");
         }
@@ -319,7 +319,7 @@ export default function Auth() {
           </h1>
           <p className="text-muted-foreground text-center mb-6">
             {mode === "login" && "Sign in to access your trading dashboard"}
-            {mode === "signup" && "Join Runalgo and start trading smarter"}
+            {mode === "signup" && "Join OptionWorld and start trading smarter"}
             {mode === "forgot" && "Enter your email to receive reset instructions"}
             {mode === "verify-otp" && `Enter the 6-digit code sent to ${pendingEmail}`}
             {mode === "reset-password" && "Create a strong password for your account"}

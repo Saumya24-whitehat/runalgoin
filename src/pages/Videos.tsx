@@ -102,7 +102,7 @@ export default function Videos() {
         <div className="mb-8">
           <h1 className="text-3xl font-heading font-bold mb-2">Video Tutorials</h1>
           <p className="text-muted-foreground">
-            Learn how to use Runalgo effectively with our video guides
+            Learn how to use OptionWorld effectively with our video guides
           </p>
         </div>
 

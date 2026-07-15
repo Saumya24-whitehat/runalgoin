@@ -416,7 +416,7 @@ const OTR = () => {
   return (
     <>
       <Helmet>
-        <title>TOI - Total Open Interest Analysis with EMA Crossover | Runalgo Options Trading</title>
+        <title>TOI - Total Open Interest Analysis with EMA Crossover | OptionWorld Options Trading</title>
         <meta
           name="description"
           content="Analyze Total Open Interest (TOI = Put OI - Call OI) with 10 & 30 period EMA crossovers for Nifty, Bank Nifty. Identify trend direction for smart options trading."
@@ -426,7 +426,7 @@ const OTR = () => {
           content="TOI, Total Open Interest, EMA crossover, Put OI, Call OI, options trading, Nifty 50, Bank Nifty, intraday trading, stock market India, trend analysis"
         />
         <link rel="canonical" href="https://runalgo.lovable.app/otr" />
-        <meta property="og:title" content="TOI - Total Open Interest with EMA Analysis | Runalgo" />
+        <meta property="og:title" content="TOI - Total Open Interest with EMA Analysis | OptionWorld" />
         <meta
           property="og:description"
           content="Track TOI (Put OI - Call OI) with EMA 10 & 30 crossovers for trend identification in options trading."
