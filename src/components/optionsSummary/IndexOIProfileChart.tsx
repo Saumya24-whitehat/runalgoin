@@ -101,43 +101,35 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
             setBaseDomain([min - padding, max + padding]);
           }
 
-          // Extract strike OI data from strikeData if available
+          // Extract per-strike OI/COI from the latest snapshot's `dataThis` array.
+          // Field names use spaces: "CE OI", "CE COI", "PE OI", "PE COI", "Strike".
           let strikesArray: StrikeOI[] = [];
-          
-          if (pcrData.strikeData && Array.isArray(pcrData.strikeData)) {
-            strikesArray = pcrData.strikeData.map((s: any) => ({
-              strike: s.strike || s.Strike || 0,
-              callOI: s.CE_OI || s.callOI || 0,
-              putOI: s.PE_OI || s.putOI || 0,
-              callCOI: s.CE_COI ?? s.callCOI ?? 0,
-              putCOI: s.PE_COI ?? s.putCOI ?? 0,
-              netOI: (s.PE_OI || s.putOI || 0) - (s.CE_OI || s.callOI || 0),
-            })).filter((s: StrikeOI) => s.strike > 0);
-          } else {
-            // Generate sample data based on ATM
-            const atm = latest?.atm || Math.round(currentSpot / 50) * 50;
-            const strikeGap = symbol.includes("BANK") ? 100 : 50;
-            const totalCEOI = latest?.CE_OI || 5000000;
-            const totalPEOI = latest?.PE_OI || 4500000;
-            
-            for (let i = -10; i <= 10; i++) {
-              const strike = atm + (i * strikeGap);
-              const distanceFromATM = Math.abs(i);
-              const oiMultiplier = Math.exp(-distanceFromATM * 0.2);
-              
-              const callOI = Math.round(totalCEOI * oiMultiplier * (0.7 + Math.random() * 0.6) / 10);
-              const putOI = Math.round(totalPEOI * oiMultiplier * (0.7 + Math.random() * 0.6) / 10);
-              
-              strikesArray.push({
-                strike,
-                callOI,
-                putOI,
-                callCOI: Math.round(callOI * (Math.random() - 0.4) * 0.3),
-                putCOI: Math.round(putOI * (Math.random() - 0.4) * 0.3),
-                netOI: putOI - callOI,
-              });
-            }
+
+          const rawStrikes: any[] =
+            (Array.isArray(latest?.dataThis) && latest.dataThis) ||
+            (Array.isArray(pcrData.strikeData) && pcrData.strikeData) ||
+            [];
+
+          if (rawStrikes.length > 0) {
+            strikesArray = rawStrikes
+              .map((s: any) => {
+                const strike = s["Strike"] ?? s.strike ?? s.Strike ?? 0;
+                const callOI = s["CE OI"] ?? s.CE_OI ?? s.callOI ?? 0;
+                const putOI = s["PE OI"] ?? s.PE_OI ?? s.putOI ?? 0;
+                const callCOI = s["CE COI"] ?? s.CE_COI ?? s.callCOI ?? 0;
+                const putCOI = s["PE COI"] ?? s.PE_COI ?? s.putCOI ?? 0;
+                return {
+                  strike,
+                  callOI,
+                  putOI,
+                  callCOI,
+                  putCOI,
+                  netOI: putOI - callOI,
+                };
+              })
+              .filter((s: StrikeOI) => s.strike > 0);
           }
+
 
           
           setStrikeOIData(strikesArray);
