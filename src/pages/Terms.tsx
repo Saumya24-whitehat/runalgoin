@@ -93,7 +93,7 @@
            <section className="mb-8">
              <h2 className="text-2xl font-semibold mb-4">10. Contact</h2>
              <p className="text-muted-foreground">
-               For any questions regarding these Terms of Service, please contact us at legal@runalgo.xyz.
+               For any questions regarding these Terms of Service, please contact us at legal@optionworld.tech.
              </p>
            </section>
          </div>

@@ -35,7 +35,7 @@
    },
    {
      question: "How can I contact support?",
-     answer: "You can reach our support team via email at support@runalgo.xyz or through the Contact page. Pro and Business subscribers get priority support with faster response times.",
+     answer: "You can reach our support team via email at support@optionworld.tech or through the Contact page. Pro and Business subscribers get priority support with faster response times.",
    },
  ];
  
