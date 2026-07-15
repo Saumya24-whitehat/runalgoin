@@ -460,6 +460,51 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_reminder_log: {
+        Row: {
+          days_before: number
+          expires_at: string
+          id: string
+          sent_at: string
+          user_id: string
+        }
+        Insert: {
+          days_before: number
+          expires_at: string
+          id?: string
+          sent_at?: string
+          user_id: string
+        }
+        Update: {
+          days_before?: number
+          expires_at?: string
+          id?: string
+          sent_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_reminder_settings: {
+        Row: {
+          enabled: boolean
+          id: number
+          notify_days: number[]
+          updated_at: string
+        }
+        Insert: {
+          enabled?: boolean
+          id?: number
+          notify_days?: number[]
+          updated_at?: string
+        }
+        Update: {
+          enabled?: boolean
+          id?: number
+          notify_days?: number[]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string
