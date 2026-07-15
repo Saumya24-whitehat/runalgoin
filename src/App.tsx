@@ -73,6 +73,7 @@ const MomentumReport = lazy(() => import("./pages/MomentumReport"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const BlogEditor = lazy(() => import("./pages/admin/BlogEditor"));
+const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const InvoiceView = lazy(() => import("./pages/InvoiceView"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
@@ -168,6 +169,7 @@ const App = () => (
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/admin/blog/new" element={<BlogEditor />} />
                 <Route path="/admin/blog/:id" element={<BlogEditor />} />
+                <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />
