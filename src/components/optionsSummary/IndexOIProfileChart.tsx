@@ -329,10 +329,10 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 const barTotalH = Math.max(6, Math.min(28, (neighborGap / priceRange) * rangePx * 0.85));
                 const halfH = barTotalH / 2;
 
-                // Max bar width (in px) at right edge — occupies right ~35% of plot
-                const MAX_BAR_PX = 180;
-                const callW = Math.max(1, (strike.callOI / maxOI) * MAX_BAR_PX);
-                const putW = Math.max(1, (strike.putOI / maxOI) * MAX_BAR_PX);
+                // Max bar width (in px) — sized by |COI|; negative COI extends rightward past edge
+                const MAX_BAR_PX = 160;
+                const callW = (strike.callCOI / maxOI) * MAX_BAR_PX;
+                const putW = (strike.putCOI / maxOI) * MAX_BAR_PX;
 
                 return (
                   <ReferenceLine
@@ -346,6 +346,12 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                         const { x, y, width } = viewBox;
                         const rightEdge = x + width;
                         const isHovered = hoveredStrike?.strike === strike.strike;
+
+                        // Positive COI → bar grows left from edge. Negative COI → grows right from edge.
+                        const callX = callW >= 0 ? rightEdge - callW : rightEdge;
+                        const putX = putW >= 0 ? rightEdge - putW : rightEdge;
+                        const callAbs = Math.max(1, Math.abs(callW));
+                        const putAbs = Math.max(1, Math.abs(putW));
 
                         return (
                           <g
@@ -362,23 +368,23 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                               setTooltipPos(null);
                             }}
                           >
-                            {/* Call OI bar (red/pink) — upper half, extends left */}
+                            {/* Call COI bar — upper half */}
                             <rect
-                              x={rightEdge - callW}
+                              x={callX}
                               y={y - halfH}
-                              width={callW}
+                              width={callAbs}
                               height={halfH - 0.5}
                               fill="hsl(0 72% 60%)"
-                              opacity={isHovered ? 0.9 : 0.55}
+                              opacity={isHovered ? 0.95 : 0.6}
                             />
-                            {/* Put OI bar (green) — lower half, extends left */}
+                            {/* Put COI bar — lower half */}
                             <rect
-                              x={rightEdge - putW}
+                              x={putX}
                               y={y + 0.5}
-                              width={putW}
+                              width={putAbs}
                               height={halfH - 0.5}
                               fill="hsl(142 70% 45%)"
-                              opacity={isHovered ? 0.9 : 0.55}
+                              opacity={isHovered ? 0.95 : 0.6}
                             />
                           </g>
                         );
@@ -387,6 +393,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                   />
                 );
               })}
+
               
               {/* Spot price line - no animation for smooth data updates */}
               <Line
