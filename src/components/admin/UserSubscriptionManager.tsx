@@ -594,7 +594,6 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
                           mode="single"
                           selected={customEndDate}
                           onSelect={setCustomEndDate}
-                          disabled={(date) => date < new Date()}
                           initialFocus
                           className={cn("p-3 pointer-events-auto")}
                         />
