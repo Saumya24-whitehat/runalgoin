@@ -33,6 +33,8 @@ import { QrCode, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ShieldAlert } from "lucide-react";
 
 const features = [
   {
@@ -174,6 +176,7 @@ export default function Plans() {
   }>({ open: false, method: "upi", plan: "monthly" });
   const [trialUsed, setTrialUsed] = useState<boolean>(false);
   const [trialLoading, setTrialLoading] = useState(false);
+  const [abuseModal, setAbuseModal] = useState<{ open: boolean; message: string }>({ open: false, message: "" });
 
   useEffect(() => {
     if (!user) {
@@ -211,9 +214,34 @@ export default function Plans() {
       const { data, error } = await supabase.functions.invoke("start-free-trial", {
         body: { fingerprint },
       });
-      if (error || (data as any)?.error) {
-        throw new Error((data as any)?.error || error?.message || "Failed to start trial");
+
+      // Try to extract a server-provided error message even on non-2xx.
+      let serverError: string | null = (data as any)?.error ?? null;
+      if (!serverError && error) {
+        const ctx: any = (error as any).context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const body = await ctx.json();
+            serverError = body?.error ?? null;
+          } catch (_) {
+            /* ignore */
+          }
+        }
       }
+
+      if (serverError || error) {
+        const msg = serverError || error?.message || "Failed to start trial";
+        const isAbuse =
+          /already\s*(been\s*)?used|already\s*claimed|device|network|one\s*free\s*trial/i.test(msg);
+        if (isAbuse) {
+          setAbuseModal({ open: true, message: msg });
+          setTrialUsed(true);
+        } else {
+          toast.error(msg);
+        }
+        return;
+      }
+
       toast.success("Your 15-day Pro trial is now active!");
       setTrialUsed(true);
       await refetchSub();
@@ -571,6 +599,39 @@ export default function Plans() {
         method={altModal.method}
         plan={altModal.plan}
       />
+
+      <Dialog open={abuseModal.open} onOpenChange={(o) => setAbuseModal((p) => ({ ...p, open: o }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <ShieldAlert className="h-6 w-6 text-destructive" />
+            </div>
+            <DialogTitle className="text-center">Free trial not available</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              {abuseModal.message ||
+                "A free trial has already been claimed from this device or network."}
+              <span className="mt-3 block text-sm">
+                OptionWorld allows <strong>one free trial per person</strong>. Creating multiple
+                accounts to reuse the trial is against our terms of use and is automatically
+                blocked. If you believe this is a mistake, please contact support.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => setAbuseModal({ open: false, message: "" })}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setAbuseModal({ open: false, message: "" });
+                navigate("/support");
+              }}
+            >
+              Contact support
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
