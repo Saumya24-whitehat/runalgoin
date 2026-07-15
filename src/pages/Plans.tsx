@@ -167,11 +167,27 @@ export default function Plans() {
   const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
+  const { refetch: refetchSub } = useSubscription();
   const [altModal, setAltModal] = useState<{
     open: boolean;
     method: "upi" | "paypal";
     plan: "monthly" | "yearly";
   }>({ open: false, method: "upi", plan: "monthly" });
+  const [trialUsed, setTrialUsed] = useState<boolean>(false);
+  const [trialLoading, setTrialLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setTrialUsed(false);
+      return;
+    }
+    supabase
+      .from("subscriptions")
+      .select("trial_used")
+      .eq("user_id", user.id)
+      .maybeSingle()
+      .then(({ data }) => setTrialUsed(!!data?.trial_used));
+  }, [user]);
 
   const planKey = (planName: string): "monthly" | "yearly" | null =>
     planName === "Pro Monthly" ? "monthly" : planName === "Pro Yearly" ? "yearly" : null;
@@ -183,6 +199,30 @@ export default function Plans() {
     }
     if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
     else if (planName === "Pro Yearly" && !isPro) startCheckout("yearly");
+  };
+
+  const startFreeTrial = async () => {
+    if (!user) {
+      navigate("/auth?redirect=/plans");
+      return;
+    }
+    setTrialLoading(true);
+    try {
+      const fingerprint = await getDeviceFingerprint();
+      const { data, error } = await supabase.functions.invoke("start-free-trial", {
+        body: { fingerprint },
+      });
+      if (error || (data as any)?.error) {
+        throw new Error((data as any)?.error || error?.message || "Failed to start trial");
+      }
+      toast.success("Your 15-day Pro trial is now active!");
+      setTrialUsed(true);
+      await refetchSub();
+    } catch (e: any) {
+      toast.error(e.message || "Could not start trial");
+    } finally {
+      setTrialLoading(false);
+    }
   };
 
   const openAlt = (planName: string, method: "upi" | "paypal") => {
