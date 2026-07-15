@@ -133,12 +133,8 @@ const SupportResistanceChart = ({ symbol, expiry }: SupportResistanceChartProps)
       });
     }
 
-    // Prepare data for chart - using index as time
-    const spotData: { time: number; value: number }[] = [];
-    const resistanceData: { time: number; value: number }[] = [];
-    const resistance2Data: { time: number; value: number }[] = [];
-    const supportData: { time: number; value: number }[] = [];
-    const support2Data: { time: number; value: number }[] = [];
+
+
 
     // Parse "HH:MM" as IST wall-clock time on today's IST date and encode as
     // UTC timestamp so lightweight-charts (UTC renderer) shows correct IST.
