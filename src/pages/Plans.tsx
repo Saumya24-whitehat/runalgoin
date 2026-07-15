@@ -33,6 +33,8 @@ import { QrCode, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { ShieldAlert } from "lucide-react";
 
 const features = [
   {
