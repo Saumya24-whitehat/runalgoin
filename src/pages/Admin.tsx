@@ -44,6 +44,7 @@ import { BlogManagement } from "@/components/admin/BlogManagement";
 import { SupportTicketManagement } from "@/components/admin/SupportTicketManagement";
 import { SpecialTradingDaysManagement } from "@/components/admin/SpecialTradingDaysManagement";
 import { MomentumReportManagement } from "@/components/admin/MomentumReportManagement";
+import { SubscriptionReminderSettings } from "@/components/admin/SubscriptionReminderSettings";
 import { AuditLogPanel } from "@/components/admin/AuditLogPanel";
 import { AddUserDialog } from "@/components/admin/AddUserDialog";
 import { ManageUserDialog } from "@/components/admin/ManageUserDialog";
@@ -74,6 +75,7 @@ const VALID_SECTIONS: AdminSection[] = [
   "trading-days",
   "momentum",
   "videos",
+  "reminders",
   "audit",
 ];
 
@@ -84,6 +86,7 @@ const SECTION_TITLES: Record<AdminSection, string> = {
   "trading-days": "Special Trading Days",
   momentum: "Momentum Reports",
   videos: "Videos",
+  reminders: "Email Reminders",
   audit: "Subscription Audit Log",
 };
 
@@ -457,6 +460,8 @@ const Admin = () => {
         return <MomentumReportManagement />;
       case "videos":
         return <VideoManagement />;
+      case "reminders":
+        return <SubscriptionReminderSettings />;
       case "audit":
         return <AuditLogPanel />;
     }
