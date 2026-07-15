@@ -59,7 +59,7 @@ export const CombinedGreeksChart = ({
       .sort(([a], [b]) => a - b)
       .map(([timestamp, { call, put }]) => ({
         timestamp,
-        time: format(new Date(timestamp), "HH:mm"),
+        time: (() => { const d = new Date(timestamp + 5.5 * 3600 * 1000); return `${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}`; })(),
         callLtp: call?.ltp,
         putLtp: put?.ltp,
         callOi: call?.oi,
