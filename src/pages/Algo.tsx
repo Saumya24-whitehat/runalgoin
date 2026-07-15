@@ -17,7 +17,7 @@ const Algo = () => {
             <PageInfoModal
               title="Algorithmic Trading"
               subtitle="Deploy rule-based strategies on your broker account"
-              overview="Launches the RunAlgo automated trading platform where predefined or custom strategies run automatically against your live broker account with risk limits and monitoring."
+              overview="Launches the OptionWorld automated trading platform where predefined or custom strategies run automatically against your live broker account with risk limits and monitoring."
               legend={[
                 { label: "Strategy Deployment", text: "Push predefined or custom strategies to run during market hours", color: "#3b82f6" },
                 { label: "Broker Integration", text: "Order placement & position tracking via broker API", color: "#8b5cf6" },
@@ -42,7 +42,7 @@ const Algo = () => {
         <iframe
           src="http://runalgo.in"
           className="w-full h-[calc(100vh-64px)] border-0"
-          title="RunAlgo"
+          title="OptionWorld"
           allowFullScreen
         />
       </div>

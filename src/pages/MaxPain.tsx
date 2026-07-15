@@ -318,7 +318,7 @@ const MaxPain = () => {
           name="keywords"
           content="max pain, options max pain, nifty max pain, bank nifty max pain, option pain theory, options trading, strike price analysis"
         />
-        <link rel="canonical" href="https://runalgo.xyz/max-pain" />
+        <link rel="canonical" href="https://optionworld.tech/max-pain" />
         <meta property="og:title" content="Max Pain Calculator | Options Max Pain Analysis" />
         <meta
           property="og:description"

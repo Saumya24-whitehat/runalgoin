@@ -420,7 +420,7 @@ const OptionsSummary = () => {
   return (
     <PageLayout>
       <Helmet>
-        <title>Options Summary | Runalgo - All-in-One Options Analytics Dashboard</title>
+        <title>Options Summary | OptionWorld - All-in-One Options Analytics Dashboard</title>
         <meta
           name="description"
           content="Comprehensive options summary with PCR, Max Pain, OI analysis, sentiment indicators, and market trends for Nifty, Bank Nifty, and stocks."

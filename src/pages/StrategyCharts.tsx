@@ -294,7 +294,7 @@ const StrategyCharts = () => {
   return (
     <>
       <Helmet>
-        <title>Strategy Charts - Combined Options Chart | Runalgo</title>
+        <title>Strategy Charts - Combined Options Chart | OptionWorld</title>
         <meta
           name="description"
           content="Visualize combined options positions with OHLC candlestick charts. Select multiple options from the chain and see their combined price movement."

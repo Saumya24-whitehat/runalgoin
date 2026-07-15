@@ -6,8 +6,8 @@
  
  const faqs = [
    {
-     question: "What is Runalgo?",
-     answer: "Runalgo is an advanced options analytics platform designed for Indian markets. We provide real-time data, technical analysis tools, and trading insights to help you make informed trading decisions.",
+     question: "What is OptionWorld?",
+     answer: "OptionWorld is an advanced options analytics platform designed for Indian markets. We provide real-time data, technical analysis tools, and trading insights to help you make informed trading decisions.",
    },
    {
      question: "How accurate is the data?",
@@ -18,8 +18,8 @@
      answer: "We offer Free, Pro, and Business plans. The Free plan includes basic features, while Pro and Business plans unlock advanced analytics, real-time data, and priority support. Visit our Plans page for detailed pricing.",
    },
    {
-     question: "Can I use Runalgo on mobile?",
-     answer: "Yes! Runalgo is fully responsive and works seamlessly on mobile devices, tablets, and desktops. Access your trading dashboard from anywhere.",
+     question: "Can I use OptionWorld on mobile?",
+     answer: "Yes! OptionWorld is fully responsive and works seamlessly on mobile devices, tablets, and desktops. Access your trading dashboard from anywhere.",
    },
    {
      question: "How do I cancel my subscription?",
@@ -65,7 +65,7 @@
          <div className="max-w-3xl mx-auto">
            <h1 className="text-4xl font-bold mb-4">Frequently Asked Questions</h1>
            <p className="text-muted-foreground text-lg mb-8">
-             Find answers to common questions about Runalgo.
+             Find answers to common questions about OptionWorld.
            </p>
            <Accordion type="single" collapsible className="w-full">
              {faqs.map((faq, index) => (

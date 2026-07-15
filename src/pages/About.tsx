@@ -28,7 +28,7 @@ const About = () => {
         {/* Hero Section */}
         <section className="container mx-auto px-4 py-16">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">About Runalgo</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-6">About OptionWorld</h1>
             <p className="text-xl text-muted-foreground">
               Empowering retail traders with institutional-grade analytics and tools for the Indian options market.
             </p>
@@ -55,7 +55,7 @@ const About = () => {
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl font-bold mb-6 text-center">Our Mission</h2>
             <p className="text-lg text-muted-foreground mb-4">
-              At Runalgo, we believe every trader deserves access to professional-grade tools. Our mission is to democratize options analytics and give retail traders the same edge that institutions have.
+              At OptionWorld, we believe every trader deserves access to professional-grade tools. Our mission is to democratize options analytics and give retail traders the same edge that institutions have.
             </p>
             <p className="text-lg text-muted-foreground">
               Founded in 2020, we've grown from a small team of traders and developers to a platform serving thousands of active traders across India. We're committed to continuous innovation and delivering the most accurate, real-time data for informed trading decisions.

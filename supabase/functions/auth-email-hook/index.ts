@@ -36,7 +36,7 @@ const EMAIL_TEMPLATES: Record<string, React.ComponentType<any>> = {
 }
 
 // Configuration
-const SITE_NAME = "runalgoin"
+const SITE_NAME = "OptionWorld"
 const SENDER_DOMAIN = "email.optionworld.tech"
 const ROOT_DOMAIN = "optionworld.tech"
 const FROM_DOMAIN = "optionworld.tech" // Domain shown in From address (may be root or sender subdomain)

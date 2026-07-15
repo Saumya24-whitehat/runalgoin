@@ -79,7 +79,7 @@
            <section className="mb-8">
              <h2 className="text-2xl font-semibold mb-4">7. Contact Us</h2>
              <p className="text-muted-foreground">
-               If you have any questions about this Privacy Policy, please contact us at privacy@runalgo.xyz or through our Contact page.
+               If you have any questions about this Privacy Policy, please contact us at privacy@optionworld.tech or through our Contact page.
              </p>
            </section>
          </div>

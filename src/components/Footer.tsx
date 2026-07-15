@@ -75,7 +75,7 @@ export function Footer() {
         </div>
 
         <div className="border-t border-border pt-4 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-4">
-          <p className="text-[10px] sm:text-sm text-muted-foreground">© 2024 Runalgo. All rights reserved.</p>
+          <p className="text-[10px] sm:text-sm text-muted-foreground">© 2024 OptionWorld. All rights reserved.</p>
           <p className="text-[10px] sm:text-sm text-muted-foreground text-center sm:text-right">Trading involves risk. Please trade responsibly.</p>
         </div>
       </div>
