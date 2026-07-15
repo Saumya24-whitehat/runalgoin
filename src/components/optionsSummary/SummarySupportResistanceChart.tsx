@@ -108,17 +108,37 @@ export const SummarySupportResistanceChart = ({ symbol, expiry }: SummarySupport
       lineStyle: LineStyle.Solid,
     });
 
-    // Prepare data
+    // Prepare data. Parse "HH:MM" as IST wall-clock time on today's IST date
+    // and encode as a UTC timestamp so lightweight-charts (UTC renderer)
+    // displays the correct IST time on the x-axis.
     const spotData: { time: number; value: number }[] = [];
     const resistanceData: { time: number; value: number }[] = [];
     const supportData: { time: number; value: number }[] = [];
 
-    console.log(kundaliData);
-    kundaliData.forEach((item, index) => {
-      spotData.push({ time: index, value: item.underlyning || 0 });
-      resistanceData.push({ time: index, value: item.max_ce_strike || 0 });
-      supportData.push({ time: index, value: item.max_pe_strike || 0 });
+    // Today's date in IST (YYYY, MM, DD)
+    const nowIST = new Date(Date.now() + 5.5 * 3600 * 1000);
+    const y = nowIST.getUTCFullYear();
+    const m = nowIST.getUTCMonth();
+    const d = nowIST.getUTCDate();
+
+    const seenTimes = new Set<number>();
+    kundaliData.forEach((item) => {
+      if (!item.time || typeof item.time !== "string") return;
+      const parts = item.time.split(":");
+      const hh = parseInt(parts[0], 10);
+      const mm = parseInt(parts[1] ?? "0", 10);
+      if (!Number.isFinite(hh) || !Number.isFinite(mm)) return;
+      const t = Math.floor(Date.UTC(y, m, d, hh, mm) / 1000);
+      if (seenTimes.has(t)) return;
+      seenTimes.add(t);
+      spotData.push({ time: t, value: item.underlyning || 0 });
+      resistanceData.push({ time: t, value: item.max_ce_strike || 0 });
+      supportData.push({ time: t, value: item.max_pe_strike || 0 });
     });
+
+    spotData.sort((a, b) => a.time - b.time);
+    resistanceData.sort((a, b) => a.time - b.time);
+    supportData.sort((a, b) => a.time - b.time);
 
     spotSeriesRef.current.setData(spotData as any);
     resistanceSeriesRef.current.setData(resistanceData as any);
