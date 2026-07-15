@@ -401,6 +401,31 @@ export default function Plans() {
                           PayPal
                         </Button>
                       </div>
+
+                      {!trialUsed && (
+                        <>
+                          <div className="flex items-center gap-2 pt-1">
+                            <div className="h-px flex-1 bg-border" />
+                            <span className="text-xs text-muted-foreground">or try free</span>
+                            <div className="h-px flex-1 bg-border" />
+                          </div>
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={startFreeTrial}
+                            disabled={trialLoading}
+                            className="w-full gap-1.5"
+                          >
+                            <Gift className="h-4 w-4" />
+                            {trialLoading ? "Activating…" : "Start 15-day Free Trial"}
+                          </Button>
+                        </>
+                      )}
+                      {trialUsed && !isPro && (
+                        <p className="text-xs text-muted-foreground text-center pt-1">
+                          Free trial already used on this account
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>
