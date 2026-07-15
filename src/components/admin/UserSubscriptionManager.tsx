@@ -454,7 +454,7 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
                               className="gap-1"
                             >
                               <CalendarIcon className="h-3 w-3" />
-                              Extend
+                              Edit Expiry
                             </Button>
                           )}
                         </TableCell>
