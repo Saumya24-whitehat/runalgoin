@@ -29,8 +29,11 @@ interface StrikeOI {
   strike: number;
   callOI: number;
   putOI: number;
+  callCOI: number;
+  putCOI: number;
   netOI: number;
 }
+
 
 // Format OI for display
 const formatOI = (oi: number) => {
@@ -106,6 +109,8 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
               strike: s.strike || s.Strike || 0,
               callOI: s.CE_OI || s.callOI || 0,
               putOI: s.PE_OI || s.putOI || 0,
+              callCOI: s.CE_COI ?? s.callCOI ?? 0,
+              putCOI: s.PE_COI ?? s.putCOI ?? 0,
               netOI: (s.PE_OI || s.putOI || 0) - (s.CE_OI || s.callOI || 0),
             })).filter((s: StrikeOI) => s.strike > 0);
           } else {
@@ -127,10 +132,13 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 strike,
                 callOI,
                 putOI,
+                callCOI: Math.round(callOI * (Math.random() - 0.4) * 0.3),
+                putCOI: Math.round(putOI * (Math.random() - 0.4) * 0.3),
                 netOI: putOI - callOI,
               });
             }
           }
+
           
           setStrikeOIData(strikesArray);
         }
@@ -182,8 +190,9 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
   }, []);
 
   const maxOI = useMemo(() => {
-    return Math.max(...strikeOIData.map(s => Math.max(s.callOI, s.putOI)), 1);
+    return Math.max(...strikeOIData.map(s => Math.max(Math.abs(s.callCOI), Math.abs(s.putCOI))), 1);
   }, [strikeOIData]);
+
 
   // Filter strikes within visible Y domain
   const visibleStrikes = useMemo(() => {
@@ -320,10 +329,10 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 const barTotalH = Math.max(6, Math.min(28, (neighborGap / priceRange) * rangePx * 0.85));
                 const halfH = barTotalH / 2;
 
-                // Max bar width (in px) at right edge — occupies right ~35% of plot
-                const MAX_BAR_PX = 180;
-                const callW = Math.max(1, (strike.callOI / maxOI) * MAX_BAR_PX);
-                const putW = Math.max(1, (strike.putOI / maxOI) * MAX_BAR_PX);
+                // Max bar width (in px) — sized by |COI|; negative COI extends rightward past edge
+                const MAX_BAR_PX = 160;
+                const callW = (strike.callCOI / maxOI) * MAX_BAR_PX;
+                const putW = (strike.putCOI / maxOI) * MAX_BAR_PX;
 
                 return (
                   <ReferenceLine
@@ -337,6 +346,12 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                         const { x, y, width } = viewBox;
                         const rightEdge = x + width;
                         const isHovered = hoveredStrike?.strike === strike.strike;
+
+                        // Positive COI → bar grows left from edge. Negative COI → grows right from edge.
+                        const callX = callW >= 0 ? rightEdge - callW : rightEdge;
+                        const putX = putW >= 0 ? rightEdge - putW : rightEdge;
+                        const callAbs = Math.max(1, Math.abs(callW));
+                        const putAbs = Math.max(1, Math.abs(putW));
 
                         return (
                           <g
@@ -353,23 +368,23 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                               setTooltipPos(null);
                             }}
                           >
-                            {/* Call OI bar (red/pink) — upper half, extends left */}
+                            {/* Call COI bar — upper half */}
                             <rect
-                              x={rightEdge - callW}
+                              x={callX}
                               y={y - halfH}
-                              width={callW}
+                              width={callAbs}
                               height={halfH - 0.5}
                               fill="hsl(0 72% 60%)"
-                              opacity={isHovered ? 0.9 : 0.55}
+                              opacity={isHovered ? 0.95 : 0.6}
                             />
-                            {/* Put OI bar (green) — lower half, extends left */}
+                            {/* Put COI bar — lower half */}
                             <rect
-                              x={rightEdge - putW}
+                              x={putX}
                               y={y + 0.5}
-                              width={putW}
+                              width={putAbs}
                               height={halfH - 0.5}
                               fill="hsl(142 70% 45%)"
-                              opacity={isHovered ? 0.9 : 0.55}
+                              opacity={isHovered ? 0.95 : 0.6}
                             />
                           </g>
                         );
@@ -378,6 +393,7 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                   />
                 );
               })}
+
               
               {/* Spot price line - no animation for smooth data updates */}
               <Line
@@ -425,20 +441,19 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
               </div>
               <div className="flex items-center gap-2 text-destructive">
                 <div className="w-2 h-2 rounded-sm bg-destructive" />
-                <span>Call OI:</span>
-                <span className="font-mono">{formatOI(hoveredStrike.callOI)}</span>
+                <span>Call ΔOI:</span>
+                <span className="font-mono">{hoveredStrike.callCOI >= 0 ? '+' : ''}{formatOI(hoveredStrike.callCOI)}</span>
               </div>
               <div className="flex items-center gap-2 text-success">
                 <div className="w-2 h-2 rounded-sm bg-success" />
-                <span>Put OI:</span>
-                <span className="font-mono">{formatOI(hoveredStrike.putOI)}</span>
+                <span>Put ΔOI:</span>
+                <span className="font-mono">{hoveredStrike.putCOI >= 0 ? '+' : ''}{formatOI(hoveredStrike.putCOI)}</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground mt-1 pt-1 border-t border-border">
-                <span>Net:</span>
-                <span className={`font-mono ${hoveredStrike.netOI > 0 ? 'text-success' : 'text-destructive'}`}>
-                  {hoveredStrike.netOI > 0 ? '+' : ''}{formatOI(hoveredStrike.netOI)}
-                </span>
+              <div className="flex items-center gap-2 text-muted-foreground mt-1 pt-1 border-t border-border text-xs">
+                <span>OI C/P:</span>
+                <span className="font-mono">{formatOI(hoveredStrike.callOI)} / {formatOI(hoveredStrike.putOI)}</span>
               </div>
+
             </div>
           )}
         </div>
