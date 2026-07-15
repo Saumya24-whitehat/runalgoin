@@ -441,20 +441,19 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
               </div>
               <div className="flex items-center gap-2 text-destructive">
                 <div className="w-2 h-2 rounded-sm bg-destructive" />
-                <span>Call OI:</span>
-                <span className="font-mono">{formatOI(hoveredStrike.callOI)}</span>
+                <span>Call ΔOI:</span>
+                <span className="font-mono">{hoveredStrike.callCOI >= 0 ? '+' : ''}{formatOI(hoveredStrike.callCOI)}</span>
               </div>
               <div className="flex items-center gap-2 text-success">
                 <div className="w-2 h-2 rounded-sm bg-success" />
-                <span>Put OI:</span>
-                <span className="font-mono">{formatOI(hoveredStrike.putOI)}</span>
+                <span>Put ΔOI:</span>
+                <span className="font-mono">{hoveredStrike.putCOI >= 0 ? '+' : ''}{formatOI(hoveredStrike.putCOI)}</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground mt-1 pt-1 border-t border-border">
-                <span>Net:</span>
-                <span className={`font-mono ${hoveredStrike.netOI > 0 ? 'text-success' : 'text-destructive'}`}>
-                  {hoveredStrike.netOI > 0 ? '+' : ''}{formatOI(hoveredStrike.netOI)}
-                </span>
+              <div className="flex items-center gap-2 text-muted-foreground mt-1 pt-1 border-t border-border text-xs">
+                <span>OI C/P:</span>
+                <span className="font-mono">{formatOI(hoveredStrike.callOI)} / {formatOI(hoveredStrike.putOI)}</span>
               </div>
+
             </div>
           )}
         </div>
