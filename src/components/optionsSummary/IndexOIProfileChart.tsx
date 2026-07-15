@@ -29,8 +29,11 @@ interface StrikeOI {
   strike: number;
   callOI: number;
   putOI: number;
+  callCOI: number;
+  putCOI: number;
   netOI: number;
 }
+
 
 // Format OI for display
 const formatOI = (oi: number) => {
