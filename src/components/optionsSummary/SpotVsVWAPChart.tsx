@@ -136,20 +136,22 @@ export const SpotVsVWAPChart = ({ symbol, expiry }: SpotVsVWAPChartProps) => {
     let lastValidFuture = 0;
     let lastValidSpot = 0;
 
-    // Sort + dedupe by timestamp
+    // Sort + dedupe by timestamp. Shift by IST offset (+5h30m) so
+    // lightweight-charts (which renders in UTC) shows IST wall-clock times.
+    const IST_OFFSET_SEC = 5.5 * 3600;
     const seen = new Set<number>();
     const sorted = [...data]
       .filter((d) => Number.isFinite(d.timestamp as number))
       .sort((a, b) => (a.timestamp as number) - (b.timestamp as number))
       .filter((d) => {
-        const t = Math.floor((d.timestamp as number) / 1000);
+        const t = Math.floor((d.timestamp as number) / 1000) + IST_OFFSET_SEC;
         if (seen.has(t)) return false;
         seen.add(t);
         return true;
       });
 
     sorted.forEach((item) => {
-      const t = Math.floor((item.timestamp as number) / 1000);
+      const t = Math.floor((item.timestamp as number) / 1000) + IST_OFFSET_SEC;
 
       // Spot (underlying)
       let spotValue = item.underlyning || 0;

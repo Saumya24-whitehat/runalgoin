@@ -136,9 +136,11 @@ export const SummaryOTRChart = ({ symbol, expiry }: SummaryOTRChartProps) => {
       .filter((d) => Number.isFinite(d.time) && Number.isFinite(d.value))
       .sort((a, b) => a.time - b.time);
 
-    // Dedupe by timestamp (keep last)
+    // Dedupe by timestamp (keep last). Shift by IST offset so the chart
+    // (which renders in UTC) displays IST wall-clock times.
+    const IST_OFFSET_SEC = 5.5 * 3600;
     const dedupedMap = new Map<number, number>();
-    normalized.forEach((d) => dedupedMap.set(Math.floor(d.time / 1000), d.value));
+    normalized.forEach((d) => dedupedMap.set(Math.floor(d.time / 1000) + IST_OFFSET_SEC, d.value));
     const series = Array.from(dedupedMap.entries())
       .map(([time, value]) => ({ time, value }))
       .sort((a, b) => a.time - b.time);
