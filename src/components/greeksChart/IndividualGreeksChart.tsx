@@ -49,7 +49,7 @@ export const IndividualGreeksChart = ({
   const chartData = useMemo(() => {
     return data.map((d) => ({
       ...d,
-      time: (() => { const dt = new Date(d.timestamp + 5.5 * 3600 * 1000); return `${String(dt.getUTCHours()).padStart(2,"0")}:${String(dt.getUTCMinutes()).padStart(2,"0")}`; })(),
+      time: (() => { const dt = new Date(d.timestamp); return `${String(dt.getUTCHours()).padStart(2,"0")}:${String(dt.getUTCMinutes()).padStart(2,"0")}`; })(),
     }));
   }, [data]);
 
