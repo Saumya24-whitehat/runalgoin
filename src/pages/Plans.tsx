@@ -599,6 +599,39 @@ export default function Plans() {
         method={altModal.method}
         plan={altModal.plan}
       />
+
+      <Dialog open={abuseModal.open} onOpenChange={(o) => setAbuseModal((p) => ({ ...p, open: o }))}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+              <ShieldAlert className="h-6 w-6 text-destructive" />
+            </div>
+            <DialogTitle className="text-center">Free trial not available</DialogTitle>
+            <DialogDescription className="text-center pt-2">
+              {abuseModal.message ||
+                "A free trial has already been claimed from this device or network."}
+              <span className="mt-3 block text-sm">
+                OptionWorld allows <strong>one free trial per person</strong>. Creating multiple
+                accounts to reuse the trial is against our terms of use and is automatically
+                blocked. If you believe this is a mistake, please contact support.
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-2">
+            <Button variant="ghost" onClick={() => setAbuseModal({ open: false, message: "" })}>
+              Close
+            </Button>
+            <Button
+              onClick={() => {
+                setAbuseModal({ open: false, message: "" });
+                navigate("/support");
+              }}
+            >
+              Contact support
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
