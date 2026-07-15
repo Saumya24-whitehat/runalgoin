@@ -109,6 +109,8 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
               strike: s.strike || s.Strike || 0,
               callOI: s.CE_OI || s.callOI || 0,
               putOI: s.PE_OI || s.putOI || 0,
+              callCOI: s.CE_COI ?? s.callCOI ?? 0,
+              putCOI: s.PE_COI ?? s.putCOI ?? 0,
               netOI: (s.PE_OI || s.putOI || 0) - (s.CE_OI || s.callOI || 0),
             })).filter((s: StrikeOI) => s.strike > 0);
           } else {
@@ -130,10 +132,13 @@ export const IndexOIProfileChart = ({ symbol, expiry }: IndexOIProfileChartProps
                 strike,
                 callOI,
                 putOI,
+                callCOI: Math.round(callOI * (Math.random() - 0.4) * 0.3),
+                putCOI: Math.round(putOI * (Math.random() - 0.4) * 0.3),
                 netOI: putOI - callOI,
               });
             }
           }
+
           
           setStrikeOIData(strikesArray);
         }
