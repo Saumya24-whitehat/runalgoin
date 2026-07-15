@@ -140,34 +140,49 @@ const SupportResistanceChart = ({ symbol, expiry }: SupportResistanceChartProps)
     const supportData: { time: number; value: number }[] = [];
     const support2Data: { time: number; value: number }[] = [];
 
-    kundaliData.forEach((item, index) => {
-      const timeValue = index; // Use index as time for simplicity
-      
-      spotData.push({
-        time: timeValue,
-        value: item.underlyning || 0,
-      });
-      
-      resistanceData.push({
-        time: timeValue,
-        value: item.max_ce_strike || 0,
-      });
+    // Parse "HH:MM" as IST wall-clock time on today's IST date and encode as
+    // UTC timestamp so lightweight-charts (UTC renderer) shows correct IST.
+    const nowIST = new Date(Date.now() + 5.5 * 3600 * 1000);
+    const y = nowIST.getUTCFullYear();
+    const m = nowIST.getUTCMonth();
+    const d = nowIST.getUTCDate();
 
-      resistance2Data.push({
-        time: timeValue,
-        value: item.max_ce_strike2 || 0,
-      });
-      
-      supportData.push({
-        time: timeValue,
-        value: item.max_pe_strike || 0,
-      });
+    const seen = new Set<number>();
+    const rows: {
+      t: number;
+      spot: number;
+      r1: number;
+      r2: number;
+      s1: number;
+      s2: number;
+    }[] = [];
 
-      support2Data.push({
-        time: timeValue,
-        value: item.max_pe_strike2 || 0,
+    kundaliData.forEach((item) => {
+      if (!item.time || typeof item.time !== "string") return;
+      const parts = item.time.split(":");
+      const hh = parseInt(parts[0], 10);
+      const mm = parseInt(parts[1] ?? "0", 10);
+      if (!Number.isFinite(hh) || !Number.isFinite(mm)) return;
+      const t = Math.floor(Date.UTC(y, m, d, hh, mm) / 1000);
+      if (seen.has(t)) return;
+      seen.add(t);
+      rows.push({
+        t,
+        spot: item.underlyning || 0,
+        r1: item.max_ce_strike || 0,
+        r2: item.max_ce_strike2 || 0,
+        s1: item.max_pe_strike || 0,
+        s2: item.max_pe_strike2 || 0,
       });
     });
+
+    rows.sort((a, b) => a.t - b.t);
+
+    const spotData = rows.map((r) => ({ time: r.t, value: r.spot }));
+    const resistanceData = rows.map((r) => ({ time: r.t, value: r.r1 }));
+    const resistance2Data = rows.map((r) => ({ time: r.t, value: r.r2 }));
+    const supportData = rows.map((r) => ({ time: r.t, value: r.s1 }));
+    const support2Data = rows.map((r) => ({ time: r.t, value: r.s2 }));
 
     // Update series data
     if (spotSeriesRef.current && spotData.length > 0) {
