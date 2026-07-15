@@ -164,10 +164,9 @@ const RAZORPAY_ENABLED = false;
 export default function Plans() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { subscription, loading: subLoading, isPro, isAdmin } = useSubscription();
+  const { subscription, loading: subLoading, isPro, isAdmin, refetch: refetchSub } = useSubscription();
   const [showAdminPanel, setShowAdminPanel] = useState(false);
   const { startCheckout, loading: checkoutLoading } = useRazorpayCheckout();
-  const { refetch: refetchSub } = useSubscription();
   const [altModal, setAltModal] = useState<{
     open: boolean;
     method: "upi" | "paypal";
