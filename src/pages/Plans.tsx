@@ -214,9 +214,34 @@ export default function Plans() {
       const { data, error } = await supabase.functions.invoke("start-free-trial", {
         body: { fingerprint },
       });
-      if (error || (data as any)?.error) {
-        throw new Error((data as any)?.error || error?.message || "Failed to start trial");
+
+      // Try to extract a server-provided error message even on non-2xx.
+      let serverError: string | null = (data as any)?.error ?? null;
+      if (!serverError && error) {
+        const ctx: any = (error as any).context;
+        if (ctx && typeof ctx.json === "function") {
+          try {
+            const body = await ctx.json();
+            serverError = body?.error ?? null;
+          } catch (_) {
+            /* ignore */
+          }
+        }
       }
+
+      if (serverError || error) {
+        const msg = serverError || error?.message || "Failed to start trial";
+        const isAbuse =
+          /already\s*(been\s*)?used|already\s*claimed|device|network|one\s*free\s*trial/i.test(msg);
+        if (isAbuse) {
+          setAbuseModal({ open: true, message: msg });
+          setTrialUsed(true);
+        } else {
+          toast.error(msg);
+        }
+        return;
+      }
+
       toast.success("Your 15-day Pro trial is now active!");
       setTrialUsed(true);
       await refetchSub();
