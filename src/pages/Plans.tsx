@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Check,
   X,
@@ -15,6 +15,7 @@ import {
   Shield,
   Clock,
   Settings,
+  Gift,
 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
@@ -29,6 +30,9 @@ import { SEO } from "@/components/SEO";
 import { useRazorpayCheckout } from "@/hooks/useRazorpayCheckout";
 import { AlternatePaymentModal } from "@/components/AlternatePaymentModal";
 import { QrCode, Wallet } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { getDeviceFingerprint } from "@/lib/deviceFingerprint";
 
 const features = [
   {
