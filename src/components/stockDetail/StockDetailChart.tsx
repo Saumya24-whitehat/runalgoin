@@ -527,6 +527,7 @@ export const StockDetailChart = ({ symbol }: StockDetailChartProps) => {
         datafeed: datafeed,
         library_path: "https://runalgo.xyz/top/chart/charting_library/",
         locale: "en",
+        timezone: "Asia/Kolkata",
         theme: isDark ? "dark" : "light",
         disabled_features: ["use_localstorage_for_settings", "open_account_manager", "trading_account_manager"],
         enabled_features: [
