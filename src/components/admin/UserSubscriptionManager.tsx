@@ -515,19 +515,22 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
               {!useCustomDate ? (
                 <>
                   <div className="space-y-2">
-                    <Label>Extend by (days)</Label>
+                    <Label>Adjust by (days)</Label>
+                    <p className="text-xs text-muted-foreground">
+                      Positive to extend, negative to shorten.
+                    </p>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => setExtendDays(Math.max(1, extendDays - 30))}
+                        onClick={() => setExtendDays(extendDays - 30)}
                       >
                         <Minus className="h-4 w-4" />
                       </Button>
                       <Input
                         type="number"
                         value={extendDays}
-                        onChange={(e) => setExtendDays(Math.max(1, parseInt(e.target.value) || 0))}
+                        onChange={(e) => setExtendDays(parseInt(e.target.value) || 0)}
                         className="text-center"
                       />
                       <Button
@@ -540,39 +543,33 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
                     </div>
                   </div>
 
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setExtendDays(30)}
-                    >
-                      30 days
+                  <div className="flex gap-2 pt-2 flex-wrap">
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setExtendDays(-30)}>
+                      -30d
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setExtendDays(90)}
-                    >
-                      90 days
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setExtendDays(-7)}>
+                      -7d
                     </Button>
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setExtendDays(365)}
-                    >
-                      1 year
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setExtendDays(30)}>
+                      +30d
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setExtendDays(90)}>
+                      +90d
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1" onClick={() => setExtendDays(365)}>
+                      +1y
                     </Button>
                   </div>
 
                   <Button
                     className="w-full"
                     onClick={() => extendSubscription(selectedUser.user_id, extendDays)}
-                    disabled={updating === selectedUser.user_id}
+                    disabled={updating === selectedUser.user_id || extendDays === 0}
                   >
                     {updating === selectedUser.user_id ? (
                       <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     ) : null}
-                    Extend by {extendDays} days
+                    {extendDays >= 0 ? `Extend by ${extendDays} days` : `Shorten by ${Math.abs(extendDays)} days`}
                   </Button>
                 </>
               ) : (
