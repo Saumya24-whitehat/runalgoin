@@ -309,6 +309,7 @@ const OptionsChart = () => {
         datafeed: datafeed,
         library_path: "https://runalgo.xyz/top/chart/charting_library/",
         locale: "en",
+        timezone: "Asia/Kolkata",
         theme: isDark ? "dark" : "light",
 
         disabled_features: [
