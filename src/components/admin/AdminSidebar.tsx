@@ -17,6 +17,7 @@ import {
   TrendingUp,
   Video,
   ScrollText,
+  Bell,
 } from "lucide-react";
 
 export type AdminSection =
@@ -26,7 +27,8 @@ export type AdminSection =
   | "trading-days"
   | "momentum"
   | "videos"
-  | "audit";
+  | "audit"
+  | "reminders";
 
 const items: { id: AdminSection; title: string; icon: any }[] = [
   { id: "overview", title: "Overview & Users", icon: LayoutDashboard },
@@ -35,6 +37,7 @@ const items: { id: AdminSection; title: string; icon: any }[] = [
   { id: "trading-days", title: "Trading Days", icon: CalendarDays },
   { id: "momentum", title: "Momentum Reports", icon: TrendingUp },
   { id: "videos", title: "Videos", icon: Video },
+  { id: "reminders", title: "Email Reminders", icon: Bell },
   { id: "audit", title: "Audit Log", icon: ScrollText },
 ];
 
