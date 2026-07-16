@@ -59,6 +59,216 @@ export type Database = {
         }
         Relationships: []
       }
+      club_categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      club_chat_messages: {
+        Row: {
+          body: string
+          category_id: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          image_url: string | null
+          reply_to_id: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          category_id: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          reply_to_id?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          category_id?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          image_url?: string | null
+          reply_to_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_chat_messages_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "club_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_chat_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "club_chat_messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_post_comments: {
+        Row: {
+          body: string
+          created_at: string
+          deleted_at: string | null
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          deleted_at?: string | null
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "club_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "club_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_posts: {
+        Row: {
+          action: string | null
+          body: string
+          category_id: string
+          cmp: number | null
+          created_at: string
+          deleted_at: string | null
+          entry_zone: string | null
+          exchange: string | null
+          id: string
+          idea_type: string | null
+          image_url: string | null
+          rationale: string | null
+          stop_loss: number | null
+          symbol: string | null
+          target1: number | null
+          timeframe: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action?: string | null
+          body: string
+          category_id: string
+          cmp?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          entry_zone?: string | null
+          exchange?: string | null
+          id?: string
+          idea_type?: string | null
+          image_url?: string | null
+          rationale?: string | null
+          stop_loss?: number | null
+          symbol?: string | null
+          target1?: number | null
+          timeframe?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action?: string | null
+          body?: string
+          category_id?: string
+          cmp?: number | null
+          created_at?: string
+          deleted_at?: string | null
+          entry_zone?: string | null
+          exchange?: string | null
+          id?: string
+          idea_type?: string | null
+          image_url?: string | null
+          rationale?: string | null
+          stop_loss?: number | null
+          symbol?: string | null
+          target1?: number | null
+          timeframe?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "club_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_send_log: {
         Row: {
           created_at: string
@@ -760,6 +970,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_club_member: { Args: { _user_id: string }; Returns: boolean }
       move_to_dlq: {
         Args: {
           dlq_name: string
