@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export interface ClubChatMessage {
   id: string;
@@ -13,6 +13,7 @@ export interface ClubChatMessage {
   created_at: string;
   deleted_at: string | null;
   author_name?: string;
+  is_admin?: boolean;
 }
 
 export function useClubChat(categoryId: string | null) {
@@ -20,26 +21,52 @@ export function useClubChat(categoryId: string | null) {
   const [messages, setMessages] = useState<ClubChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const profilesCache = useRef<Record<string, string>>({});
+  const adminCache = useRef<Record<string, boolean>>({});
+  const initialLoadRef = useRef(true);
 
-  const attachName = useCallback(async (msgs: ClubChatMessage[]) => {
-    const missing = Array.from(
-      new Set(msgs.map((m) => m.user_id).filter((id) => !profilesCache.current[id])),
-    );
-    if (missing.length) {
+  const attachMeta = useCallback(async (msgs: ClubChatMessage[]) => {
+    const uniqueIds = Array.from(new Set(msgs.map((m) => m.user_id)));
+    const missingNames = uniqueIds.filter((id) => !(id in profilesCache.current));
+    const missingRoles = uniqueIds.filter((id) => !(id in adminCache.current));
+
+    if (missingNames.length) {
       const { data } = await supabase
         .from("profiles")
         .select("user_id, name")
-        .in("user_id", missing);
+        .in("user_id", missingNames);
+      missingNames.forEach((id) => {
+        profilesCache.current[id] = "Member";
+      });
       (data || []).forEach((p: any) => {
         profilesCache.current[p.user_id] = p.name || "Member";
       });
     }
-    return msgs.map((m) => ({ ...m, author_name: profilesCache.current[m.user_id] || "Member" }));
+
+    if (missingRoles.length) {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("user_id", missingRoles)
+        .eq("role", "admin");
+      missingRoles.forEach((id) => {
+        adminCache.current[id] = false;
+      });
+      (data || []).forEach((r: any) => {
+        adminCache.current[r.user_id] = true;
+      });
+    }
+
+    return msgs.map((m) => ({
+      ...m,
+      author_name: profilesCache.current[m.user_id] || "Member",
+      is_admin: !!adminCache.current[m.user_id],
+    }));
   }, []);
 
   const load = useCallback(async () => {
     if (!categoryId) return;
     setLoading(true);
+    initialLoadRef.current = true;
     const { data, error } = await supabase
       .from("club_chat_messages")
       .select("*")
@@ -51,10 +78,13 @@ export function useClubChat(categoryId: string | null) {
       setLoading(false);
       return;
     }
-    const named = await attachName((data || []) as any);
+    const named = await attachMeta((data || []) as any);
     setMessages(named);
     setLoading(false);
-  }, [categoryId, attachName]);
+    setTimeout(() => {
+      initialLoadRef.current = false;
+    }, 500);
+  }, [categoryId, attachMeta]);
 
   useEffect(() => {
     load();
@@ -74,17 +104,45 @@ export function useClubChat(categoryId: string | null) {
         },
         async (payload) => {
           const msg = payload.new as ClubChatMessage;
-          const [withName] = await attachName([msg]);
+          const [withMeta] = await attachMeta([msg]);
           setMessages((prev) =>
-            prev.some((m) => m.id === withName.id) ? prev : [...prev, withName],
+            prev.some((m) => m.id === withMeta.id) ? prev : [...prev, withMeta],
           );
+
+          // Alert everyone (except sender) when an admin posts a new message
+          if (
+            withMeta.is_admin &&
+            withMeta.user_id !== user?.id &&
+            !initialLoadRef.current
+          ) {
+            toast(`📢 Admin • ${withMeta.author_name}`, {
+              description: withMeta.body.slice(0, 140),
+              duration: 6000,
+            });
+            try {
+              // Small audible ping
+              const ctx = new (window.AudioContext ||
+                (window as any).webkitAudioContext)();
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.frequency.value = 880;
+              gain.gain.setValueAtTime(0.05, ctx.currentTime);
+              gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+              osc.start();
+              osc.stop(ctx.currentTime + 0.4);
+            } catch {
+              /* ignore */
+            }
+          }
         },
       )
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [categoryId, attachName]);
+  }, [categoryId, attachMeta, user?.id]);
 
   const send = async (body: string, imageUrl?: string | null) => {
     if (!user || !categoryId) return;
@@ -97,7 +155,7 @@ export function useClubChat(categoryId: string | null) {
       image_url: imageUrl ?? null,
     });
     if (error) {
-      toast({ title: "Failed to send", description: error.message, variant: "destructive" });
+      toast.error("Failed to send", { description: error.message });
     }
   };
 
