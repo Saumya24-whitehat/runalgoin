@@ -58,7 +58,7 @@ export default function OptionWorldClub() {
             <h1 className="text-2xl font-bold">Sign in to access the Club</h1>
             <Button onClick={() => navigate("/auth?redirect=/optionworld-club")}>Sign in</Button>
           </div>
-        ) : !isClub ? (
+        ) : !isClub && !isAdmin ? (
           <ClubGate />
         ) : (
           <div className="container mx-auto px-2 sm:px-4 py-4">
