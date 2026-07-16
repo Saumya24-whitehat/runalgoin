@@ -148,7 +148,7 @@ export function AlternatePaymentModal({ open, onOpenChange, method, plan }: Prop
             Cancel
           </Button>
           <Button onClick={handleActivate} disabled={loading || txnId.trim().length < 4}>
-            {loading ? "Activating..." : "I've paid — Activate Pro"}
+            {loading ? "Activating..." : `I've paid — Activate ${PLAN_LABEL[plan]}`}
           </Button>
         </DialogFooter>
       </DialogContent>
