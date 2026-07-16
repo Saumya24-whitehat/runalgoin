@@ -26,7 +26,7 @@ export function useRazorpayCheckout() {
   const { refetch } = useSubscription();
   const [loading, setLoading] = useState(false);
 
-  const startCheckout = async (plan: "monthly" | "yearly") => {
+  const startCheckout = async (plan: "monthly" | "yearly" | "club") => {
     if (!user) {
       toast({ title: "Please sign in first", variant: "destructive" });
       return;
