@@ -176,6 +176,12 @@ const baseNavItems: NavItem[] = [
     path: "/plans",
   },
   {
+    label: "Club",
+    icon: Star,
+    hasDropdown: false,
+    path: "/optionworld-club",
+  },
+  {
     label: "Momentum Report",
     icon: Flame,
     hasDropdown: false,
