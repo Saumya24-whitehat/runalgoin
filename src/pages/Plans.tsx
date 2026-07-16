@@ -157,6 +157,26 @@ const plans = [
     cta: "Upgrade to Pro",
     ctaVariant: "default" as const,
   },
+  {
+    name: "OptionWorld Club",
+    price: "₹3,500",
+    period: "per year",
+    description: "Pro + private community, ideas & analyst chat",
+    highlight: false,
+    badge: "Club Exclusive",
+    features: [
+      "Everything in Pro (yearly)",
+      "OptionWorld Club chat group",
+      "Analyst support & Q&A",
+      "Expert stock & option recommendations",
+      "Trade ideas with entry / SL / target",
+      "Discussions with active market participants",
+      "Accelerated market learning",
+    ],
+    limitations: [],
+    cta: "Join the Club",
+    ctaVariant: "default" as const,
+  },
 ];
 
 // Razorpay is temporarily disabled until account verification completes.
