@@ -47,19 +47,29 @@ export function ClubChat({ categoryId, categoryName }: Props) {
         ) : (
           messages.map((m) => {
             const mine = m.user_id === user?.id;
+            const isAdminMsg = !!m.is_admin;
             return (
               <div key={m.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                 <div
                   className={cn(
                     "max-w-[75%] rounded-2xl px-3 py-2 text-sm shadow-sm",
-                    mine
+                    isAdminMsg
+                      ? "bg-amber-500/15 border-2 border-amber-500/60 text-foreground rounded-bl-sm"
+                      : mine
                       ? "bg-primary text-primary-foreground rounded-br-sm"
                       : "bg-card border border-border rounded-bl-sm",
                   )}
                 >
-                  {!mine && (
-                    <div className="text-[11px] font-semibold text-primary mb-0.5">
-                      {m.author_name}
+                  {(!mine || isAdminMsg) && (
+                    <div className="text-[11px] font-semibold mb-0.5 flex items-center gap-1">
+                      {isAdminMsg && (
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] uppercase tracking-wide">
+                          Admin
+                        </span>
+                      )}
+                      <span className={isAdminMsg ? "text-amber-700 dark:text-amber-400" : "text-primary"}>
+                        {m.author_name}
+                      </span>
                     </div>
                   )}
                   {m.image_url && (
@@ -69,7 +79,7 @@ export function ClubChat({ categoryId, categoryName }: Props) {
                   <div
                     className={cn(
                       "text-[10px] mt-1 text-right",
-                      mine ? "text-primary-foreground/70" : "text-muted-foreground",
+                      mine && !isAdminMsg ? "text-primary-foreground/70" : "text-muted-foreground",
                     )}
                   >
                     {format(new Date(m.created_at), "HH:mm")}
