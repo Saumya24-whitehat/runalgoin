@@ -20,7 +20,7 @@ const PAYEE_NAME = "OptionWorld";
 const PAYPAL_ME = "https://paypal.me/saumya2427";
 
 type Method = "upi" | "paypal";
-type Plan = "monthly" | "yearly";
+type Plan = "monthly" | "yearly" | "club";
 
 interface Props {
   open: boolean;
@@ -29,18 +29,24 @@ interface Props {
   plan: Plan;
 }
 
+const PLAN_LABEL: Record<Plan, string> = {
+  monthly: "Pro Monthly",
+  yearly: "Pro Yearly",
+  club: "OptionWorld Club",
+};
+
 export function AlternatePaymentModal({ open, onOpenChange, method, plan }: Props) {
   const [txnId, setTxnId] = useState("");
   const { submit, loading } = useSelfDeclaredPayment();
 
-  const amountInr = plan === "monthly" ? 150 : 1500;
-  const amountUsd = plan === "monthly" ? 2 : 18;
+  const amountInr = plan === "monthly" ? 150 : plan === "yearly" ? 1500 : 3500;
+  const amountUsd = plan === "monthly" ? 2 : plan === "yearly" ? 18 : 42;
 
   const upiLink = useMemo(
     () =>
       `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(
         PAYEE_NAME,
-      )}&am=${amountInr}&cu=INR&tn=${encodeURIComponent(`OW Pro ${plan}`)}`,
+      )}&am=${amountInr}&cu=INR&tn=${encodeURIComponent(`OW ${PLAN_LABEL[plan]}`)}`,
     [amountInr, plan],
   );
 
