@@ -78,6 +78,7 @@ const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const InvoiceView = lazy(() => import("./pages/InvoiceView"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OptionWorldClub = lazy(() => import("./pages/OptionWorldClub"));
 
 const queryClient = new QueryClient();
 
