@@ -32,13 +32,20 @@ export function ClubFeed({ categoryId }: Props) {
       {posts.map((p) => {
         const initials = (p.author_name || "M").slice(0, 2).toUpperCase();
         return (
-          <div key={p.id} className="rounded-xl border border-border bg-card p-4 shadow-sm">
+          <div key={p.id} className={`rounded-xl border p-4 shadow-sm ${p.is_admin ? "border-amber-500/60 bg-amber-500/5" : "border-border bg-card"}`}>
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center font-semibold text-primary text-sm">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm ${p.is_admin ? "bg-amber-500 text-white" : "bg-primary/20 text-primary"}`}>
                 {initials}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-sm">{p.author_name}</div>
+                <div className="font-semibold text-sm flex items-center gap-1.5">
+                  {p.author_name}
+                  {p.is_admin && (
+                    <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white text-[9px] uppercase tracking-wide">
+                      Admin
+                    </span>
+                  )}
+                </div>
                 <div className="text-xs text-muted-foreground">
                   {p.category_name} • {format(new Date(p.created_at), "dd MMM yyyy, hh:mm a")}
                 </div>
