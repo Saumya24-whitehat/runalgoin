@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 export default function OptionWorldClub() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { isClub, loading: subLoading } = useSubscription();
+  const { isClub, isAdmin, loading: subLoading } = useSubscription();
   const { categories, loading: catsLoading } = useClubCategories();
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [tab, setTab] = useState<"feed" | "chat">("feed");
@@ -58,7 +58,7 @@ export default function OptionWorldClub() {
             <h1 className="text-2xl font-bold">Sign in to access the Club</h1>
             <Button onClick={() => navigate("/auth?redirect=/optionworld-club")}>Sign in</Button>
           </div>
-        ) : !isClub ? (
+        ) : !isClub && !isAdmin ? (
           <ClubGate />
         ) : (
           <div className="container mx-auto px-2 sm:px-4 py-4">
