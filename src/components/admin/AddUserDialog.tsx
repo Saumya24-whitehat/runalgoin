@@ -296,7 +296,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                 <div className="flex items-center justify-between rounded border border-border p-3 bg-muted/30">
                   <div className="text-sm">
                     <div className="font-medium">CSV format</div>
-                    <div className="text-xs text-muted-foreground">Columns: name, username, email, plan (free/pro/enterprise), expires_at (YYYY-MM-DD, blank for free), password (optional — leave blank to auto-generate)</div>
+                    <div className="text-xs text-muted-foreground">Columns: name, username, email, plan (free/pro/club/enterprise), expires_at (YYYY-MM-DD, blank for free), password (optional — leave blank to auto-generate)</div>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={downloadSample}>
                     <Download className="h-3 w-3 mr-1" /> Sample CSV
