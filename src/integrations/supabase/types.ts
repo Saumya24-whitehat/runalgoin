@@ -969,6 +969,18 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_club_chat_teaser: {
+        Args: never
+        Returns: {
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          image_url: string
+          is_admin: boolean
+          user_id: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
