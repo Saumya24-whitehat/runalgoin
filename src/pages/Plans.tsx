@@ -157,6 +157,26 @@ const plans = [
     cta: "Upgrade to Pro",
     ctaVariant: "default" as const,
   },
+  {
+    name: "OptionWorld Club",
+    price: "₹3,500",
+    period: "per year",
+    description: "Pro + private community, ideas & analyst chat",
+    highlight: false,
+    badge: "Club Exclusive",
+    features: [
+      "Everything in Pro (yearly)",
+      "OptionWorld Club chat group",
+      "Analyst support & Q&A",
+      "Expert stock & option recommendations",
+      "Trade ideas with entry / SL / target",
+      "Discussions with active market participants",
+      "Accelerated market learning",
+    ],
+    limitations: [],
+    cta: "Join the Club",
+    ctaVariant: "default" as const,
+  },
 ];
 
 // Razorpay is temporarily disabled until account verification completes.
@@ -172,7 +192,7 @@ export default function Plans() {
   const [altModal, setAltModal] = useState<{
     open: boolean;
     method: "upi" | "paypal";
-    plan: "monthly" | "yearly";
+    plan: "monthly" | "yearly" | "club";
   }>({ open: false, method: "upi", plan: "monthly" });
   const [trialUsed, setTrialUsed] = useState<boolean>(false);
   const [trialLoading, setTrialLoading] = useState(false);
@@ -191,12 +211,25 @@ export default function Plans() {
       .then(({ data }) => setTrialUsed(!!data?.trial_used));
   }, [user]);
 
-  const planKey = (planName: string): "monthly" | "yearly" | null =>
-    planName === "Pro Monthly" ? "monthly" : planName === "Pro Yearly" ? "yearly" : null;
+  const planKey = (planName: string): "monthly" | "yearly" | "club" | null =>
+    planName === "Pro Monthly"
+      ? "monthly"
+      : planName === "Pro Yearly"
+      ? "yearly"
+      : planName === "OptionWorld Club"
+      ? "club"
+      : null;
 
   const handlePlanAction = (planName: string) => {
     if (!user) {
       navigate("/auth");
+      return;
+    }
+    const key = planKey(planName);
+    if (!key) return;
+    // Club is a superset of Pro — don't block if user is Pro but not Club yet.
+    if (key === "club" && subscription?.plan_type !== "club" && subscription?.plan_type !== "enterprise") {
+      startCheckout("club");
       return;
     }
     if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
@@ -322,7 +355,7 @@ export default function Plans() {
         {/* Pricing Cards */}
         <section className="py-12">
           <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {plans.map((plan, index) => (
                 <div
                   key={index}
@@ -371,22 +404,28 @@ export default function Plans() {
 
                   {(() => {
                     const isProPlan = plan.name === "Pro Monthly" || plan.name === "Pro Yearly";
-                    // Hide the main CTA for Pro plans while Razorpay is disabled — users pay via UPI/PayPal instead.
-                    if (isProPlan && !RAZORPAY_ENABLED && !isPro) return null;
+                    const isClubPlan = plan.name === "OptionWorld Club";
+                    const isPaidPlan = isProPlan || isClubPlan;
+                    const currentPlanType = subscription?.plan_type;
+                    const alreadyOnThis =
+                      (isClubPlan && (currentPlanType === "club" || currentPlanType === "enterprise")) ||
+                      (isProPlan && isPro && !(currentPlanType === "club" || currentPlanType === "enterprise"));
+                    // Hide the main CTA for paid plans while Razorpay is disabled — users pay via UPI/PayPal instead.
+                    if (isPaidPlan && !RAZORPAY_ENABLED && !alreadyOnThis) return null;
                     return (
                       <Button
                         variant={plan.ctaVariant}
                         size="lg"
                         onClick={() => handlePlanAction(plan.name)}
-                        disabled={(isProPlan && (isPro || checkoutLoading)) || (plan.name === "Free" && !isPro)}
+                        disabled={(isPaidPlan && (alreadyOnThis || checkoutLoading)) || (plan.name === "Free" && !isPro)}
                         className={`w-full text-lg py-6 ${
                           plan.highlight
                             ? "bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl hover:shadow-primary/25 transition-all"
                             : ""
-                        } ${(isProPlan && isPro) ? "opacity-50 cursor-not-allowed" : ""}`}
+                        } ${alreadyOnThis ? "opacity-50 cursor-not-allowed" : ""}`}
                       >
                         {plan.highlight && <Zap className="h-5 w-5 mr-2" />}
-                        {(isProPlan && isPro) ? (
+                        {alreadyOnThis ? (
                           <>
                             <Check className="h-5 w-5 mr-2" />
                             Current Plan
@@ -400,67 +439,67 @@ export default function Plans() {
                     );
                   })()}
 
-                  {(plan.name === "Pro Monthly" || plan.name === "Pro Yearly") && !isPro && (
-                    <div className="mt-3 space-y-2">
-                      {RAZORPAY_ENABLED && (
-                        <div className="flex items-center gap-2">
-                          <div className="h-px flex-1 bg-border" />
-                          <span className="text-xs text-muted-foreground">or pay via</span>
-                          <div className="h-px flex-1 bg-border" />
-                        </div>
-                      )}
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openAlt(plan.name, "upi")}
-                          className="gap-1.5"
-                        >
-                          <QrCode className="h-4 w-4" />
-                          UPI QR
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openAlt(plan.name, "paypal")}
-                          className="gap-1.5"
-                        >
-                          <Wallet className="h-4 w-4" />
-                          PayPal
-                        </Button>
-                      </div>
-
-                      {!trialUsed && (
-                        <>
-                          <div className="flex items-center gap-2 pt-1">
+                  {(() => {
+                    const isProPlan = plan.name === "Pro Monthly" || plan.name === "Pro Yearly";
+                    const isClubPlan = plan.name === "OptionWorld Club";
+                    const currentPlanType = subscription?.plan_type;
+                    const alreadyOnClub = currentPlanType === "club" || currentPlanType === "enterprise";
+                    if (!(isProPlan || isClubPlan)) return null;
+                    if (isProPlan && isPro) return null;
+                    if (isClubPlan && alreadyOnClub) return null;
+                    return (
+                      <div className="mt-3 space-y-2">
+                        {RAZORPAY_ENABLED && (
+                          <div className="flex items-center gap-2">
                             <div className="h-px flex-1 bg-border" />
-                            <span className="text-xs text-muted-foreground">or try free</span>
+                            <span className="text-xs text-muted-foreground">or pay via</span>
                             <div className="h-px flex-1 bg-border" />
                           </div>
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={startFreeTrial}
-                            disabled={trialLoading}
-                            className="w-full gap-1.5"
-                          >
-                            <Gift className="h-4 w-4" />
-                            {trialLoading ? "Activating…" : "Start 15-day Free Trial"}
+                        )}
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button variant="outline" size="sm" onClick={() => openAlt(plan.name, "upi")} className="gap-1.5">
+                            <QrCode className="h-4 w-4" />
+                            UPI QR
                           </Button>
-                        </>
-                      )}
-                      {trialUsed && !isPro && (
-                        <p className="text-xs text-muted-foreground text-center pt-1">
-                          Free trial already used on this account
-                        </p>
-                      )}
-                    </div>
-                  )}
+                          <Button variant="outline" size="sm" onClick={() => openAlt(plan.name, "paypal")} className="gap-1.5">
+                            <Wallet className="h-4 w-4" />
+                            PayPal
+                          </Button>
+                        </div>
+
+                        {isProPlan && !trialUsed && (
+                          <>
+                            <div className="flex items-center gap-2 pt-1">
+                              <div className="h-px flex-1 bg-border" />
+                              <span className="text-xs text-muted-foreground">or try free</span>
+                              <div className="h-px flex-1 bg-border" />
+                            </div>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={startFreeTrial}
+                              disabled={trialLoading}
+                              className="w-full gap-1.5"
+                            >
+                              <Gift className="h-4 w-4" />
+                              {trialLoading ? "Activating…" : "Start 15-day Free Trial"}
+                            </Button>
+                          </>
+                        )}
+                        {isProPlan && trialUsed && !isPro && (
+                          <p className="text-xs text-muted-foreground text-center pt-1">
+                            Free trial already used on this account
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
             </div>
           </div>
         </section>
+
 
         {/* Features Comparison */}
         <section className="py-20 bg-secondary/30">

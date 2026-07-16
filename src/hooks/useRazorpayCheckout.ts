@@ -26,7 +26,7 @@ export function useRazorpayCheckout() {
   const { refetch } = useSubscription();
   const [loading, setLoading] = useState(false);
 
-  const startCheckout = async (plan: "monthly" | "yearly") => {
+  const startCheckout = async (plan: "monthly" | "yearly" | "club") => {
     if (!user) {
       toast({ title: "Please sign in first", variant: "destructive" });
       return;
@@ -47,7 +47,7 @@ export function useRazorpayCheckout() {
         currency: data.currency,
         order_id: data.orderId,
         name: "OptionWorld",
-        description: plan === "monthly" ? "Pro Monthly (₹150)" : "Pro Yearly (₹1,500)",
+        description: plan === "monthly" ? "Pro Monthly (₹150)" : plan === "yearly" ? "Pro Yearly (₹1,500)" : "OptionWorld Club (₹3,500/yr)",
         prefill: {
           email: user.email ?? "",
         },

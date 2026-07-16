@@ -11,7 +11,7 @@ export function useSelfDeclaredPayment() {
 
   const submit = async (params: {
     method: "paypal" | "upi";
-    plan: "monthly" | "yearly";
+    plan: "monthly" | "yearly" | "club";
     transactionId: string;
   }) => {
     if (!user) {

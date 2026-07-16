@@ -38,14 +38,14 @@ Deno.serve(async (req) => {
     const userId = userData.user.id;
 
     const { plan } = await req.json();
-    if (plan !== 'monthly' && plan !== 'yearly') {
+    if (plan !== 'monthly' && plan !== 'yearly' && plan !== 'club') {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    const amount = plan === 'monthly' ? 150 * 100 : 1500 * 100;
+    const amount = plan === 'monthly' ? 150 * 100 : plan === 'yearly' ? 1500 * 100 : 3500 * 100;
     const receipt = `rcpt_${Date.now()}`;
 
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`);

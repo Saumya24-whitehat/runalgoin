@@ -78,6 +78,7 @@ const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const InvoiceView = lazy(() => import("./pages/InvoiceView"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const OptionWorldClub = lazy(() => import("./pages/OptionWorldClub"));
 
 const queryClient = new QueryClient();
 
@@ -170,6 +171,7 @@ const App = () => (
                 <Route path="/admin/blog/new" element={<BlogEditor />} />
                 <Route path="/admin/blog/:id" element={<BlogEditor />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/optionworld-club" element={<OptionWorldClub />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />
