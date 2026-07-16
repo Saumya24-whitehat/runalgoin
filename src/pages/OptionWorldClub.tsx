@@ -42,15 +42,7 @@ export default function OptionWorldClub() {
           <div className="flex items-center justify-center py-24">
             <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
-        ) : !user ? (
-          <div className="max-w-md mx-auto text-center py-16 space-y-4">
-            <Crown className="w-10 h-10 mx-auto text-primary" />
-            <h1 className="text-2xl font-bold">Sign in to access the Club</h1>
-            <Button onClick={() => navigate("/auth?redirect=/optionworld-club")}>
-              Sign in
-            </Button>
-          </div>
-        ) : !isClub && !isAdmin ? (
+        ) : !user || (!isClub && !isAdmin) ? (
           <ClubGate />
         ) : (
           <div className="container mx-auto px-2 sm:px-4 py-4 max-w-3xl">
