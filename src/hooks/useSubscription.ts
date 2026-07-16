@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface Subscription {
-  plan_type: "free" | "pro" | "enterprise";
+  plan_type: "free" | "pro" | "club" | "enterprise";
   status: "active" | "cancelled" | "expired";
   expires_at: string | null;
 }
