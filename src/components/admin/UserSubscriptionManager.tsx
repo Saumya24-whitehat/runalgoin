@@ -291,6 +291,13 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
             Pro
           </Badge>
         );
+      case "club":
+        return (
+          <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
+            <Crown className="h-3 w-3 mr-1" />
+            Club
+          </Badge>
+        );
       case "enterprise":
         return (
           <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">
