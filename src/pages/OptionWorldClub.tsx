@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 export default function OptionWorldClub() {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { isClub, loading: subLoading } = useSubscription();
+  const { isClub, isAdmin, loading: subLoading } = useSubscription();
   const { categories, loading: catsLoading } = useClubCategories();
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
   const [tab, setTab] = useState<"feed" | "chat">("feed");
