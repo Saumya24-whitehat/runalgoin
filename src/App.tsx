@@ -171,6 +171,7 @@ const App = () => (
                 <Route path="/admin/blog/new" element={<BlogEditor />} />
                 <Route path="/admin/blog/:id" element={<BlogEditor />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
+                <Route path="/optionworld-club" element={<OptionWorldClub />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />
