@@ -211,12 +211,25 @@ export default function Plans() {
       .then(({ data }) => setTrialUsed(!!data?.trial_used));
   }, [user]);
 
-  const planKey = (planName: string): "monthly" | "yearly" | null =>
-    planName === "Pro Monthly" ? "monthly" : planName === "Pro Yearly" ? "yearly" : null;
+  const planKey = (planName: string): "monthly" | "yearly" | "club" | null =>
+    planName === "Pro Monthly"
+      ? "monthly"
+      : planName === "Pro Yearly"
+      ? "yearly"
+      : planName === "OptionWorld Club"
+      ? "club"
+      : null;
 
   const handlePlanAction = (planName: string) => {
     if (!user) {
       navigate("/auth");
+      return;
+    }
+    const key = planKey(planName);
+    if (!key) return;
+    // Club is a superset of Pro — don't block if user is Pro but not Club yet.
+    if (key === "club" && subscription?.plan_type !== "club" && subscription?.plan_type !== "enterprise") {
+      startCheckout("club");
       return;
     }
     if (planName === "Pro Monthly" && !isPro) startCheckout("monthly");
