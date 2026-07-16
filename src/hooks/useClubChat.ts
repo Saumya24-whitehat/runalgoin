@@ -43,16 +43,10 @@ export function useClubChat(categoryId: string | null) {
     }
 
     if (missingRoles.length) {
-      const { data } = await supabase
-        .from("user_roles")
-        .select("user_id, role")
-        .in("user_id", missingRoles)
-        .eq("role", "admin");
+      const { data } = await supabase.rpc("get_club_admin_ids");
+      const adminSet = new Set(((data || []) as any[]).map((r: any) => r.user_id));
       missingRoles.forEach((id) => {
-        adminCache.current[id] = false;
-      });
-      (data || []).forEach((r: any) => {
-        adminCache.current[r.user_id] = true;
+        adminCache.current[id] = adminSet.has(id);
       });
     }
 
