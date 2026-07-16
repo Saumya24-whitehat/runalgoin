@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
 
     const body = await req.json();
     const { name, username, email, plan, expiresAt, password } = body as {
-      name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt?: string | null; password?: string | null;
+      name: string; username: string; email: string; plan: "free" | "pro" | "club" | "enterprise"; expiresAt?: string | null; password?: string | null;
     };
     if (!name || !email || !plan) {
       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });

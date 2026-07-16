@@ -64,7 +64,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [plan, setPlan] = useState<"free" | "pro" | "enterprise">("pro");
+  const [plan, setPlan] = useState<"free" | "pro" | "club" | "enterprise">("pro");
   const [expiresAt, setExpiresAt] = useState<string>(() => {
     const d = new Date();
     d.setMonth(d.getMonth() + 1);
@@ -89,7 +89,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
   const handleClose = () => { reset(); onClose(); };
 
   const createOne = async (payload: {
-    name: string; username: string; email: string; plan: "free" | "pro" | "enterprise"; expiresAt: string | null; password?: string | null;
+    name: string; username: string; email: string; plan: "free" | "pro" | "club" | "enterprise"; expiresAt: string | null; password?: string | null;
   }): Promise<CreatedUser> => {
     const { data, error } = await supabase.functions.invoke("admin-create-user", {
       body: {
@@ -150,12 +150,12 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
     const out: CreatedUser[] = [];
     for (let i = 0; i < csvRows.length; i++) {
       const row = csvRows[i];
-      const p = (row.plan || "free").toLowerCase() as "free" | "pro" | "enterprise";
+      const p = (row.plan || "free").toLowerCase() as "free" | "pro" | "club" | "enterprise";
       const r = await createOne({
         name: row.name || "",
         username: row.username || "",
         email: (row.email || "").toLowerCase(),
-        plan: ["free", "pro", "enterprise"].includes(p) ? p : "free",
+        plan: ["free", "pro", "club", "enterprise"].includes(p) ? p : "free",
         expiresAt: row.expires_at || row["expires_at"] || null,
         password: (row.password || "").trim() || null,
       });
@@ -271,6 +271,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                       <SelectContent>
                         <SelectItem value="free">Free (unpaid)</SelectItem>
                         <SelectItem value="pro">Pro</SelectItem>
+                        <SelectItem value="club">Club</SelectItem>
                         <SelectItem value="enterprise">Enterprise</SelectItem>
                       </SelectContent>
                     </Select>
@@ -295,7 +296,7 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                 <div className="flex items-center justify-between rounded border border-border p-3 bg-muted/30">
                   <div className="text-sm">
                     <div className="font-medium">CSV format</div>
-                    <div className="text-xs text-muted-foreground">Columns: name, username, email, plan (free/pro/enterprise), expires_at (YYYY-MM-DD, blank for free), password (optional — leave blank to auto-generate)</div>
+                    <div className="text-xs text-muted-foreground">Columns: name, username, email, plan (free/pro/club/enterprise), expires_at (YYYY-MM-DD, blank for free), password (optional — leave blank to auto-generate)</div>
                   </div>
                   <Button type="button" variant="outline" size="sm" onClick={downloadSample}>
                     <Download className="h-3 w-3 mr-1" /> Sample CSV
