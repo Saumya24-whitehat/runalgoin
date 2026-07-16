@@ -192,7 +192,7 @@ export default function Plans() {
   const [altModal, setAltModal] = useState<{
     open: boolean;
     method: "upi" | "paypal";
-    plan: "monthly" | "yearly";
+    plan: "monthly" | "yearly" | "club";
   }>({ open: false, method: "upi", plan: "monthly" });
   const [trialUsed, setTrialUsed] = useState<boolean>(false);
   const [trialLoading, setTrialLoading] = useState(false);
