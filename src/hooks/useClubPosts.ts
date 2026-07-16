@@ -133,5 +133,27 @@ export function useClubPosts(categoryId: string | null) {
     return true;
   };
 
-  return { posts, loading, create, refresh: load };
+  const update = async (id: string, values: Partial<ClubPost>) => {
+    const { error } = await supabase.from("club_posts").update(values as any).eq("id", id);
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+      return false;
+    }
+    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, ...values } as ClubPost : p)));
+    toast({ title: "Post updated" });
+    return true;
+  };
+
+  const remove = async (id: string) => {
+    const { error } = await supabase.from("club_posts").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+      return false;
+    }
+    setPosts((prev) => prev.filter((p) => p.id !== id));
+    toast({ title: "Post deleted" });
+    return true;
+  };
+
+  return { posts, loading, create, update, remove, refresh: load };
 }
