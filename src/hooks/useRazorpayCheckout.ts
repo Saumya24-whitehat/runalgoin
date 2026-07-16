@@ -47,7 +47,7 @@ export function useRazorpayCheckout() {
         currency: data.currency,
         order_id: data.orderId,
         name: "OptionWorld",
-        description: plan === "monthly" ? "Pro Monthly (₹150)" : "Pro Yearly (₹1,500)",
+        description: plan === "monthly" ? "Pro Monthly (₹150)" : plan === "yearly" ? "Pro Yearly (₹1,500)" : "OptionWorld Club (₹3,500/yr)",
         prefill: {
           email: user.email ?? "",
         },
