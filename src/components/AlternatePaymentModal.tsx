@@ -76,12 +76,12 @@ export function AlternatePaymentModal({ open, onOpenChange, method, plan }: Prop
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {method === "upi" ? "Pay via UPI" : "Pay via PayPal"} — Pro {plan === "monthly" ? "Monthly" : "Yearly"}
+            {method === "upi" ? "Pay via UPI" : "Pay via PayPal"} — {PLAN_LABEL[plan]}
           </DialogTitle>
           <DialogDescription>
             {method === "upi"
-              ? `Scan the QR or pay ₹${amountInr} to the UPI ID below, then enter your UTR / transaction ID to activate Pro instantly.`
-              : `Send $${amountUsd} (~₹${amountInr}) via PayPal, then paste the PayPal transaction ID to activate Pro instantly.`}
+              ? `Scan the QR or pay ₹${amountInr} to the UPI ID below, then enter your UTR / transaction ID to activate ${PLAN_LABEL[plan]} instantly.`
+              : `Send $${amountUsd} (~₹${amountInr}) via PayPal, then paste the PayPal transaction ID to activate ${PLAN_LABEL[plan]} instantly.`}
           </DialogDescription>
         </DialogHeader>
 
