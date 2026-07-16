@@ -438,6 +438,7 @@ export function UserSubscriptionManager({ isOpen, onClose }: UserSubscriptionMan
                             <SelectContent>
                               <SelectItem value="free">Free</SelectItem>
                               <SelectItem value="pro">Pro</SelectItem>
+                              <SelectItem value="club">Club</SelectItem>
                               <SelectItem value="enterprise">Enterprise</SelectItem>
                             </SelectContent>
                           </Select>
