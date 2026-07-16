@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
-    if (plan !== 'monthly' && plan !== 'yearly') {
+    if (plan !== 'monthly' && plan !== 'yearly' && plan !== 'club') {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -55,9 +55,10 @@ Deno.serve(async (req) => {
     const now = new Date();
     const expires = new Date(now);
     if (plan === 'monthly') expires.setMonth(expires.getMonth() + 1);
-    else expires.setFullYear(expires.getFullYear() + 1);
+    else expires.setFullYear(expires.getFullYear() + 1); // yearly + club both 1 year
 
-    const amount = plan === 'monthly' ? 150 * 100 : 1500 * 100;
+    const amount = plan === 'monthly' ? 150 * 100 : plan === 'yearly' ? 1500 * 100 : 3500 * 100;
+    const newPlanType = plan === 'club' ? 'club' : 'pro';
     const manualOrderId = `manual_${method}_${Date.now()}_${userId.slice(0, 8)}`;
 
     // Prior subscription for audit
