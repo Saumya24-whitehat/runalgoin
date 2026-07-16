@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
     const { error: upErr } = await supabase.from('subscriptions').upsert(
       {
         user_id: userId,
-        plan_type: 'pro',
+        plan_type: newPlanType,
         status: 'active',
         started_at: now.toISOString(),
         expires_at: expires.toISOString(),
