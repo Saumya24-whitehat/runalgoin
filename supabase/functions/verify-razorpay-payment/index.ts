@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
     const now = new Date();
     const expires = new Date(now);
     if (plan === 'monthly') expires.setMonth(expires.getMonth() + 1);
-    else if (plan === 'yearly') expires.setFullYear(expires.getFullYear() + 1);
+    else if (plan === 'yearly' || plan === 'club') expires.setFullYear(expires.getFullYear() + 1);
     else {
       return new Response(JSON.stringify({ error: 'Invalid plan' }), {
         status: 400,
@@ -72,7 +72,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    const amount = plan === 'monthly' ? 150 * 100 : 1500 * 100;
+    const amount = plan === 'monthly' ? 150 * 100 : plan === 'yearly' ? 1500 * 100 : 3500 * 100;
+    const newPlanType = plan === 'club' ? 'club' : 'pro';
 
     // Get prior subscription for audit
     const { data: prior } = await supabase
