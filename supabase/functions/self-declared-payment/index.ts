@@ -132,9 +132,9 @@ Deno.serve(async (req) => {
     await supabase.from('subscription_audit_log').insert({
       user_id: userId,
       user_email: userEmail,
-      action: prior?.plan_type === 'pro' ? 'renewal' : 'upgrade',
+      action: prior?.plan_type === newPlanType ? 'renewal' : 'upgrade',
       old_plan: prior?.plan_type ?? 'free',
-      new_plan: 'pro',
+      new_plan: newPlanType,
       old_status: prior?.status ?? null,
       new_status: 'active',
       expires_at: expires.toISOString(),
