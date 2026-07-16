@@ -83,13 +83,16 @@ export function useSubscription() {
       });
   }, [user, rawSub, isExpired]);
 
-  const isPro = (sub?.plan_type === "pro" || sub?.plan_type === "enterprise");
+  const isClub = (sub?.plan_type === "club" || sub?.plan_type === "enterprise");
+  // Club is a superset of Pro — keep existing Pro gates working for club members.
+  const isPro = (sub?.plan_type === "pro" || sub?.plan_type === "club" || sub?.plan_type === "enterprise");
   const isEnterprise = sub?.plan_type === "enterprise";
 
   return {
     subscription: sub,
     loading: !!user && loading,
     isPro,
+    isClub,
     isEnterprise,
     isAdmin,
     refetch: refetchSub,
