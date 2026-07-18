@@ -40,12 +40,16 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { name, username, email, plan, expiresAt, password } = body as {
-      name: string; username: string; email: string; plan: "free" | "pro" | "club" | "enterprise"; expiresAt?: string | null; password?: string | null;
+    const { name, username, email: rawEmail, plan, expiresAt, password } = body as {
+      name: string; username: string; email?: string | null; plan: "free" | "pro" | "club" | "enterprise"; expiresAt?: string | null; password?: string | null;
     };
-    if (!name || !email || !plan) {
+    if (!name || !plan) {
       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const providedEmail = (rawEmail ?? "").toString().trim().toLowerCase();
+    // If admin did not provide an email, mint a placeholder. User will replace it on first login.
+    const emailPending = !providedEmail;
+    const email = providedEmail || `pending+${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}@pending.optionworld.tech`;
 
     const providedPassword = (password ?? "").toString().trim();
     if (providedPassword && providedPassword.length < 6) {
