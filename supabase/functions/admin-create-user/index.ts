@@ -90,7 +90,10 @@ Deno.serve(async (req) => {
     const loginUrl = `${origin}/auth`;
     let emailSent = false;
     let emailError: string | null = null;
-    if (RESEND_KEY) {
+    if (emailPending) {
+      // No real email on file — skip sending. Admin will share creds manually.
+      emailError = "no_email_on_file";
+    } else if (RESEND_KEY) {
       const html = `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#111">
           <h2 style="margin:0 0 12px">Welcome to OptionWorld, ${name}!</h2>
