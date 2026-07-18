@@ -143,6 +143,7 @@ Deno.serve(async (req) => {
       email,
       emailPending,
       tempPassword,
+      loginLink,
       emailSent,
       emailError,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
