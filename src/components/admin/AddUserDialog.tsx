@@ -18,7 +18,9 @@ interface Props {
 type CreatedUser = {
   name: string;
   email: string;
+  emailPending: boolean;
   tempPassword: string;
+  loginLink: string | null;
   emailSent: boolean;
   error?: string;
 };
@@ -42,17 +44,28 @@ function parseCsv(text: string): Array<Record<string, string>> {
   });
 }
 
-function buildInvitation(origin: string, email: string, tempPassword: string, name: string) {
-  const loginUrl = `${origin}/auth`;
-  return `Hi ${name},
-
-Your OptionWorld account is ready.
-
-Login URL: ${loginUrl}
-Email: ${email}
-Temporary Password: ${tempPassword}
-
-On first login you'll be asked to change your password and complete your profile.`;
+function buildInvitation(origin: string, u: CreatedUser) {
+  const lines = [
+    `Hi ${u.name},`,
+    ``,
+    `Your OptionWorld account is ready.`,
+    ``,
+  ];
+  if (u.loginLink) {
+    lines.push(`One-click login (opens once):`);
+    lines.push(u.loginLink);
+    lines.push(``);
+  }
+  if (!u.emailPending) {
+    lines.push(`Login URL: ${origin}/auth`);
+    lines.push(`Email: ${u.email}`);
+  } else {
+    lines.push(`Login URL: ${origin}/auth  (after first login, use the email you set)`);
+  }
+  lines.push(`Temporary Password: ${u.tempPassword}`);
+  lines.push(``);
+  lines.push(`On first login you'll be asked to ${u.emailPending ? "add your email, " : ""}change your password and complete your profile.`);
+  return lines.join("\n");
 }
 
 export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
