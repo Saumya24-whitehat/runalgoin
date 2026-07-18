@@ -236,14 +236,21 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground w-32">Invitation link</div>
-                        <code className="font-mono text-xs flex-1 break-all">{origin}/auth</code>
-                        <Button size="sm" variant="outline" onClick={() => copy(`${origin}/auth`, "Link copied")}>
+                        <div className="text-xs text-muted-foreground w-32">
+                          {r.loginLink ? "One-click login" : "Login URL"}
+                        </div>
+                        <code className="font-mono text-xs flex-1 break-all">{r.loginLink ?? `${origin}/auth`}</code>
+                        <Button size="sm" variant="outline" onClick={() => copy(r.loginLink ?? `${origin}/auth`, "Link copied")}>
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
+                      {r.emailPending && (
+                        <div className="text-[11px] text-amber-600 dark:text-amber-500">
+                          No email on file — share the one-click login link with the user. They'll set their real email on first login.
+                        </div>
+                      )}
                       <div className="flex justify-end">
-                        <Button size="sm" variant="secondary" onClick={() => copy(buildInvitation(origin, r.email, r.tempPassword, r.name), "Invitation copied")}>
+                        <Button size="sm" variant="secondary" onClick={() => copy(buildInvitation(origin, r), "Invitation copied")}>
                           <Copy className="h-3 w-3 mr-1" /> Copy full invitation
                         </Button>
                       </div>
