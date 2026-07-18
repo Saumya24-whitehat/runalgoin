@@ -110,8 +110,8 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
 
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) {
-      toast({ title: "Name and email required", variant: "destructive" });
+    if (!name.trim()) {
+      toast({ title: "Name required", variant: "destructive" });
       return;
     }
     setLoading(true);
@@ -127,7 +127,13 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
     setResults([r]);
     if (r.error) toast({ title: "Failed to create user", description: r.error, variant: "destructive" });
     else {
-      toast({ title: "User created", description: r.emailSent ? "Welcome email sent." : "User created — email failed. Share invitation manually." });
+      const noEmail = !email.trim();
+      toast({
+        title: "User created",
+        description: noEmail
+          ? "No email set — share the temp login and username with the user; they'll add their email on first login."
+          : (r.emailSent ? "Welcome email sent." : "User created — email failed. Share invitation manually."),
+      });
       onCreated?.();
     }
   };
@@ -256,8 +262,8 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                   <Input id="au-username" value={username} onChange={(e) => setUsername(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="au-email">Email *</Label>
-                  <Input id="au-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Label htmlFor="au-email">Email (optional)</Label>
+                  <Input id="au-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Leave blank — user adds it on first login" />
                 </div>
                 <div>
                   <Label htmlFor="au-password">Password (optional)</Label>

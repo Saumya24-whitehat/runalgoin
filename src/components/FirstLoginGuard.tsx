@@ -24,7 +24,8 @@ export function FirstLoginGuard() {
         .eq("user_id", user.id)
         .maybeSingle();
       setCheckedFor(user.id);
-      if (data?.must_change_password && !ALLOWED.includes(location.pathname)) {
+      const pendingEmail = (user.email ?? "").toLowerCase().endsWith("@pending.optionworld.tech");
+      if ((data?.must_change_password || pendingEmail) && !ALLOWED.includes(location.pathname)) {
         navigate("/welcome", { replace: true });
       }
     })();

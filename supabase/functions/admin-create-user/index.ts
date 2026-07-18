@@ -40,12 +40,16 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { name, username, email, plan, expiresAt, password } = body as {
-      name: string; username: string; email: string; plan: "free" | "pro" | "club" | "enterprise"; expiresAt?: string | null; password?: string | null;
+    const { name, username, email: rawEmail, plan, expiresAt, password } = body as {
+      name: string; username: string; email?: string | null; plan: "free" | "pro" | "club" | "enterprise"; expiresAt?: string | null; password?: string | null;
     };
-    if (!name || !email || !plan) {
+    if (!name || !plan) {
       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const providedEmail = (rawEmail ?? "").toString().trim().toLowerCase();
+    // If admin did not provide an email, mint a placeholder. User will replace it on first login.
+    const emailPending = !providedEmail;
+    const email = providedEmail || `pending+${crypto.randomUUID().replace(/-/g, "").slice(0, 16)}@pending.optionworld.tech`;
 
     const providedPassword = (password ?? "").toString().trim();
     if (providedPassword && providedPassword.length < 6) {
@@ -86,7 +90,10 @@ Deno.serve(async (req) => {
     const loginUrl = `${origin}/auth`;
     let emailSent = false;
     let emailError: string | null = null;
-    if (RESEND_KEY) {
+    if (emailPending) {
+      // No real email on file — skip sending. Admin will share creds manually.
+      emailError = "no_email_on_file";
+    } else if (RESEND_KEY) {
       const html = `
         <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#111">
           <h2 style="margin:0 0 12px">Welcome to OptionWorld, ${name}!</h2>
@@ -120,6 +127,8 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: true,
       userId: newUserId,
+      email,
+      emailPending,
       tempPassword,
       emailSent,
       emailError,
