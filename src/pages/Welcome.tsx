@@ -9,13 +9,17 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
+const PENDING_SUFFIX = "@pending.optionworld.tech";
+
 const Welcome = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, refreshSession } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [needsEmail, setNeedsEmail] = useState(false);
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [saving, setSaving] = useState(false);
@@ -33,13 +37,16 @@ const Welcome = () => {
         .select("name, username, phone, must_change_password")
         .eq("user_id", user.id)
         .maybeSingle();
-      if (!data?.must_change_password) {
+      const pendingEmail = (user.email ?? "").toLowerCase().endsWith(PENDING_SUFFIX);
+      if (!data?.must_change_password && !pendingEmail) {
         navigate("/dashboard");
         return;
       }
-      setName(data.name ?? "");
-      setUsername(data.username ?? "");
-      setPhone(data.phone ?? "");
+      setName(data?.name ?? "");
+      setUsername(data?.username ?? "");
+      setPhone(data?.phone ?? "");
+      setNeedsEmail(pendingEmail);
+      setEmail(pendingEmail ? "" : (user.email ?? ""));
       setChecking(false);
     })();
   }, [user, loading, navigate]);
@@ -58,7 +65,28 @@ const Welcome = () => {
       toast({ title: "Fill required fields", description: "Name and phone are required.", variant: "destructive" });
       return;
     }
+    if (needsEmail) {
+      const clean = email.trim().toLowerCase();
+      if (!clean || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean) || clean.endsWith(PENDING_SUFFIX)) {
+        toast({ title: "Enter a valid email address", variant: "destructive" });
+        return;
+      }
+    }
     setSaving(true);
+
+    if (needsEmail) {
+      const { data, error } = await supabase.functions.invoke("set-my-email", {
+        body: { email: email.trim().toLowerCase() },
+      });
+      const errMsg = error?.message || (data as any)?.error;
+      if (errMsg) {
+        setSaving(false);
+        toast({ title: "Email update failed", description: errMsg, variant: "destructive" });
+        return;
+      }
+      await refreshSession();
+    }
+
     const { error: pwErr } = await supabase.auth.updateUser({ password });
     if (pwErr) {
       setSaving(false);
@@ -96,7 +124,11 @@ const Welcome = () => {
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Complete your account</CardTitle>
-          <CardDescription>Set a new password and confirm your details to continue.</CardDescription>
+          <CardDescription>
+            {needsEmail
+              ? "Add your email, set a new password, and confirm your details to continue."
+              : "Set a new password and confirm your details to continue."}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -108,6 +140,13 @@ const Welcome = () => {
               <Label htmlFor="username">Username</Label>
               <Input id="username" value={username} onChange={(e) => setUsername(e.target.value)} />
             </div>
+            {needsEmail && (
+              <div>
+                <Label htmlFor="email">Email *</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required placeholder="you@example.com" />
+                <p className="text-xs text-muted-foreground mt-1">You'll use this email to log in from now on.</p>
+              </div>
+            )}
             <div>
               <Label htmlFor="phone">Phone *</Label>
               <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required />
