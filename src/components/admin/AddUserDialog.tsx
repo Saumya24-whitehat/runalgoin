@@ -115,10 +115,10 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
       },
     });
     if (error || (data as any)?.error) {
-      return { name: payload.name, email: payload.email, tempPassword: "", emailSent: false, error: error?.message || (data as any)?.error };
+      return { name: payload.name, email: payload.email, emailPending: !payload.email, tempPassword: "", loginLink: null, emailSent: false, error: error?.message || (data as any)?.error };
     }
-    const r = data as { tempPassword: string; emailSent: boolean };
-    return { name: payload.name, email: payload.email, tempPassword: r.tempPassword, emailSent: r.emailSent };
+    const r = data as { email: string; emailPending: boolean; tempPassword: string; loginLink: string | null; emailSent: boolean };
+    return { name: payload.name, email: r.email, emailPending: r.emailPending, tempPassword: r.tempPassword, loginLink: r.loginLink, emailSent: r.emailSent };
   };
 
   const handleSingleSubmit = async (e: React.FormEvent) => {
