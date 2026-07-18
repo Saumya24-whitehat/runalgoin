@@ -91,13 +91,25 @@ Deno.serve(async (req) => {
     const loginUrl = `${origin}/auth`;
     let loginLink: string | null = null;
     try {
-      const { data: linkData } = await admin.auth.admin.generateLink({
+      const { data: linkData, error: linkErr } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email,
         options: { redirectTo: `${origin}/welcome` },
       });
+      if (linkErr) console.error("generateLink magiclink error:", linkErr);
       loginLink = linkData?.properties?.action_link ?? null;
-    } catch (_) {
+      if (!loginLink) {
+        const { data: recData, error: recErr } = await admin.auth.admin.generateLink({
+          type: "recovery",
+          email,
+          options: { redirectTo: `${origin}/welcome` },
+        });
+        if (recErr) console.error("generateLink recovery error:", recErr);
+        loginLink = recData?.properties?.action_link ?? null;
+      }
+      console.log("loginLink generated:", !!loginLink);
+    } catch (e) {
+      console.error("generateLink threw:", e);
       loginLink = null;
     }
 
