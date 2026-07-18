@@ -262,8 +262,8 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                   <Input id="au-username" value={username} onChange={(e) => setUsername(e.target.value)} />
                 </div>
                 <div>
-                  <Label htmlFor="au-email">Email *</Label>
-                  <Input id="au-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  <Label htmlFor="au-email">Email (optional)</Label>
+                  <Input id="au-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Leave blank — user adds it on first login" />
                 </div>
                 <div>
                   <Label htmlFor="au-password">Password (optional)</Label>
