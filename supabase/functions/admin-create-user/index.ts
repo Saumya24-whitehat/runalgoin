@@ -85,9 +85,22 @@ Deno.serve(async (req) => {
       started_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
-    // Send welcome email via Resend
+    // Origin & one-time magic login link (works even when the user has no real email — the link
+    // itself carries the token; we just don't email it, admin shares it manually).
     const origin = req.headers.get("origin") ?? "https://optionworld.tech";
     const loginUrl = `${origin}/auth`;
+    let loginLink: string | null = null;
+    try {
+      const { data: linkData } = await admin.auth.admin.generateLink({
+        type: "magiclink",
+        email,
+        options: { redirectTo: `${origin}/welcome` },
+      });
+      loginLink = linkData?.properties?.action_link ?? null;
+    } catch (_) {
+      loginLink = null;
+    }
+
     let emailSent = false;
     let emailError: string | null = null;
     if (emailPending) {
@@ -130,6 +143,7 @@ Deno.serve(async (req) => {
       email,
       emailPending,
       tempPassword,
+      loginLink,
       emailSent,
       emailError,
     }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });

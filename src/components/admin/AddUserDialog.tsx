@@ -18,7 +18,9 @@ interface Props {
 type CreatedUser = {
   name: string;
   email: string;
+  emailPending: boolean;
   tempPassword: string;
+  loginLink: string | null;
   emailSent: boolean;
   error?: string;
 };
@@ -42,17 +44,28 @@ function parseCsv(text: string): Array<Record<string, string>> {
   });
 }
 
-function buildInvitation(origin: string, email: string, tempPassword: string, name: string) {
-  const loginUrl = `${origin}/auth`;
-  return `Hi ${name},
-
-Your OptionWorld account is ready.
-
-Login URL: ${loginUrl}
-Email: ${email}
-Temporary Password: ${tempPassword}
-
-On first login you'll be asked to change your password and complete your profile.`;
+function buildInvitation(origin: string, u: CreatedUser) {
+  const lines = [
+    `Hi ${u.name},`,
+    ``,
+    `Your OptionWorld account is ready.`,
+    ``,
+  ];
+  if (u.loginLink) {
+    lines.push(`One-click login (opens once):`);
+    lines.push(u.loginLink);
+    lines.push(``);
+  }
+  if (!u.emailPending) {
+    lines.push(`Login URL: ${origin}/auth`);
+    lines.push(`Email: ${u.email}`);
+  } else {
+    lines.push(`Login URL: ${origin}/auth  (after first login, use the email you set)`);
+  }
+  lines.push(`Temporary Password: ${u.tempPassword}`);
+  lines.push(``);
+  lines.push(`On first login you'll be asked to ${u.emailPending ? "add your email, " : ""}change your password and complete your profile.`);
+  return lines.join("\n");
 }
 
 export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
@@ -102,10 +115,10 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
       },
     });
     if (error || (data as any)?.error) {
-      return { name: payload.name, email: payload.email, tempPassword: "", emailSent: false, error: error?.message || (data as any)?.error };
+      return { name: payload.name, email: payload.email, emailPending: !payload.email, tempPassword: "", loginLink: null, emailSent: false, error: error?.message || (data as any)?.error };
     }
-    const r = data as { tempPassword: string; emailSent: boolean };
-    return { name: payload.name, email: payload.email, tempPassword: r.tempPassword, emailSent: r.emailSent };
+    const r = data as { email: string; emailPending: boolean; tempPassword: string; loginLink: string | null; emailSent: boolean };
+    return { name: payload.name, email: r.email, emailPending: r.emailPending, tempPassword: r.tempPassword, loginLink: r.loginLink, emailSent: r.emailSent };
   };
 
   const handleSingleSubmit = async (e: React.FormEvent) => {
@@ -223,14 +236,21 @@ export function AddUserDialog({ isOpen, onClose, onCreated }: Props) {
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className="text-xs text-muted-foreground w-32">Invitation link</div>
-                        <code className="font-mono text-xs flex-1 break-all">{origin}/auth</code>
-                        <Button size="sm" variant="outline" onClick={() => copy(`${origin}/auth`, "Link copied")}>
+                        <div className="text-xs text-muted-foreground w-32">
+                          {r.loginLink ? "One-click login" : "Login URL"}
+                        </div>
+                        <code className="font-mono text-xs flex-1 break-all">{r.loginLink ?? `${origin}/auth`}</code>
+                        <Button size="sm" variant="outline" onClick={() => copy(r.loginLink ?? `${origin}/auth`, "Link copied")}>
                           <Copy className="h-3 w-3" />
                         </Button>
                       </div>
+                      {r.emailPending && (
+                        <div className="text-[11px] text-amber-600 dark:text-amber-500">
+                          No email on file — share the one-click login link with the user. They'll set their real email on first login.
+                        </div>
+                      )}
                       <div className="flex justify-end">
-                        <Button size="sm" variant="secondary" onClick={() => copy(buildInvitation(origin, r.email, r.tempPassword, r.name), "Invitation copied")}>
+                        <Button size="sm" variant="secondary" onClick={() => copy(buildInvitation(origin, r), "Invitation copied")}>
                           <Copy className="h-3 w-3 mr-1" /> Copy full invitation
                         </Button>
                       </div>
