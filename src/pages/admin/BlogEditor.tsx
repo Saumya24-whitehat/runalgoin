@@ -35,6 +35,7 @@ import {
   Save,
   Send,
   Loader2,
+  Upload,
   X,
 } from "lucide-react";
 
@@ -81,6 +82,27 @@ export default function BlogEditor() {
   const [showPreview, setShowPreview] = useState(true);
   const [slugTouched, setSlugTouched] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File) => {
+    const name = file.name.toLowerCase();
+    if (!/\.(html?|md|txt)$/.test(name)) {
+      toast.error("Upload an .html, .md or .txt file");
+      return;
+    }
+    try {
+      const text = await file.text();
+      update("content", form.content ? `${form.content}\n\n${text}` : text);
+      if (!form.title.trim()) {
+        const base = file.name.replace(/\.[^.]+$/, "");
+        update("title", base);
+        if (!slugTouched) update("slug", slugify(base));
+      }
+      toast.success(`Imported ${file.name}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to read file");
+    }
+  };
 
   useEffect(() => {
     if (!isEdit) return;
@@ -279,8 +301,30 @@ export default function BlogEditor() {
           <Separator orientation="vertical" className="h-6 mx-1" />
           {toolbarBtn(<LinkIcon className="h-4 w-4" />, "Link", () => insert("[", "](https://)", "text"))}
           {toolbarBtn(<ImageIcon className="h-4 w-4" />, "Image", () => insert("![alt](", ")", "https://"))}
+          <Separator orientation="vertical" className="h-6 mx-1" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".html,.htm,.md,.txt,text/html,text/markdown,text/plain"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleUpload(f);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+            className="h-8 gap-1"
+          >
+            <Upload className="h-4 w-4" />
+            Import HTML
+          </Button>
         </div>
       </div>
+
 
       {/* Body: editor + preview + sidebar */}
       <div className="flex-1 container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
