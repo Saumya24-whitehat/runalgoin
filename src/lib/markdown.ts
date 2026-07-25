@@ -39,8 +39,21 @@ export function renderMarkdown(md: string): string {
   // Self-closing / void block tags on their own line: <hr/>, <iframe .../>, <img ... />
   source = source.replace(/^<[a-zA-Z][^\n<>]*\/?>[ \t]*$/gm, (m) => stashRaw(m));
 
+  // Preserve inline HTML tags: stash them before escaping, restore after.
+  const escKeepHtml = (s: string) => {
+    const stash: string[] = [];
+    const withPh = s.replace(
+      /<\/?[a-zA-Z][a-zA-Z0-9-]*(?:\s[^<>]*?)?\/?>/g,
+      (m) => {
+        stash.push(m);
+        return `\u0000TAG${stash.length - 1}\u0000`;
+      }
+    );
+    return esc(withPh).replace(/\u0000TAG(\d+)\u0000/g, (_m, i) => stash[Number(i)]);
+  };
+
   const inline = (s: string) =>
-    esc(s)
+    escKeepHtml(s)
       .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-muted text-sm">$1</code>')
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/(^|[^*])\*(?!\s)([^*\n]+?)\*(?!\*)/g, "$1<em>$2</em>")
