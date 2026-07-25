@@ -189,6 +189,12 @@ const baseNavItems: NavItem[] = [
     path: "/momentum-report",
   },
   {
+    label: "Blog",
+    icon: BookOpen,
+    hasDropdown: false,
+    path: "/blog",
+  },
+  {
     label: "Info",
     icon: Activity,
     hasDropdown: true,
