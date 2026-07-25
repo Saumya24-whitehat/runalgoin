@@ -301,8 +301,30 @@ export default function BlogEditor() {
           <Separator orientation="vertical" className="h-6 mx-1" />
           {toolbarBtn(<LinkIcon className="h-4 w-4" />, "Link", () => insert("[", "](https://)", "text"))}
           {toolbarBtn(<ImageIcon className="h-4 w-4" />, "Image", () => insert("![alt](", ")", "https://"))}
+          <Separator orientation="vertical" className="h-6 mx-1" />
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".html,.htm,.md,.txt,text/html,text/markdown,text/plain"
+            hidden
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleUpload(f);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => fileRef.current?.click()}
+            className="h-8 gap-1"
+          >
+            <Upload className="h-4 w-4" />
+            Import HTML
+          </Button>
         </div>
       </div>
+
 
       {/* Body: editor + preview + sidebar */}
       <div className="flex-1 container mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
