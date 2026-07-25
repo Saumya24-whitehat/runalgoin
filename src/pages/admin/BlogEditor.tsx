@@ -35,6 +35,7 @@ import {
   Save,
   Send,
   Loader2,
+  Upload,
   X,
 } from "lucide-react";
 
