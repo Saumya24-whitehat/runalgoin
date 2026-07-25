@@ -3,6 +3,8 @@
 // > blockquotes, - / * / 1. lists (with nesting via indentation), GFM pipe
 // tables, [text](url), ![alt](url), ``` fenced code blocks (optional lang),
 // --- horizontal rule, and paragraphs.
+// Admin-authored content is trusted; raw HTML is allowed to pass through so
+// authors can drop in <div>, <iframe>, <table>, custom classes, etc.
 export function renderMarkdown(md: string): string {
   const esc = (s: string) =>
     s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -16,13 +18,26 @@ export function renderMarkdown(md: string): string {
       .replace(/\s+/g, "-")
       .slice(0, 80);
 
+  const rawBlocks: string[] = [];
+  const stashRaw = (html: string) => {
+    rawBlocks.push(html);
+    return `\u0000HTML${rawBlocks.length - 1}\u0000`;
+  };
+
   // Extract fenced code blocks first (protect them from inline transforms).
-  // Optional language identifier on the opening fence is stripped.
   const codeBlocks: string[] = [];
-  const source = md.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (_m, _lang, code) => {
+  let source = md.replace(/```([a-zA-Z0-9_-]*)\n?([\s\S]*?)```/g, (_m, _lang, code) => {
     codeBlocks.push(code as string);
     return `\u0000CODE${codeBlocks.length - 1}\u0000`;
   });
+
+  // Multi-line HTML blocks: <tag ...>...</tag> starting at column 0.
+  source = source.replace(
+    /^<([a-zA-Z][a-zA-Z0-9-]*)(\s[^>]*)?>[\s\S]*?^<\/\1>[ \t]*$/gm,
+    (m) => stashRaw(m)
+  );
+  // Self-closing / void block tags on their own line: <hr/>, <iframe .../>, <img ... />
+  source = source.replace(/^<[a-zA-Z][^\n<>]*\/?>[ \t]*$/gm, (m) => stashRaw(m));
 
   const inline = (s: string) =>
     esc(s)
