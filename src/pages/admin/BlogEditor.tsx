@@ -82,6 +82,27 @@ export default function BlogEditor() {
   const [showPreview, setShowPreview] = useState(true);
   const [slugTouched, setSlugTouched] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (file: File) => {
+    const name = file.name.toLowerCase();
+    if (!/\.(html?|md|txt)$/.test(name)) {
+      toast.error("Upload an .html, .md or .txt file");
+      return;
+    }
+    try {
+      const text = await file.text();
+      update("content", form.content ? `${form.content}\n\n${text}` : text);
+      if (!form.title.trim()) {
+        const base = file.name.replace(/\.[^.]+$/, "");
+        update("title", base);
+        if (!slugTouched) update("slug", slugify(base));
+      }
+      toast.success(`Imported ${file.name}`);
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to read file");
+    }
+  };
 
   useEffect(() => {
     if (!isEdit) return;
