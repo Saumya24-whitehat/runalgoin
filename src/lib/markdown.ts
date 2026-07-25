@@ -133,6 +133,15 @@ export function renderMarkdown(md: string): string {
     const raw = lines[i];
     const line = raw.replace(/\s+$/, "");
 
+    // Raw HTML block placeholder
+    const htmlMatch = line.trim().match(/^\u0000HTML(\d+)\u0000$/);
+    if (htmlMatch) {
+      closeAllLists();
+      closeQuote();
+      out.push(rawBlocks[Number(htmlMatch[1])] || "");
+      continue;
+    }
+
     // Fenced code placeholder
     const codeMatch = line.trim().match(/^\u0000CODE(\d+)\u0000$/);
     if (codeMatch) {
