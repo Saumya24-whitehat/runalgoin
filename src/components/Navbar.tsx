@@ -28,6 +28,7 @@ import {
   User,
   Shield,
   Receipt,
+  BookOpen,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -186,6 +187,12 @@ const baseNavItems: NavItem[] = [
     icon: Flame,
     hasDropdown: false,
     path: "/momentum-report",
+  },
+  {
+    label: "Blog",
+    icon: BookOpen,
+    hasDropdown: false,
+    path: "/blog",
   },
   {
     label: "Info",
