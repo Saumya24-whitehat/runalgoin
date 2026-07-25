@@ -287,7 +287,7 @@ export default function BlogEditor() {
         <div className={`grid gap-4 ${showPreview ? "md:grid-cols-2" : "grid-cols-1"}`}>
           <div className="flex flex-col">
             <Label className="text-xs uppercase tracking-wide text-muted-foreground mb-2">
-              Content (Markdown)
+              Content (Markdown + HTML)
             </Label>
             <Textarea
               ref={textareaRef}
