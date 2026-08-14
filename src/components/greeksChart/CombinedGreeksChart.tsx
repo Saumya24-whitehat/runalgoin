@@ -26,13 +26,13 @@ type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" |
 
 const dataPointOptions: { key: DataPointKey; label: string; callColor: string; putColor: string; callDash?: string; putDash?: string }[] = [
   { key: "ltp", label: "LTP", callColor: "#22c55e", putColor: "#f97316" },
-  { key: "oi", label: "OI", callColor: "#22c55e", putColor: "#f97316" },
+  { key: "oi", label: "OI", callColor: "#22c55e", putColor: "#f97316", callDash: "6 6", putDash: "6 6" },
   { key: "coi", label: "COI", callColor: "#22c55e", putColor: "#f97316", callDash: "1 3", putDash: "1 3" },
-  { key: "iv", label: "IV", callColor: "#22c55e", putColor: "#f97316" },
-  { key: "delta", label: "Delta", callColor: "#22c55e", putColor: "#f97316" },
-  { key: "theta", label: "Theta", callColor: "#22c55e", putColor: "#f97316" },
-  { key: "gamma", label: "Gamma", callColor: "#22c55e", putColor: "#f97316" },
-  { key: "vega", label: "Vega", callColor: "#22c55e", putColor: "#f97316" },
+  { key: "iv", label: "IV", callColor: "#22c55e", putColor: "#f97316", callDash: "5 2 1 2", putDash: "5 2 1 2" },
+  { key: "delta", label: "Delta", callColor: "#22c55e", putColor: "#f97316", callDash: "7 4", putDash: "7 4" },
+  { key: "theta", label: "Theta", callColor: "#22c55e", putColor: "#f97316", callDash: "8 2", putDash: "8 2" },
+  { key: "gamma", label: "Gamma", callColor: "#22c55e", putColor: "#f97316", callDash: "4 1 4 1", putDash: "4 1 4 1" },
+  { key: "vega", label: "Vega", callColor: "#22c55e", putColor: "#f97316", callDash: "3 2 3 2", putDash: "3 2 3 2" },
   { key: "ivRoc", label: "IV RoC %", callColor: "#22c55e", putColor: "#f97316", callDash: "5 5", putDash: "5 5" },
 ];
 
