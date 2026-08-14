@@ -22,11 +22,12 @@ interface CombinedGreeksChartProps {
   putData: GreeksDataPoint[];
 }
 
-type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" | "ivRoc";
+type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" | "ivRoc" | "coi";
 
 const dataPointOptions: { key: DataPointKey; label: string; callColor: string; putColor: string }[] = [
   { key: "ltp", label: "LTP", callColor: "#22c55e", putColor: "#f97316" },
   { key: "oi", label: "OI", callColor: "#22c55e", putColor: "#f97316" },
+  { key: "coi", label: "COI", callColor: "#22c55e", putColor: "#f97316" },
   { key: "iv", label: "IV", callColor: "#22c55e", putColor: "#f97316" },
   { key: "delta", label: "Delta", callColor: "#22c55e", putColor: "#f97316" },
   { key: "theta", label: "Theta", callColor: "#22c55e", putColor: "#f97316" },
@@ -76,6 +77,8 @@ export const CombinedGreeksChart = ({
         time: (() => { const d = new Date(timestamp); return `${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}`; })(),
         callLtp: nz(call?.ltp),
         putLtp: nz(put?.ltp),
+        callCoi: nz(call?.coi),
+        putCoi: nz(put?.coi),
         callOi: nz(call?.oi),
         putOi: nz(put?.oi),
         callIv: nz(call?.iv),

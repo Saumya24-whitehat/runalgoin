@@ -24,11 +24,12 @@ interface IndividualGreeksChartProps {
   data: GreeksDataPoint[];
 }
 
-type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" | "ivRoc";
+type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" | "ivRoc" | "coi";
 
 const dataPointOptions: { key: DataPointKey; label: string; color: string }[] = [
   { key: "ltp", label: "LTP", color: "#a855f7" },
   { key: "oi", label: "OI", color: "#3b82f6" },
+  { key: "coi", label: "COI", color: "#06b6d4" },
   { key: "iv", label: "IV", color: "#f59e0b" },
   { key: "delta", label: "Delta", color: "#22c55e" },
   { key: "theta", label: "Theta", color: "#ef4444" },
@@ -61,6 +62,7 @@ export const IndividualGreeksChart = ({
       timestamp: d.timestamp,
       ltp: nz(d.ltp),
       oi: nz(d.oi),
+      coi: nz(d.coi),
       iv: nz(d.iv),
       delta: nz(d.delta),
       theta: nz(d.theta),

@@ -10,6 +10,8 @@ export interface GreeksDataPoint {
   theta: number;
   gamma: number;
   vega: number;
+  prevOi: number;
+  coi: number;
 }
 
 export interface GreeksResponse {
@@ -41,6 +43,8 @@ function parseGreeksData(raw: Record<string, number[]>): GreeksDataPoint[] {
       theta: values[4] || 0,
       gamma: values[5] || 0,
       vega: values[6] || 0,
+      prevOi: values[7] || 0,
+      coi: values[7] ? (values[1] || 0) - values[7] : 0,
     }))
     .sort((a, b) => a.timestamp - b.timestamp);
 }
