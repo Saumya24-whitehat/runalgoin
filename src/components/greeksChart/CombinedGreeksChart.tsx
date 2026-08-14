@@ -22,7 +22,7 @@ interface CombinedGreeksChartProps {
   putData: GreeksDataPoint[];
 }
 
-type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega";
+type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" | "ivRoc";
 
 const dataPointOptions: { key: DataPointKey; label: string; callColor: string; putColor: string }[] = [
   { key: "ltp", label: "LTP", callColor: "#22c55e", putColor: "#f97316" },
@@ -32,7 +32,13 @@ const dataPointOptions: { key: DataPointKey; label: string; callColor: string; p
   { key: "theta", label: "Theta", callColor: "#22c55e", putColor: "#f97316" },
   { key: "gamma", label: "Gamma", callColor: "#22c55e", putColor: "#f97316" },
   { key: "vega", label: "Vega", callColor: "#22c55e", putColor: "#f97316" },
+  { key: "ivRoc", label: "IV RoC %", callColor: "#22c55e", putColor: "#f97316" },
 ];
+
+// Convert 0 values to undefined so they are skipped instead of plotted at zero
+const nz = (v?: number) => (v === 0 || v === undefined || v === null ? undefined : v);
+const isEmptyPoint = (d?: GreeksDataPoint) =>
+  !d || (!d.ltp && !d.oi && !d.iv && !d.delta && !d.theta && !d.gamma && !d.vega);
 
 export const CombinedGreeksChart = ({
   symbol,
@@ -45,37 +51,48 @@ export const CombinedGreeksChart = ({
 
   // Merge call and put data by timestamp
   const chartData = useMemo(() => {
+    const calls = callData.filter((d) => !isEmptyPoint(d));
+    const puts = putData.filter((d) => !isEmptyPoint(d));
+    const callBaseIv = calls.find((d) => d.iv > 0)?.iv;
+    const putBaseIv = puts.find((d) => d.iv > 0)?.iv;
+
     const timestampMap = new Map<number, { call?: GreeksDataPoint; put?: GreeksDataPoint }>();
 
-    callData.forEach((d) => {
+    calls.forEach((d) => {
       timestampMap.set(d.timestamp, { ...timestampMap.get(d.timestamp), call: d });
     });
 
-    putData.forEach((d) => {
+    puts.forEach((d) => {
       timestampMap.set(d.timestamp, { ...timestampMap.get(d.timestamp), put: d });
     });
+
+    const roc = (iv?: number, base?: number) =>
+      base && iv && iv > 0 ? ((iv - base) / base) * 100 : undefined;
 
     return Array.from(timestampMap.entries())
       .sort(([a], [b]) => a - b)
       .map(([timestamp, { call, put }]) => ({
         timestamp,
         time: (() => { const d = new Date(timestamp); return `${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}`; })(),
-        callLtp: call?.ltp,
-        putLtp: put?.ltp,
-        callOi: call?.oi,
-        putOi: put?.oi,
-        callIv: call?.iv,
-        putIv: put?.iv,
-        callDelta: call?.delta,
-        putDelta: put?.delta,
-        callTheta: call?.theta,
-        putTheta: put?.theta,
-        callGamma: call?.gamma,
-        putGamma: put?.gamma,
-        callVega: call?.vega,
-        putVega: put?.vega,
+        callLtp: nz(call?.ltp),
+        putLtp: nz(put?.ltp),
+        callOi: nz(call?.oi),
+        putOi: nz(put?.oi),
+        callIv: nz(call?.iv),
+        putIv: nz(put?.iv),
+        callDelta: nz(call?.delta),
+        putDelta: nz(put?.delta),
+        callTheta: nz(call?.theta),
+        putTheta: nz(put?.theta),
+        callGamma: nz(call?.gamma),
+        putGamma: nz(put?.gamma),
+        callVega: nz(call?.vega),
+        putVega: nz(put?.vega),
+        callIvRoc: roc(call?.iv, callBaseIv),
+        putIvRoc: roc(put?.iv, putBaseIv),
       }));
   }, [callData, putData]);
+
 
   const toggleDataPoint = (key: DataPointKey) => {
     setSelectedDataPoints((prev) =>
