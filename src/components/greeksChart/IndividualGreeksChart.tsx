@@ -24,7 +24,7 @@ interface IndividualGreeksChartProps {
   data: GreeksDataPoint[];
 }
 
-type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega";
+type DataPointKey = "ltp" | "oi" | "iv" | "delta" | "theta" | "gamma" | "vega" | "ivRoc";
 
 const dataPointOptions: { key: DataPointKey; label: string; color: string }[] = [
   { key: "ltp", label: "LTP", color: "#a855f7" },
@@ -34,7 +34,11 @@ const dataPointOptions: { key: DataPointKey; label: string; color: string }[] = 
   { key: "theta", label: "Theta", color: "#ef4444" },
   { key: "gamma", label: "Gamma", color: "#06b6d4" },
   { key: "vega", label: "Vega", color: "#ec4899" },
+  { key: "ivRoc", label: "IV RoC %", color: "#eab308" },
 ];
+
+// Convert 0 values to undefined so they are skipped instead of plotted at zero
+const nz = (v?: number) => (v === 0 || v === undefined || v === null ? undefined : v);
 
 export const IndividualGreeksChart = ({
   symbol,
@@ -47,11 +51,26 @@ export const IndividualGreeksChart = ({
   const [showVolume, setShowVolume] = useState(false);
 
   const chartData = useMemo(() => {
-    return data.map((d) => ({
-      ...d,
+    // Drop rows where every metric is 0 (no data yet for that timestamp)
+    const cleaned = data.filter(
+      (d) => !(!d.ltp && !d.oi && !d.iv && !d.delta && !d.theta && !d.gamma && !d.vega)
+    );
+    const baseIv = cleaned.find((d) => d.iv > 0)?.iv;
+
+    return cleaned.map((d) => ({
+      timestamp: d.timestamp,
+      ltp: nz(d.ltp),
+      oi: nz(d.oi),
+      iv: nz(d.iv),
+      delta: nz(d.delta),
+      theta: nz(d.theta),
+      gamma: nz(d.gamma),
+      vega: nz(d.vega),
+      ivRoc: baseIv && d.iv > 0 ? ((d.iv - baseIv) / baseIv) * 100 : undefined,
       time: (() => { const dt = new Date(d.timestamp); return `${String(dt.getUTCHours()).padStart(2,"0")}:${String(dt.getUTCMinutes()).padStart(2,"0")}`; })(),
     }));
   }, [data]);
+
 
   const latestData = data[data.length - 1];
   const firstData = data[0];
