@@ -190,6 +190,7 @@ export const CombinedGreeksChart = ({
                     name={`CE ${opt.label}`}
                     stroke={opt.callColor}
                     strokeWidth={2}
+                    strokeDasharray={opt.callDash}
                     dot={false}
                     connectNulls
                   />,
@@ -201,6 +202,7 @@ export const CombinedGreeksChart = ({
                     name={`PE ${opt.label}`}
                     stroke={opt.putColor}
                     strokeWidth={2}
+                    strokeDasharray={opt.putDash}
                     dot={false}
                     connectNulls
                   />,
