@@ -135,6 +135,7 @@ const App = () => (
                 <Route path="/options-chart" element={<OptionsChart />} />
                 <Route path="/greeks-chart" element={<GreeksChart />} />
                 <Route path="/strike-flow" element={<StrikeFlowAnalyzer />} />
+                <Route path="/strike-flow-chain" element={<StrikeFlowChain />} />
                 <Route path="/strategy-charts" element={<StrategyCharts />} />
                 <Route path="/premium-decay" element={<PremiumDecay />} />
                 <Route path="/indices" element={<Indices />} />
