@@ -72,6 +72,10 @@ function FlowTable({ rows }: { rows: StrikeFlowRow[] }) {
                 {r.coi > 0 ? "+" : ""}
                 {formatIndianNumber(r.coi)}
               </td>
+              <td className={cn("px-1.5 py-1 font-mono opacity-70", signClass(r.runningCoi))}>
+                {r.runningCoi > 0 ? "+" : ""}
+                {formatIndianNumber(r.runningCoi)}
+              </td>
               <td className="px-1.5 py-1 font-mono">{r.iv.toFixed(2)}</td>
               <td className={cn("px-1.5 py-1 font-mono", signClass(r.ivChange))}>
                 {r.ivChange > 0 ? "+" : ""}
