@@ -314,6 +314,7 @@ const StrikeFlowAnalyzer = () => {
 
   const callRows = useMemo(() => analyzeStrikeFlow(data?.callData || []).reverse(), [data]);
   const putRows = useMemo(() => analyzeStrikeFlow(data?.putData || []).reverse(), [data]);
+  const combinedRows = useMemo(() => [...callRows, ...putRows], [callRows, putRows]);
 
   return (
     <PageLayout>
