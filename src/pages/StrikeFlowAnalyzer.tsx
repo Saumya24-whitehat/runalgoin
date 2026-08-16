@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GreeksChartControls } from "@/components/greeksChart/GreeksChartControls";
 import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChartApi";
-import { analyzeStrikeFlow, actionColor, StrikeFlowRow, computeFlowSummary } from "@/utils/strikeFlowAnalysis";
+import { analyzeStrikeFlow, actionColor, StrikeFlowRow, computeFlowMatrix, computeSentimentTotals } from "@/utils/strikeFlowAnalysis";
 import { formatIndianNumber } from "@/lib/formatNumber";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -97,84 +97,59 @@ function FlowTable({ rows }: { rows: StrikeFlowRow[] }) {
   );
 }
 
-function FlowSummary({ rows, label }: { rows: StrikeFlowRow[]; label: string }) {
-  const stats = useMemo(() => computeFlowSummary(rows), [rows]);
-  const totalActions =
-    stats.byAction["Long Buildup"].count +
-    stats.byAction["Short Buildup"].count +
-    stats.byAction["Short Covering"].count +
-    stats.byAction["Long Unwinding"].count;
+function FlowMatrixSummary({ rows, label }: { rows: StrikeFlowRow[]; label: string }) {
+  const matrix = useMemo(() => computeFlowMatrix(rows), [rows]);
+  const bp = useMemo(() => computeSentimentTotals(matrix, "Big Player"), [matrix]);
+  const retail = useMemo(() => computeSentimentTotals(matrix, "Retail"), [matrix]);
 
-  const actionRows = [
-    { key: "Long Buildup", label: "Long Buildup" },
-    { key: "Short Buildup", label: "Short Buildup" },
-    { key: "Short Covering", label: "Short Covering" },
-    { key: "Long Unwinding", label: "Long Unwinding" },
-  ] as const;
-
-  const playerOrder: { key: "Retail" | "Big Player" | "Exit / Deflate" | "Mixed"; label: string }[] = [
-    { key: "Retail", label: "Retail" },
-    { key: "Big Player", label: "Big Player" },
-    { key: "Exit / Deflate", label: "Exit / Deflate" },
-    { key: "Mixed", label: "Mixed" },
+  const actions = [
+    { key: "Long Buildup" as const, label: "Long Buildup" },
+    { key: "Short Buildup" as const, label: "Short Buildup" },
+    { key: "Short Covering" as const, label: "Short Covering" },
+    { key: "Long Unwinding" as const, label: "Long Unwinding" },
   ];
+
+  const fmtRatio = (ratio: number | null) => {
+    if (ratio === null) return "—";
+    if (!isFinite(ratio)) return "∞";
+    return `${ratio.toFixed(2)}:1`;
+  };
+
+  const ratioClass = (ratio: number | null) =>
+    ratio === null ? "text-muted-foreground" : ratio > 1 ? "text-emerald-500" : "text-red-500";
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">{label} Summary</h3>
-        <span className="text-xs text-muted-foreground">
-          {stats.totalCandles} candles analysed
-        </span>
+        <h3 className="text-sm font-semibold">{label} Flow Matrix</h3>
+        <span className="text-xs text-muted-foreground">{rows.length} candles analysed</span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-        {playerOrder.map((p) => {
-          const s = stats.byPlayer[p.key];
-          const pct = stats.totalCandles ? (s.count / stats.totalCandles) * 100 : 0;
-          return (
-            <Card key={p.key} className="bg-card/50 border-border/50">
-              <CardContent className="p-2.5 space-y-0.5">
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{p.label}</div>
-                <div className="text-lg font-bold leading-none">
-                  {s.count}
-                  <span className="text-xs font-normal text-muted-foreground ml-1">({pct.toFixed(0)}%)</span>
-                </div>
-                <div className="text-[10px] text-muted-foreground">
-                  Σ COI {formatIndianNumber(Math.round(s.totalAbsCoi))}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
-
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-md border border-border/40">
         <table className="w-full text-[10px] leading-tight">
           <thead className="bg-muted/60">
             <tr className="text-left">
               <th className="px-2 py-1.5 font-semibold">Activity</th>
-              <th className="px-2 py-1.5 font-semibold text-right">Candles</th>
-              <th className="px-2 py-1.5 font-semibold text-right">Share</th>
-              <th className="px-2 py-1.5 font-semibold text-right">Total COI</th>
-              <th className="px-2 py-1.5 font-semibold text-right">Abs COI</th>
+              <th className="px-2 py-1.5 font-semibold text-right">Retail COI</th>
+              <th className="px-2 py-1.5 font-semibold text-right">Big Player COI</th>
             </tr>
           </thead>
           <tbody>
-            {actionRows.map((a) => {
-              const s = stats.byAction[a.key];
-              const share = totalActions ? (s.count / totalActions) * 100 : 0;
+            {actions.map((a) => {
+              const re = matrix[a.key].Retail;
+              const bpCell = matrix[a.key]["Big Player"];
               return (
-                <tr key={a.key} className="border-b border-border/40">
-                  <td className={cn("px-2 py-1.5 font-semibold", actionColor[a.key])}>{a.label}</td>
-                  <td className="px-2 py-1.5 text-right font-mono">{s.count}</td>
-                  <td className="px-2 py-1.5 text-right font-mono">{share.toFixed(1)}%</td>
-                  <td className={cn("px-2 py-1.5 text-right font-mono", signClass(s.totalCoi))}>
-                    {s.totalCoi > 0 ? "+" : ""}
-                    {formatIndianNumber(Math.round(s.totalCoi))}
+                <tr key={a.key} className="border-b border-border/40 last:border-0">
+                  <td className={cn("px-2 py-1.5 font-semibold whitespace-nowrap", actionColor[a.key])}>
+                    {a.label}
                   </td>
-                  <td className="px-2 py-1.5 text-right font-mono text-muted-foreground">
-                    {formatIndianNumber(Math.round(s.totalAbsCoi))}
+                  <td className={cn("px-2 py-1.5 text-right font-mono", signClass(re.totalCoi))}>
+                    {re.totalCoi > 0 ? "+" : ""}
+                    {formatIndianNumber(Math.round(re.totalCoi))}
+                  </td>
+                  <td className={cn("px-2 py-1.5 text-right font-mono", signClass(bpCell.totalCoi))}>
+                    {bpCell.totalCoi > 0 ? "+" : ""}
+                    {formatIndianNumber(Math.round(bpCell.totalCoi))}
                   </td>
                 </tr>
               );
@@ -182,9 +157,56 @@ function FlowSummary({ rows, label }: { rows: StrikeFlowRow[]; label: string }) 
           </tbody>
         </table>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-3 space-y-2">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Big Player Sentiment</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[10px] text-emerald-500 font-semibold">Bullish OI</div>
+                <div className="font-mono text-sm">{formatIndianNumber(Math.round(bp.bullish))}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-red-500 font-semibold">Bearish OI</div>
+                <div className="font-mono text-sm">{formatIndianNumber(Math.round(bp.bearish))}</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+              <span className="text-xs font-semibold">Bullish / Bearish</span>
+              <span className={cn("font-mono font-bold", ratioClass(bp.ratio))}>
+                {fmtRatio(bp.ratio)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-card/50 border-border/50">
+          <CardContent className="p-3 space-y-2">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Retail Sentiment</div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <div className="text-[10px] text-emerald-500 font-semibold">Bullish OI</div>
+                <div className="font-mono text-sm">{formatIndianNumber(Math.round(retail.bullish))}</div>
+              </div>
+              <div>
+                <div className="text-[10px] text-red-500 font-semibold">Bearish OI</div>
+                <div className="font-mono text-sm">{formatIndianNumber(Math.round(retail.bearish))}</div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-border/40">
+              <span className="text-xs font-semibold">Bullish / Bearish</span>
+              <span className={cn("font-mono font-bold", ratioClass(retail.ratio))}>
+                {fmtRatio(retail.ratio)}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
+
 
 const StrikeFlowAnalyzer = () => {
   const { toast } = useToast();
@@ -385,7 +407,7 @@ const StrikeFlowAnalyzer = () => {
 
           <Card>
             <CardContent className="p-2 space-y-4">
-              <FlowSummary rows={combinedRows} label="Overall" />
+              <FlowMatrixSummary rows={combinedRows} label="Overall" />
               <Tabs defaultValue="call">
                 <TabsList className="grid w-full max-w-xs grid-cols-2">
                   <TabsTrigger value="call">
@@ -396,11 +418,11 @@ const StrikeFlowAnalyzer = () => {
                   </TabsTrigger>
                 </TabsList>
                 <TabsContent value="call" className="mt-2 space-y-3">
-                  <FlowSummary rows={callRows} label="CE" />
+                  <FlowMatrixSummary rows={callRows} label="CE" />
                   <FlowTable rows={callRows} />
                 </TabsContent>
                 <TabsContent value="put" className="mt-2 space-y-3">
-                  <FlowSummary rows={putRows} label="PE" />
+                  <FlowMatrixSummary rows={putRows} label="PE" />
                   <FlowTable rows={putRows} />
                 </TabsContent>
               </Tabs>

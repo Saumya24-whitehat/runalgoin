@@ -202,3 +202,80 @@ export function computeFlowSummary(rows: StrikeFlowRow[]): FlowSummaryStats {
     byPlayer,
   };
 }
+
+export type FlowMatrix = Record<
+  Exclude<FlowAction, "Neutral">,
+  Record<"Retail" | "Big Player", { count: number; totalCoi: number; totalAbsCoi: number }>
+>;
+
+export interface SentimentTotals {
+  bullish: number;
+  bearish: number;
+  ratio: number | null;
+}
+
+export function getSentiment(
+  action: Exclude<FlowAction, "Neutral">,
+  player: "Retail" | "Big Player"
+): "Bullish" | "Bearish" {
+  if (player === "Big Player") {
+    return action === "Long Buildup" || action === "Short Covering" ? "Bullish" : "Bearish";
+  }
+  return action === "Short Buildup" || action === "Long Unwinding" ? "Bullish" : "Bearish";
+}
+
+export function computeFlowMatrix(rows: StrikeFlowRow[]): FlowMatrix {
+  const matrix: FlowMatrix = {
+    "Long Buildup": {
+      Retail: { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+      "Big Player": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    },
+    "Short Buildup": {
+      Retail: { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+      "Big Player": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    },
+    "Short Covering": {
+      Retail: { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+      "Big Player": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    },
+    "Long Unwinding": {
+      Retail: { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+      "Big Player": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    },
+  };
+
+  for (const r of rows) {
+    if (r.action === "Neutral") continue;
+    if (r.player !== "Retail" && r.player !== "Big Player") continue;
+    const cell = matrix[r.action][r.player];
+    cell.count += 1;
+    cell.totalCoi += r.coi;
+    cell.totalAbsCoi += Math.abs(r.coi);
+  }
+
+  return matrix;
+}
+
+export function computeSentimentTotals(
+  matrix: FlowMatrix,
+  player: "Retail" | "Big Player"
+): SentimentTotals {
+  const bullishActions: Exclude<FlowAction, "Neutral">[] =
+    player === "Big Player"
+      ? ["Long Buildup", "Short Covering"]
+      : ["Short Buildup", "Long Unwinding"];
+  const bearishActions: Exclude<FlowAction, "Neutral">[] =
+    player === "Big Player"
+      ? ["Short Buildup", "Long Unwinding"]
+      : ["Long Buildup", "Short Covering"];
+
+  const bullish = bullishActions.reduce((sum, a) => sum + matrix[a][player].totalAbsCoi, 0);
+  const bearish = bearishActions.reduce((sum, a) => sum + matrix[a][player].totalAbsCoi, 0);
+
+  return {
+    bullish,
+    bearish,
+    ratio: bearish > 0 ? bullish / bearish : bullish > 0 ? Infinity : null,
+  };
+}
+
