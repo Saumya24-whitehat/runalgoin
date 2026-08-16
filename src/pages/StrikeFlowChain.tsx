@@ -265,7 +265,9 @@ const StrikeFlowChain = () => {
         t.retailBear += r.put.retail.bearish;
       }
     });
-    return t;
+    const bpRatio = t.bpBear === 0 ? (t.bpBull === 0 ? null : Infinity) : t.bpBull / t.bpBear;
+    const retailRatio = t.retailBear === 0 ? (t.retailBull === 0 ? null : Infinity) : t.retailBull / t.retailBear;
+    return { ...t, bpRatio, retailRatio };
   }, [rows]);
 
 
@@ -405,7 +407,7 @@ const StrikeFlowChain = () => {
           {rows.length > 0 && (
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-3">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   <div className="text-center">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bullish OI</div>
                     <div className="text-sm font-mono font-bold text-emerald-500">
@@ -419,6 +421,12 @@ const StrikeFlowChain = () => {
                     </div>
                   </div>
                   <div className="text-center">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">BP B / B</div>
+                    <div className={cn("text-sm font-mono font-bold", ratioClass(totals.bpRatio))}>
+                      {fmtRatio(totals.bpRatio)}
+                    </div>
+                  </div>
+                  <div className="text-center">
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bullish OI</div>
                     <div className="text-sm font-mono font-bold text-emerald-500/80">
                       {formatIndianNumber(Math.round(totals.retailBull))}
@@ -428,6 +436,12 @@ const StrikeFlowChain = () => {
                     <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bearish OI</div>
                     <div className="text-sm font-mono font-bold text-red-500/80">
                       {formatIndianNumber(Math.round(totals.retailBear))}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Retail B / B</div>
+                    <div className={cn("text-sm font-mono font-bold", ratioClass(totals.retailRatio))}>
+                      {fmtRatio(totals.retailRatio)}
                     </div>
                   </div>
                 </div>
