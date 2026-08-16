@@ -51,7 +51,7 @@ function FlowTable({ rows }: { rows: StrikeFlowRow[] }) {
       <table className="w-full text-[10px] leading-tight">
         <thead className="sticky top-0 bg-muted/60 backdrop-blur">
           <tr className="text-left">
-            {["Date / Time", "LTP", "LTP Chg", "OI", "COI", "IV", "IV Chg", "Activity", "Who", "Insight"].map((h) => (
+            {["Date / Time", "LTP", "LTP Chg", "OI", "Candle COI", "Day COI", "IV", "IV Chg", "Activity", "Who", "Insight"].map((h) => (
               <th key={h} className="px-1.5 py-1.5 font-semibold whitespace-nowrap">
                 {h}
               </th>
@@ -71,6 +71,10 @@ function FlowTable({ rows }: { rows: StrikeFlowRow[] }) {
               <td className={cn("px-1.5 py-1 font-mono", signClass(r.coi))}>
                 {r.coi > 0 ? "+" : ""}
                 {formatIndianNumber(r.coi)}
+              </td>
+              <td className={cn("px-1.5 py-1 font-mono opacity-70", signClass(r.runningCoi))}>
+                {r.runningCoi > 0 ? "+" : ""}
+                {formatIndianNumber(r.runningCoi)}
               </td>
               <td className="px-1.5 py-1 font-mono">{r.iv.toFixed(2)}</td>
               <td className={cn("px-1.5 py-1 font-mono", signClass(r.ivChange))}>
