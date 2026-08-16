@@ -656,8 +656,10 @@ const StrikeFlowChain = () => {
                           fontSize={10}
                           tickLine={false}
                           axisLine={false}
-                          minTickGap={30}
+                          ticks={hourTicks}
+                          interval={0}
                         />
+
                         <YAxis
                           stroke="hsl(var(--muted-foreground))"
                           fontSize={10}
