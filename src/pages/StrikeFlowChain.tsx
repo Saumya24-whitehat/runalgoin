@@ -569,6 +569,60 @@ const StrikeFlowChain = () => {
                     </div>
                   </div>
                 </div>
+
+                <div className="mt-4 pt-3 border-t border-border/50">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wide text-center mb-2">
+                    Bullish vs Bearish OI
+                  </div>
+                  <div className="h-[220px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={[
+                          {
+                            name: "Big Player",
+                            bullish: totals.bpBull,
+                            bearish: totals.bpBear,
+                          },
+                          {
+                            name: "Retail",
+                            bullish: totals.retailBull,
+                            bearish: totals.retailBear,
+                          },
+                        ]}
+                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
+                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(v) => formatCompactIndian(v, 1)}
+                        />
+                        <Tooltip
+                          cursor={{ fill: "hsl(var(--muted))", opacity: 0.2 }}
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                          }}
+                          formatter={(value: number) => [formatIndianNumber(Math.round(value)), "OI"]}
+                        />
+                        <Legend wrapperStyle={{ fontSize: "12px" }} />
+                        <Bar dataKey="bullish" name="Bullish OI" radius={[4, 4, 0, 0]}>
+                          <Cell fill="#10b981" />
+                          <Cell fill="#10b981" opacity={0.75} />
+                        </Bar>
+                        <Bar dataKey="bearish" name="Bearish OI" radius={[4, 4, 0, 0]}>
+                          <Cell fill="#ef4444" />
+                          <Cell fill="#ef4444" opacity={0.75} />
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
