@@ -101,15 +101,19 @@ export const CombinedGreeksChart = ({
       const row = rows[idx];
       if (!row) return;
       const prefix = side === "call" ? "call" : "put";
-      row[`${prefix}Ltp`] = nz(d.ltp);
-      row[`${prefix}Coi`] = nz(d.coi);
-      row[`${prefix}Oi`] = nz(d.oi);
-      row[`${prefix}Iv`] = nz(d.iv);
-      row[`${prefix}Delta`] = nz(d.delta);
-      row[`${prefix}Theta`] = nz(d.theta);
-      row[`${prefix}Gamma`] = nz(d.gamma);
-      row[`${prefix}Vega`] = nz(d.vega);
-      row[`${prefix}IvRoc`] = roc(d.iv, side === "call" ? callBaseIv : putBaseIv);
+      const set = (key: string, value?: number) => {
+        if (value === undefined || value === null || value === 0) return;
+        row[key] = value;
+      };
+      set(`${prefix}Ltp`, d.ltp);
+      set(`${prefix}Coi`, d.coi);
+      set(`${prefix}Oi`, d.oi);
+      set(`${prefix}Iv`, d.iv);
+      set(`${prefix}Delta`, d.delta);
+      set(`${prefix}Theta`, d.theta);
+      set(`${prefix}Gamma`, d.gamma);
+      set(`${prefix}Vega`, d.vega);
+      set(`${prefix}IvRoc`, roc(d.iv, side === "call" ? callBaseIv : putBaseIv));
     };
 
     calls.forEach((d) => fill(d, "call"));
