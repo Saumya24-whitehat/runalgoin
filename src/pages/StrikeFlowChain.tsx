@@ -648,57 +648,11 @@ const StrikeFlowChain = () => {
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-4 pt-3 border-t border-border/50">
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wide text-center mb-2">
-                    Bullish vs Bearish OI — Intraday (09:15 → 15:30, plotted till {lastPlottedTime})
-                  </div>
-                  <div className="h-[260px]">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={timeSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
-                        <XAxis
-                          dataKey="time"
-                          stroke="hsl(var(--muted-foreground))"
-                          fontSize={10}
-                          tickLine={false}
-                          axisLine={false}
-                          ticks={hourTicks}
-                          interval={0}
-                        />
-
-                        <YAxis
-                          stroke="hsl(var(--muted-foreground))"
-                          fontSize={10}
-                          tickLine={false}
-                          axisLine={false}
-                          tickFormatter={(v) => formatCompactIndian(v, 1)}
-                        />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: "hsl(var(--card))",
-                            border: "1px solid hsl(var(--border))",
-                            borderRadius: "8px",
-                            fontSize: "12px",
-                          }}
-                          formatter={(value: number, name: string) => [formatIndianNumber(Math.round(value)), name]}
-                        />
-                        <Legend wrapperStyle={{ fontSize: "11px" }} />
-                        <Line type="monotone" dataKey="bpBull" name="BP Bullish OI" stroke="#10b981" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="bpBear" name="BP Bearish OI" stroke="#ef4444" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="retailBull" name="Retail Bullish OI" stroke="#10b981" strokeWidth={1.5} strokeDasharray="5 4" dot={false} />
-                        <Line type="monotone" dataKey="retailBear" name="Retail Bearish OI" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 4" dot={false} />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
               </CardContent>
             </Card>
           )}
 
           <Card>
-
             <CardContent className="p-2">
               {loadingData && rows.length === 0 ? (
                 <div className="py-12 flex items-center justify-center text-sm text-muted-foreground gap-2">
@@ -758,6 +712,90 @@ const StrikeFlowChain = () => {
               )}
             </CardContent>
           </Card>
+
+          {rows.length > 0 && (
+            <Card className="bg-card/50 border-border/50">
+              <CardContent className="p-3">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide text-center mb-3">
+                  Bullish vs Bearish OI — Intraday (09:15 → 15:30, plotted till {lastPlottedTime})
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="h-[260px]">
+                    <div className="text-[10px] text-center font-semibold mb-1 text-emerald-400">Big Player</div>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={timeSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
+                        <XAxis
+                          dataKey="time"
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          ticks={hourTicks}
+                          interval={0}
+                        />
+                        <YAxis
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(v) => formatCompactIndian(v, 1)}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                          }}
+                          formatter={(value: number, name: string) => [formatIndianNumber(Math.round(value)), name]}
+                        />
+                        <Legend wrapperStyle={{ fontSize: "11px" }} />
+                        <Line type="monotone" dataKey="bpBull" name="BP Bullish OI" stroke="#10b981" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="bpBear" name="BP Bearish OI" stroke="#ef4444" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="h-[260px]">
+                    <div className="text-[10px] text-center font-semibold mb-1 text-amber-400">Retail</div>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={timeSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
+                        <XAxis
+                          dataKey="time"
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          ticks={hourTicks}
+                          interval={0}
+                        />
+                        <YAxis
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          tickFormatter={(v) => formatCompactIndian(v, 1)}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                            fontSize: "12px",
+                          }}
+                          formatter={(value: number, name: string) => [formatIndianNumber(Math.round(value)), name]}
+                        />
+                        <Legend wrapperStyle={{ fontSize: "11px" }} />
+                        <Line type="monotone" dataKey="retailBull" name="Retail Bullish OI" stroke="#10b981" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="retailBear" name="Retail Bearish OI" stroke="#ef4444" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </main>
       </ProFeatureGate>
     </PageLayout>
