@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GreeksChartControls } from "@/components/greeksChart/GreeksChartControls";
 import { CombinedGreeksChart } from "@/components/greeksChart/CombinedGreeksChart";
 import { IndividualGreeksChart } from "@/components/greeksChart/IndividualGreeksChart";
-import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChartApi";
+import { fetchCombinedGreeksData, ParsedGreeksData, GreeksDataPoint } from "@/services/greeksChartApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
@@ -16,12 +16,50 @@ import { PageInfoModal } from "@/components/PageInfoModal";
 import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
 interface SymbolGroup {
   indexSymbols: string[];
   stockSymbols: string[];
 }
+
+const generateTimeSlots = () => {
+  const slots: string[] = [];
+  for (let total = 9 * 60 + 15; total <= 15 * 60 + 30; total += 3) {
+    const h = Math.floor(total / 60).toString().padStart(2, "0");
+    const m = (total % 60).toString().padStart(2, "0");
+    slots.push(`${h}${m}`);
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
+
+const formatTimeDisplay = (time: string) => {
+  if (!time || time.length < 4) return "";
+  const hour = parseInt(time.slice(0, 2));
+  const min = time.slice(2, 4);
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+  return `${displayHour.toString().padStart(2, "0")}:${min} ${period}`;
+};
+
+const closestSlot = () => {
+  const now = new Date();
+  const cur = `${now.getHours().toString().padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}`;
+  return TIME_SLOTS.reduce(
+    (prev, curr) =>
+      Math.abs(parseInt(curr) - parseInt(cur)) < Math.abs(parseInt(prev) - parseInt(cur)) ? curr : prev,
+    TIME_SLOTS[0]
+  );
+};
+
+// Candle timestamps are ms with IST already baked in (read as UTC parts)
+const minuteOfDay = (ts: number) => {
+  const d = new Date(ts);
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+};
+
 
 const GreeksChart = () => {
   const { toast } = useToast();
@@ -37,6 +75,10 @@ const GreeksChart = () => {
 
   const [greeksData, setGreeksData] = useState<ParsedGreeksData | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+
+  const [selectedTime, setSelectedTime] = useState("");
+  const [isHistoricalMode, setIsHistoricalMode] = useState(false);
+
 
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
@@ -184,14 +226,95 @@ const GreeksChart = () => {
     }
   }, [selectedSymbol, selectedExpiry, selectedStrike, loadingStrikes, loadingExpiry]);
 
-  // Auto-refresh every 3 minutes
+  // Auto-refresh every minute (only in Live mode)
   useEffect(() => {
+    if (isHistoricalMode) return;
     if (!selectedSymbol || !selectedExpiry || !selectedStrike) return;
     const interval = setInterval(() => {
       handleGo();
     }, 60000);
     return () => clearInterval(interval);
-  }, [handleGo]);
+  }, [handleGo, isHistoricalMode]);
+
+  // Clip data from 09:15 up to the selected time
+  const cutoffMinute = useMemo(() => {
+    if (!isHistoricalMode || !selectedTime) return null;
+    return parseInt(selectedTime.slice(0, 2)) * 60 + parseInt(selectedTime.slice(2, 4));
+  }, [isHistoricalMode, selectedTime]);
+
+  const clip = useCallback(
+    (data: GreeksDataPoint[]) =>
+      cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute),
+    [cutoffMinute]
+  );
+
+  const callData = useMemo(() => clip(greeksData?.callData || []), [greeksData, clip]);
+  const putData = useMemo(() => clip(greeksData?.putData || []), [greeksData, clip]);
+
+  const handleTimeChange = (direction: "prev" | "next") => {
+    const baseTime = selectedTime && TIME_SLOTS.includes(selectedTime) ? selectedTime : closestSlot();
+    const idx = TIME_SLOTS.indexOf(baseTime);
+    const next = Math.min(Math.max(idx + (direction === "prev" ? -1 : 1), 0), TIME_SLOTS.length - 1);
+    setSelectedTime(TIME_SLOTS[next]);
+  };
+
+  const enableHistoricalMode = () => {
+    if (!isHistoricalMode) {
+      setIsHistoricalMode(true);
+      setSelectedTime(closestSlot());
+    }
+  };
+
+  const resetToLive = () => {
+    setIsHistoricalMode(false);
+    setSelectedTime("");
+  };
+
+  const timeControls = (
+    <div className="flex items-center gap-1.5">
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8 border-primary/50"
+        onClick={() => { enableHistoricalMode(); handleTimeChange("prev"); }}
+        disabled={isHistoricalMode && TIME_SLOTS.indexOf(selectedTime) <= 0}
+        title="Earlier time"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={isHistoricalMode ? "default" : "outline"}
+        className={`h-8 px-3 flex items-center gap-2 text-xs ${isHistoricalMode ? "bg-cyan-600 hover:bg-cyan-700" : "border-primary/50"}`}
+        onClick={enableHistoricalMode}
+        title="Show data from market open up to this time"
+      >
+        <Clock className="h-3.5 w-3.5" />
+        <span className="font-medium">{isHistoricalMode ? formatTimeDisplay(selectedTime) : "Live"}</span>
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8 border-primary/50"
+        onClick={() => { enableHistoricalMode(); handleTimeChange("next"); }}
+        disabled={isHistoricalMode && TIME_SLOTS.indexOf(selectedTime) >= TIME_SLOTS.length - 1}
+        title="Later time"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+      {isHistoricalMode && (
+        <Button
+          variant="default"
+          size="icon"
+          className="h-8 w-8 bg-cyan-600 hover:bg-cyan-700"
+          onClick={resetToLive}
+          title="Reset to Live"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+        </Button>
+      )}
+    </div>
+  );
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -295,6 +418,15 @@ const GreeksChart = () => {
                 onGo={handleGo}
               />
             </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {timeControls}
+              <span className="text-[11px] text-muted-foreground">
+                {isHistoricalMode
+                  ? `Analyzing 09:15 AM → ${formatTimeDisplay(selectedTime)}`
+                  : "Live mode · auto refresh every 1 min"}
+              </span>
+            </div>
+
           </CardContent>
         </Card>
 
@@ -312,8 +444,8 @@ const GreeksChart = () => {
               expiry={selectedExpiry}
               strike={selectedStrike}
               timeframe={selectedTimeframe}
-              callData={greeksData?.callData || []}
-              putData={greeksData?.putData || []}
+              callData={callData}
+              putData={putData}
             />
           </TabsContent>
 
@@ -325,7 +457,7 @@ const GreeksChart = () => {
                 strike={selectedStrike}
                 timeframe={selectedTimeframe}
                 optionType="CE"
-                data={greeksData?.callData || []}
+                data={callData}
               />
               <IndividualGreeksChart
                 symbol={selectedSymbol}
@@ -333,7 +465,7 @@ const GreeksChart = () => {
                 strike={selectedStrike}
                 timeframe={selectedTimeframe}
                 optionType="PE"
-                data={greeksData?.putData || []}
+                data={putData}
               />
             </div>
           </TabsContent>
