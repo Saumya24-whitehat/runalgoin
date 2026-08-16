@@ -265,7 +265,9 @@ const StrikeFlowChain = () => {
         t.retailBear += r.put.retail.bearish;
       }
     });
-    return t;
+    const bpRatio = t.bpBear === 0 ? (t.bpBull === 0 ? null : Infinity) : t.bpBull / t.bpBear;
+    const retailRatio = t.retailBear === 0 ? (t.retailBull === 0 ? null : Infinity) : t.retailBull / t.retailBear;
+    return { ...t, bpRatio, retailRatio };
   }, [rows]);
 
 
