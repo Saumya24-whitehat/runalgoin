@@ -201,6 +201,8 @@ export function computeFlowSummary(rows: StrikeFlowRow[]): FlowSummaryStats {
     byAction,
     byPlayer,
   };
+}
+
 export type FlowMatrix = Record<
   Exclude<FlowAction, "Neutral">,
   Record<"Retail" | "Big Player", { count: number; totalCoi: number; totalAbsCoi: number }>
