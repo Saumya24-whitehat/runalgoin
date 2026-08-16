@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GreeksChartControls } from "@/components/greeksChart/GreeksChartControls";
 import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChartApi";
-import { analyzeStrikeFlow, actionColor, StrikeFlowRow } from "@/utils/strikeFlowAnalysis";
+import { analyzeStrikeFlow, actionColor, StrikeFlowRow, computeFlowSummary } from "@/utils/strikeFlowAnalysis";
 import { formatIndianNumber } from "@/lib/formatNumber";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
