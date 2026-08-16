@@ -226,14 +226,95 @@ const GreeksChart = () => {
     }
   }, [selectedSymbol, selectedExpiry, selectedStrike, loadingStrikes, loadingExpiry]);
 
-  // Auto-refresh every 3 minutes
+  // Auto-refresh every minute (only in Live mode)
   useEffect(() => {
+    if (isHistoricalMode) return;
     if (!selectedSymbol || !selectedExpiry || !selectedStrike) return;
     const interval = setInterval(() => {
       handleGo();
     }, 60000);
     return () => clearInterval(interval);
-  }, [handleGo]);
+  }, [handleGo, isHistoricalMode]);
+
+  // Clip data from 09:15 up to the selected time
+  const cutoffMinute = useMemo(() => {
+    if (!isHistoricalMode || !selectedTime) return null;
+    return parseInt(selectedTime.slice(0, 2)) * 60 + parseInt(selectedTime.slice(2, 4));
+  }, [isHistoricalMode, selectedTime]);
+
+  const clip = useCallback(
+    (data: GreeksDataPoint[]) =>
+      cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute),
+    [cutoffMinute]
+  );
+
+  const callData = useMemo(() => clip(greeksData?.callData || []), [greeksData, clip]);
+  const putData = useMemo(() => clip(greeksData?.putData || []), [greeksData, clip]);
+
+  const handleTimeChange = (direction: "prev" | "next") => {
+    const baseTime = selectedTime && TIME_SLOTS.includes(selectedTime) ? selectedTime : closestSlot();
+    const idx = TIME_SLOTS.indexOf(baseTime);
+    const next = Math.min(Math.max(idx + (direction === "prev" ? -1 : 1), 0), TIME_SLOTS.length - 1);
+    setSelectedTime(TIME_SLOTS[next]);
+  };
+
+  const enableHistoricalMode = () => {
+    if (!isHistoricalMode) {
+      setIsHistoricalMode(true);
+      setSelectedTime(closestSlot());
+    }
+  };
+
+  const resetToLive = () => {
+    setIsHistoricalMode(false);
+    setSelectedTime("");
+  };
+
+  const timeControls = (
+    <div className="flex items-center gap-1.5">
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8 border-primary/50"
+        onClick={() => { enableHistoricalMode(); handleTimeChange("prev"); }}
+        disabled={isHistoricalMode && TIME_SLOTS.indexOf(selectedTime) <= 0}
+        title="Earlier time"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      <Button
+        variant={isHistoricalMode ? "default" : "outline"}
+        className={`h-8 px-3 flex items-center gap-2 text-xs ${isHistoricalMode ? "bg-cyan-600 hover:bg-cyan-700" : "border-primary/50"}`}
+        onClick={enableHistoricalMode}
+        title="Show data from market open up to this time"
+      >
+        <Clock className="h-3.5 w-3.5" />
+        <span className="font-medium">{isHistoricalMode ? formatTimeDisplay(selectedTime) : "Live"}</span>
+      </Button>
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-8 w-8 border-primary/50"
+        onClick={() => { enableHistoricalMode(); handleTimeChange("next"); }}
+        disabled={isHistoricalMode && TIME_SLOTS.indexOf(selectedTime) >= TIME_SLOTS.length - 1}
+        title="Later time"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+      {isHistoricalMode && (
+        <Button
+          variant="default"
+          size="icon"
+          className="h-8 w-8 bg-cyan-600 hover:bg-cyan-700"
+          onClick={resetToLive}
+          title="Reset to Live"
+        >
+          <RefreshCw className="h-3.5 w-3.5" />
+        </Button>
+      )}
+    </div>
+  );
+
 
   return (
     <div className="min-h-screen bg-background">
