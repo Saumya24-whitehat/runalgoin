@@ -10,8 +10,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
-import { fetchCombinedGreeksData } from "@/services/greeksChartApi";
+import { Loader2, Clock, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
+import { fetchCombinedGreeksData, GreeksDataPoint } from "@/services/greeksChartApi";
 import {
   analyzeStrikeFlow,
   computeFlowMatrix,
@@ -41,6 +41,49 @@ interface ChainRow {
   call: SideSentiment | null;
   put: SideSentiment | null;
 }
+
+interface RawStrikeData {
+  strike: number;
+  call: GreeksDataPoint[];
+  put: GreeksDataPoint[];
+}
+
+const generateTimeSlots = () => {
+  const slots: string[] = [];
+  for (let total = 9 * 60 + 15; total <= 15 * 60 + 30; total += 3) {
+    const h = Math.floor(total / 60).toString().padStart(2, "0");
+    const m = (total % 60).toString().padStart(2, "0");
+    slots.push(`${h}${m}`);
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
+
+const formatTimeDisplay = (time: string) => {
+  if (!time || time.length < 4) return "";
+  const hour = parseInt(time.slice(0, 2));
+  const min = time.slice(2, 4);
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+  return `${displayHour.toString().padStart(2, "0")}:${min} ${period}`;
+};
+
+const closestSlot = () => {
+  const now = new Date();
+  const cur = `${now.getHours().toString().padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}`;
+  return TIME_SLOTS.reduce(
+    (prev, curr) =>
+      Math.abs(parseInt(curr) - parseInt(cur)) < Math.abs(parseInt(prev) - parseInt(cur)) ? curr : prev,
+    TIME_SLOTS[0]
+  );
+};
+
+// Candle timestamps are ms with IST already baked in (read as UTC parts)
+const minuteOfDay = (ts: number) => {
+  const d = new Date(ts);
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+};
 
 const timeframes = ["1min", "3min", "5min", "15min", "30min", "60min"];
 const strikeCounts = [5, 7, 10, 15, 20];
@@ -83,7 +126,9 @@ const StrikeFlowChain = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("3min");
   const [strikeCount, setStrikeCount] = useState(7);
 
-  const [rows, setRows] = useState<ChainRow[]>([]);
+  const [rawRows, setRawRows] = useState<RawStrikeData[]>([]);
+  const [selectedTime, setSelectedTime] = useState("");
+  const [isHistoricalMode, setIsHistoricalMode] = useState(false);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
   const [loadingSymbols, setLoadingSymbols] = useState(true);
@@ -180,7 +225,7 @@ const StrikeFlowChain = () => {
     if (!selectedSymbol || !selectedExpiry || visibleStrikes.length === 0) return;
     setLoadingData(true);
     try {
-      const result = await inBatches(visibleStrikes, 4, async (strike): Promise<ChainRow> => {
+      const result = await inBatches(visibleStrikes, 4, async (strike): Promise<RawStrikeData> => {
         try {
           const res = await fetchCombinedGreeksData(
             selectedSymbol,
@@ -188,16 +233,12 @@ const StrikeFlowChain = () => {
             strike,
             selectedTimeframe
           );
-          return {
-            strike,
-            call: res.callData.length ? sentimentOf(analyzeStrikeFlow(res.callData)) : null,
-            put: res.putData.length ? sentimentOf(analyzeStrikeFlow(res.putData)) : null,
-          };
+          return { strike, call: res.callData || [], put: res.putData || [] };
         } catch {
-          return { strike, call: null, put: null };
+          return { strike, call: [], put: [] };
         }
       });
-      setRows(result);
+      setRawRows(result);
       setLastRefresh(new Date());
     } catch (err) {
       console.error("Error building strike flow chain:", err);
@@ -207,15 +248,54 @@ const StrikeFlowChain = () => {
     }
   }, [selectedSymbol, selectedExpiry, selectedTimeframe, strikesKey, toast]);
 
+  const cutoffMinute = useMemo(() => {
+    if (!isHistoricalMode || !selectedTime) return null;
+    return parseInt(selectedTime.slice(0, 2)) * 60 + parseInt(selectedTime.slice(2, 4));
+  }, [isHistoricalMode, selectedTime]);
+
+  const rows = useMemo<ChainRow[]>(() => {
+    return rawRows.map((r) => {
+      const clip = (data: GreeksDataPoint[]) =>
+        cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute);
+      const call = clip(r.call);
+      const put = clip(r.put);
+      return {
+        strike: r.strike,
+        call: call.length ? sentimentOf(analyzeStrikeFlow(call)) : null,
+        put: put.length ? sentimentOf(analyzeStrikeFlow(put)) : null,
+      };
+    });
+  }, [rawRows, cutoffMinute]);
+
+  const handleTimeChange = (direction: "prev" | "next") => {
+    const baseTime = selectedTime && TIME_SLOTS.includes(selectedTime) ? selectedTime : closestSlot();
+    const idx = TIME_SLOTS.indexOf(baseTime);
+    const next = Math.min(Math.max(idx + (direction === "prev" ? -1 : 1), 0), TIME_SLOTS.length - 1);
+    setSelectedTime(TIME_SLOTS[next]);
+  };
+
+  const enableHistoricalMode = () => {
+    if (!isHistoricalMode) {
+      setIsHistoricalMode(true);
+      setSelectedTime(closestSlot());
+    }
+  };
+
+  const resetToLive = () => {
+    setIsHistoricalMode(false);
+    setSelectedTime("");
+  };
+
   useEffect(() => {
     if (!loadingStrikes && !loadingExpiry) loadChain();
   }, [loadChain, loadingStrikes, loadingExpiry]);
 
   useEffect(() => {
+    if (isHistoricalMode) return;
     if (!selectedSymbol || !selectedExpiry || visibleStrikes.length === 0) return;
     const id = setInterval(() => loadChain(), 60000);
     return () => clearInterval(id);
-  }, [loadChain]);
+  }, [loadChain, isHistoricalMode]);
 
   const SideCells = ({ side, mirrored }: { side: SideSentiment | null; mirrored?: boolean }) => {
     const cells = [
@@ -396,6 +476,49 @@ const StrikeFlowChain = () => {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 border-primary/50"
+                  onClick={() => { enableHistoricalMode(); handleTimeChange("prev"); }}
+                  disabled={isHistoricalMode && TIME_SLOTS.indexOf(selectedTime) <= 0}
+                  title="Earlier time"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={isHistoricalMode ? "default" : "outline"}
+                  className={`h-8 px-3 flex items-center gap-2 text-xs ${isHistoricalMode ? "bg-cyan-600 hover:bg-cyan-700" : "border-primary/50"}`}
+                  onClick={enableHistoricalMode}
+                  title="Show data from market open up to this time"
+                >
+                  <Clock className="h-3.5 w-3.5" />
+                  <span className="font-medium">{isHistoricalMode ? formatTimeDisplay(selectedTime) : "Live"}</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8 border-primary/50"
+                  onClick={() => { enableHistoricalMode(); handleTimeChange("next"); }}
+                  disabled={isHistoricalMode && TIME_SLOTS.indexOf(selectedTime) >= TIME_SLOTS.length - 1}
+                  title="Later time"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+                {isHistoricalMode && (
+                  <Button
+                    variant="default"
+                    size="icon"
+                    className="h-8 w-8 bg-cyan-600 hover:bg-cyan-700"
+                    onClick={resetToLive}
+                    title="Reset to Live"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </Button>
+                )}
               </div>
 
               <Button size="sm" className="h-8" onClick={loadChain} disabled={loadingData}>
