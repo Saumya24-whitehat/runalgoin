@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { Navbar } from "@/components/Navbar";
 import { TickerRibbon } from "@/components/TickerRibbon";
 import { Footer } from "@/components/Footer";
@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GreeksChartControls } from "@/components/greeksChart/GreeksChartControls";
 import { CombinedGreeksChart } from "@/components/greeksChart/CombinedGreeksChart";
 import { IndividualGreeksChart } from "@/components/greeksChart/IndividualGreeksChart";
-import { fetchCombinedGreeksData, ParsedGreeksData } from "@/services/greeksChartApi";
+import { fetchCombinedGreeksData, ParsedGreeksData, GreeksDataPoint } from "@/services/greeksChartApi";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
@@ -16,12 +16,50 @@ import { PageInfoModal } from "@/components/PageInfoModal";
 import { MobileSymbolExpiryBar } from "@/components/mobile/MobileSymbolExpiryBar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Clock, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
 
 interface SymbolGroup {
   indexSymbols: string[];
   stockSymbols: string[];
 }
+
+const generateTimeSlots = () => {
+  const slots: string[] = [];
+  for (let total = 9 * 60 + 15; total <= 15 * 60 + 30; total += 3) {
+    const h = Math.floor(total / 60).toString().padStart(2, "0");
+    const m = (total % 60).toString().padStart(2, "0");
+    slots.push(`${h}${m}`);
+  }
+  return slots;
+};
+
+const TIME_SLOTS = generateTimeSlots();
+
+const formatTimeDisplay = (time: string) => {
+  if (!time || time.length < 4) return "";
+  const hour = parseInt(time.slice(0, 2));
+  const min = time.slice(2, 4);
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
+  return `${displayHour.toString().padStart(2, "0")}:${min} ${period}`;
+};
+
+const closestSlot = () => {
+  const now = new Date();
+  const cur = `${now.getHours().toString().padStart(2, "0")}${now.getMinutes().toString().padStart(2, "0")}`;
+  return TIME_SLOTS.reduce(
+    (prev, curr) =>
+      Math.abs(parseInt(curr) - parseInt(cur)) < Math.abs(parseInt(prev) - parseInt(cur)) ? curr : prev,
+    TIME_SLOTS[0]
+  );
+};
+
+// Candle timestamps are ms with IST already baked in (read as UTC parts)
+const minuteOfDay = (ts: number) => {
+  const d = new Date(ts);
+  return d.getUTCHours() * 60 + d.getUTCMinutes();
+};
+
 
 const GreeksChart = () => {
   const { toast } = useToast();
