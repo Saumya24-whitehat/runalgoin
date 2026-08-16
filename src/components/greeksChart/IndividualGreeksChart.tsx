@@ -167,6 +167,9 @@ export const IndividualGreeksChart = ({
             )}
           </div>
         </div>
+        <div className="text-[10px] text-muted-foreground">
+          Session 09:15 → 15:30 (plotted till {lastPlottedTime})
+        </div>
         <div className="flex flex-wrap gap-1 mt-2">
           {dataPointOptions.map((opt) => (
             <Button
@@ -198,6 +201,8 @@ export const IndividualGreeksChart = ({
                 fontSize={10}
                 tickLine={false}
                 axisLine={false}
+                ticks={hourTicks}
+                interval={0}
               />
               {selectedDataPoints.map((key, idx) => (
                 <YAxis
