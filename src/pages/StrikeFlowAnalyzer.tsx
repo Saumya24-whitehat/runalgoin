@@ -384,7 +384,8 @@ const StrikeFlowAnalyzer = () => {
           </Card>
 
           <Card>
-            <CardContent className="p-2">
+            <CardContent className="p-2 space-y-4">
+              <FlowSummary rows={combinedRows} label="Overall" />
               <Tabs defaultValue="call">
                 <TabsList className="grid w-full max-w-xs grid-cols-2">
                   <TabsTrigger value="call">
@@ -394,10 +395,12 @@ const StrikeFlowAnalyzer = () => {
                     {selectedStrike || ""} PE
                   </TabsTrigger>
                 </TabsList>
-                <TabsContent value="call" className="mt-2">
+                <TabsContent value="call" className="mt-2 space-y-3">
+                  <FlowSummary rows={callRows} label="CE" />
                   <FlowTable rows={callRows} />
                 </TabsContent>
-                <TabsContent value="put" className="mt-2">
+                <TabsContent value="put" className="mt-2 space-y-3">
+                  <FlowSummary rows={putRows} label="PE" />
                   <FlowTable rows={putRows} />
                 </TabsContent>
               </Tabs>
