@@ -249,6 +249,26 @@ const StrikeFlowChain = () => {
 
   const headLabels = ["BP Bull OI", "BP Bear OI", "BP B/B", "Retail Bull OI", "Retail Bear OI", "Retail B/B"];
 
+  const totals = useMemo(() => {
+    const t = { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
+    rows.forEach((r) => {
+      if (r.call) {
+        t.bpBull += r.call.bigPlayer.bullish;
+        t.bpBear += r.call.bigPlayer.bearish;
+        t.retailBull += r.call.retail.bullish;
+        t.retailBear += r.call.retail.bearish;
+      }
+      if (r.put) {
+        t.bpBull += r.put.bigPlayer.bullish;
+        t.bpBear += r.put.bigPlayer.bearish;
+        t.retailBull += r.put.retail.bullish;
+        t.retailBear += r.put.retail.bearish;
+      }
+    });
+    return t;
+  }, [rows]);
+
+
   return (
     <PageLayout>
       <SEO
@@ -382,7 +402,41 @@ const StrikeFlowChain = () => {
             </CardContent>
           </Card>
 
+          {rows.length > 0 && (
+            <Card className="bg-card/50 border-border/50">
+              <CardContent className="p-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bullish OI</div>
+                    <div className="text-sm font-mono font-bold text-emerald-500">
+                      {formatIndianNumber(Math.round(totals.bpBull))}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bearish OI</div>
+                    <div className="text-sm font-mono font-bold text-red-500">
+                      {formatIndianNumber(Math.round(totals.bpBear))}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bullish OI</div>
+                    <div className="text-sm font-mono font-bold text-emerald-500/80">
+                      {formatIndianNumber(Math.round(totals.retailBull))}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bearish OI</div>
+                    <div className="text-sm font-mono font-bold text-red-500/80">
+                      {formatIndianNumber(Math.round(totals.retailBear))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           <Card>
+
             <CardContent className="p-2">
               {loadingData && rows.length === 0 ? (
                 <div className="py-12 flex items-center justify-center text-sm text-muted-foreground gap-2">
