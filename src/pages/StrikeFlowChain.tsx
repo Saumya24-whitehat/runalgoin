@@ -17,6 +17,7 @@ import {
   analyzeStrikeFlow,
   computeFlowMatrix,
   computeSentimentTotals,
+  getSentiment,
   SentimentTotals,
 } from "@/utils/strikeFlowAnalysis";
 import { formatIndianNumber, formatCompactIndian } from "@/lib/formatNumber";
