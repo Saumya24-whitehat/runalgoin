@@ -19,6 +19,7 @@ interface CombinedGreeksChartProps {
   symbol: string;
   expiry: string;
   strike: number;
+  timeframe: string;
   callData: GreeksDataPoint[];
   putData: GreeksDataPoint[];
 }
@@ -46,57 +47,89 @@ export const CombinedGreeksChart = ({
   symbol,
   expiry,
   strike,
+  timeframe,
   callData,
   putData,
 }: CombinedGreeksChartProps) => {
   const [selectedDataPoints, setSelectedDataPoints] = useState<DataPointKey[]>(["ltp"]);
 
-  // Merge call and put data by timestamp
-  const chartData = useMemo(() => {
+  // Merge call and put data by timestamp, aligned to a fixed 09:15 → 15:30 session axis
+  const { chartData, hourTicks, lastPlottedTime } = useMemo(() => {
     const calls = callData.filter((d) => !isEmptyPoint(d));
     const puts = putData.filter((d) => !isEmptyPoint(d));
     const callBaseIv = calls.find((d) => d.iv > 0)?.iv;
     const putBaseIv = puts.find((d) => d.iv > 0)?.iv;
 
-    const timestampMap = new Map<number, { call?: GreeksDataPoint; put?: GreeksDataPoint }>();
+    const { axis, hourTicks } = buildSessionAxis(timeframe, [...calls, ...puts]);
+    const step = Math.max(1, parseInt(timeframe) || 3);
 
-    calls.forEach((d) => {
-      timestampMap.set(d.timestamp, { ...timestampMap.get(d.timestamp), call: d });
-    });
+    // Bucket each data point into its slot by rounding minute to the slot start
+    const bucketIndex = (ts: number) => {
+      const m = minuteOfDay(ts);
+      const idx = Math.floor((m - (9 * 60 + 15)) / step);
+      return Math.max(0, Math.min(axis.length - 1, idx));
+    };
 
-    puts.forEach((d) => {
-      timestampMap.set(d.timestamp, { ...timestampMap.get(d.timestamp), put: d });
-    });
+    const rows: GreeksChartRow[] = axis.map((slot) => ({
+      ...slot,
+      timestamp: slot.timestamp,
+      time: slot.time,
+      callLtp: null,
+      putLtp: null,
+      callCoi: null,
+      putCoi: null,
+      callOi: null,
+      putOi: null,
+      callIv: null,
+      putIv: null,
+      callDelta: null,
+      putDelta: null,
+      callTheta: null,
+      putTheta: null,
+      callGamma: null,
+      putGamma: null,
+      callVega: null,
+      putVega: null,
+      callIvRoc: null,
+      putIvRoc: null,
+    }));
 
     const roc = (iv?: number, base?: number) =>
       base && iv && iv > 0 ? ((iv - base) / base) * 100 : undefined;
 
-    return Array.from(timestampMap.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([timestamp, { call, put }]) => ({
-        timestamp,
-        time: (() => { const d = new Date(timestamp); return `${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}`; })(),
-        callLtp: nz(call?.ltp),
-        putLtp: nz(put?.ltp),
-        callCoi: nz(call?.coi),
-        putCoi: nz(put?.coi),
-        callOi: nz(call?.oi),
-        putOi: nz(put?.oi),
-        callIv: nz(call?.iv),
-        putIv: nz(put?.iv),
-        callDelta: nz(call?.delta),
-        putDelta: nz(put?.delta),
-        callTheta: nz(call?.theta),
-        putTheta: nz(put?.theta),
-        callGamma: nz(call?.gamma),
-        putGamma: nz(put?.gamma),
-        callVega: nz(call?.vega),
-        putVega: nz(put?.vega),
-        callIvRoc: roc(call?.iv, callBaseIv),
-        putIvRoc: roc(put?.iv, putBaseIv),
-      }));
-  }, [callData, putData]);
+    const fill = (d: GreeksDataPoint, side: "call" | "put") => {
+      const idx = bucketIndex(d.timestamp);
+      const row = rows[idx];
+      if (!row) return;
+      const prefix = side === "call" ? "call" : "put";
+      row[`${prefix}Ltp`] = nz(d.ltp);
+      row[`${prefix}Coi`] = nz(d.coi);
+      row[`${prefix}Oi`] = nz(d.oi);
+      row[`${prefix}Iv`] = nz(d.iv);
+      row[`${prefix}Delta`] = nz(d.delta);
+      row[`${prefix}Theta`] = nz(d.theta);
+      row[`${prefix}Gamma`] = nz(d.gamma);
+      row[`${prefix}Vega`] = nz(d.vega);
+      row[`${prefix}IvRoc`] = roc(d.iv, side === "call" ? callBaseIv : putBaseIv);
+    };
 
+    calls.forEach((d) => fill(d, "call"));
+    puts.forEach((d) => fill(d, "put"));
+
+    // Null-out slots that are after the last real data point so the line grows, not the axis shifts
+    const lastDataIdx = rows.reduce((max, row, idx) => (row.hasData ? idx : max), -1);
+    for (let i = lastDataIdx + 1; i < rows.length; i++) {
+      Object.keys(rows[i]).forEach((k) => {
+        if (!["timestamp", "time", "minute", "hasData"].includes(k)) {
+          rows[i][k] = null;
+        }
+      });
+    }
+
+    const lastPlottedTime = lastDataIdx >= 0 ? rows[lastDataIdx].time : "--:--";
+
+    return { chartData: rows, hourTicks, lastPlottedTime };
+  }, [callData, putData, timeframe]);
 
   const toggleDataPoint = (key: DataPointKey) => {
     setSelectedDataPoints((prev) =>
