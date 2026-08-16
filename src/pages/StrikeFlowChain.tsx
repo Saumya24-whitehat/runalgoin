@@ -421,6 +421,13 @@ const StrikeFlowChain = () => {
     return filled.length ? filled[filled.length - 1].time : "--:--";
   }, [timeSeries]);
 
+  // Stable half-hourly ticks across the fixed session axis
+  const hourTicks = useMemo(
+    () => timeSeries.filter((d) => d.time.endsWith(":00") || d.time.endsWith(":30")).map((d) => d.time),
+    [timeSeries]
+  );
+
+
 
 
 
