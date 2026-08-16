@@ -14,12 +14,14 @@ import {
   ReferenceLine,
 } from "recharts";
 import { GreeksDataPoint } from "@/services/greeksChartApi";
+import { buildSessionAxis, GreeksChartRow, minuteOfDay } from "@/utils/greeksSessionAxis";
 import { format } from "date-fns";
 
 interface IndividualGreeksChartProps {
   symbol: string;
   expiry: string;
   strike: number;
+  timeframe: string;
   optionType: "CE" | "PE";
   data: GreeksDataPoint[];
 }
