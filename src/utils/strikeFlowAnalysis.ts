@@ -16,7 +16,10 @@ export interface StrikeFlowRow {
   ltpChangePct: number;
   oi: number;
   oiChange: number;
+  /** Candle-to-candle change in OI (this is the COI used for all aggregation) */
   coi: number;
+  /** Cumulative day COI (OI - previous day OI) — reference only */
+  runningCoi: number;
   iv: number;
   ivChange: number;
   ivChangePct: number;
