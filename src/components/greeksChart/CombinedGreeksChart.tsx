@@ -12,12 +12,13 @@ import {
   CartesianGrid,
 } from "recharts";
 import { GreeksDataPoint } from "@/services/greeksChartApi";
-import { format } from "date-fns";
+import { buildSessionAxis, GreeksChartRow, minuteOfDay } from "@/utils/greeksSessionAxis";
 
 interface CombinedGreeksChartProps {
   symbol: string;
   expiry: string;
   strike: number;
+  timeframe: string;
   callData: GreeksDataPoint[];
   putData: GreeksDataPoint[];
 }
@@ -45,57 +46,93 @@ export const CombinedGreeksChart = ({
   symbol,
   expiry,
   strike,
+  timeframe,
   callData,
   putData,
 }: CombinedGreeksChartProps) => {
   const [selectedDataPoints, setSelectedDataPoints] = useState<DataPointKey[]>(["ltp"]);
 
-  // Merge call and put data by timestamp
-  const chartData = useMemo(() => {
+  // Merge call and put data by timestamp, aligned to a fixed 09:15 → 15:30 session axis
+  const { chartData, hourTicks, lastPlottedTime } = useMemo(() => {
     const calls = callData.filter((d) => !isEmptyPoint(d));
     const puts = putData.filter((d) => !isEmptyPoint(d));
     const callBaseIv = calls.find((d) => d.iv > 0)?.iv;
     const putBaseIv = puts.find((d) => d.iv > 0)?.iv;
 
-    const timestampMap = new Map<number, { call?: GreeksDataPoint; put?: GreeksDataPoint }>();
+    const { axis, hourTicks } = buildSessionAxis(timeframe, [...calls, ...puts]);
+    const step = Math.max(1, parseInt(timeframe) || 3);
 
-    calls.forEach((d) => {
-      timestampMap.set(d.timestamp, { ...timestampMap.get(d.timestamp), call: d });
-    });
+    // Bucket each data point into its slot by rounding minute to the slot start
+    const bucketIndex = (ts: number) => {
+      const m = minuteOfDay(ts);
+      const idx = Math.floor((m - (9 * 60 + 15)) / step);
+      return Math.max(0, Math.min(axis.length - 1, idx));
+    };
 
-    puts.forEach((d) => {
-      timestampMap.set(d.timestamp, { ...timestampMap.get(d.timestamp), put: d });
-    });
+    const rows: GreeksChartRow[] = axis.map((slot) => ({
+      ...slot,
+      timestamp: slot.timestamp,
+      time: slot.time,
+      callLtp: null,
+      putLtp: null,
+      callCoi: null,
+      putCoi: null,
+      callOi: null,
+      putOi: null,
+      callIv: null,
+      putIv: null,
+      callDelta: null,
+      putDelta: null,
+      callTheta: null,
+      putTheta: null,
+      callGamma: null,
+      putGamma: null,
+      callVega: null,
+      putVega: null,
+      callIvRoc: null,
+      putIvRoc: null,
+    }));
 
     const roc = (iv?: number, base?: number) =>
       base && iv && iv > 0 ? ((iv - base) / base) * 100 : undefined;
 
-    return Array.from(timestampMap.entries())
-      .sort(([a], [b]) => a - b)
-      .map(([timestamp, { call, put }]) => ({
-        timestamp,
-        time: (() => { const d = new Date(timestamp); return `${String(d.getUTCHours()).padStart(2,"0")}:${String(d.getUTCMinutes()).padStart(2,"0")}`; })(),
-        callLtp: nz(call?.ltp),
-        putLtp: nz(put?.ltp),
-        callCoi: nz(call?.coi),
-        putCoi: nz(put?.coi),
-        callOi: nz(call?.oi),
-        putOi: nz(put?.oi),
-        callIv: nz(call?.iv),
-        putIv: nz(put?.iv),
-        callDelta: nz(call?.delta),
-        putDelta: nz(put?.delta),
-        callTheta: nz(call?.theta),
-        putTheta: nz(put?.theta),
-        callGamma: nz(call?.gamma),
-        putGamma: nz(put?.gamma),
-        callVega: nz(call?.vega),
-        putVega: nz(put?.vega),
-        callIvRoc: roc(call?.iv, callBaseIv),
-        putIvRoc: roc(put?.iv, putBaseIv),
-      }));
-  }, [callData, putData]);
+    const fill = (d: GreeksDataPoint, side: "call" | "put") => {
+      const idx = bucketIndex(d.timestamp);
+      const row = rows[idx];
+      if (!row) return;
+      const prefix = side === "call" ? "call" : "put";
+      const set = (key: string, value?: number) => {
+        if (value === undefined || value === null || value === 0) return;
+        row[key] = value;
+      };
+      set(`${prefix}Ltp`, d.ltp);
+      set(`${prefix}Coi`, d.coi);
+      set(`${prefix}Oi`, d.oi);
+      set(`${prefix}Iv`, d.iv);
+      set(`${prefix}Delta`, d.delta);
+      set(`${prefix}Theta`, d.theta);
+      set(`${prefix}Gamma`, d.gamma);
+      set(`${prefix}Vega`, d.vega);
+      set(`${prefix}IvRoc`, roc(d.iv, side === "call" ? callBaseIv : putBaseIv));
+    };
 
+    calls.forEach((d) => fill(d, "call"));
+    puts.forEach((d) => fill(d, "put"));
+
+    // Null-out slots that are after the last real data point so the line grows, not the axis shifts
+    const lastDataIdx = rows.reduce((max, row, idx) => (row.hasData ? idx : max), -1);
+    for (let i = lastDataIdx + 1; i < rows.length; i++) {
+      Object.keys(rows[i]).forEach((k) => {
+        if (!["timestamp", "time", "minute", "hasData"].includes(k)) {
+          rows[i][k] = null;
+        }
+      });
+    }
+
+    const lastPlottedTime = lastDataIdx >= 0 ? rows[lastDataIdx].time : "--:--";
+
+    return { chartData: rows, hourTicks, lastPlottedTime };
+  }, [callData, putData, timeframe]);
 
   const toggleDataPoint = (key: DataPointKey) => {
     setSelectedDataPoints((prev) =>
@@ -124,9 +161,14 @@ export const CombinedGreeksChart = ({
     <Card className="bg-card/50 border-border/50">
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <CardTitle className="text-base sm:text-lg">
-            {symbol} {expiry} {strike} - Combined Greeks
-          </CardTitle>
+          <div>
+            <CardTitle className="text-base sm:text-lg">
+              {symbol} {expiry} {strike} - Combined Greeks
+            </CardTitle>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              Session 09:15 → 15:30 (plotted till {lastPlottedTime})
+            </div>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             {dataPointOptions.map((opt) => (
@@ -153,6 +195,8 @@ export const CombinedGreeksChart = ({
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={10}
                 tickLine={false}
+                ticks={hourTicks}
+                interval={0}
               />
               {selectedDataPoints.map((key, idx) => (
                 <YAxis

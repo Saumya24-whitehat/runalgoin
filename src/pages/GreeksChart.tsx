@@ -311,6 +311,7 @@ const GreeksChart = () => {
               symbol={selectedSymbol}
               expiry={selectedExpiry}
               strike={selectedStrike}
+              timeframe={selectedTimeframe}
               callData={greeksData?.callData || []}
               putData={greeksData?.putData || []}
             />
@@ -322,6 +323,7 @@ const GreeksChart = () => {
                 symbol={selectedSymbol}
                 expiry={selectedExpiry}
                 strike={selectedStrike}
+                timeframe={selectedTimeframe}
                 optionType="CE"
                 data={greeksData?.callData || []}
               />
@@ -329,6 +331,7 @@ const GreeksChart = () => {
                 symbol={selectedSymbol}
                 expiry={selectedExpiry}
                 strike={selectedStrike}
+                timeframe={selectedTimeframe}
                 optionType="PE"
                 data={greeksData?.putData || []}
               />
