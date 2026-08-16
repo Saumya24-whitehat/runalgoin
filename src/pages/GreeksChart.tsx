@@ -418,6 +418,15 @@ const GreeksChart = () => {
                 onGo={handleGo}
               />
             </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {timeControls}
+              <span className="text-[11px] text-muted-foreground">
+                {isHistoricalMode
+                  ? `Analyzing 09:15 AM → ${formatTimeDisplay(selectedTime)}`
+                  : "Live mode · auto refresh every 1 min"}
+              </span>
+            </div>
+
           </CardContent>
         </Card>
 
