@@ -444,8 +444,8 @@ const GreeksChart = () => {
               expiry={selectedExpiry}
               strike={selectedStrike}
               timeframe={selectedTimeframe}
-              callData={greeksData?.callData || []}
-              putData={greeksData?.putData || []}
+              callData={callData}
+              putData={putData}
             />
           </TabsContent>
 
@@ -457,7 +457,7 @@ const GreeksChart = () => {
                 strike={selectedStrike}
                 timeframe={selectedTimeframe}
                 optionType="CE"
-                data={greeksData?.callData || []}
+                data={callData}
               />
               <IndividualGreeksChart
                 symbol={selectedSymbol}
@@ -465,7 +465,7 @@ const GreeksChart = () => {
                 strike={selectedStrike}
                 timeframe={selectedTimeframe}
                 optionType="PE"
-                data={greeksData?.putData || []}
+                data={putData}
               />
             </div>
           </TabsContent>
