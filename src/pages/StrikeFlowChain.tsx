@@ -383,21 +383,51 @@ const StrikeFlowChain = () => {
       addSide(r.put);
     });
 
-    const mins = Array.from(buckets.keys()).sort((a, b) => a - b);
+    // Fixed full-session axis (09:15 → 15:30) so the chart never re-scales / shifts
+    const step = Math.max(1, parseInt(selectedTimeframe) || 3);
+    const start = 9 * 60 + 15;
+    const end = 15 * 60 + 30;
+    const axis: number[] = [];
+    for (let m = start; m <= end; m += step) axis.push(m);
+
+    const mins = Array.from(buckets.keys());
+    const lastMin = mins.length ? Math.max(...mins) : -1;
     let bpBull = 0,
       bpBear = 0,
       retailBull = 0,
       retailBear = 0;
-    return mins.map((m) => {
-      const b = buckets.get(m)!;
-      bpBull += b.bpBull;
-      bpBear += b.bpBear;
-      retailBull += b.retailBull;
-      retailBear += b.retailBear;
+
+    return axis.map((m) => {
+      // absorb every candle that falls inside this slot
+      for (let k = m; k < m + step; k++) {
+        const b = buckets.get(k);
+        if (!b) continue;
+        bpBull += b.bpBull;
+        bpBear += b.bpBear;
+        retailBull += b.retailBull;
+        retailBear += b.retailBear;
+      }
       const time = `${Math.floor(m / 60).toString().padStart(2, "0")}:${(m % 60).toString().padStart(2, "0")}`;
+      if (lastMin < 0 || m > lastMin) {
+        return { time, bpBull: null, bpBear: null, retailBull: null, retailBear: null };
+      }
       return { time, bpBull, bpBear, retailBull, retailBear };
     });
-  }, [rawRows, cutoffMinute]);
+  }, [rawRows, cutoffMinute, selectedTimeframe]);
+
+
+  const lastPlottedTime = useMemo(() => {
+    const filled = timeSeries.filter((d) => d.bpBull !== null);
+    return filled.length ? filled[filled.length - 1].time : "--:--";
+  }, [timeSeries]);
+
+  // Stable half-hourly ticks across the fixed session axis
+  const hourTicks = useMemo(
+    () => timeSeries.filter((d) => d.time.endsWith(":00") || d.time.endsWith(":30")).map((d) => d.time),
+    [timeSeries]
+  );
+
+
 
 
 
@@ -621,7 +651,7 @@ const StrikeFlowChain = () => {
 
                 <div className="mt-4 pt-3 border-t border-border/50">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wide text-center mb-2">
-                    Bullish vs Bearish OI — Intraday (09:15 → {timeSeries.length ? timeSeries[timeSeries.length - 1].time : "--:--"})
+                    Bullish vs Bearish OI — Intraday (09:15 → 15:30, plotted till {lastPlottedTime})
                   </div>
                   <div className="h-[260px]">
                     <ResponsiveContainer width="100%" height="100%">
@@ -633,8 +663,10 @@ const StrikeFlowChain = () => {
                           fontSize={10}
                           tickLine={false}
                           axisLine={false}
-                          minTickGap={30}
+                          ticks={hourTicks}
+                          interval={0}
                         />
+
                         <YAxis
                           stroke="hsl(var(--muted-foreground))"
                           fontSize={10}
