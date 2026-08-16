@@ -88,15 +88,19 @@ export const IndividualGreeksChart = ({
       const idx = bucketIndex(d.timestamp);
       const row = rows[idx];
       if (!row) return;
-      row.ltp = nz(d.ltp);
-      row.oi = nz(d.oi);
-      row.coi = nz(d.coi);
-      row.iv = nz(d.iv);
-      row.delta = nz(d.delta);
-      row.theta = nz(d.theta);
-      row.gamma = nz(d.gamma);
-      row.vega = nz(d.vega);
-      row.ivRoc = baseIv && d.iv > 0 ? ((d.iv - baseIv) / baseIv) * 100 : undefined;
+      const set = (key: string, value?: number) => {
+        if (value === undefined || value === null || value === 0) return;
+        row[key] = value;
+      };
+      set("ltp", d.ltp);
+      set("oi", d.oi);
+      set("coi", d.coi);
+      set("iv", d.iv);
+      set("delta", d.delta);
+      set("theta", d.theta);
+      set("gamma", d.gamma);
+      set("vega", d.vega);
+      set("ivRoc", baseIv && d.iv > 0 ? ((d.iv - baseIv) / baseIv) * 100 : undefined);
     });
 
     // Null-out slots after the last real data point so the line grows into the fixed axis
