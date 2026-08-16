@@ -40,6 +40,7 @@ const MarketBreadth = lazy(() => import("./pages/MarketBreadth"));
 const OptionsChart = lazy(() => import("./pages/OptionsChart"));
 const GreeksChart = lazy(() => import("./pages/GreeksChart"));
 const StrikeFlowAnalyzer = lazy(() => import("./pages/StrikeFlowAnalyzer"));
+const StrikeFlowChain = lazy(() => import("./pages/StrikeFlowChain"));
 const StrategyCharts = lazy(() => import("./pages/StrategyCharts"));
 const PremiumDecay = lazy(() => import("./pages/PremiumDecay"));
 const Indices = lazy(() => import("./pages/Indices"));
