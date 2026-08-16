@@ -383,21 +383,36 @@ const StrikeFlowChain = () => {
       addSide(r.put);
     });
 
-    const mins = Array.from(buckets.keys()).sort((a, b) => a - b);
+    // Fixed full-session axis (09:15 → 15:30) so the chart never re-scales / repaints
+    const mins = Array.from(buckets.keys());
+    const lastMin = mins.length ? Math.max(...mins) : -1;
     let bpBull = 0,
       bpBear = 0,
       retailBull = 0,
       retailBear = 0;
-    return mins.map((m) => {
-      const b = buckets.get(m)!;
-      bpBull += b.bpBull;
-      bpBear += b.bpBear;
-      retailBull += b.retailBull;
-      retailBear += b.retailBear;
-      const time = `${Math.floor(m / 60).toString().padStart(2, "0")}:${(m % 60).toString().padStart(2, "0")}`;
+
+    return TIME_SLOTS.map((slot) => {
+      const m = parseInt(slot.slice(0, 2)) * 60 + parseInt(slot.slice(2, 4));
+      const b = buckets.get(m);
+      if (b) {
+        bpBull += b.bpBull;
+        bpBear += b.bpBear;
+        retailBull += b.retailBull;
+        retailBear += b.retailBear;
+      }
+      const time = `${slot.slice(0, 2)}:${slot.slice(2, 4)}`;
+      if (lastMin < 0 || m > lastMin) {
+        return { time, bpBull: null, bpBear: null, retailBull: null, retailBear: null };
+      }
       return { time, bpBull, bpBear, retailBull, retailBear };
     });
   }, [rawRows, cutoffMinute]);
+
+  const lastPlottedTime = useMemo(() => {
+    const filled = timeSeries.filter((d) => d.bpBull !== null);
+    return filled.length ? filled[filled.length - 1].time : "--:--";
+  }, [timeSeries]);
+
 
 
 
