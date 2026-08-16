@@ -76,6 +76,10 @@ const GreeksChart = () => {
   const [greeksData, setGreeksData] = useState<ParsedGreeksData | null>(null);
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
 
+  const [selectedTime, setSelectedTime] = useState("");
+  const [isHistoricalMode, setIsHistoricalMode] = useState(false);
+
+
   const [loadingSymbols, setLoadingSymbols] = useState(true);
   const [loadingExpiry, setLoadingExpiry] = useState(false);
   const [loadingStrikes, setLoadingStrikes] = useState(false);
