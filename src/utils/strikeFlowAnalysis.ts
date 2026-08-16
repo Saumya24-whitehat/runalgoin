@@ -161,3 +161,44 @@ export const actionColor: Record<FlowAction, string> = {
   "Long Unwinding": "text-amber-500",
   Neutral: "text-muted-foreground",
 };
+
+export interface FlowSummaryStats {
+  totalCandles: number;
+  byAction: Record<
+    Exclude<FlowAction, "Neutral">,
+    { count: number; totalCoi: number; totalAbsCoi: number }
+  >;
+  byPlayer: Record<PlayerTag, { count: number; totalAbsCoi: number }>;
+}
+
+export function computeFlowSummary(rows: StrikeFlowRow[]): FlowSummaryStats {
+  const byAction: FlowSummaryStats["byAction"] = {
+    "Long Buildup": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    "Short Buildup": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    "Short Covering": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+    "Long Unwinding": { count: 0, totalCoi: 0, totalAbsCoi: 0 },
+  };
+
+  const byPlayer: FlowSummaryStats["byPlayer"] = {
+    Retail: { count: 0, totalAbsCoi: 0 },
+    "Big Player": { count: 0, totalAbsCoi: 0 },
+    "Exit / Deflate": { count: 0, totalAbsCoi: 0 },
+    Mixed: { count: 0, totalAbsCoi: 0 },
+  };
+
+  for (const r of rows) {
+    if (r.action !== "Neutral") {
+      byAction[r.action].count += 1;
+      byAction[r.action].totalCoi += r.coi;
+      byAction[r.action].totalAbsCoi += Math.abs(r.coi);
+    }
+    byPlayer[r.player].count += 1;
+    byPlayer[r.player].totalAbsCoi += Math.abs(r.coi);
+  }
+
+  return {
+    totalCandles: rows.length,
+    byAction,
+    byPlayer,
+  };
+}
