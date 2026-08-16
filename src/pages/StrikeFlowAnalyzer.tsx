@@ -97,7 +97,95 @@ function FlowTable({ rows }: { rows: StrikeFlowRow[] }) {
   );
 }
 
-const StrikeFlowAnalyzer = () => {
+function FlowSummary({ rows, label }: { rows: StrikeFlowRow[]; label: string }) {
+  const stats = useMemo(() => computeFlowSummary(rows), [rows]);
+  const totalActions =
+    stats.byAction["Long Buildup"].count +
+    stats.byAction["Short Buildup"].count +
+    stats.byAction["Short Covering"].count +
+    stats.byAction["Long Unwinding"].count;
+
+  const actionRows = [
+    { key: "Long Buildup", label: "Long Buildup" },
+    { key: "Short Buildup", label: "Short Buildup" },
+    { key: "Short Covering", label: "Short Covering" },
+    { key: "Long Unwinding", label: "Long Unwinding" },
+  ] as const;
+
+  const playerOrder: { key: "Retail" | "Big Player" | "Exit / Deflate" | "Mixed"; label: string }[] = [
+    { key: "Retail", label: "Retail" },
+    { key: "Big Player", label: "Big Player" },
+    { key: "Exit / Deflate", label: "Exit / Deflate" },
+    { key: "Mixed", label: "Mixed" },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold">{label} Summary</h3>
+        <span className="text-xs text-muted-foreground">
+          {stats.totalCandles} candles analysed
+        </span>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        {playerOrder.map((p) => {
+          const s = stats.byPlayer[p.key];
+          const pct = stats.totalCandles ? (s.count / stats.totalCandles) * 100 : 0;
+          return (
+            <Card key={p.key} className="bg-card/50 border-border/50">
+              <CardContent className="p-2.5 space-y-0.5">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{p.label}</div>
+                <div className="text-lg font-bold leading-none">
+                  {s.count}
+                  <span className="text-xs font-normal text-muted-foreground ml-1">({pct.toFixed(0)}%)</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground">
+                  Σ COI {formatIndianNumber(Math.round(s.totalAbsCoi))}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full text-[10px] leading-tight">
+          <thead className="bg-muted/60">
+            <tr className="text-left">
+              <th className="px-2 py-1.5 font-semibold">Activity</th>
+              <th className="px-2 py-1.5 font-semibold text-right">Candles</th>
+              <th className="px-2 py-1.5 font-semibold text-right">Share</th>
+              <th className="px-2 py-1.5 font-semibold text-right">Total COI</th>
+              <th className="px-2 py-1.5 font-semibold text-right">Abs COI</th>
+            </tr>
+          </thead>
+          <tbody>
+            {actionRows.map((a) => {
+              const s = stats.byAction[a.key];
+              const share = totalActions ? (s.count / totalActions) * 100 : 0;
+              return (
+                <tr key={a.key} className="border-b border-border/40">
+                  <td className={cn("px-2 py-1.5 font-semibold", actionColor[a.key])}>{a.label}</td>
+                  <td className="px-2 py-1.5 text-right font-mono">{s.count}</td>
+                  <td className="px-2 py-1.5 text-right font-mono">{share.toFixed(1)}%</td>
+                  <td className={cn("px-2 py-1.5 text-right font-mono", signClass(s.totalCoi))}>
+                    {s.totalCoi > 0 ? "+" : ""}
+                    {formatIndianNumber(Math.round(s.totalCoi))}
+                  </td>
+                  <td className="px-2 py-1.5 text-right font-mono text-muted-foreground">
+                    {formatIndianNumber(Math.round(s.totalAbsCoi))}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
   const { toast } = useToast();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
