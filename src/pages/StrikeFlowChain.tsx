@@ -383,7 +383,13 @@ const StrikeFlowChain = () => {
       addSide(r.put);
     });
 
-    // Fixed full-session axis (09:15 → 15:30) so the chart never re-scales / repaints
+    // Fixed full-session axis (09:15 → 15:30) so the chart never re-scales / shifts
+    const step = Math.max(1, parseInt(selectedTimeframe) || 3);
+    const start = 9 * 60 + 15;
+    const end = 15 * 60 + 30;
+    const axis: number[] = [];
+    for (let m = start; m <= end; m += step) axis.push(m);
+
     const mins = Array.from(buckets.keys());
     const lastMin = mins.length ? Math.max(...mins) : -1;
     let bpBull = 0,
@@ -391,22 +397,24 @@ const StrikeFlowChain = () => {
       retailBull = 0,
       retailBear = 0;
 
-    return TIME_SLOTS.map((slot) => {
-      const m = parseInt(slot.slice(0, 2)) * 60 + parseInt(slot.slice(2, 4));
-      const b = buckets.get(m);
-      if (b) {
+    return axis.map((m) => {
+      // absorb every candle that falls inside this slot
+      for (let k = m; k < m + step; k++) {
+        const b = buckets.get(k);
+        if (!b) continue;
         bpBull += b.bpBull;
         bpBear += b.bpBear;
         retailBull += b.retailBull;
         retailBear += b.retailBear;
       }
-      const time = `${slot.slice(0, 2)}:${slot.slice(2, 4)}`;
+      const time = `${Math.floor(m / 60).toString().padStart(2, "0")}:${(m % 60).toString().padStart(2, "0")}`;
       if (lastMin < 0 || m > lastMin) {
         return { time, bpBull: null, bpBear: null, retailBull: null, retailBear: null };
       }
       return { time, bpBull, bpBear, retailBull, retailBear };
     });
-  }, [rawRows, cutoffMinute]);
+  }, [rawRows, cutoffMinute, selectedTimeframe]);
+
 
   const lastPlottedTime = useMemo(() => {
     const filled = timeSeries.filter((d) => d.bpBull !== null);
