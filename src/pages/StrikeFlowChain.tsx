@@ -351,6 +351,54 @@ const StrikeFlowChain = () => {
     return { ...t, bpRatio, retailRatio };
   }, [rows]);
 
+  // Cumulative bullish / bearish OI over the day, bucketed per candle time (09:15 → last candle)
+  const timeSeries = useMemo(() => {
+    const buckets = new Map<number, { bpBull: number; bpBear: number; retailBull: number; retailBear: number }>();
+
+    const addSide = (data: GreeksDataPoint[]) => {
+      const clipped =
+        cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute);
+      if (!clipped.length) return;
+      for (const r of analyzeStrikeFlow(clipped)) {
+        if (r.action === "Neutral") continue;
+        if (r.player !== "Retail" && r.player !== "Big Player") continue;
+        const m = minuteOfDay(r.timestamp);
+        const b = buckets.get(m) || { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
+        const sentiment = getSentiment(r.action, r.player);
+        const val = Math.abs(r.coi);
+        if (r.player === "Big Player") {
+          if (sentiment === "Bullish") b.bpBull += val;
+          else b.bpBear += val;
+        } else {
+          if (sentiment === "Bullish") b.retailBull += val;
+          else b.retailBear += val;
+        }
+        buckets.set(m, b);
+      }
+    };
+
+    rawRows.forEach((r) => {
+      addSide(r.call);
+      addSide(r.put);
+    });
+
+    const mins = Array.from(buckets.keys()).sort((a, b) => a - b);
+    let bpBull = 0,
+      bpBear = 0,
+      retailBull = 0,
+      retailBear = 0;
+    return mins.map((m) => {
+      const b = buckets.get(m)!;
+      bpBull += b.bpBull;
+      bpBear += b.bpBear;
+      retailBull += b.retailBull;
+      retailBear += b.retailBear;
+      const time = `${Math.floor(m / 60).toString().padStart(2, "0")}:${(m % 60).toString().padStart(2, "0")}`;
+      return { time, bpBull, bpBear, retailBull, retailBear };
+    });
+  }, [rawRows, cutoffMinute]);
+
+
 
   return (
     <PageLayout>
