@@ -19,7 +19,7 @@ import {
   computeSentimentTotals,
   SentimentTotals,
 } from "@/utils/strikeFlowAnalysis";
-import { formatIndianNumber } from "@/lib/formatNumber";
+import { formatIndianNumber, formatCompactIndian } from "@/lib/formatNumber";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
