@@ -231,6 +231,7 @@ const StrikeFlowAnalyzer = () => {
       <SEO
         title="Strike Flow Analyzer — OI, COI & IV Activity | OptionWorld"
         description="Candle-by-candle strike analysis: LTP, OI, COI and IV change with buildup, unwinding and short-covering signals plus retail vs big-player interpretation."
+        path="/strike-flow"
       />
       <ProFeatureGate featureName="Strike Flow Analyzer">
         <main className="container py-6 space-y-4">
