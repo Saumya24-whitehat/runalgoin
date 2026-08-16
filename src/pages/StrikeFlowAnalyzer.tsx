@@ -186,6 +186,7 @@ function FlowSummary({ rows, label }: { rows: StrikeFlowRow[]; label: string }) 
   );
 }
 
+const StrikeFlowAnalyzer = () => {
   const { toast } = useToast();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
   const [expiryDates, setExpiryDates] = useState<string[]>([]);
