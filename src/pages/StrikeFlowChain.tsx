@@ -11,12 +11,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Clock, ChevronLeft, ChevronRight, RefreshCw } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, Cell, CartesianGrid } from "recharts";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend, CartesianGrid } from "recharts";
 import { fetchCombinedGreeksData, GreeksDataPoint } from "@/services/greeksChartApi";
 import {
   analyzeStrikeFlow,
   computeFlowMatrix,
   computeSentimentTotals,
+  getSentiment,
   SentimentTotals,
 } from "@/utils/strikeFlowAnalysis";
 import { formatIndianNumber, formatCompactIndian } from "@/lib/formatNumber";
@@ -351,6 +352,54 @@ const StrikeFlowChain = () => {
     return { ...t, bpRatio, retailRatio };
   }, [rows]);
 
+  // Cumulative bullish / bearish OI over the day, bucketed per candle time (09:15 → last candle)
+  const timeSeries = useMemo(() => {
+    const buckets = new Map<number, { bpBull: number; bpBear: number; retailBull: number; retailBear: number }>();
+
+    const addSide = (data: GreeksDataPoint[]) => {
+      const clipped =
+        cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute);
+      if (!clipped.length) return;
+      for (const r of analyzeStrikeFlow(clipped)) {
+        if (r.action === "Neutral") continue;
+        if (r.player !== "Retail" && r.player !== "Big Player") continue;
+        const m = minuteOfDay(r.timestamp);
+        const b = buckets.get(m) || { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
+        const sentiment = getSentiment(r.action, r.player);
+        const val = Math.abs(r.coi);
+        if (r.player === "Big Player") {
+          if (sentiment === "Bullish") b.bpBull += val;
+          else b.bpBear += val;
+        } else {
+          if (sentiment === "Bullish") b.retailBull += val;
+          else b.retailBear += val;
+        }
+        buckets.set(m, b);
+      }
+    };
+
+    rawRows.forEach((r) => {
+      addSide(r.call);
+      addSide(r.put);
+    });
+
+    const mins = Array.from(buckets.keys()).sort((a, b) => a - b);
+    let bpBull = 0,
+      bpBear = 0,
+      retailBull = 0,
+      retailBear = 0;
+    return mins.map((m) => {
+      const b = buckets.get(m)!;
+      bpBull += b.bpBull;
+      bpBear += b.bpBear;
+      retailBull += b.retailBull;
+      retailBear += b.retailBear;
+      const time = `${Math.floor(m / 60).toString().padStart(2, "0")}:${(m % 60).toString().padStart(2, "0")}`;
+      return { time, bpBull, bpBear, retailBull, retailBear };
+    });
+  }, [rawRows, cutoffMinute]);
+
+
 
   return (
     <PageLayout>
@@ -572,27 +621,20 @@ const StrikeFlowChain = () => {
 
                 <div className="mt-4 pt-3 border-t border-border/50">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wide text-center mb-2">
-                    Bullish vs Bearish OI
+                    Bullish vs Bearish OI — Intraday (09:15 → {timeSeries.length ? timeSeries[timeSeries.length - 1].time : "--:--"})
                   </div>
-                  <div className="h-[220px]">
+                  <div className="h-[260px]">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart
-                        data={[
-                          {
-                            name: "Big Player",
-                            bullish: totals.bpBull,
-                            bearish: totals.bpBear,
-                          },
-                          {
-                            name: "Retail",
-                            bullish: totals.retailBull,
-                            bearish: totals.retailBear,
-                          },
-                        ]}
-                        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-                      >
+                      <LineChart data={timeSeries} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} vertical={false} />
-                        <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={10} tickLine={false} axisLine={false} />
+                        <XAxis
+                          dataKey="time"
+                          stroke="hsl(var(--muted-foreground))"
+                          fontSize={10}
+                          tickLine={false}
+                          axisLine={false}
+                          minTickGap={30}
+                        />
                         <YAxis
                           stroke="hsl(var(--muted-foreground))"
                           fontSize={10}
@@ -601,28 +643,24 @@ const StrikeFlowChain = () => {
                           tickFormatter={(v) => formatCompactIndian(v, 1)}
                         />
                         <Tooltip
-                          cursor={{ fill: "hsl(var(--muted))", opacity: 0.2 }}
                           contentStyle={{
                             backgroundColor: "hsl(var(--card))",
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
                             fontSize: "12px",
                           }}
-                          formatter={(value: number) => [formatIndianNumber(Math.round(value)), "OI"]}
+                          formatter={(value: number, name: string) => [formatIndianNumber(Math.round(value)), name]}
                         />
-                        <Legend wrapperStyle={{ fontSize: "12px" }} />
-                        <Bar dataKey="bullish" name="Bullish OI" radius={[4, 4, 0, 0]}>
-                          <Cell fill="#10b981" />
-                          <Cell fill="#10b981" opacity={0.75} />
-                        </Bar>
-                        <Bar dataKey="bearish" name="Bearish OI" radius={[4, 4, 0, 0]}>
-                          <Cell fill="#ef4444" />
-                          <Cell fill="#ef4444" opacity={0.75} />
-                        </Bar>
-                      </BarChart>
+                        <Legend wrapperStyle={{ fontSize: "11px" }} />
+                        <Line type="monotone" dataKey="bpBull" name="BP Bullish OI" stroke="#10b981" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="bpBear" name="BP Bearish OI" stroke="#ef4444" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="retailBull" name="Retail Bullish OI" stroke="#10b981" strokeWidth={1.5} strokeDasharray="5 4" dot={false} />
+                        <Line type="monotone" dataKey="retailBear" name="Retail Bearish OI" stroke="#ef4444" strokeWidth={1.5} strokeDasharray="5 4" dot={false} />
+                      </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
+
               </CardContent>
             </Card>
           )}
