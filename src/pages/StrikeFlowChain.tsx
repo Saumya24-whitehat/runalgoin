@@ -644,7 +644,7 @@ const StrikeFlowChain = () => {
 
                 <div className="mt-4 pt-3 border-t border-border/50">
                   <div className="text-[10px] text-muted-foreground uppercase tracking-wide text-center mb-2">
-                    Bullish vs Bearish OI — Intraday (09:15 → {timeSeries.length ? timeSeries[timeSeries.length - 1].time : "--:--"})
+                    Bullish vs Bearish OI — Intraday (09:15 → 15:30, plotted till {lastPlottedTime})
                   </div>
                   <div className="h-[260px]">
                     <ResponsiveContainer width="100%" height="100%">
