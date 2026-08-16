@@ -158,9 +158,14 @@ export const CombinedGreeksChart = ({
     <Card className="bg-card/50 border-border/50">
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <CardTitle className="text-base sm:text-lg">
-            {symbol} {expiry} {strike} - Combined Greeks
-          </CardTitle>
+          <div>
+            <CardTitle className="text-base sm:text-lg">
+              {symbol} {expiry} {strike} - Combined Greeks
+            </CardTitle>
+            <div className="text-[10px] text-muted-foreground mt-0.5">
+              Session 09:15 → 15:30 (plotted till {lastPlottedTime})
+            </div>
+          </div>
 
           <div className="flex flex-wrap gap-2">
             {dataPointOptions.map((opt) => (
@@ -187,6 +192,8 @@ export const CombinedGreeksChart = ({
                 stroke="hsl(var(--muted-foreground))"
                 fontSize={10}
                 tickLine={false}
+                ticks={hourTicks}
+                interval={0}
               />
               {selectedDataPoints.map((key, idx) => (
                 <YAxis
