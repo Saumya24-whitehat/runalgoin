@@ -47,33 +47,75 @@ export const IndividualGreeksChart = ({
   symbol,
   expiry,
   strike,
+  timeframe,
   optionType,
   data,
 }: IndividualGreeksChartProps) => {
   const [selectedDataPoints, setSelectedDataPoints] = useState<DataPointKey[]>(["ltp"]);
   const [showVolume, setShowVolume] = useState(false);
 
-  const chartData = useMemo(() => {
+  const { chartData, hourTicks, lastPlottedTime } = useMemo(() => {
     // Drop rows where every metric is 0 (no data yet for that timestamp)
     const cleaned = data.filter(
       (d) => !(!d.ltp && !d.oi && !d.iv && !d.delta && !d.theta && !d.gamma && !d.vega)
     );
     const baseIv = cleaned.find((d) => d.iv > 0)?.iv;
 
-    return cleaned.map((d) => ({
-      timestamp: d.timestamp,
-      ltp: nz(d.ltp),
-      oi: nz(d.oi),
-      coi: nz(d.coi),
-      iv: nz(d.iv),
-      delta: nz(d.delta),
-      theta: nz(d.theta),
-      gamma: nz(d.gamma),
-      vega: nz(d.vega),
-      ivRoc: baseIv && d.iv > 0 ? ((d.iv - baseIv) / baseIv) * 100 : undefined,
-      time: (() => { const dt = new Date(d.timestamp); return `${String(dt.getUTCHours()).padStart(2,"0")}:${String(dt.getUTCMinutes()).padStart(2,"0")}`; })(),
+    const { axis, hourTicks } = buildSessionAxis(timeframe, cleaned);
+    const step = Math.max(1, parseInt(timeframe) || 3);
+
+    const bucketIndex = (ts: number) => {
+      const m = minuteOfDay(ts);
+      const idx = Math.floor((m - (9 * 60 + 15)) / step);
+      return Math.max(0, Math.min(axis.length - 1, idx));
+    };
+
+    const rows: GreeksChartRow[] = axis.map((slot) => ({
+      ...slot,
+      timestamp: slot.timestamp,
+      time: slot.time,
+      ltp: null,
+      oi: null,
+      coi: null,
+      iv: null,
+      delta: null,
+      theta: null,
+      gamma: null,
+      vega: null,
+      ivRoc: null,
     }));
-  }, [data]);
+
+    cleaned.forEach((d) => {
+      const idx = bucketIndex(d.timestamp);
+      const row = rows[idx];
+      if (!row) return;
+      row.ltp = nz(d.ltp);
+      row.oi = nz(d.oi);
+      row.coi = nz(d.coi);
+      row.iv = nz(d.iv);
+      row.delta = nz(d.delta);
+      row.theta = nz(d.theta);
+      row.gamma = nz(d.gamma);
+      row.vega = nz(d.vega);
+      row.ivRoc = baseIv && d.iv > 0 ? ((d.iv - baseIv) / baseIv) * 100 : undefined;
+    });
+
+    // Null-out slots after the last real data point so the line grows into the fixed axis
+    const lastDataIdx = rows.reduce((max, row, idx) => (row.hasData ? idx : max), -1);
+    for (let i = lastDataIdx + 1; i < rows.length; i++) {
+      Object.keys(rows[i]).forEach((k) => {
+        if (!["timestamp", "time", "minute", "hasData"].includes(k)) {
+          rows[i][k] = null;
+        }
+      });
+    }
+
+    const lastPlottedTime = lastDataIdx >= 0 ? rows[lastDataIdx].time : "--:--";
+
+    return { chartData: rows, hourTicks, lastPlottedTime };
+  }, [data, timeframe]);
+
+
 
 
   const latestData = data[data.length - 1];
