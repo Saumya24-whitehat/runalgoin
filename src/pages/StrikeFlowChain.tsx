@@ -443,26 +443,15 @@ const StrikeFlowChain = () => {
 
   const headLabels = ["BP Bull OI", "BP Bear OI", "BP B/B", "Retail Bull OI", "Retail Bear OI", "Retail B/B"];
 
-  const totals = useMemo(() => {
-    const t = { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
-    rows.forEach((r) => {
-      if (r.call) {
-        t.bpBull += r.call.bigPlayer.bullish;
-        t.bpBear += r.call.bigPlayer.bearish;
-        t.retailBull += r.call.retail.bullish;
-        t.retailBear += r.call.retail.bearish;
-      }
-      if (r.put) {
-        t.bpBull += r.put.bigPlayer.bullish;
-        t.bpBear += r.put.bigPlayer.bearish;
-        t.retailBull += r.put.retail.bullish;
-        t.retailBear += r.put.retail.bearish;
-      }
-    });
-    const bpRatio = t.bpBear === 0 ? (t.bpBull === 0 ? null : Infinity) : t.bpBull / t.bpBear;
-    const retailRatio = t.retailBear === 0 ? (t.retailBull === 0 ? null : Infinity) : t.retailBull / t.retailBear;
-    return { ...t, bpRatio, retailRatio };
-  }, [rows]);
+  const totals = useMemo(() => totalsFromRaw(rawRows, cutoffMinute), [rawRows, cutoffMinute]);
+  const nextWeekTotals = useMemo(
+    () => (nextWeekRaw.length ? totalsFromRaw(nextWeekRaw, cutoffMinute) : null),
+    [nextWeekRaw, cutoffMinute]
+  );
+  const monthlyTotals = useMemo(
+    () => (monthlyRaw.length ? totalsFromRaw(monthlyRaw, cutoffMinute) : null),
+    [monthlyRaw, cutoffMinute]
+  );
 
   // Cumulative bullish / bearish OI over the day, bucketed per candle time (09:15 → last candle)
   const timeSeries = useMemo(() => {
