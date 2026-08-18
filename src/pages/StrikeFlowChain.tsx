@@ -398,11 +398,18 @@ const StrikeFlowChain = () => {
   }, [loadChain, loadingStrikes, loadingExpiry]);
 
   useEffect(() => {
+    if (!loadingStrikes && !loadingExpiry) loadExtraExpiries();
+  }, [loadExtraExpiries, loadingStrikes, loadingExpiry]);
+
+  useEffect(() => {
     if (isHistoricalMode) return;
     if (!selectedSymbol || !selectedExpiry || visibleStrikes.length === 0) return;
-    const id = setInterval(() => loadChain(), 60000);
+    const id = setInterval(() => {
+      loadChain();
+      loadExtraExpiries();
+    }, 60000);
     return () => clearInterval(id);
-  }, [loadChain, isHistoricalMode]);
+  }, [loadChain, loadExtraExpiries, isHistoricalMode]);
 
   const SideCells = ({ side, mirrored }: { side: SideSentiment | null; mirrored?: boolean }) => {
     const cells = [
