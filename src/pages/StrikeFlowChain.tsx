@@ -299,6 +299,62 @@ const StrikeFlowChain = () => {
     }
   }, [selectedSymbol, selectedExpiry, selectedTimeframe, strikesKey, toast]);
 
+  // Next weekly expiry (the one right after the selected) and the monthly expiry
+  // (last expiry falling in the same calendar month as the selected expiry)
+  const { nextWeekExpiry, monthlyExpiry } = useMemo(() => {
+    const idx = expiryDates.indexOf(selectedExpiry);
+    const nextWeek = idx >= 0 && idx + 1 < expiryDates.length ? expiryDates[idx + 1] : null;
+
+    const selDate = parseExpiry(selectedExpiry);
+    let monthly: string | null = null;
+    if (selDate) {
+      const sameMonth = expiryDates.filter((d) => {
+        const p = parseExpiry(d);
+        return p && p.getMonth() === selDate.getMonth() && p.getFullYear() === selDate.getFullYear();
+      });
+      if (sameMonth.length) {
+        monthly = sameMonth.reduce((a, b) => {
+          const pa = parseExpiry(a)!;
+          const pb = parseExpiry(b)!;
+          return pb > pa ? b : a;
+        });
+      }
+    }
+    if (monthly === selectedExpiry) monthly = null;
+    return { nextWeekExpiry: nextWeek === selectedExpiry ? null : nextWeek, monthlyExpiry: monthly };
+  }, [expiryDates, selectedExpiry]);
+
+  const [nextWeekRaw, setNextWeekRaw] = useState<RawStrikeData[]>([]);
+  const [monthlyRaw, setMonthlyRaw] = useState<RawStrikeData[]>([]);
+  const [loadingExtra, setLoadingExtra] = useState(false);
+
+  const loadExtraExpiries = useCallback(async () => {
+    if (!selectedSymbol || visibleStrikes.length === 0) return;
+    const fetchFor = async (expiry: string) =>
+      inBatches(visibleStrikes, 4, async (strike): Promise<RawStrikeData> => {
+        try {
+          const res = await fetchCombinedGreeksData(selectedSymbol, expiry, strike, selectedTimeframe);
+          return { strike, call: res.callData || [], put: res.putData || [] };
+        } catch {
+          return { strike, call: [], put: [] };
+        }
+      });
+
+    setLoadingExtra(true);
+    try {
+      const [nw, mo] = await Promise.all([
+        nextWeekExpiry ? fetchFor(nextWeekExpiry) : Promise.resolve([]),
+        monthlyExpiry ? fetchFor(monthlyExpiry) : Promise.resolve([]),
+      ]);
+      setNextWeekRaw(nw);
+      setMonthlyRaw(mo);
+    } catch (err) {
+      console.error("Error loading extra expiry summaries:", err);
+    } finally {
+      setLoadingExtra(false);
+    }
+  }, [selectedSymbol, selectedTimeframe, strikesKey, nextWeekExpiry, monthlyExpiry]);
+
   const cutoffMinute = useMemo(() => {
     if (!isHistoricalMode || !selectedTime) return null;
     return parseInt(selectedTime.slice(0, 2)) * 60 + parseInt(selectedTime.slice(2, 4));
