@@ -116,6 +116,55 @@ async function inBatches<T, R>(items: T[], size: number, fn: (item: T) => Promis
   return out;
 }
 
+export interface FlowTotals {
+  bpBull: number;
+  bpBear: number;
+  retailBull: number;
+  retailBear: number;
+  bpRatio: number | null;
+  retailRatio: number | null;
+}
+
+function totalsFromRaw(raw: RawStrikeData[], cutoffMinute: number | null): FlowTotals {
+  const t = { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
+  raw.forEach((r) => {
+    [r.call, r.put].forEach((data) => {
+      const clipped =
+        cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute);
+      if (!clipped.length) return;
+      const s = sentimentOf(analyzeStrikeFlow(clipped));
+      t.bpBull += s.bigPlayer.bullish;
+      t.bpBear += s.bigPlayer.bearish;
+      t.retailBull += s.retail.bullish;
+      t.retailBear += s.retail.bearish;
+    });
+  });
+  const bpRatio = t.bpBear === 0 ? (t.bpBull === 0 ? null : Infinity) : t.bpBull / t.bpBear;
+  const retailRatio = t.retailBear === 0 ? (t.retailBull === 0 ? null : Infinity) : t.retailBull / t.retailBear;
+  return { ...t, bpRatio, retailRatio };
+}
+
+const MONTH_MAP: Record<string, number> = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+};
+
+// Handles "28-Aug-2026", "2026-08-28", "28 Aug 2026"
+function parseExpiry(value: string): Date | null {
+  if (!value) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  const dmy = /^(\d{1,2})[-\s/]([A-Za-z]{3,})[-\s/](\d{2,4})$/.exec(value);
+  if (dmy) {
+    const month = MONTH_MAP[dmy[2].slice(0, 3).toLowerCase()];
+    if (month === undefined) return null;
+    const year = Number(dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3]);
+    return new Date(year, month, Number(dmy[1]));
+  }
+  const fallback = new Date(value);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
+
 const StrikeFlowChain = () => {
   const { toast } = useToast();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
