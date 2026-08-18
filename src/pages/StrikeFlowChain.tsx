@@ -116,6 +116,121 @@ async function inBatches<T, R>(items: T[], size: number, fn: (item: T) => Promis
   return out;
 }
 
+export interface FlowTotals {
+  bpBull: number;
+  bpBear: number;
+  retailBull: number;
+  retailBear: number;
+  bpRatio: number | null;
+  retailRatio: number | null;
+}
+
+function totalsFromRaw(raw: RawStrikeData[], cutoffMinute: number | null): FlowTotals {
+  const t = { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
+  raw.forEach((r) => {
+    [r.call, r.put].forEach((data) => {
+      const clipped =
+        cutoffMinute === null ? data : data.filter((d) => minuteOfDay(d.timestamp) <= cutoffMinute);
+      if (!clipped.length) return;
+      const s = sentimentOf(analyzeStrikeFlow(clipped));
+      t.bpBull += s.bigPlayer.bullish;
+      t.bpBear += s.bigPlayer.bearish;
+      t.retailBull += s.retail.bullish;
+      t.retailBear += s.retail.bearish;
+    });
+  });
+  const bpRatio = t.bpBear === 0 ? (t.bpBull === 0 ? null : Infinity) : t.bpBull / t.bpBear;
+  const retailRatio = t.retailBear === 0 ? (t.retailBull === 0 ? null : Infinity) : t.retailBull / t.retailBear;
+  return { ...t, bpRatio, retailRatio };
+}
+
+const MONTH_MAP: Record<string, number> = {
+  jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5,
+  jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11,
+};
+
+// Handles "28-Aug-2026", "2026-08-28", "28 Aug 2026"
+function parseExpiry(value: string): Date | null {
+  if (!value) return null;
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (iso) return new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+  const dmy = /^(\d{1,2})[-\s/]([A-Za-z]{3,})[-\s/](\d{2,4})$/.exec(value);
+  if (dmy) {
+    const month = MONTH_MAP[dmy[2].slice(0, 3).toLowerCase()];
+    if (month === undefined) return null;
+    const year = Number(dmy[3].length === 2 ? `20${dmy[3]}` : dmy[3]);
+    return new Date(year, month, Number(dmy[1]));
+  }
+  const fallback = new Date(value);
+  return isNaN(fallback.getTime()) ? null : fallback;
+}
+
+const SummaryCard = ({
+  label,
+  expiry,
+  totals,
+  loading,
+}: {
+  label: string;
+  expiry: string;
+  totals: FlowTotals | null;
+  loading?: boolean;
+}) => (
+  <Card className="bg-card/50 border-border/50">
+    <CardContent className="p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-wide">{label}</span>
+        <span className="text-[10px] text-muted-foreground font-mono">{expiry}</span>
+        {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+      </div>
+      {!totals ? (
+        <div className="py-3 text-center text-[11px] text-muted-foreground">
+          {loading ? "Loading…" : "No data"}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bullish OI</div>
+            <div className="text-sm font-mono font-bold text-emerald-500">
+              {formatIndianNumber(Math.round(totals.bpBull))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bearish OI</div>
+            <div className="text-sm font-mono font-bold text-red-500">
+              {formatIndianNumber(Math.round(totals.bpBear))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">BP B / B</div>
+            <div className={cn("text-sm font-mono font-bold", ratioClass(totals.bpRatio))}>
+              {fmtRatio(totals.bpRatio)}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bullish OI</div>
+            <div className="text-sm font-mono font-bold text-emerald-500/80">
+              {formatIndianNumber(Math.round(totals.retailBull))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bearish OI</div>
+            <div className="text-sm font-mono font-bold text-red-500/80">
+              {formatIndianNumber(Math.round(totals.retailBear))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Retail B / B</div>
+            <div className={cn("text-sm font-mono font-bold", ratioClass(totals.retailRatio))}>
+              {fmtRatio(totals.retailRatio)}
+            </div>
+          </div>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
 const StrikeFlowChain = () => {
   const { toast } = useToast();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
@@ -250,6 +365,62 @@ const StrikeFlowChain = () => {
     }
   }, [selectedSymbol, selectedExpiry, selectedTimeframe, strikesKey, toast]);
 
+  // Next weekly expiry (the one right after the selected) and the monthly expiry
+  // (last expiry falling in the same calendar month as the selected expiry)
+  const { nextWeekExpiry, monthlyExpiry } = useMemo(() => {
+    const idx = expiryDates.indexOf(selectedExpiry);
+    const nextWeek = idx >= 0 && idx + 1 < expiryDates.length ? expiryDates[idx + 1] : null;
+
+    const selDate = parseExpiry(selectedExpiry);
+    let monthly: string | null = null;
+    if (selDate) {
+      const sameMonth = expiryDates.filter((d) => {
+        const p = parseExpiry(d);
+        return p && p.getMonth() === selDate.getMonth() && p.getFullYear() === selDate.getFullYear();
+      });
+      if (sameMonth.length) {
+        monthly = sameMonth.reduce((a, b) => {
+          const pa = parseExpiry(a)!;
+          const pb = parseExpiry(b)!;
+          return pb > pa ? b : a;
+        });
+      }
+    }
+    if (monthly === selectedExpiry) monthly = null;
+    return { nextWeekExpiry: nextWeek === selectedExpiry ? null : nextWeek, monthlyExpiry: monthly };
+  }, [expiryDates, selectedExpiry]);
+
+  const [nextWeekRaw, setNextWeekRaw] = useState<RawStrikeData[]>([]);
+  const [monthlyRaw, setMonthlyRaw] = useState<RawStrikeData[]>([]);
+  const [loadingExtra, setLoadingExtra] = useState(false);
+
+  const loadExtraExpiries = useCallback(async () => {
+    if (!selectedSymbol || visibleStrikes.length === 0) return;
+    const fetchFor = async (expiry: string) =>
+      inBatches(visibleStrikes, 4, async (strike): Promise<RawStrikeData> => {
+        try {
+          const res = await fetchCombinedGreeksData(selectedSymbol, expiry, strike, selectedTimeframe);
+          return { strike, call: res.callData || [], put: res.putData || [] };
+        } catch {
+          return { strike, call: [], put: [] };
+        }
+      });
+
+    setLoadingExtra(true);
+    try {
+      const [nw, mo] = await Promise.all([
+        nextWeekExpiry ? fetchFor(nextWeekExpiry) : Promise.resolve([]),
+        monthlyExpiry ? fetchFor(monthlyExpiry) : Promise.resolve([]),
+      ]);
+      setNextWeekRaw(nw);
+      setMonthlyRaw(mo);
+    } catch (err) {
+      console.error("Error loading extra expiry summaries:", err);
+    } finally {
+      setLoadingExtra(false);
+    }
+  }, [selectedSymbol, selectedTimeframe, strikesKey, nextWeekExpiry, monthlyExpiry]);
+
   const cutoffMinute = useMemo(() => {
     if (!isHistoricalMode || !selectedTime) return null;
     return parseInt(selectedTime.slice(0, 2)) * 60 + parseInt(selectedTime.slice(2, 4));
@@ -293,11 +464,18 @@ const StrikeFlowChain = () => {
   }, [loadChain, loadingStrikes, loadingExpiry]);
 
   useEffect(() => {
+    if (!loadingStrikes && !loadingExpiry) loadExtraExpiries();
+  }, [loadExtraExpiries, loadingStrikes, loadingExpiry]);
+
+  useEffect(() => {
     if (isHistoricalMode) return;
     if (!selectedSymbol || !selectedExpiry || visibleStrikes.length === 0) return;
-    const id = setInterval(() => loadChain(), 60000);
+    const id = setInterval(() => {
+      loadChain();
+      loadExtraExpiries();
+    }, 60000);
     return () => clearInterval(id);
-  }, [loadChain, isHistoricalMode]);
+  }, [loadChain, loadExtraExpiries, isHistoricalMode]);
 
   const SideCells = ({ side, mirrored }: { side: SideSentiment | null; mirrored?: boolean }) => {
     const cells = [
@@ -331,26 +509,15 @@ const StrikeFlowChain = () => {
 
   const headLabels = ["BP Bull OI", "BP Bear OI", "BP B/B", "Retail Bull OI", "Retail Bear OI", "Retail B/B"];
 
-  const totals = useMemo(() => {
-    const t = { bpBull: 0, bpBear: 0, retailBull: 0, retailBear: 0 };
-    rows.forEach((r) => {
-      if (r.call) {
-        t.bpBull += r.call.bigPlayer.bullish;
-        t.bpBear += r.call.bigPlayer.bearish;
-        t.retailBull += r.call.retail.bullish;
-        t.retailBear += r.call.retail.bearish;
-      }
-      if (r.put) {
-        t.bpBull += r.put.bigPlayer.bullish;
-        t.bpBear += r.put.bigPlayer.bearish;
-        t.retailBull += r.put.retail.bullish;
-        t.retailBear += r.put.retail.bearish;
-      }
-    });
-    const bpRatio = t.bpBear === 0 ? (t.bpBull === 0 ? null : Infinity) : t.bpBull / t.bpBear;
-    const retailRatio = t.retailBear === 0 ? (t.retailBull === 0 ? null : Infinity) : t.retailBull / t.retailBear;
-    return { ...t, bpRatio, retailRatio };
-  }, [rows]);
+  const totals = useMemo(() => totalsFromRaw(rawRows, cutoffMinute), [rawRows, cutoffMinute]);
+  const nextWeekTotals = useMemo(
+    () => (nextWeekRaw.length ? totalsFromRaw(nextWeekRaw, cutoffMinute) : null),
+    [nextWeekRaw, cutoffMinute]
+  );
+  const monthlyTotals = useMemo(
+    () => (monthlyRaw.length ? totalsFromRaw(monthlyRaw, cutoffMinute) : null),
+    [monthlyRaw, cutoffMinute]
+  );
 
   // Cumulative bullish / bearish OI over the day, bucketed per candle time (09:15 → last candle)
   const timeSeries = useMemo(() => {
@@ -608,48 +775,25 @@ const StrikeFlowChain = () => {
           </Card>
 
           {rows.length > 0 && (
-            <Card className="bg-card/50 border-border/50">
-              <CardContent className="p-3">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bullish OI</div>
-                    <div className="text-sm font-mono font-bold text-emerald-500">
-                      {formatIndianNumber(Math.round(totals.bpBull))}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bearish OI</div>
-                    <div className="text-sm font-mono font-bold text-red-500">
-                      {formatIndianNumber(Math.round(totals.bpBear))}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">BP B / B</div>
-                    <div className={cn("text-sm font-mono font-bold", ratioClass(totals.bpRatio))}>
-                      {fmtRatio(totals.bpRatio)}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bullish OI</div>
-                    <div className="text-sm font-mono font-bold text-emerald-500/80">
-                      {formatIndianNumber(Math.round(totals.retailBull))}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bearish OI</div>
-                    <div className="text-sm font-mono font-bold text-red-500/80">
-                      {formatIndianNumber(Math.round(totals.retailBear))}
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Retail B / B</div>
-                    <div className={cn("text-sm font-mono font-bold", ratioClass(totals.retailRatio))}>
-                      {fmtRatio(totals.retailRatio)}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-3">
+              <SummaryCard label="Selected Expiry" expiry={selectedExpiry} totals={totals} />
+              {nextWeekExpiry && (
+                <SummaryCard
+                  label="Next Week Expiry"
+                  expiry={nextWeekExpiry}
+                  totals={nextWeekTotals}
+                  loading={loadingExtra}
+                />
+              )}
+              {monthlyExpiry && (
+                <SummaryCard
+                  label="Monthly Expiry"
+                  expiry={monthlyExpiry}
+                  totals={monthlyTotals}
+                  loading={loadingExtra}
+                />
+              )}
+            </div>
           )}
 
           <Card>
