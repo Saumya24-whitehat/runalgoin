@@ -165,6 +165,72 @@ function parseExpiry(value: string): Date | null {
   return isNaN(fallback.getTime()) ? null : fallback;
 }
 
+const SummaryCard = ({
+  label,
+  expiry,
+  totals,
+  loading,
+}: {
+  label: string;
+  expiry: string;
+  totals: FlowTotals | null;
+  loading?: boolean;
+}) => (
+  <Card className="bg-card/50 border-border/50">
+    <CardContent className="p-3 space-y-2">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-wide">{label}</span>
+        <span className="text-[10px] text-muted-foreground font-mono">{expiry}</span>
+        {loading && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+      </div>
+      {!totals ? (
+        <div className="py-3 text-center text-[11px] text-muted-foreground">
+          {loading ? "Loading…" : "No data"}
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bullish OI</div>
+            <div className="text-sm font-mono font-bold text-emerald-500">
+              {formatIndianNumber(Math.round(totals.bpBull))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total BP Bearish OI</div>
+            <div className="text-sm font-mono font-bold text-red-500">
+              {formatIndianNumber(Math.round(totals.bpBear))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">BP B / B</div>
+            <div className={cn("text-sm font-mono font-bold", ratioClass(totals.bpRatio))}>
+              {fmtRatio(totals.bpRatio)}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bullish OI</div>
+            <div className="text-sm font-mono font-bold text-emerald-500/80">
+              {formatIndianNumber(Math.round(totals.retailBull))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Total Retail Bearish OI</div>
+            <div className="text-sm font-mono font-bold text-red-500/80">
+              {formatIndianNumber(Math.round(totals.retailBear))}
+            </div>
+          </div>
+          <div className="text-center">
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Retail B / B</div>
+            <div className={cn("text-sm font-mono font-bold", ratioClass(totals.retailRatio))}>
+              {fmtRatio(totals.retailRatio)}
+            </div>
+          </div>
+        </div>
+      )}
+    </CardContent>
+  </Card>
+);
+
 const StrikeFlowChain = () => {
   const { toast } = useToast();
   const [symbols, setSymbols] = useState<SymbolGroup>({ indexSymbols: [], stockSymbols: [] });
