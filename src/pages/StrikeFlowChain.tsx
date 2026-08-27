@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LastRefreshBadge } from "@/components/LastRefreshBadge";
 import { PageInfoModal } from "@/components/PageInfoModal";
 import { SEO } from "@/components/SEO";
+import { IndexPCRCoiCard } from "@/components/strikeFlow/IndexPCRCoiCard";
 import { cn } from "@/lib/utils";
 
 interface SymbolGroup {
@@ -773,6 +774,8 @@ const StrikeFlowChain = () => {
               </Button>
             </CardContent>
           </Card>
+
+          <IndexPCRCoiCard cutoffMinute={cutoffMinute} refreshKey={lastRefresh?.getTime()} />
 
           {rows.length > 0 && (
             <div className="space-y-3">
