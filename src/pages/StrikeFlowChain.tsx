@@ -774,6 +774,8 @@ const StrikeFlowChain = () => {
             </CardContent>
           </Card>
 
+          <IndexPCRCoiCard cutoffMinute={cutoffMinute} refreshKey={lastRefresh?.getTime()} />
+
           {rows.length > 0 && (
             <div className="space-y-3">
               <SummaryCard label="Selected Expiry" expiry={selectedExpiry} totals={totals} />
