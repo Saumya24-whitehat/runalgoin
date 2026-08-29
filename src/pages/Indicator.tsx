@@ -409,9 +409,18 @@ const Indicator = () => {
                           minTickGap={28}
                         />
                         <YAxis
+                          yAxisId="chg"
                           tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           width={52}
                           tickFormatter={(v: number) => v.toFixed(0)}
+                        />
+                        <YAxis
+                          yAxisId="spot"
+                          orientation="right"
+                          domain={["auto", "auto"]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          width={58}
+                          tickFormatter={(v: number) => formatIndianNumber(Math.round(v))}
                         />
                         <Tooltip
                           contentStyle={{
@@ -420,25 +429,42 @@ const Indicator = () => {
                             borderRadius: 6,
                             fontSize: 11,
                           }}
-                          formatter={(value: number, name: string) => [signed(value), name]}
+                          formatter={(value: number, name: string) =>
+                            name === "Spot"
+                              ? [formatIndianNumber(Math.round(value)), name]
+                              : [signed(value), name]
+                          }
                         />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
-                        <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" opacity={0.6} />
+                        <ReferenceLine yAxisId="chg" y={0} stroke="hsl(var(--muted-foreground))" opacity={0.6} />
                         <Line
+                          yAxisId="chg"
                           type="monotone"
-                          dataKey="callChange"
-                          name="Call Change"
+                          dataKey="callAvg"
+                          name="Call Change (Avg)"
                           stroke="hsl(var(--chart-1, 142 71% 45%))"
                           strokeWidth={2}
                           dot={false}
                           connectNulls
                         />
                         <Line
+                          yAxisId="chg"
                           type="monotone"
-                          dataKey="putChange"
-                          name="Put Change"
+                          dataKey="putAvg"
+                          name="Put Change (Avg)"
                           stroke="hsl(var(--destructive))"
                           strokeWidth={2}
+                          dot={false}
+                          connectNulls
+                        />
+                        <Line
+                          yAxisId="spot"
+                          type="monotone"
+                          dataKey="spot"
+                          name="Spot"
+                          stroke="hsl(var(--chart-4, 45 93% 47%))"
+                          strokeWidth={1.5}
+                          strokeDasharray="4 2"
                           dot={false}
                           connectNulls
                         />
