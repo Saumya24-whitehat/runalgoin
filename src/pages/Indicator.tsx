@@ -208,6 +208,17 @@ const Indicator = () => {
   const ceCoiTotal = latest?.CE_COI ?? 0;
   const peCoiTotal = latest?.PE_COI ?? 0;
 
+  // Full-day PCR chart data (PCR OI + PCR COI across all candles)
+  const pcrChartData = useMemo(
+    () =>
+      rows.map((entry) => ({
+        time: fmtTime(entry.time),
+        pcrOi: entry.PCR_OI ?? null,
+        pcrCoi: entry.PCR_COI ?? null,
+      })),
+    [rows]
+  );
+
   return (
     <>
       <SEO
