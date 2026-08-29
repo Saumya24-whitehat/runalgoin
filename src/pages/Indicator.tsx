@@ -475,12 +475,12 @@ const Indicator = () => {
               </CardContent>
             </Card>
 
-            {/* 5-strike change in OI figures for the day */}
+            {/* PCR (COI) figure for the day */}
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-xs font-bold uppercase tracking-wide">
-                    {strikeCount} Strike Change in OI
+                    PCR (COI) — {strikeCount} Strikes
                     {historicalDate ? ` — ${format(historicalDate, "dd/MM/yyyy")}` : " — Today"}
                   </div>
                   {latest && (
@@ -490,60 +490,26 @@ const Indicator = () => {
                   )}
                 </div>
 
-                {coiRows.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-muted-foreground">No data</div>
+                {pcrCoi === null ? (
+                  <div className="py-4 text-center text-xs text-muted-foreground">No data</div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-[10px]">
-                      <thead>
-                        <tr className="border-b border-border/60 text-muted-foreground uppercase">
-                          <th className="text-right py-1">CE COI</th>
-                          <th className="text-right py-1">CE OI</th>
-                          <th className="text-center py-1">Strike</th>
-                          <th className="text-right py-1">PE OI</th>
-                          <th className="text-right py-1">PE COI</th>
-                        </tr>
-                      </thead>
-                      <tbody className="font-mono">
-                        {coiRows.map((r) => {
-                          const isAtm = Number(r.Strike) === Number(baseAtm);
-                          return (
-                            <tr
-                              key={r.Strike}
-                              className={cn(
-                                "border-b border-border/30",
-                                isAtm && "bg-primary/10 font-bold"
-                              )}
-                            >
-                              <td className={cn("text-right py-1", changeClass(r["CE COI"] || 0))}>
-                                {signedInt(r["CE COI"] || 0)}
-                              </td>
-                              <td className="text-right py-1">
-                                {formatIndianNumber(Math.round(r["CE OI"] || 0))}
-                              </td>
-                              <td className="text-center py-1 font-bold">{r.Strike}</td>
-                              <td className="text-right py-1">
-                                {formatIndianNumber(Math.round(r["PE OI"] || 0))}
-                              </td>
-                              <td className={cn("text-right py-1", changeClass(r["PE COI"] || 0))}>
-                                {signedInt(r["PE COI"] || 0)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        <tr className="border-t border-border font-bold">
-                          <td className={cn("text-right py-1", changeClass(coiTotals.ce))}>
-                            {signedInt(coiTotals.ce)}
-                          </td>
-                          <td />
-                          <td className="text-center py-1 uppercase">Total</td>
-                          <td />
-                          <td className={cn("text-right py-1", changeClass(coiTotals.pe))}>
-                            {signedInt(coiTotals.pe)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+                    <div>
+                      <div className="text-[10px] uppercase text-muted-foreground">PCR (COI)</div>
+                      <div className="text-2xl font-bold font-mono">{pcrCoi.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase text-muted-foreground">Total CE COI</div>
+                      <div className={cn("text-lg font-bold font-mono", changeClass(ceCoiTotal))}>
+                        {signedInt(ceCoiTotal)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase text-muted-foreground">Total PE COI</div>
+                      <div className={cn("text-lg font-bold font-mono", changeClass(peCoiTotal))}>
+                        {signedInt(peCoiTotal)}
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
