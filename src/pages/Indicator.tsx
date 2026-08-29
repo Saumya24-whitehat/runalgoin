@@ -486,6 +486,77 @@ const Indicator = () => {
               </CardContent>
             </Card>
 
+            {/* Full-day PCR chart */}
+            <Card className="bg-card/50 border-border/50">
+              <CardContent className="p-3 sm:p-4">
+                <div className="text-xs font-bold uppercase tracking-wide mb-2">
+                  PCR — Full Day (09:15 → Last Candle)
+                </div>
+                {loadingData ? (
+                  <div className="h-[300px] flex items-center justify-center">
+                    <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  </div>
+                ) : pcrChartData.length === 0 ? (
+                  <div className="h-[300px] flex items-center justify-center text-xs text-muted-foreground">
+                    No data for the selected date / expiry
+                  </div>
+                ) : (
+                  <div className="h-[300px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={pcrChartData} margin={{ top: 8, right: 12, left: 0, bottom: 4 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.4} />
+                        <XAxis
+                          dataKey="time"
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          interval="preserveStartEnd"
+                          minTickGap={28}
+                        />
+                        <YAxis
+                          domain={["auto", "auto"]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          width={44}
+                          tickFormatter={(v: number) => v.toFixed(2)}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            background: "hsl(var(--popover))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: 6,
+                            fontSize: 11,
+                          }}
+                          formatter={(value: number, name: string) => [
+                            typeof value === "number" ? value.toFixed(2) : value,
+                            name,
+                          ]}
+                        />
+                        <Legend wrapperStyle={{ fontSize: 11 }} />
+                        <ReferenceLine y={1} stroke="hsl(var(--muted-foreground))" opacity={0.6} strokeDasharray="4 2" />
+                        <Line
+                          type="monotone"
+                          dataKey="pcrOi"
+                          name="PCR (OI)"
+                          stroke="hsl(var(--chart-2, 221 83% 53%))"
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="pcrCoi"
+                          name="PCR (COI)"
+                          stroke="hsl(var(--chart-4, 45 93% 47%))"
+                          strokeWidth={2}
+                          strokeDasharray="6 3"
+                          dot={false}
+                          connectNulls
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* PCR (COI) figure for the day */}
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-3 sm:p-4">
