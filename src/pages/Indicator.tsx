@@ -192,10 +192,13 @@ const Indicator = () => {
       const start = Math.max(0, i - MA_WINDOW + 1);
       const slice = raw.slice(start, i + 1);
       const n = slice.length || 1;
+      const callAvg = slice.reduce((s, p) => s + p.callChange, 0) / n;
+      const putAvg = slice.reduce((s, p) => s + p.putChange, 0) / n;
       return {
         ...pt,
-        callAvg: slice.reduce((s, p) => s + p.callChange, 0) / n,
-        putAvg: slice.reduce((s, p) => s + p.putChange, 0) / n,
+        callAvg,
+        putAvg,
+        netDiff: callAvg - putAvg,
       };
     });
   }, [rows, baseAtm]);
@@ -393,6 +396,9 @@ const Indicator = () => {
                       <span className={changeClass(lastPoint.putAvg)}>
                         PE {signed(lastPoint.putAvg)}
                       </span>
+                      <span className={changeClass(lastPoint.netDiff)}>
+                        Diff {signed(lastPoint.netDiff)}
+                      </span>
                       <span className="text-muted-foreground">
                         Spot {lastPoint.spot?.toFixed(2)}
                       </span>
@@ -479,6 +485,17 @@ const Indicator = () => {
                           dot={false}
                           connectNulls
                         />
+                        <Line
+                          yAxisId="chg"
+                          type="monotone"
+                          dataKey="netDiff"
+                          name="CE - PE Avg Diff"
+                          stroke="hsl(var(--chart-3, 280 65% 60%))"
+                          strokeWidth={1.5}
+                          strokeDasharray="2 2"
+                          dot={false}
+                          connectNulls
+                        />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
@@ -490,7 +507,7 @@ const Indicator = () => {
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-3 sm:p-4">
                 <div className="text-xs font-bold uppercase tracking-wide mb-2">
-                  PCR — Full Day (09:15 → Last Candle)
+                  PCR (COI) — Full Day (09:15 → Last Candle)
                 </div>
                 {loadingData ? (
                   <div className="h-[300px] flex items-center justify-center">
