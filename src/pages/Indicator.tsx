@@ -550,15 +550,6 @@ const Indicator = () => {
                         <ReferenceLine y={1} stroke="hsl(var(--muted-foreground))" opacity={0.6} strokeDasharray="4 2" />
                         <Line
                           type="monotone"
-                          dataKey="pcrOi"
-                          name="PCR (OI)"
-                          stroke="hsl(var(--chart-2, 221 83% 53%))"
-                          strokeWidth={2}
-                          dot={false}
-                          connectNulls
-                        />
-                        <Line
-                          type="monotone"
                           dataKey="pcrCoi"
                           name="PCR (COI)"
                           stroke="hsl(var(--chart-4, 45 93% 47%))"
