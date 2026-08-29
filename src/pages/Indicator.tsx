@@ -372,15 +372,18 @@ const Indicator = () => {
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-xs font-bold uppercase tracking-wide">
-                    ATM {baseAtm ?? ""} — Call vs Put Change (from 09:15)
+                    ATM {baseAtm ?? ""} — Call vs Put Change (Rolling Avg {MA_WINDOW}) + Spot
                   </div>
                   {lastPoint && (
                     <div className="flex gap-3 text-[11px] font-mono">
-                      <span className={changeClass(lastPoint.callChange)}>
-                        CE {signed(lastPoint.callChange)} ({signed(lastPoint.callPct)}%)
+                      <span className={changeClass(lastPoint.callAvg)}>
+                        CE {signed(lastPoint.callAvg)}
                       </span>
-                      <span className={changeClass(lastPoint.putChange)}>
-                        PE {signed(lastPoint.putChange)} ({signed(lastPoint.putPct)}%)
+                      <span className={changeClass(lastPoint.putAvg)}>
+                        PE {signed(lastPoint.putAvg)}
+                      </span>
+                      <span className="text-muted-foreground">
+                        Spot {lastPoint.spot?.toFixed(2)}
                       </span>
                     </div>
                   )}
