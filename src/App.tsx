@@ -41,6 +41,7 @@ const OptionsChart = lazy(() => import("./pages/OptionsChart"));
 const GreeksChart = lazy(() => import("./pages/GreeksChart"));
 const StrikeFlowAnalyzer = lazy(() => import("./pages/StrikeFlowAnalyzer"));
 const StrikeFlowChain = lazy(() => import("./pages/StrikeFlowChain"));
+const Indicator = lazy(() => import("./pages/Indicator"));
 const StrategyCharts = lazy(() => import("./pages/StrategyCharts"));
 const PremiumDecay = lazy(() => import("./pages/PremiumDecay"));
 const Indices = lazy(() => import("./pages/Indices"));
@@ -136,6 +137,7 @@ const App = () => (
                 <Route path="/greeks-chart" element={<GreeksChart />} />
                 <Route path="/strike-flow" element={<StrikeFlowAnalyzer />} />
                 <Route path="/strike-flow-chain" element={<StrikeFlowChain />} />
+                <Route path="/indicator" element={<Indicator />} />
                 <Route path="/strategy-charts" element={<StrategyCharts />} />
                 <Route path="/premium-decay" element={<PremiumDecay />} />
                 <Route path="/indices" element={<Indices />} />
