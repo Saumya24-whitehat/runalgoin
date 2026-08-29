@@ -223,6 +223,7 @@ const Indicator = () => {
       <SEO
         title="Indicator — ATM Call/Put Change & COI | OptionWorld"
         description="Historical date and expiry wise ATM (09:15) Call vs Put premium change chart with 5-strike change in open interest figures."
+        path="/indicator"
       />
       <PageLayout>
         <ProFeatureGate featureName="Indicator">
