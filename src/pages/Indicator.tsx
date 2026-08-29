@@ -203,29 +203,10 @@ const Indicator = () => {
   const latest = rows.length ? rows[rows.length - 1] : null;
   const lastPoint = chartData.length ? chartData[chartData.length - 1] : null;
 
-  // 5-strike COI figures for the selected day (latest snapshot of the day)
-  const coiRows = useMemo(() => {
-    if (!latest?.dataThis?.length) return [];
-    const sorted = [...latest.dataThis].sort((a, b) => Number(a.Strike) - Number(b.Strike));
-    if (baseAtm === null) return sorted.slice(0, strikeCount);
-    const atmIdx = sorted.findIndex((d) => Number(d.Strike) === Number(baseAtm));
-    if (atmIdx < 0) return sorted.slice(0, strikeCount);
-    const half = Math.floor(strikeCount / 2);
-    const start = Math.max(0, Math.min(atmIdx - half, sorted.length - strikeCount));
-    return sorted.slice(start, start + strikeCount);
-  }, [latest, baseAtm, strikeCount]);
-
-  const coiTotals = useMemo(
-    () =>
-      coiRows.reduce(
-        (acc, r) => ({
-          ce: acc.ce + (r["CE COI"] || 0),
-          pe: acc.pe + (r["PE COI"] || 0),
-        }),
-        { ce: 0, pe: 0 }
-      ),
-    [coiRows]
-  );
+  // PCR (COI) figure for the day — latest snapshot
+  const pcrCoi = latest?.PCR_COI ?? null;
+  const ceCoiTotal = latest?.CE_COI ?? 0;
+  const peCoiTotal = latest?.PE_COI ?? 0;
 
   return (
     <>
