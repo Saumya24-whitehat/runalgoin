@@ -157,7 +157,8 @@ const Indicator = () => {
   const strikeRowAt = (entry: PCRTimeData, strike: number) =>
     entry.dataThis?.find((d) => Number(d.Strike) === Number(strike));
 
-  // Chart: CE / PE premium change of the 09:15 ATM strike through the day
+  // Chart: rolling average of CE / PE premium change of the 09:15 ATM strike
+  const MA_WINDOW = 9;
   const chartData = useMemo(() => {
     if (!rows.length || baseAtm === null) return [];
     const first = strikeRowAt(rows[0], baseAtm);
@@ -165,7 +166,7 @@ const Indicator = () => {
     const basePe = first?.["PE LTP"] ?? 0;
     if (!baseCe && !basePe) return [];
 
-    return rows
+    const raw = rows
       .map((entry) => {
         const r = strikeRowAt(entry, baseAtm);
         if (!r) return null;
@@ -176,8 +177,6 @@ const Indicator = () => {
           time: fmtTime(entry.time),
           callChange: baseCe ? ce - baseCe : 0,
           putChange: basePe ? pe - basePe : 0,
-          callPct: baseCe ? ((ce - baseCe) / baseCe) * 100 : 0,
-          putPct: basePe ? ((pe - basePe) / basePe) * 100 : 0,
           spot: entry.underlyning,
         };
       })
@@ -185,38 +184,29 @@ const Indicator = () => {
       time: string;
       callChange: number;
       putChange: number;
-      callPct: number;
-      putPct: number;
       spot: number;
     }[];
+
+    // Simple moving average over the change series
+    return raw.map((pt, i) => {
+      const start = Math.max(0, i - MA_WINDOW + 1);
+      const slice = raw.slice(start, i + 1);
+      const n = slice.length || 1;
+      return {
+        ...pt,
+        callAvg: slice.reduce((s, p) => s + p.callChange, 0) / n,
+        putAvg: slice.reduce((s, p) => s + p.putChange, 0) / n,
+      };
+    });
   }, [rows, baseAtm]);
 
   const latest = rows.length ? rows[rows.length - 1] : null;
   const lastPoint = chartData.length ? chartData[chartData.length - 1] : null;
 
-  // 5-strike COI figures for the selected day (latest snapshot of the day)
-  const coiRows = useMemo(() => {
-    if (!latest?.dataThis?.length) return [];
-    const sorted = [...latest.dataThis].sort((a, b) => Number(a.Strike) - Number(b.Strike));
-    if (baseAtm === null) return sorted.slice(0, strikeCount);
-    const atmIdx = sorted.findIndex((d) => Number(d.Strike) === Number(baseAtm));
-    if (atmIdx < 0) return sorted.slice(0, strikeCount);
-    const half = Math.floor(strikeCount / 2);
-    const start = Math.max(0, Math.min(atmIdx - half, sorted.length - strikeCount));
-    return sorted.slice(start, start + strikeCount);
-  }, [latest, baseAtm, strikeCount]);
-
-  const coiTotals = useMemo(
-    () =>
-      coiRows.reduce(
-        (acc, r) => ({
-          ce: acc.ce + (r["CE COI"] || 0),
-          pe: acc.pe + (r["PE COI"] || 0),
-        }),
-        { ce: 0, pe: 0 }
-      ),
-    [coiRows]
-  );
+  // PCR (COI) figure for the day — latest snapshot
+  const pcrCoi = latest?.PCR_COI ?? null;
+  const ceCoiTotal = latest?.CE_COI ?? 0;
+  const peCoiTotal = latest?.PE_COI ?? 0;
 
   return (
     <>
@@ -382,15 +372,18 @@ const Indicator = () => {
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-xs font-bold uppercase tracking-wide">
-                    ATM {baseAtm ?? ""} — Call vs Put Change (from 09:15)
+                    ATM {baseAtm ?? ""} — Call vs Put Change (Rolling Avg {MA_WINDOW}) + Spot
                   </div>
                   {lastPoint && (
                     <div className="flex gap-3 text-[11px] font-mono">
-                      <span className={changeClass(lastPoint.callChange)}>
-                        CE {signed(lastPoint.callChange)} ({signed(lastPoint.callPct)}%)
+                      <span className={changeClass(lastPoint.callAvg)}>
+                        CE {signed(lastPoint.callAvg)}
                       </span>
-                      <span className={changeClass(lastPoint.putChange)}>
-                        PE {signed(lastPoint.putChange)} ({signed(lastPoint.putPct)}%)
+                      <span className={changeClass(lastPoint.putAvg)}>
+                        PE {signed(lastPoint.putAvg)}
+                      </span>
+                      <span className="text-muted-foreground">
+                        Spot {lastPoint.spot?.toFixed(2)}
                       </span>
                     </div>
                   )}
@@ -416,9 +409,18 @@ const Indicator = () => {
                           minTickGap={28}
                         />
                         <YAxis
+                          yAxisId="chg"
                           tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
                           width={52}
                           tickFormatter={(v: number) => v.toFixed(0)}
+                        />
+                        <YAxis
+                          yAxisId="spot"
+                          orientation="right"
+                          domain={["auto", "auto"]}
+                          tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+                          width={58}
+                          tickFormatter={(v: number) => formatIndianNumber(Math.round(v))}
                         />
                         <Tooltip
                           contentStyle={{
@@ -427,25 +429,42 @@ const Indicator = () => {
                             borderRadius: 6,
                             fontSize: 11,
                           }}
-                          formatter={(value: number, name: string) => [signed(value), name]}
+                          formatter={(value: number, name: string) =>
+                            name === "Spot"
+                              ? [formatIndianNumber(Math.round(value)), name]
+                              : [signed(value), name]
+                          }
                         />
                         <Legend wrapperStyle={{ fontSize: 11 }} />
-                        <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" opacity={0.6} />
+                        <ReferenceLine yAxisId="chg" y={0} stroke="hsl(var(--muted-foreground))" opacity={0.6} />
                         <Line
+                          yAxisId="chg"
                           type="monotone"
-                          dataKey="callChange"
-                          name="Call Change"
+                          dataKey="callAvg"
+                          name="Call Change (Avg)"
                           stroke="hsl(var(--chart-1, 142 71% 45%))"
                           strokeWidth={2}
                           dot={false}
                           connectNulls
                         />
                         <Line
+                          yAxisId="chg"
                           type="monotone"
-                          dataKey="putChange"
-                          name="Put Change"
+                          dataKey="putAvg"
+                          name="Put Change (Avg)"
                           stroke="hsl(var(--destructive))"
                           strokeWidth={2}
+                          dot={false}
+                          connectNulls
+                        />
+                        <Line
+                          yAxisId="spot"
+                          type="monotone"
+                          dataKey="spot"
+                          name="Spot"
+                          stroke="hsl(var(--chart-4, 45 93% 47%))"
+                          strokeWidth={1.5}
+                          strokeDasharray="4 2"
                           dot={false}
                           connectNulls
                         />
@@ -456,12 +475,12 @@ const Indicator = () => {
               </CardContent>
             </Card>
 
-            {/* 5-strike change in OI figures for the day */}
+            {/* PCR (COI) figure for the day */}
             <Card className="bg-card/50 border-border/50">
               <CardContent className="p-3 sm:p-4">
                 <div className="flex items-center justify-between mb-2">
                   <div className="text-xs font-bold uppercase tracking-wide">
-                    {strikeCount} Strike Change in OI
+                    PCR (COI) — {strikeCount} Strikes
                     {historicalDate ? ` — ${format(historicalDate, "dd/MM/yyyy")}` : " — Today"}
                   </div>
                   {latest && (
@@ -471,60 +490,26 @@ const Indicator = () => {
                   )}
                 </div>
 
-                {coiRows.length === 0 ? (
-                  <div className="py-6 text-center text-xs text-muted-foreground">No data</div>
+                {pcrCoi === null ? (
+                  <div className="py-4 text-center text-xs text-muted-foreground">No data</div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-[10px]">
-                      <thead>
-                        <tr className="border-b border-border/60 text-muted-foreground uppercase">
-                          <th className="text-right py-1">CE COI</th>
-                          <th className="text-right py-1">CE OI</th>
-                          <th className="text-center py-1">Strike</th>
-                          <th className="text-right py-1">PE OI</th>
-                          <th className="text-right py-1">PE COI</th>
-                        </tr>
-                      </thead>
-                      <tbody className="font-mono">
-                        {coiRows.map((r) => {
-                          const isAtm = Number(r.Strike) === Number(baseAtm);
-                          return (
-                            <tr
-                              key={r.Strike}
-                              className={cn(
-                                "border-b border-border/30",
-                                isAtm && "bg-primary/10 font-bold"
-                              )}
-                            >
-                              <td className={cn("text-right py-1", changeClass(r["CE COI"] || 0))}>
-                                {signedInt(r["CE COI"] || 0)}
-                              </td>
-                              <td className="text-right py-1">
-                                {formatIndianNumber(Math.round(r["CE OI"] || 0))}
-                              </td>
-                              <td className="text-center py-1 font-bold">{r.Strike}</td>
-                              <td className="text-right py-1">
-                                {formatIndianNumber(Math.round(r["PE OI"] || 0))}
-                              </td>
-                              <td className={cn("text-right py-1", changeClass(r["PE COI"] || 0))}>
-                                {signedInt(r["PE COI"] || 0)}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                        <tr className="border-t border-border font-bold">
-                          <td className={cn("text-right py-1", changeClass(coiTotals.ce))}>
-                            {signedInt(coiTotals.ce)}
-                          </td>
-                          <td />
-                          <td className="text-center py-1 uppercase">Total</td>
-                          <td />
-                          <td className={cn("text-right py-1", changeClass(coiTotals.pe))}>
-                            {signedInt(coiTotals.pe)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
+                  <div className="flex flex-wrap items-center gap-4 sm:gap-8">
+                    <div>
+                      <div className="text-[10px] uppercase text-muted-foreground">PCR (COI)</div>
+                      <div className="text-2xl font-bold font-mono">{pcrCoi.toFixed(2)}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase text-muted-foreground">Total CE COI</div>
+                      <div className={cn("text-lg font-bold font-mono", changeClass(ceCoiTotal))}>
+                        {signedInt(ceCoiTotal)}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] uppercase text-muted-foreground">Total PE COI</div>
+                      <div className={cn("text-lg font-bold font-mono", changeClass(peCoiTotal))}>
+                        {signedInt(peCoiTotal)}
+                      </div>
+                    </div>
                   </div>
                 )}
               </CardContent>
