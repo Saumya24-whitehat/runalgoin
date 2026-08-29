@@ -157,7 +157,8 @@ const Indicator = () => {
   const strikeRowAt = (entry: PCRTimeData, strike: number) =>
     entry.dataThis?.find((d) => Number(d.Strike) === Number(strike));
 
-  // Chart: CE / PE premium change of the 09:15 ATM strike through the day
+  // Chart: rolling average of CE / PE premium change of the 09:15 ATM strike
+  const MA_WINDOW = 9;
   const chartData = useMemo(() => {
     if (!rows.length || baseAtm === null) return [];
     const first = strikeRowAt(rows[0], baseAtm);
@@ -165,7 +166,7 @@ const Indicator = () => {
     const basePe = first?.["PE LTP"] ?? 0;
     if (!baseCe && !basePe) return [];
 
-    return rows
+    const raw = rows
       .map((entry) => {
         const r = strikeRowAt(entry, baseAtm);
         if (!r) return null;
@@ -176,8 +177,6 @@ const Indicator = () => {
           time: fmtTime(entry.time),
           callChange: baseCe ? ce - baseCe : 0,
           putChange: basePe ? pe - basePe : 0,
-          callPct: baseCe ? ((ce - baseCe) / baseCe) * 100 : 0,
-          putPct: basePe ? ((pe - basePe) / basePe) * 100 : 0,
           spot: entry.underlyning,
         };
       })
@@ -185,10 +184,20 @@ const Indicator = () => {
       time: string;
       callChange: number;
       putChange: number;
-      callPct: number;
-      putPct: number;
       spot: number;
     }[];
+
+    // Simple moving average over the change series
+    return raw.map((pt, i) => {
+      const start = Math.max(0, i - MA_WINDOW + 1);
+      const slice = raw.slice(start, i + 1);
+      const n = slice.length || 1;
+      return {
+        ...pt,
+        callAvg: slice.reduce((s, p) => s + p.callChange, 0) / n,
+        putAvg: slice.reduce((s, p) => s + p.putChange, 0) / n,
+      };
+    });
   }, [rows, baseAtm]);
 
   const latest = rows.length ? rows[rows.length - 1] : null;
