@@ -74,6 +74,7 @@ function buildSnapshots(data: GreeksDataPoint[]): SideSnapshot[] {
       ivChange > FLAT_EPS ? "up" : ivChange < -FLAT_EPS ? "down" : "flat";
 
     snaps.push({
+      timestamp: cur.timestamp,
       ltp: cur.ltp,
       oi: cur.oi,
       iv: cur.iv,
