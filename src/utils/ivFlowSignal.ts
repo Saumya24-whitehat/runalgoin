@@ -25,6 +25,7 @@ export interface IvFlowRow {
 }
 
 export interface SideSnapshot {
+  timestamp: number;
   ltp: number;
   oi: number;
   iv: number;
