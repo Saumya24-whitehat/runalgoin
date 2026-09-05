@@ -30,8 +30,6 @@ const fmtTime = (ts: number) => {
   return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`;
 };
 
-const signClass = (v: number) =>
-  v > 0 ? "text-emerald-500" : v < 0 ? "text-red-500" : "text-muted-foreground";
 
 const ivArrow = (dir: "up" | "down" | "flat") =>
   dir === "up" ? "↑" : dir === "down" ? "↓" : "~";
