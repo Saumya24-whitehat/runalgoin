@@ -145,7 +145,7 @@ const FinalAnalyses = () => {
                 Rate of Change — Premium Decay, IV, COI &amp; Index
               </h1>
               <p className="text-[11px] text-muted-foreground">
-                Candle-wise net figures for ATM ± {strikeRange} strikes (IST)
+                Candle-wise net figures for ATM ± {strikeRange} strikes (IST) — RoC absolute vs day-open 09:15 baseline
               </p>
             </div>
             <div className="flex items-center gap-2">
