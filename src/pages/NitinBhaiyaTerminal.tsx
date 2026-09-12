@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Activity, Gauge, ShieldCheck, TriangleAlert } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { NitinControls } from "@/components/nitinBhaiya/NitinControls";
+import { NitinTimelineTable } from "@/components/nitinBhaiya/NitinTimelineTable";
 import { SignalBadge } from "@/components/nitinBhaiya/SignalBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,6 +35,7 @@ export default function NitinBhaiyaTerminal() {
         <Card className="rounded-none"><CardHeader className="py-3"><CardTitle className="flex items-center gap-2 text-sm"><Gauge className="h-4 w-4" />Seven-engine panel</CardTitle></CardHeader><CardContent className="space-y-2">{state.engine.signals.map((signal) => <div key={signal.key} className="grid grid-cols-[1fr_auto] gap-2 border-b pb-2"><div><p className="font-semibold">{signal.label} <span className="text-muted-foreground">{Math.round(signal.weight * 100)}%</span></p><p className="text-[10px] text-muted-foreground">{signal.detail}</p></div>{signal.available ? <SignalBadge direction={signal.direction} /> : <span className="text-[10px] text-muted-foreground">N/A</span>}</div>)}</CardContent></Card></div>
       </div>
       <div className="grid gap-px border-y bg-border sm:grid-cols-2"><div className="bg-card p-4"><p className="text-[10px] uppercase text-muted-foreground">Writer Signal</p><div className="mt-2 flex items-center gap-2"><ShieldCheck className="h-4 w-4" /><SignalBadge direction={state.engine.writerSignal} /></div><p className="mt-2 text-muted-foreground">OI ↑ + Premium ↓ + IV ↓ activity at ATM.</p></div><div className="bg-card p-4"><p className="text-[10px] uppercase text-muted-foreground">Relative Decay Signal</p><div className="mt-2 flex items-center gap-2"><Activity className="h-4 w-4" /><SignalBadge direction={state.engine.decaySignal} /></div><p className="mt-2 font-mono text-muted-foreground">CE {state.engine.ceDecay?.toFixed(2) ?? '—'}% · PE {state.engine.peDecay?.toFixed(2) ?? '—'}%</p></div></div>
+      <NitinTimelineTable symbol={state.symbol} expiry={state.expiry} time={state.time} baseline={state.baseline} refreshKey={state.lastRefresh?.getTime() ?? 0} />
     </section>
     <Dialog open={Boolean(selected)} onOpenChange={(open) => !open && setSelected(null)}><DialogContent><DialogHeader><DialogTitle>Strike {selected?.strike}</DialogTitle></DialogHeader>{selected && <div className="grid grid-cols-2 gap-3 text-xs"><div><h3 className="mb-2 text-destructive">CALL</h3><p>Delta {selected.ce.delta.toFixed(4)}</p><p>Gamma {selected.ce.gamma.toFixed(4)}</p><p>Theta {selected.ce.theta.toFixed(4)}</p><p>Vega {selected.ce.vega.toFixed(4)}</p></div><div><h3 className="mb-2 text-success">PUT</h3><p>Delta {selected.pe.delta.toFixed(4)}</p><p>Gamma {selected.pe.gamma.toFixed(4)}</p><p>Theta {selected.pe.theta.toFixed(4)}</p><p>Vega {selected.pe.vega.toFixed(4)}</p></div></div>}</DialogContent></Dialog>
   </PageLayout>;
