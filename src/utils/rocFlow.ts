@@ -82,38 +82,50 @@ export function buildRocRows(snapshots: Snapshot[], range: number): RocRow[] {
   const ordered = [...snapshots].sort((a, b) => a.timestamp - b.timestamp);
   const aggs = ordered.map((s) => aggregate(s, range));
   const out: RocRow[] = [];
+  if (ordered.length < 2) return out;
+
+  // Baseline = morning first candle (day open, e.g. 09:15). All RoC figures are
+  // absolute change vs this baseline, not candle-to-candle.
+  const base = aggs[0];
+  const baseIndex = ordered[0].index;
+
+  // First non-zero cumulative COI acts as the baseline for COI RoC.
+  let ceCoiBase: number | null = null;
+  let peCoiBase: number | null = null;
 
   for (let i = 1; i < ordered.length; i++) {
     const snap = ordered[i];
     const cur = aggs[i];
-    const prev = aggs[i - 1];
-    const prevRow = out[out.length - 1];
 
-    const ceCoi = cur.ceOi - prev.ceOi;
-    const peCoi = cur.peOi - prev.peOi;
+    // Cumulative COI since day open
+    const ceCoi = cur.ceOi - base.ceOi;
+    const peCoi = cur.peOi - base.peOi;
+
+    if (ceCoiBase === null && ceCoi !== 0) ceCoiBase = ceCoi;
+    if (peCoiBase === null && peCoi !== 0) peCoiBase = peCoi;
 
     out.push({
       timestamp: snap.timestamp,
       time: snap.time,
       index: snap.index,
-      indexRoc: pct(snap.index, ordered[i - 1].index),
+      indexRoc: pct(snap.index, baseIndex),
 
       ceExtrinsic: cur.ceExtrinsic,
       peExtrinsic: cur.peExtrinsic,
-      ceDecayRoc: pct(cur.ceExtrinsic, prev.ceExtrinsic),
-      peDecayRoc: pct(cur.peExtrinsic, prev.peExtrinsic),
+      ceDecayRoc: pct(cur.ceExtrinsic, base.ceExtrinsic),
+      peDecayRoc: pct(cur.peExtrinsic, base.peExtrinsic),
 
       ceIv: cur.ceIv,
       peIv: cur.peIv,
-      ceIvRoc: pct(cur.ceIv, prev.ceIv),
-      peIvRoc: pct(cur.peIv, prev.peIv),
+      ceIvRoc: pct(cur.ceIv, base.ceIv),
+      peIvRoc: pct(cur.peIv, base.peIv),
 
       ceOi: cur.ceOi,
       peOi: cur.peOi,
       ceCoi,
       peCoi,
-      ceCoiRoc: prevRow ? pct(ceCoi, prevRow.ceCoi) : null,
-      peCoiRoc: prevRow ? pct(peCoi, prevRow.peCoi) : null,
+      ceCoiRoc: ceCoiBase !== null ? pct(ceCoi, ceCoiBase) : null,
+      peCoiRoc: peCoiBase !== null ? pct(peCoi, peCoiBase) : null,
     });
   }
 
