@@ -89,6 +89,7 @@ const OptionWorldClub = lazy(() => import("./pages/OptionWorldClub"));
 const NitinBhaiyaTerminal = lazy(() => import("./pages/NitinBhaiyaTerminal"));
 const NitinBhaiyaGreeks = lazy(() => import("./pages/NitinBhaiyaGreeks"));
 const NitinBhaiyaPremiumDecay = lazy(() => import("./pages/NitinBhaiyaPremiumDecay"));
+const NitinBhaiyaOiPremium = lazy(() => import("./pages/NitinBhaiyaOiPremium"));
 
 
 const queryClient = new QueryClient();
@@ -194,6 +195,7 @@ const App = () => (
                 <Route path="/nitinbhaiya" element={<NitinBhaiyaTerminal />} />
                 <Route path="/nitinbhaiya/greeks" element={<NitinBhaiyaGreeks />} />
                 <Route path="/nitinbhaiya/premium-decay" element={<NitinBhaiyaPremiumDecay />} />
+                <Route path="/nitinbhaiya/oi-premium" element={<NitinBhaiyaOiPremium />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />
