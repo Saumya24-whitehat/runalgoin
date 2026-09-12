@@ -36,13 +36,20 @@ export interface DecaySnapshot {
   sentiment: "BULLISH" | "BEARISH" | "NEUTRAL";
 }
 
-/** Normalized adjusted premium % relative to spot. */
-export function normalizedPremium(ltp: number, strike: number, spot: number, side: "ce" | "pe"): number | null {
-  if (!ltp || !spot) return null;
-  const itm = side === "ce" ? spot > strike : spot < strike;
-  const adjusted = itm ? ltp - Math.abs(spot - strike) : ltp + Math.abs(strike - spot);
+/**
+ * Adjusted premium % as per the source Excel model:
+ *  ATM  -> premium / ATM strike * 100 (no adjustment)
+ *  ITM  -> (premium - distance from ATM) / ATM strike * 100
+ *  OTM  -> (premium + distance from ATM) / ATM strike * 100
+ * Distance and denominator are both based on the ATM STRIKE (not spot).
+ */
+export function normalizedPremium(ltp: number, strike: number, atm: number, side: "ce" | "pe"): number | null {
+  if (!ltp || !atm) return null;
+  const distance = Math.abs(strike - atm);
+  const itm = side === "ce" ? strike < atm : strike > atm;
+  const adjusted = distance === 0 ? ltp : itm ? ltp - distance : ltp + distance;
   if (adjusted <= 0) return null;
-  return (adjusted / spot) * 100;
+  return (adjusted / atm) * 100;
 }
 
 function decayPct(now: number | null, base: number | null): number | null {
