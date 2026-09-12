@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Activity, Info, TriangleAlert } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { SEO } from "@/components/SEO";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNitinBhaiyaAnalysis } from "@/hooks/useNitinBhaiyaAnalysis";
 import { formatIndianNumber } from "@/lib/formatNumber";
 import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
-import { analyzeOiPremium } from "@/utils/oiPremiumEngine";
+import { analyzeOiPremium, OiPremiumSummary } from "@/utils/oiPremiumEngine";
 import { ChainStrike } from "@/utils/nitinBhaiyaEngine";
 
 const n = (value: number) => formatIndianNumber(Math.round(value));
@@ -19,6 +19,7 @@ const tone = (value: string) => value.includes("BULLISH") ? "text-success" : val
 export default function NitinBhaiyaOiPremium() {
   const state = useNitinBhaiyaAnalysis();
   const [opening, setOpening] = useState<ChainStrike[]>([]);
+  const [latest, setLatest] = useState<OiPremiumSummary | null>(null);
 
   useEffect(() => {
     if (!state.symbol || !state.expiry) { setOpening([]); return; }
@@ -29,7 +30,10 @@ export default function NitinBhaiyaOiPremium() {
     return () => { active = false; };
   }, [state.symbol, state.expiry, state.date]);
 
-  const summary = useMemo(() => analyzeOiPremium(state.current, opening), [state.current, opening]);
+  const onLatest = useCallback((row: OiPremiumSummary | null) => setLatest(row), []);
+  const fallback = useMemo(() => analyzeOiPremium(state.current, opening), [state.current, opening]);
+  const summary = latest ?? fallback;
+
 
   return <PageLayout showFooter={false}>
     <SEO title="OI + Premium Analysis | OptionWorld" description="ATM plus-minus two strike OI and premium activity analysis with live and historical three-minute data." path="/nitinbhaiya/oi-premium" />
