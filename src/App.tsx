@@ -83,6 +83,9 @@ const InvoiceView = lazy(() => import("./pages/InvoiceView"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OptionWorldClub = lazy(() => import("./pages/OptionWorldClub"));
+const NitinBhaiyaTerminal = lazy(() => import("./pages/NitinBhaiyaTerminal"));
+const NitinBhaiyaAnalyze = lazy(() => import("./pages/NitinBhaiyaAnalyze"));
+const NitinBhaiyaGreeks = lazy(() => import("./pages/NitinBhaiyaGreeks"));
 
 
 const queryClient = new QueryClient();
@@ -182,6 +185,9 @@ const App = () => (
                 <Route path="/admin/blog/:id" element={<BlogEditor />} />
                 <Route path="/unsubscribe" element={<Unsubscribe />} />
                 <Route path="/optionworld-club" element={<OptionWorldClub />} />
+                <Route path="/nitinbhaiya" element={<NitinBhaiyaTerminal />} />
+                <Route path="/nitinbhaiya/analyze" element={<NitinBhaiyaAnalyze />} />
+                <Route path="/nitinbhaiya/greeks" element={<NitinBhaiyaGreeks />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />

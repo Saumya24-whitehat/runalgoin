@@ -29,6 +29,8 @@ import {
   Shield,
   Receipt,
   BookOpen,
+  Compass,
+  Gauge,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -167,6 +169,21 @@ const baseNavItems: NavItem[] = [
         items: [
           { icon: BarChart2, label: "All Sector Analysis", iconColor: "text-emerald-500", path: "/all-sectors" },
           { icon: Layers, label: "Sector Analysis", iconColor: "text-emerald-500", path: "/sector-analysis" },
+        ],
+      },
+    ],
+  },
+  {
+    label: "NitinBhaiya",
+    icon: Compass,
+    hasDropdown: true,
+    sections: [
+      {
+        title: "OPTION CHAIN INTELLIGENCE",
+        items: [
+          { icon: Activity, label: "Live Terminal", iconColor: "text-primary", path: "/nitinbhaiya" },
+          { icon: Gauge, label: "9-Step Analysis", iconColor: "text-amber-500", path: "/nitinbhaiya/analyze" },
+          { icon: Calculator, label: "Greeks & Risk", iconColor: "text-emerald-500", path: "/nitinbhaiya/greeks" },
         ],
       },
     ],

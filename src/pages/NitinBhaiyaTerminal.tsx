@@ -20,7 +20,7 @@ export default function NitinBhaiyaTerminal() {
   const baselineMap = useMemo(() => new Map(state.baseline.map((row) => [row.strike, row])), [state.baseline]);
   const rows = useMemo(() => { const index = state.current.findIndex((row) => row.strike === state.engine.atm); return state.current.slice(Math.max(0, index - 7), index + 8); }, [state.current, state.engine.atm]);
   return <PageLayout showFooter={false}>
-    <SEO title="NitinBhaiya Live Terminal | OptionWorld" description="Live NSE option chain confluence terminal with writer, decay, IV and COI analysis." />
+    <SEO title="NitinBhaiya Live Terminal | OptionWorld" description="Live NSE option chain confluence terminal with writer, decay, IV and COI analysis." path="/nitinbhaiya" />
     <section className="mx-auto w-full max-w-[1600px] py-3">
       <div className="flex items-start justify-between gap-3 px-3 pb-3"><div><p className="font-mono text-[10px] uppercase text-primary">NitinBhaiya Intelligence</p><h1>Live Option Chain Terminal</h1><p className="text-muted-foreground">Seven independent checks. One disciplined confluence view.</p></div>{state.lastRefresh && <LastRefreshBadge lastRefresh={state.lastRefresh} />}</div>
       <NitinControls symbols={state.symbols} expiries={state.expiries} symbol={state.symbol} expiry={state.expiry} time={state.time} loading={state.loading} onSymbol={state.setSymbol} onExpiry={state.setExpiry} onTime={state.setTime} onRefresh={() => state.refresh()} />
