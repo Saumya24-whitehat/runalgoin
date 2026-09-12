@@ -190,3 +190,22 @@ export function engineScores(rows: CombinedRow[]): EngineScore[] {
     })
     .sort((a, b) => b.winRate - a.winRate);
 }
+
+export interface BucketRow extends BacktestStatRow {
+  symbol: string;
+  expiryType: ExpiryType;
+}
+
+/** Bucket (time-window) level rows — yahi par asli edge dikhta hai. */
+export async function fetchAllBucketRows(symbols: string[]): Promise<BucketRow[]> {
+  const combos = symbols.flatMap((symbol) =>
+    (["weekly", "monthly"] as ExpiryType[]).map((expiryType) => ({ symbol, expiryType })),
+  );
+  const results = await Promise.all(
+    combos.map(async (combo) => {
+      const rows = await fetchBacktestStats(combo.symbol, combo.expiryType);
+      return rows.map((row) => ({ ...row, symbol: combo.symbol, expiryType: combo.expiryType }));
+    }),
+  );
+  return results.flat();
+}
