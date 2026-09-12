@@ -47,7 +47,7 @@ export interface EngineResult {
   agreeingEngines: number;
 }
 
-const safePct = (now: number, base: number) => base ? ((now - base) / Math.abs(base)) * 100 : null;
+const decayPct = (now: number, base: number) => base ? ((base - now) / Math.abs(base)) * 100 : null;
 
 export function classifyActivity(coi: number, premiumChange: number): Activity {
   if (coi > 0 && premiumChange > 0) return "Fresh Long";
@@ -81,11 +81,11 @@ export function runNitinBhaiyaEngine(current: ChainStrike[], baseline: ChainStri
 
   const ceDecays = window.map((row) => {
     const base = baselineMap.get(row.strike);
-    return base ? safePct(base.ce.ltp - row.ce.ltp, base.ce.ltp) : null;
+    return base ? decayPct(row.ce.ltp, base.ce.ltp) : null;
   }).filter((value): value is number => value !== null);
   const peDecays = window.map((row) => {
     const base = baselineMap.get(row.strike);
-    return base ? safePct(base.pe.ltp - row.pe.ltp, base.pe.ltp) : null;
+    return base ? decayPct(row.pe.ltp, base.pe.ltp) : null;
   }).filter((value): value is number => value !== null);
   const ceDecay = ceDecays.length ? ceDecays.reduce((a, b) => a + b, 0) / ceDecays.length : null;
   const peDecay = peDecays.length ? peDecays.reduce((a, b) => a + b, 0) / peDecays.length : null;

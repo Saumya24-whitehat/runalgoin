@@ -5,4 +5,4 @@
 - [x] Add Live Terminal page.
 - [x] Add guided 9-Step Analysis page.
 - [x] Add Greeks & Risk calculator page.
-- [ ] Validate build, live pages, and mobile layout.
+- [x] Validate build, live pages, and mobile layout.
