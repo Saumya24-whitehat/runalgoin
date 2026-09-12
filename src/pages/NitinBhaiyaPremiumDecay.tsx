@@ -97,8 +97,8 @@ export default function NitinBhaiyaPremiumDecay() {
       </div>
 
       <NitinControls
-        symbols={a.symbols} expiries={a.expiries} symbol={a.symbol} expiry={a.expiry} time={a.time}
-        loading={a.loading} onSymbol={a.setSymbol} onExpiry={a.setExpiry} onTime={a.setTime} onRefresh={() => a.refresh()}
+        symbols={a.symbols} expiries={a.expiries} symbol={a.symbol} expiry={a.expiry} date={a.date} time={a.time}
+        loading={a.loading} onSymbol={a.setSymbol} onExpiry={a.setExpiry} onDate={a.setDate} onTime={a.setTime} onRefresh={() => a.refresh()}
       />
 
       {a.error && <div className="m-3 rounded border border-destructive/40 bg-destructive/10 p-2 text-xs text-destructive">{a.error}</div>}
