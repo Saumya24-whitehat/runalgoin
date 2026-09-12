@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { PageLayout } from "@/components/PageLayout";
@@ -192,7 +192,7 @@ const FinalAnalyses = () => {
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <LastRefreshBadge lastUpdated={dataUpdatedAt} isRefreshing={isFetching} />
+              <LastRefreshBadge lastRefresh={dataUpdatedAt ? new Date(dataUpdatedAt) : null} isFetching={isFetching} />
               <Button size="sm" variant="outline" onClick={() => refetch()}>
                 <RefreshCw className={cn("h-3.5 w-3.5", isFetching && "animate-spin")} />
               </Button>
@@ -513,9 +513,8 @@ const FinalAnalyses = () => {
                     </thead>
                     <tbody>
                       {displayRows.map((r) => (
-                        <>
+                        <Fragment key={r.timestamp}>
                           <tr
-                            key={r.timestamp}
                             className="border-t border-border hover:bg-muted/30 cursor-pointer"
                             onClick={() =>
                               setOpenRow(openRow === r.timestamp ? null : r.timestamp)
@@ -567,7 +566,7 @@ const FinalAnalyses = () => {
                             <td className="px-1.5 py-1 whitespace-nowrap">{r.dominantActivity}</td>
                           </tr>
                           {openRow === r.timestamp && (
-                            <tr key={`${r.timestamp}-detail`} className="bg-muted/20">
+                            <tr className="bg-muted/20">
                               <td colSpan={21} className="px-2 py-2">
                                 <div className="text-[10px] text-muted-foreground mb-1">
                                   Index Bin {r.indexBin} · ATM {r.atm} · Visit #{r.visitNumber} ·
@@ -649,7 +648,7 @@ const FinalAnalyses = () => {
                               </td>
                             </tr>
                           )}
-                        </>
+                        </Fragment>
                       ))}
                     </tbody>
                   </table>
