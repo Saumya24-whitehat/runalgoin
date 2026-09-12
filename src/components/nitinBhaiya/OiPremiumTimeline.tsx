@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { History } from "lucide-react";
+import { History, LineChart as LineChartIcon } from "lucide-react";
+import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIndianNumber } from "@/lib/formatNumber";
 import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
