@@ -28,7 +28,7 @@ export async function fetchNitinExpiries(symbol: string): Promise<string[]> {
   return data?.expiry_dates ?? [];
 }
 
-async function fetchChain(symbol: string, expiry: string, time?: string) {
+export async function fetchNitinChainAt(symbol: string, expiry: string, time?: string) {
   const body: Record<string, string> = { action: "getOptionChain", symbol, expiry_date: expiry };
   if (time) body.time = time;
   const { data, error } = await supabase.functions.invoke("option-chain", { body });
