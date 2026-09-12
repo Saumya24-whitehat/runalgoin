@@ -90,6 +90,7 @@ const NitinBhaiyaTerminal = lazy(() => import("./pages/NitinBhaiyaTerminal"));
 const NitinBhaiyaAnalyze = lazy(() => import("./pages/NitinBhaiyaAnalyze"));
 const NitinBhaiyaGreeks = lazy(() => import("./pages/NitinBhaiyaGreeks"));
 const NitinBhaiyaPremiumDecay = lazy(() => import("./pages/NitinBhaiyaPremiumDecay"));
+const NitinBhaiyaAtm = lazy(() => import("./pages/NitinBhaiyaAtm"));
 
 
 const queryClient = new QueryClient();
@@ -196,6 +197,7 @@ const App = () => (
                 <Route path="/nitinbhaiya/analyze" element={<NitinBhaiyaAnalyze />} />
                 <Route path="/nitinbhaiya/greeks" element={<NitinBhaiyaGreeks />} />
                 <Route path="/nitinbhaiya/premium-decay" element={<NitinBhaiyaPremiumDecay />} />
+                <Route path="/nitinbhaiya/atm" element={<NitinBhaiyaAtm />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               <MobileBottomNav />
