@@ -6,3 +6,4 @@
 - [x] Add guided 9-Step Analysis page.
 - [x] Add Greeks & Risk calculator page.
 - [x] Validate build, live pages, and mobile layout.
+- [ ] Add ATM-only normalized Z-score page with 3-minute time-wise analysis.
