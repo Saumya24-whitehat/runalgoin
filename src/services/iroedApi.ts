@@ -5,14 +5,13 @@ import type { Snapshot, StrikeQuote } from "@/utils/iroedEngine";
 /** epoch -> seconds */
 const toSec = (t: number) => (t > 1e12 ? Math.round(t / 1000) : t);
 
+// Candle timestamps have IST baked into their UTC parts (project convention),
+// so read UTC hours/minutes directly — no timezone conversion.
 const fmtTimeLabel = (sec: number) => {
   const d = new Date(toSec(sec) * 1000);
-  return d.toLocaleTimeString("en-IN", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-    timeZone: "Asia/Kolkata",
-  });
+  const h = d.getUTCHours().toString().padStart(2, "0");
+  const m = d.getUTCMinutes().toString().padStart(2, "0");
+  return `${h}:${m}`;
 };
 
 export interface IroedDataResult {
