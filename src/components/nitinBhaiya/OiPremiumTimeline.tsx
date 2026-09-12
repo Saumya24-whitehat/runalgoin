@@ -91,19 +91,34 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
 
   useEffect(() => { onLatest?.(ordered.length ? ordered[ordered.length - 1] : null); }, [ordered, onLatest]);
 
-  // Chart series: CE/PE premium delta per candle, their gap (CE Δ − PE Δ) and the
-  // anchor average of the gap = cumulative mean from the first candle of the day.
+  // Chart series on a fixed 09:15–15:30 canvas: CE/PE premium delta and COI per
+  // candle, their gaps (CE − PE) and each gap's anchor average (cumulative mean
+  // from the day's first candle). Slots without data stay null so the line grows
+  // progressively as new candles arrive.
   const chartData = useMemo(() => {
-    let gapSum = 0;
-    return ordered.map((row, index) => {
-      const gap = row.cePremiumChange - row.pePremiumChange;
-      gapSum += gap;
+    const bySlot = new Map(ordered.map((row) => [row.time, row]));
+    let premiumGapSum = 0;
+    let coiGapSum = 0;
+    let count = 0;
+    return allSlots.map((slot) => {
+      const row = bySlot.get(slot);
+      const time = `${slot.slice(0, 2)}:${slot.slice(2)}`;
+      if (!row) return { time, ceDelta: null, peDelta: null, premiumGap: null, premiumAnchorAvg: null, ceCoi: null, peCoi: null, coiGap: null, coiAnchorAvg: null };
+      count += 1;
+      const premiumGap = row.cePremiumChange - row.pePremiumChange;
+      const coiGap = row.ceCoi - row.peCoi;
+      premiumGapSum += premiumGap;
+      coiGapSum += coiGap;
       return {
-        time: `${row.time.slice(0, 2)}:${row.time.slice(2)}`,
+        time,
         ceDelta: Number(row.cePremiumChange.toFixed(2)),
         peDelta: Number(row.pePremiumChange.toFixed(2)),
-        gap: Number(gap.toFixed(2)),
-        anchorAvg: Number((gapSum / (index + 1)).toFixed(2)),
+        premiumGap: Number(premiumGap.toFixed(2)),
+        premiumAnchorAvg: Number((premiumGapSum / count).toFixed(2)),
+        ceCoi: row.ceCoi,
+        peCoi: row.peCoi,
+        coiGap,
+        coiAnchorAvg: Number((coiGapSum / count).toFixed(0)),
       };
     });
   }, [ordered]);
