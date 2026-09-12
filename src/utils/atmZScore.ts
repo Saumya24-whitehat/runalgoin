@@ -88,19 +88,21 @@ export function extractAtmSnapshot(time: string, chain: ChainStrike[]): AtmSnaps
 
 export function buildAtmZScoreRows(snapshots: AtmSnapshot[]): AtmZScoreRow[] {
   const ordered = [...snapshots].sort((a, b) => a.time.localeCompare(b.time));
-  const changes = ordered.map((row, index) => {
-    const previous = ordered[index - 1];
-    const delta = (current: number, prior: number) => current - prior;
-    const volumeRoc = (current: number, prior: number) => prior > 0 ? ((current - prior) / prior) * 100 : 0;
+  // All changes measured against the day's opening snapshot (first candle),
+  // not the previous candle.
+  const opening = ordered[0];
+  const changes = ordered.map((row) => {
+    const delta = (current: number, base: number) => current - base;
+    const volumeRoc = (current: number, base: number) => base > 0 ? ((current - base) / base) * 100 : 0;
     return {
-      cePremium: previous ? delta(row.ce.premium, previous.ce.premium) : 0,
-      pePremium: previous ? delta(row.pe.premium, previous.pe.premium) : 0,
-      ceCoi: previous ? delta(row.ce.coi, previous.ce.coi) : 0,
-      peCoi: previous ? delta(row.pe.coi, previous.pe.coi) : 0,
-      ceVolume: previous ? volumeRoc(row.ce.volume, previous.ce.volume) : 0,
-      peVolume: previous ? volumeRoc(row.pe.volume, previous.pe.volume) : 0,
-      ceIv: previous ? delta(row.ce.iv, previous.ce.iv) : 0,
-      peIv: previous ? delta(row.pe.iv, previous.pe.iv) : 0,
+      cePremium: delta(row.ce.premium, opening.ce.premium),
+      pePremium: delta(row.pe.premium, opening.pe.premium),
+      ceCoi: delta(row.ce.coi, opening.ce.coi),
+      peCoi: delta(row.pe.coi, opening.pe.coi),
+      ceVolume: volumeRoc(row.ce.volume, opening.ce.volume),
+      peVolume: volumeRoc(row.pe.volume, opening.pe.volume),
+      ceIv: delta(row.ce.iv, opening.ce.iv),
+      peIv: delta(row.pe.iv, opening.pe.iv),
     };
   });
   const keys = ["cePremium", "pePremium", "ceCoi", "peCoi", "ceVolume", "peVolume", "ceIv", "peIv"] as const;
