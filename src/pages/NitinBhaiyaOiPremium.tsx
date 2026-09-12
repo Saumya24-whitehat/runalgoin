@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Activity, Info, TriangleAlert } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { SEO } from "@/components/SEO";
@@ -8,7 +8,9 @@ import { OiPremiumTimeline } from "@/components/nitinBhaiya/OiPremiumTimeline";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNitinBhaiyaAnalysis } from "@/hooks/useNitinBhaiyaAnalysis";
 import { formatIndianNumber } from "@/lib/formatNumber";
+import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
 import { analyzeOiPremium } from "@/utils/oiPremiumEngine";
+import { ChainStrike } from "@/utils/nitinBhaiyaEngine";
 
 const n = (value: number) => formatIndianNumber(Math.round(value));
 const signed = (value: number, decimals = 0) => `${value > 0 ? "+" : ""}${decimals ? value.toFixed(decimals) : n(value)}`;
@@ -16,7 +18,18 @@ const tone = (value: string) => value.includes("BULLISH") ? "text-success" : val
 
 export default function NitinBhaiyaOiPremium() {
   const state = useNitinBhaiyaAnalysis();
-  const summary = useMemo(() => analyzeOiPremium(state.current, state.baseline), [state.current, state.baseline]);
+  const [opening, setOpening] = useState<ChainStrike[]>([]);
+
+  useEffect(() => {
+    if (!state.symbol || !state.expiry) { setOpening([]); return; }
+    let active = true;
+    fetchNitinChainAt(state.symbol, state.expiry, "0915", state.date || undefined)
+      .then((chain) => { if (active) setOpening(chain); })
+      .catch(() => { if (active) setOpening([]); });
+    return () => { active = false; };
+  }, [state.symbol, state.expiry, state.date]);
+
+  const summary = useMemo(() => analyzeOiPremium(state.current, opening), [state.current, opening]);
 
   return <PageLayout showFooter={false}>
     <SEO title="OI + Premium Analysis | OptionWorld" description="ATM plus-minus two strike OI and premium activity analysis with live and historical three-minute data." path="/nitinbhaiya/oi-premium" />
@@ -65,7 +78,7 @@ export default function NitinBhaiyaOiPremium() {
         </div>
       </div>
 
-      <OiPremiumTimeline symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} opening={state.baseline} refreshKey={state.lastRefresh?.getTime() ?? 0} />
+      <OiPremiumTimeline symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} opening={opening} refreshKey={state.lastRefresh?.getTime() ?? 0} />
     </section>
   </PageLayout>;
 }
