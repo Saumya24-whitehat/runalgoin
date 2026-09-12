@@ -87,10 +87,12 @@ export function computeDecayPairs(current: ChainStrike[], baseline: ChainStrike[
     const peStrike = atm - i * step;
     const curCe = curMap.get(ceStrike); const baseCe = baseMap.get(ceStrike);
     const curPe = curMap.get(peStrike); const basePe = baseMap.get(peStrike);
-    const ceNowNorm = curCe ? normalizedPremium(curCe.ce.ltp, ceStrike, curCe.spot, "ce") : null;
-    const ceBaseNorm = baseCe ? normalizedPremium(baseCe.ce.ltp, ceStrike, baseCe.spot, "ce") : null;
-    const peNowNorm = curPe ? normalizedPremium(curPe.pe.ltp, peStrike, curPe.spot, "pe") : null;
-    const peBaseNorm = basePe ? normalizedPremium(basePe.pe.ltp, peStrike, basePe.spot, "pe") : null;
+    // Distance and denominator always from the baseline ATM strike (source Excel model),
+    // never from spot — keeps baseline & current snapshots comparable.
+    const ceNowNorm = curCe ? normalizedPremium(curCe.ce.ltp, ceStrike, atm, "ce") : null;
+    const ceBaseNorm = baseCe ? normalizedPremium(baseCe.ce.ltp, ceStrike, atm, "ce") : null;
+    const peNowNorm = curPe ? normalizedPremium(curPe.pe.ltp, peStrike, atm, "pe") : null;
+    const peBaseNorm = basePe ? normalizedPremium(basePe.pe.ltp, peStrike, atm, "pe") : null;
     const ceDecay = decayPct(ceNowNorm, ceBaseNorm);
     const peDecay = decayPct(peNowNorm, peBaseNorm);
     let betterSide: DecayPair["betterSide"] = "—";
