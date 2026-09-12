@@ -1,5 +1,7 @@
 import { ChainStrike, Activity, classifyActivity } from "@/utils/nitinBhaiyaEngine";
 
+export interface OiPremiumRange { min: number; max: number }
+
 export interface OiPremiumStrikeRow {
   strike: number;
   isAtm: boolean;
@@ -15,6 +17,7 @@ export interface OiPremiumSummary {
   spot: number;
   atm: number;
   strikeRange: string;
+  range: OiPremiumRange | null;
   rows: OiPremiumStrikeRow[];
   ceCoi: number;
   peCoi: number;
@@ -29,6 +32,7 @@ const emptySummary: OiPremiumSummary = {
   spot: 0,
   atm: 0,
   strikeRange: "—",
+  range: null,
   rows: [],
   ceCoi: 0,
   peCoi: 0,
@@ -53,7 +57,21 @@ function marketReading(ce: Activity, pe: Activity) {
   return "NEUTRAL";
 }
 
-export function analyzeOiPremium(current: ChainStrike[], opening: ChainStrike[], radius = 2): OiPremiumSummary {
+/** Time value only: premium minus intrinsic value at that snapshot's spot. */
+const ceTimeValue = (ltp: number, strike: number, spot: number) => Math.max(0, ltp - Math.max(0, spot - strike));
+const peTimeValue = (ltp: number, strike: number, spot: number) => Math.max(0, ltp - Math.max(0, strike - spot));
+
+/**
+ * ATM ±radius window of this snapshot, unioned with every window already visited
+ * during the session (priorRange), so strikes the market has passed through stay
+ * in the COI calculation for the rest of the day.
+ */
+export function analyzeOiPremium(
+  current: ChainStrike[],
+  opening: ChainStrike[],
+  radius = 2,
+  priorRange?: OiPremiumRange | null,
+): OiPremiumSummary {
   if (!current.length || !opening.length) return emptySummary;
 
   const spot = current[0].spot;
@@ -62,28 +80,38 @@ export function analyzeOiPremium(current: ChainStrike[], opening: ChainStrike[],
     Math.abs(row.strike - spot) < Math.abs(sorted[best].strike - spot) ? index : best, 0);
   const atm = sorted[atmIndex].strike;
   const window = sorted.slice(Math.max(0, atmIndex - radius), atmIndex + radius + 1);
+  if (!window.length) return { ...emptySummary, spot, atm };
+
+  const range: OiPremiumRange = {
+    min: Math.min(window[0].strike, priorRange?.min ?? window[0].strike),
+    max: Math.max(window[window.length - 1].strike, priorRange?.max ?? window[window.length - 1].strike),
+  };
+
   const openingMap = new Map(opening.map((row) => [row.strike, row]));
+  const openingSpot = opening[0]?.spot ?? spot;
 
-  const rows = window.flatMap<OiPremiumStrikeRow>((row) => {
-    const base = openingMap.get(row.strike);
-    if (!base) return [];
-    const ceCoi = row.ce.oi - base.ce.oi;
-    const peCoi = row.pe.oi - base.pe.oi;
-    const cePremiumChange = row.ce.ltp - base.ce.ltp;
-    const pePremiumChange = row.pe.ltp - base.pe.ltp;
-    return [{
-      strike: row.strike,
-      isAtm: row.strike === atm,
-      ceCoi,
-      cePremiumChange,
-      ceActivity: classifyActivity(ceCoi, cePremiumChange),
-      peCoi,
-      pePremiumChange,
-      peActivity: classifyActivity(peCoi, pePremiumChange),
-    }];
-  });
+  const rows = sorted
+    .filter((row) => row.strike >= range.min && row.strike <= range.max)
+    .flatMap<OiPremiumStrikeRow>((row) => {
+      const base = openingMap.get(row.strike);
+      if (!base) return [];
+      const ceCoi = row.ce.oi - base.ce.oi;
+      const peCoi = row.pe.oi - base.pe.oi;
+      const cePremiumChange = ceTimeValue(row.ce.ltp, row.strike, spot) - ceTimeValue(base.ce.ltp, row.strike, openingSpot);
+      const pePremiumChange = peTimeValue(row.pe.ltp, row.strike, spot) - peTimeValue(base.pe.ltp, row.strike, openingSpot);
+      return [{
+        strike: row.strike,
+        isAtm: row.strike === atm,
+        ceCoi,
+        cePremiumChange,
+        ceActivity: classifyActivity(ceCoi, cePremiumChange),
+        peCoi,
+        pePremiumChange,
+        peActivity: classifyActivity(peCoi, pePremiumChange),
+      }];
+    });
 
-  if (!rows.length) return { ...emptySummary, spot, atm };
+  if (!rows.length) return { ...emptySummary, spot, atm, range };
   const ceCoi = rows.reduce((sum, row) => sum + row.ceCoi, 0);
   const peCoi = rows.reduce((sum, row) => sum + row.peCoi, 0);
   const cePremiumChange = rows.reduce((sum, row) => sum + row.cePremiumChange, 0);
@@ -95,6 +123,7 @@ export function analyzeOiPremium(current: ChainStrike[], opening: ChainStrike[],
     spot,
     atm,
     strikeRange: `${rows[0].strike}–${rows[rows.length - 1].strike}`,
+    range,
     rows,
     ceCoi,
     peCoi,
