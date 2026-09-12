@@ -40,26 +40,27 @@ interface TimelineRow {
 interface Props {
   symbol: string;
   expiry: string;
+  date: string;
   time: string;
   baseline: ChainStrike[];
   refreshKey: number;
 }
 
-export function NitinTimelineTable({ symbol, expiry, time, baseline, refreshKey }: Props) {
+export function NitinTimelineTable({ symbol, expiry, date, time, baseline, refreshKey }: Props) {
   const [rows, setRows] = useState<Map<string, TimelineRow>>(new Map());
   const [loading, setLoading] = useState(false);
   const cache = useRef(new Map<string, TimelineRow>());
   const pending = useRef(false);
 
   const slots = useMemo(() => {
-    const cutoff = time || istNowSlot();
+    const cutoff = time || (date ? "1530" : istNowSlot());
     return allSlots.filter((slot) => slot <= cutoff);
-  }, [time, refreshKey]);
+  }, [time, date, refreshKey]);
 
   useEffect(() => {
     setRows(new Map());
     cache.current = new Map();
-  }, [symbol, expiry]);
+  }, [symbol, expiry, date]);
 
   useEffect(() => {
     if (!symbol || !expiry || !slots.length || pending.current) return;
@@ -72,7 +73,7 @@ export function NitinTimelineTable({ symbol, expiry, time, baseline, refreshKey 
         const batch = missing.slice(i, i + 4);
         const results = await Promise.all(batch.map(async (slot) => {
           try {
-            const chain = await fetchNitinChainAt(symbol, expiry, slot);
+            const chain = await fetchNitinChainAt(symbol, expiry, slot, date || undefined);
             if (!chain.length) return null;
             const engine = runNitinBhaiyaEngine(chain, baseline);
             const spot = chain[0].spot;
