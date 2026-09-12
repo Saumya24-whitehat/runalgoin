@@ -62,9 +62,6 @@ const rocClass = (v: number | null) =>
 const roc = (v: number | null, digits = 2) =>
   v === null ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(digits)}%`;
 
-const num = (v: number, digits = 2) =>
-  `${v > 0 ? "+" : ""}${formatIndianNumber(v, digits)}`;
-
 const FinalAnalyses = () => {
   const { toast } = useToast();
   const [symbol, setSymbol] = useState("Nifty 50");
