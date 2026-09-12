@@ -14,6 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
+      backtest_candles: {
+        Row: {
+          created_at: string
+          expiry_date: string
+          expiry_type: string
+          fwd_close: number | null
+          fwd15: number | null
+          fwd30: number | null
+          fwd60: number | null
+          id: number
+          iv_dir: string | null
+          iv_label: string | null
+          nitin_dir: string | null
+          nitin_label: string | null
+          nitin_score: number | null
+          sf_dir: string | null
+          sf_ratio: number | null
+          slot: string
+          spot: number
+          symbol: string
+          trade_date: string
+        }
+        Insert: {
+          created_at?: string
+          expiry_date: string
+          expiry_type: string
+          fwd_close?: number | null
+          fwd15?: number | null
+          fwd30?: number | null
+          fwd60?: number | null
+          id?: number
+          iv_dir?: string | null
+          iv_label?: string | null
+          nitin_dir?: string | null
+          nitin_label?: string | null
+          nitin_score?: number | null
+          sf_dir?: string | null
+          sf_ratio?: number | null
+          slot: string
+          spot: number
+          symbol: string
+          trade_date: string
+        }
+        Update: {
+          created_at?: string
+          expiry_date?: string
+          expiry_type?: string
+          fwd_close?: number | null
+          fwd15?: number | null
+          fwd30?: number | null
+          fwd60?: number | null
+          id?: number
+          iv_dir?: string | null
+          iv_label?: string | null
+          nitin_dir?: string | null
+          nitin_label?: string | null
+          nitin_score?: number | null
+          sf_dir?: string | null
+          sf_ratio?: number | null
+          slot?: string
+          spot?: number
+          symbol?: string
+          trade_date?: string
+        }
+        Relationships: []
+      }
+      backtest_days: {
+        Row: {
+          candles: number
+          error: string | null
+          expiry_type: string
+          id: number
+          status: string
+          symbol: string
+          trade_date: string
+          updated_at: string
+        }
+        Insert: {
+          candles?: number
+          error?: string | null
+          expiry_type: string
+          id?: number
+          status?: string
+          symbol: string
+          trade_date: string
+          updated_at?: string
+        }
+        Update: {
+          candles?: number
+          error?: string | null
+          expiry_type?: string
+          id?: number
+          status?: string
+          symbol?: string
+          trade_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string | null
@@ -954,6 +1053,21 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      backtest_stats: {
+        Args: { _expiry_type: string; _symbol: string }
+        Returns: {
+          avg_fwd_close: number
+          avg_fwd15: number
+          avg_fwd30: number
+          avg_fwd60: number
+          bucket: string
+          dir: string
+          engine: string
+          signal: string
+          trades: number
+          win_rate: number
+        }[]
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
