@@ -91,17 +91,18 @@ export function analyzeOiPremium(
   };
 
   const openingMap = new Map(opening.map((row) => [row.strike, row]));
-  const openingSpot = opening[0]?.spot ?? spot;
+  const premiumBaseMap = new Map(premiumBase.map((row) => [row.strike, row]));
 
   const rows = sorted
     .filter((row) => row.strike >= range.min && row.strike <= range.max)
     .flatMap<OiPremiumStrikeRow>((row) => {
       const base = openingMap.get(row.strike);
-      if (!base) return [];
+      const prev = premiumBaseMap.get(row.strike);
+      if (!base || !prev) return [];
       const ceCoi = row.ce.oi - base.ce.oi;
       const peCoi = row.pe.oi - base.pe.oi;
-      const cePremiumChange = ceTimeValue(row.ce.ltp, row.strike, spot) - ceTimeValue(base.ce.ltp, row.strike, openingSpot);
-      const pePremiumChange = peTimeValue(row.pe.ltp, row.strike, spot) - peTimeValue(base.pe.ltp, row.strike, openingSpot);
+      const cePremiumChange = row.ce.ltp - prev.ce.ltp;
+      const pePremiumChange = row.pe.ltp - prev.pe.ltp;
       return [{
         strike: row.strike,
         isAtm: row.strike === atm,
