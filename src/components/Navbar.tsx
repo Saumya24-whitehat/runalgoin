@@ -187,6 +187,7 @@ const baseNavItems: NavItem[] = [
           { icon: Activity, label: "Live Terminal", iconColor: "text-primary", path: "/nitinbhaiya" },
           { icon: Calculator, label: "Greeks & Risk", iconColor: "text-emerald-500", path: "/nitinbhaiya/greeks" },
           { icon: TrendingDown, label: "Premium Decay", iconColor: "text-red-500", path: "/nitinbhaiya/premium-decay" },
+          { icon: Layers, label: "OI + Premium", iconColor: "text-primary", path: "/nitinbhaiya/oi-premium" },
         ],
       },
     ],
