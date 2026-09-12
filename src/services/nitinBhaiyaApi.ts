@@ -22,24 +22,27 @@ export async function fetchNitinSymbols(): Promise<string[]> {
   return [...(data?.["index symbols"] ?? data?.index_symbols ?? []), ...(data?.symbols ?? [])];
 }
 
-export async function fetchNitinExpiries(symbol: string): Promise<string[]> {
-  const { data, error } = await supabase.functions.invoke("option-chain", { body: { action: "getExpiryDates", symbol } });
+export async function fetchNitinExpiries(symbol: string, date?: string): Promise<string[]> {
+  const body: Record<string, string> = { action: "getExpiryDates", symbol };
+  if (date) body.date = date;
+  const { data, error } = await supabase.functions.invoke("option-chain", { body });
   if (error) throw error;
   return data?.expiry_dates ?? [];
 }
 
-export async function fetchNitinChainAt(symbol: string, expiry: string, time?: string) {
+export async function fetchNitinChainAt(symbol: string, expiry: string, time?: string, date?: string) {
   const body: Record<string, string> = { action: "getOptionChain", symbol, expiry_date: expiry };
   if (time) body.time = time;
+  if (date) body.date = date;
   const { data, error } = await supabase.functions.invoke("option-chain", { body });
   if (error) throw error;
   return normalize(data?.option_chain?.data ?? []);
 }
 
-export async function fetchNitinAnalysis(symbol: string, expiry: string, time?: string) {
+export async function fetchNitinAnalysis(symbol: string, expiry: string, time?: string, date?: string) {
   const [current, baselineResult] = await Promise.all([
-    fetchNitinChainAt(symbol, expiry, time),
-    fetchNitinChainAt(symbol, expiry, "0945").catch(() => []),
+    fetchNitinChainAt(symbol, expiry, time, date),
+    fetchNitinChainAt(symbol, expiry, "0945", date).catch(() => []),
   ]);
   return { current, baseline: baselineResult };
 }
