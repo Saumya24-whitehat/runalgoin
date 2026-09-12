@@ -184,6 +184,7 @@ const baseNavItems: NavItem[] = [
           { icon: Activity, label: "Live Terminal", iconColor: "text-primary", path: "/nitinbhaiya" },
           { icon: Gauge, label: "9-Step Analysis", iconColor: "text-amber-500", path: "/nitinbhaiya/analyze" },
           { icon: Calculator, label: "Greeks & Risk", iconColor: "text-emerald-500", path: "/nitinbhaiya/greeks" },
+          { icon: TrendingDown, label: "Premium Decay", iconColor: "text-red-500", path: "/nitinbhaiya/premium-decay" },
         ],
       },
     ],
