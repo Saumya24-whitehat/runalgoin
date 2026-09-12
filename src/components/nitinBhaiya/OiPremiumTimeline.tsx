@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { History } from "lucide-react";
+import { History, LineChart as LineChartIcon } from "lucide-react";
+import { CartesianGrid, Legend, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIndianNumber } from "@/lib/formatNumber";
 import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
@@ -90,9 +91,46 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
 
   useEffect(() => { onLatest?.(ordered.length ? ordered[ordered.length - 1] : null); }, [ordered, onLatest]);
 
+  // Chart series: CE/PE premium delta per candle, their gap (CE Δ − PE Δ) and the
+  // anchor average of the gap = cumulative mean from the first candle of the day.
+  const chartData = useMemo(() => {
+    let gapSum = 0;
+    return ordered.map((row, index) => {
+      const gap = row.cePremiumChange - row.pePremiumChange;
+      gapSum += gap;
+      return {
+        time: `${row.time.slice(0, 2)}:${row.time.slice(2)}`,
+        ceDelta: Number(row.cePremiumChange.toFixed(2)),
+        peDelta: Number(row.pePremiumChange.toFixed(2)),
+        gap: Number(gap.toFixed(2)),
+        anchorAvg: Number((gapSum / (index + 1)).toFixed(2)),
+      };
+    });
+  }, [ordered]);
+
   const display = useMemo(() => [...ordered].reverse(), [ordered]);
 
-  return <Card className="m-3 overflow-hidden rounded-none">
+  return <>
+    <Card className="m-3 overflow-hidden rounded-none">
+      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />Premium Gap Chart (CE Δ − PE Δ · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Gap = CE Premium Δ minus PE Premium Δ · Anchor Avg = din ka cumulative average</span></CardTitle></CardHeader>
+      <CardContent className="p-2">
+        {chartData.length ? <ResponsiveContainer width="100%" height={320}>
+          <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="time" tick={{ fontSize: 10 }} minTickGap={40} />
+            <YAxis tick={{ fontSize: 10 }} width={70} tickFormatter={(value: number) => value.toFixed(0)} />
+            <Tooltip formatter={(value: number, name: string) => [value.toFixed(2), name]} contentStyle={{ fontSize: 11 }} />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
+            <Line type="monotone" dataKey="ceDelta" name="CE Premium Δ" stroke="hsl(0 72% 51%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
+            <Line type="monotone" dataKey="peDelta" name="PE Premium Δ" stroke="hsl(142 71% 45%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
+            <Line type="monotone" dataKey="gap" name="Gap (CE Δ − PE Δ)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
+            <Line type="monotone" dataKey="anchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer> : <p className="px-3 py-6 text-center text-[11px] text-muted-foreground">{loading ? "Loading chart…" : "No data available."}</p>}
+      </CardContent>
+    </Card>
+    <Card className="m-3 overflow-hidden rounded-none">
     <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><History className="h-4 w-4" />OI + Premium · 3-Minute Table (cumulative strikes · premium vs prev close 15:30)</span><span className="font-mono text-[10px] text-muted-foreground">{loading ? "Loading snapshots…" : `${display.length}/${slots.length} snapshots`}</span></CardTitle></CardHeader>
     <CardContent className="p-0"><div className="max-h-[480px] overflow-auto"><table className="w-full min-w-[1120px] text-[10px]">
       <thead className="sticky top-0 bg-muted"><tr>{["TIME (IST)", "SPOT", "ATM", "USED STRIKES", "CE COI", "CE PREMIUM Δ", "CE ACTIVITY", "PE COI", "PE PREMIUM Δ", "PE ACTIVITY", "MARKET READING"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
@@ -111,5 +149,6 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
       </tr>)}
       {!display.length && !loading && <tr><td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">No snapshots available yet.</td></tr>}</tbody>
     </table></div></CardContent>
-  </Card>;
+    </Card>
+  </>;
 }
