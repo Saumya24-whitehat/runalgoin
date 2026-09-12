@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { SEO } from "@/components/SEO";
 import { useNitinBhaiyaAnalysis } from "@/hooks/useNitinBhaiyaAnalysis";
 import { callTargetProbability, probabilitySentiment, putTargetProbability } from "@/utils/optionProbability";
+import { getAtmProbabilityTargets } from "@/utils/atmProbabilityTargets";
 
 function daysToExpiry(expiry: string) {
   const parsed = Date.parse(expiry);
@@ -29,18 +30,11 @@ export default function NitinBhaiyaGreeks() {
 
   const spot = state.current[0]?.spot ?? 0;
 
-  // Auto-pick highest OI strikes within ATM ±3 strikes (not the whole chain)
+  // Auto-pick targets from the current ATM: ±100 for xx00 ATM, ±150 for xx50 ATM.
   const suggested = useMemo(() => {
     if (!state.current.length || !spot) return { put: 0, call: 0 };
-    const sorted = [...state.current].sort((a, b) => a.strike - b.strike);
-    const atmIdx = sorted.reduce((best, row, i) => Math.abs(row.strike - spot) < Math.abs(sorted[best].strike - spot) ? i : best, 0);
-    const window = sorted.slice(Math.max(0, atmIdx - 3), Math.min(sorted.length, atmIdx + 4));
-    const below = window.filter((row) => row.strike < spot);
-    const above = window.filter((row) => row.strike > spot);
-    if (!below.length || !above.length) return { put: 0, call: 0 };
-    const put = below.reduce((best, row) => (row.pe.oi > (best?.pe.oi ?? 0) ? row : best), below[0])?.strike ?? 0;
-    const call = above.reduce((best, row) => (row.ce.oi > (best?.ce.oi ?? 0) ? row : best), above[0])?.strike ?? 0;
-    return { put, call };
+    const targets = getAtmProbabilityTargets(state.current);
+    return targets ? { put: targets.putTarget, call: targets.callTarget } : { put: 0, call: 0 };
   }, [state.current, spot]);
 
   useEffect(() => { if (suggested.put) setPutTarget((prev) => prev || String(suggested.put)); }, [suggested.put]);
@@ -82,7 +76,7 @@ export default function NitinBhaiyaGreeks() {
             <Field label="Days to expiration"><Input type="number" min="1" value={days} onChange={(e) => setDays(e.target.value)} /></Field>
             <Field label="Put side target (below CMP)"><Input type="number" value={putTarget} onChange={(e) => setPutTarget(e.target.value)} /></Field>
             <Field label="Call side target (above CMP)"><Input type="number" value={callTarget} onChange={(e) => setCallTarget(e.target.value)} /></Field>
-            <p className="text-[10px] text-muted-foreground">Targets highest-OI strikes se auto select hote hain, aap manually badal sakte hain.</p>
+            <p className="text-[10px] text-muted-foreground">ATM xx00 ho to ±100 aur ATM xx50 ho to ±150 targets auto select hote hain. Aap calculator ke targets manually badal sakte hain.</p>
           </CardContent>
         </Card>
 
@@ -121,7 +115,7 @@ export default function NitinBhaiyaGreeks() {
       </div>
 
       <div className="p-3 pt-0">
-        <ProbabilityTimelineTable symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} days={activeDays} putTarget={activePut} callTarget={activeCall} refreshKey={refreshKey} />
+        <ProbabilityTimelineTable symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} days={activeDays} refreshKey={refreshKey} />
       </div>
     </section>
   </PageLayout>;

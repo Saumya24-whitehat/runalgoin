@@ -7,3 +7,4 @@
 - [x] Add Greeks & Risk calculator page.
 - [x] Validate build, live pages, and mobile layout.
 - [x] Add ATM-only normalized Z-score page with 3-minute time-wise analysis.
+- [x] Use per-candle ATM-based target strikes on the Greeks probability page and timeline.
