@@ -31,8 +31,6 @@ import {
   Receipt,
   BookOpen,
   Compass,
-  Gauge,
-  Waves,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
