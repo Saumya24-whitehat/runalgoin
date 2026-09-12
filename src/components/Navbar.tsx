@@ -13,7 +13,7 @@ import {
   Layers,
   Crown,
   Bot,
-  Star,
+  
   Link2,
   Target,
   Flame,
@@ -116,7 +116,7 @@ const baseNavItems: NavItem[] = [
           { icon: BarChart3, label: "Strike Flow Analyzer", iconColor: "text-sky-500", path: "/strike-flow" },
           { icon: BarChart3, label: "Strike Flow Chain", iconColor: "text-sky-500", path: "/strike-flow-chain" },
           { icon: BarChart3, label: "IV Flow Signal", iconColor: "text-violet-500", path: "/iv-flow-signal" },
-          { icon: Target, label: "Final Analyses", iconColor: "text-emerald-500", path: "/finalanalyses" },
+          
           { icon: LineChart, label: "Indicator", iconColor: "text-amber-500", path: "/indicator" },
           { icon: BarChart3, label: "Strategy Charts", iconColor: "text-emerald-500", path: "/strategy-charts" },
           { icon: Target, label: "Premium Erosion", iconColor: "text-red-500", path: "/premium-decay" },
@@ -180,18 +180,6 @@ const baseNavItems: NavItem[] = [
     icon: Crown,
     hasDropdown: false,
     path: "/plans",
-  },
-  {
-    label: "Club",
-    icon: Star,
-    hasDropdown: false,
-    path: "/optionworld-club",
-  },
-  {
-    label: "Momentum Report",
-    icon: Flame,
-    hasDropdown: false,
-    path: "/momentum-report",
   },
   {
     label: "Blog",
