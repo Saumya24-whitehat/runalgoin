@@ -57,22 +57,25 @@ function marketReading(ce: Activity, pe: Activity) {
   return "NEUTRAL";
 }
 
-/** Time value only: premium minus intrinsic value at that snapshot's spot. */
-const ceTimeValue = (ltp: number, strike: number, spot: number) => Math.max(0, ltp - Math.max(0, spot - strike));
-const peTimeValue = (ltp: number, strike: number, spot: number) => Math.max(0, ltp - Math.max(0, strike - spot));
-
 /**
  * ATM ±radius window of this snapshot, unioned with every window already visited
  * during the session (priorRange), so strikes the market has passed through stay
  * in the COI calculation for the rest of the day.
+ *
+ * COI baseline   = today's opening (09:15) OI.
+ * Premium change = ABSOLUTE LTP difference versus the PREVIOUS SESSION's 15:30
+ * closing premium (prevClose chain). If prevClose is unavailable, falls back to
+ * the opening chain so the page still renders.
  */
 export function analyzeOiPremium(
   current: ChainStrike[],
   opening: ChainStrike[],
+  prevClose?: ChainStrike[],
   radius = 2,
   priorRange?: OiPremiumRange | null,
 ): OiPremiumSummary {
   if (!current.length || !opening.length) return emptySummary;
+  const premiumBase = prevClose?.length ? prevClose : opening;
 
   const spot = current[0].spot;
   const sorted = [...current].sort((a, b) => a.strike - b.strike);
@@ -88,17 +91,18 @@ export function analyzeOiPremium(
   };
 
   const openingMap = new Map(opening.map((row) => [row.strike, row]));
-  const openingSpot = opening[0]?.spot ?? spot;
+  const premiumBaseMap = new Map(premiumBase.map((row) => [row.strike, row]));
 
   const rows = sorted
     .filter((row) => row.strike >= range.min && row.strike <= range.max)
     .flatMap<OiPremiumStrikeRow>((row) => {
       const base = openingMap.get(row.strike);
-      if (!base) return [];
+      const prev = premiumBaseMap.get(row.strike);
+      if (!base || !prev) return [];
       const ceCoi = row.ce.oi - base.ce.oi;
       const peCoi = row.pe.oi - base.pe.oi;
-      const cePremiumChange = ceTimeValue(row.ce.ltp, row.strike, spot) - ceTimeValue(base.ce.ltp, row.strike, openingSpot);
-      const pePremiumChange = peTimeValue(row.pe.ltp, row.strike, spot) - peTimeValue(base.pe.ltp, row.strike, openingSpot);
+      const cePremiumChange = row.ce.ltp - prev.ce.ltp;
+      const pePremiumChange = row.pe.ltp - prev.pe.ltp;
       return [{
         strike: row.strike,
         isAtm: row.strike === atm,

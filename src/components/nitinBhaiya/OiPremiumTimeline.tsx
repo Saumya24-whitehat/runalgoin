@@ -25,6 +25,7 @@ interface Props {
   date: string;
   time: string;
   opening: ChainStrike[];
+  prevClose: ChainStrike[];
   refreshKey: number;
   onLatest?: (summary: OiPremiumSummary | null) => void;
 }
@@ -33,7 +34,7 @@ const n = (value: number) => formatIndianNumber(Math.round(value));
 const signed = (value: number, decimals = 0) => `${value > 0 ? "+" : ""}${decimals ? value.toFixed(decimals) : n(value)}`;
 const tone = (value: string) => value.includes("BULLISH") ? "text-success" : value.includes("BEARISH") ? "text-destructive" : "text-muted-foreground";
 
-export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refreshKey, onLatest }: Props) {
+export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClose, refreshKey, onLatest }: Props) {
   const [chains, setChains] = useState<Map<string, ChainStrike[]>>(new Map());
   const [loading, setLoading] = useState(false);
   const cache = useRef(new Map<string, ChainStrike[]>());
@@ -80,21 +81,21 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refresh
     slots.forEach((slot) => {
       const chain = chains.get(slot);
       if (!chain) return;
-      const summary = analyzeOiPremium(chain, opening, 2, range);
+      const summary = analyzeOiPremium(chain, opening, prevClose, 2, range);
       if (summary.range) range = summary.range;
       rows.push({ time: slot, ...summary });
     });
     return rows;
-  }, [slots, chains, opening]);
+  }, [slots, chains, opening, prevClose]);
 
   useEffect(() => { onLatest?.(ordered.length ? ordered[ordered.length - 1] : null); }, [ordered, onLatest]);
 
   const display = useMemo(() => [...ordered].reverse(), [ordered]);
 
   return <Card className="m-3 overflow-hidden rounded-none">
-    <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><History className="h-4 w-4" />OI + Premium · 3-Minute Table (cumulative strikes · time value only)</span><span className="font-mono text-[10px] text-muted-foreground">{loading ? "Loading snapshots…" : `${display.length}/${slots.length} snapshots`}</span></CardTitle></CardHeader>
+    <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><History className="h-4 w-4" />OI + Premium · 3-Minute Table (cumulative strikes · premium vs prev close 15:30)</span><span className="font-mono text-[10px] text-muted-foreground">{loading ? "Loading snapshots…" : `${display.length}/${slots.length} snapshots`}</span></CardTitle></CardHeader>
     <CardContent className="p-0"><div className="max-h-[480px] overflow-auto"><table className="w-full min-w-[1120px] text-[10px]">
-      <thead className="sticky top-0 bg-muted"><tr>{["TIME (IST)", "SPOT", "ATM", "USED STRIKES", "CE COI", "CE TIME VALUE Δ", "CE ACTIVITY", "PE COI", "PE TIME VALUE Δ", "PE ACTIVITY", "MARKET READING"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
+      <thead className="sticky top-0 bg-muted"><tr>{["TIME (IST)", "SPOT", "ATM", "USED STRIKES", "CE COI", "CE PREMIUM Δ", "CE ACTIVITY", "PE COI", "PE PREMIUM Δ", "PE ACTIVITY", "MARKET READING"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
       <tbody>{display.map((row) => <tr key={row.time} className="border-t hover:bg-muted/50">
         <td className="px-1 py-1.5 text-center font-mono font-bold">{row.time.slice(0, 2)}:{row.time.slice(2)}</td>
         <td className="px-1 py-1.5 text-right font-mono">{row.spot.toFixed(2)}</td>

@@ -19,19 +19,36 @@ const tone = (value: string) => value.includes("BULLISH") ? "text-success" : val
 export default function NitinBhaiyaOiPremium() {
   const state = useNitinBhaiyaAnalysis();
   const [opening, setOpening] = useState<ChainStrike[]>([]);
+  const [prevClose, setPrevClose] = useState<ChainStrike[]>([]);
   const [latest, setLatest] = useState<OiPremiumSummary | null>(null);
 
   useEffect(() => {
-    if (!state.symbol || !state.expiry) { setOpening([]); return; }
+    if (!state.symbol || !state.expiry) { setOpening([]); setPrevClose([]); return; }
     let active = true;
-    fetchNitinChainAt(state.symbol, state.expiry, "0915", state.date || undefined)
-      .then((chain) => { if (active) setOpening(chain); })
-      .catch(() => { if (active) setOpening([]); });
+    // Previous session's 15:30 close: walk back up to 7 days (weekends/holidays have no data).
+    const load = async () => {
+      try {
+        const anchor = state.date ? new Date(`${state.date}T00:00:00`) : new Date();
+        let prev: ChainStrike[] = [];
+        for (let back = 1; back <= 7; back++) {
+          const day = new Date(anchor);
+          day.setDate(day.getDate() - back);
+          const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+          const chain = await fetchNitinChainAt(state.symbol, state.expiry, "1530", dateStr).catch(() => [] as ChainStrike[]);
+          if (chain.length) { prev = chain; break; }
+        }
+        const open = await fetchNitinChainAt(state.symbol, state.expiry, "0915", state.date || undefined);
+        if (!active) return;
+        setPrevClose(prev);
+        setOpening(open);
+      } catch { if (active) { setOpening([]); setPrevClose([]); } }
+    };
+    load();
     return () => { active = false; };
   }, [state.symbol, state.expiry, state.date]);
 
   const onLatest = useCallback((row: OiPremiumSummary | null) => setLatest(row), []);
-  const fallback = useMemo(() => analyzeOiPremium(state.current, opening), [state.current, opening]);
+  const fallback = useMemo(() => analyzeOiPremium(state.current, opening, prevClose), [state.current, opening, prevClose]);
   const summary = latest ?? fallback;
 
 
@@ -39,7 +56,7 @@ export default function NitinBhaiyaOiPremium() {
     <SEO title="OI + Premium Analysis | OptionWorld" description="ATM plus-minus two strike OI and premium activity analysis with live and historical three-minute data." path="/nitinbhaiya/oi-premium" />
     <section className="mx-auto w-full max-w-[1500px] py-3">
       <div className="flex items-start justify-between gap-3 px-3 pb-3">
-        <div><p className="font-mono text-[10px] uppercase text-primary">NitinBhaiya Intelligence</p><h1>OI + Premium</h1><p className="text-muted-foreground">Din bhar jitni strikes par market ghooma, sabhi ka COI · sirf time value (extrinsic) change · 09:15 opening baseline.</p></div>
+        <div><p className="font-mono text-[10px] uppercase text-primary">NitinBhaiya Intelligence</p><h1>OI + Premium</h1><p className="text-muted-foreground">Din bhar jitni strikes par market ghooma, sabhi ka COI (09:15 opening baseline) · absolute premium change vs pichle din 15:30 close.</p></div>
         {state.lastRefresh && <LastRefreshBadge lastRefresh={state.lastRefresh} />}
       </div>
       <NitinControls symbols={state.symbols} expiries={state.expiries} symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} loading={state.loading} onSymbol={state.setSymbol} onExpiry={state.setExpiry} onDate={state.setDate} onTime={state.setTime} onRefresh={() => state.refresh()} />
@@ -60,7 +77,7 @@ export default function NitinBhaiyaOiPremium() {
         <Card className="overflow-hidden rounded-none">
           <CardHeader className="py-3"><CardTitle className="flex items-center gap-2 text-sm"><Activity className="h-4 w-4" />Cumulative Strike Activity (ATM ±2 · session union)</CardTitle></CardHeader>
           <CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-[10px]">
-            <thead className="bg-muted"><tr>{["CE ACTIVITY", "CE COI", "CE TIME VALUE Δ", "STRIKE", "PE TIME VALUE Δ", "PE COI", "PE ACTIVITY"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
+            <thead className="bg-muted"><tr>{["CE ACTIVITY", "CE COI", "CE PREMIUM Δ", "STRIKE", "PE PREMIUM Δ", "PE COI", "PE ACTIVITY"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
 
             <tbody>{summary.rows.map((row) => <tr key={row.strike} className={`border-t ${row.isAtm ? "bg-[hsl(var(--oc-atm-bg))]" : "hover:bg-muted/50"}`}>
               <td className="px-1 py-1.5 text-center font-semibold">{row.ceActivity}</td>
@@ -84,7 +101,7 @@ export default function NitinBhaiyaOiPremium() {
         </div>
       </div>
 
-      <OiPremiumTimeline symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} opening={opening} refreshKey={state.lastRefresh?.getTime() ?? 0} onLatest={onLatest} />
+      <OiPremiumTimeline symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} opening={opening} prevClose={prevClose} refreshKey={state.lastRefresh?.getTime() ?? 0} onLatest={onLatest} />
     </section>
   </PageLayout>;
 }
