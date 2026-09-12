@@ -7,6 +7,7 @@ export function useNitinBhaiyaAnalysis() {
   const [expiries, setExpiries] = useState<string[]>([]);
   const [symbol, setSymbol] = useState("Nifty 50");
   const [expiry, setExpiry] = useState("");
+  const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [current, setCurrent] = useState<ChainStrike[]>([]);
   const [baseline, setBaseline] = useState<ChainStrike[]>([]);
@@ -17,18 +18,18 @@ export function useNitinBhaiyaAnalysis() {
   useEffect(() => { fetchNitinSymbols().then(setSymbols).catch(() => setError("Symbols could not be loaded.")); }, []);
   useEffect(() => {
     setExpiry(""); setExpiries([]);
-    fetchNitinExpiries(symbol).then((items) => { setExpiries(items); setExpiry(items[0] ?? ""); }).catch(() => setError("Expiry dates could not be loaded."));
-  }, [symbol]);
+    fetchNitinExpiries(symbol, date || undefined).then((items) => { setExpiries(items); setExpiry(items[0] ?? ""); }).catch(() => setError("Expiry dates could not be loaded."));
+  }, [symbol, date]);
   const refresh = useCallback(async (silent = false) => {
     if (!symbol || !expiry) return;
     if (!silent) setLoading(true);
     setError("");
-    try { const data = await fetchNitinAnalysis(symbol, expiry, time || undefined); setCurrent(data.current); setBaseline(data.baseline); setLastRefresh(new Date()); }
+    try { const data = await fetchNitinAnalysis(symbol, expiry, time || undefined, date || undefined); setCurrent(data.current); setBaseline(data.baseline); setLastRefresh(new Date()); }
     catch { setError("Analysis data could not be loaded. Please retry."); }
     finally { if (!silent) setLoading(false); }
-  }, [symbol, expiry, time]);
+  }, [symbol, expiry, time, date]);
   useEffect(() => { refresh(); }, [refresh]);
-  useEffect(() => { if (time) return; const id = window.setInterval(() => refresh(true), 60000); return () => window.clearInterval(id); }, [refresh, time]);
+  useEffect(() => { if (time || date) return; const id = window.setInterval(() => refresh(true), 60000); return () => window.clearInterval(id); }, [refresh, time, date]);
   const engine = useMemo(() => runNitinBhaiyaEngine(current, baseline), [current, baseline]);
-  return { symbols, expiries, symbol, setSymbol, expiry, setExpiry, time, setTime, current, baseline, engine, loading, error, lastRefresh, refresh };
+  return { symbols, expiries, symbol, setSymbol, expiry, setExpiry, date, setDate, time, setTime, current, baseline, engine, loading, error, lastRefresh, refresh };
 }
