@@ -1,110 +1,74 @@
+# NitinBhaiya Option-Chain Intelligence — Core Plan
 
-# OptionWorld Club — Plan
+## Goal
+Add a new **NitinBhaiya** dropdown to the top navigation and place the PRD’s core methodology in a dedicated group of pages. Build the core analysis first; education, journal, alerts, and advanced calculators remain a later phase.
 
-Adds a new **Club** membership tier and a StockEdge-style club feed / chat feature under `/optionworld-club`.
+## Navigation
+The **NitinBhaiya** menu will contain:
+- **Live Terminal** — `/nitinbhaiya`
+- **9-Step Analysis** — `/nitinbhaiya/analyze`
+- **Greeks & Risk** — `/nitinbhaiya/greeks`
 
-## 1. Membership tier: `club`
+The same grouped options will be available in the mobile menu, with the active page clearly highlighted.
 
-**Price:** ₹3,500/year (no monthly).
-**Includes:** everything in Pro + Club chat group access + Analyst support + Expert recommendations (stock ideas, discussions).
+## 1. Shared analysis engine
+- Reuse the app’s current option-chain, Greeks, premium-decay, PCR, FII, Max Pain, historical-time, and one-minute refresh data flows.
+- Normalize CE/PE values for strike, OI, COI, LTP, IV, volume, Greeks, spot, expiry, and timestamp.
+- Use the stable morning reference snapshot (target 09:45 IST, with the nearest valid candle as fallback).
+- Calculate these seven independent signals:
+  1. COI + premium four-way activity classification.
+  2. Writer activity from OI, premium, and IV.
+  3. Relative CE/PE premium decay across ATM ±2 strikes.
+  4. IV rate-of-change and absorption.
+  5. Exchange of Hands from high volume with low net COI.
+  6. Participant/FII positioning when available.
+  7. ITM discount cross-check.
+- Keep **Writer Signal** and **Relative Decay Signal** separate everywhere.
+- Produce the PRD’s weighted `-50 to +50` confluence score, minimum two-engine agreement, conflict handling, EoH override, and eight sentiment states.
+- Never describe OI/IV signals as confirmed participant identity or claim an accuracy percentage.
 
-### DB changes (migration)
-- Extend allowed `plan_type` values on `subscriptions` to include `'club'` (currently `free | pro | enterprise`). Update the CHECK constraint.
-- No new subscription table needed — reuse `subscriptions` + `payments` + `invoices`.
-- Add helper SQL function `public.is_club_member(_user_id uuid) returns boolean` (SECURITY DEFINER).
+## 2. Live Terminal
+Create a dense terminal-style page with:
+- Symbol, expiry, live/historical time, spot, refresh status, and ATM controls.
+- India VIX/expected range when available, PCR, confluence score, and final sentiment.
+- Support, ATM, resistance, and support/resistance shift summary.
+- Center-strike option-chain table with CE and PE OI, COI, LTP, IV, ATM highlighting, and row-level activity signal.
+- Sortable columns and a strike-detail view for Greeks and signal inputs.
+- Seven-engine contribution panel.
+- ATM ±2 five-strike premium-decay panel with Writer and Decay results side by side.
+- Existing one-minute silent refresh and Indian-time display behavior.
 
-### Frontend
-- `useSubscription` hook: add `isClub` (true when `plan_type in ('club','enterprise')`) and treat club as a superset of Pro (so `isPro` also becomes true for club users — keeps all existing Pro gates working).
-- `src/pages/Plans.tsx`: add a third pricing card **Club — ₹3,500/year**, highlighted, listing Pro features + club-only perks (Analyst support, Expert recommendations, Club chat).
-- Extend `useRazorpayCheckout` + `create-razorpay-order` + `verify-razorpay-payment` edge functions to accept `plan: 'club'` (₹3,500, 1 year expiry).
-- Extend `useSelfDeclaredPayment` + `self-declared-payment` edge function similarly (PayPal/UPI already supported for pro; add club amount branch).
-- Extend `AlternatePaymentModal` to accept `plan: 'monthly' | 'yearly' | 'club'`.
+## 3. Nine-Step Analysis
+Build a guided, one-step-at-a-time workflow with progress and back/next controls:
+1. Market context and VIX regime.
+2. OI structure and support/resistance shifts.
+3. CE/PE buyer-writer classification.
+4. IV and volume check.
+5. Premium decay, with Writer and Decay signals adjacent.
+6. Exchange of Hands check.
+7. Participant and futures context.
+8. User-entered technical confirmations.
+9. Greeks, breakeven, theta/delta viability, risk inputs, and final confluence result.
 
-## 2. OptionWorld Club feature
+Changing the symbol, expiry, or time will recompute all steps from the same shared snapshot.
 
-Route: `/optionworld-club` (nav link visible to all; page gates content behind club membership).
+## 4. Greeks & Risk
+- Symbol, expiry, strike, CE/PE, premium, IV, and days-to-expiry inputs with live values and manual overrides where appropriate.
+- Delta, Gamma, Theta, Vega, and Rho display.
+- Theta/Delta required-move check, BEP, hedge-lot estimate, and IV strike-probability estimate.
+- Guard invalid calculations, including Delta outside its valid range and missing/zero source values.
 
-### DB (new tables, all in `public`, with GRANTs + RLS)
+## 5. Visual and responsive treatment
+- Extend the existing OptionWorld theme rather than replacing the whole website theme.
+- Use a sharp, data-dense dark terminal treatment for these pages, with semantic green/red/amber/cyan states and compact Indian-number formatting.
+- Preserve the project’s mobile touch sizing; wide option-chain content will use a dedicated compact mobile presentation or controlled horizontal scrolling.
+- Include loading, no-data, partial-data, closed-market, and fetch-error states.
 
-```
-club_categories(id, name, slug, description, created_at)
-   -- e.g. Momentum Investing, Short Term Trading, Long Term Investing, Technical Club, General Chat
+## 6. Validation
+- Unit-test signal classification, decay direction, EoH, score thresholds, conflict rules, and baseline fallbacks.
+- Verify live and historical selections, 09:45 baseline behavior, one-minute refresh, and Asia/Kolkata timestamps.
+- Test desktop and mobile navigation, tables, step flow, and strike detail interactions.
+- Confirm existing pages and navigation continue to work unchanged.
 
-club_posts(id, user_id, category_id, title?, body, image_url?, 
-           idea_type?, action?, exchange?, symbol?, cmp?, entry_zone?, stop_loss?, target1?, timeframe?, rationale?,
-           created_at, updated_at, deleted_at?)
-
-club_post_likes(id, post_id, user_id, created_at)  -- unique(post_id,user_id)
-
-club_post_comments(id, post_id, user_id, body, created_at)
-
-club_chat_messages(id, category_id, user_id, body, image_url?, reply_to_id?, created_at, deleted_at?)
-```
-
-Storage bucket: `club-media` (public) for post images and chat attachments.
-
-### RLS policies (summary)
-
-- **Read** all `club_*` tables: only authenticated users where `is_club_member(auth.uid())` is true, OR user has role `admin`.
-- **Insert** posts/comments/likes/messages: only club members / admins, `user_id = auth.uid()`.
-- **Update/Delete** own row only; admins can moderate any row (soft-delete via `deleted_at`).
-- Categories: read for club members; write admin-only.
-
-### Realtime
-Enable Supabase Realtime on `club_chat_messages` and `club_posts` (via `alter publication supabase_realtime add table ...`) so chat + feed update live like WhatsApp.
-
-### Frontend structure
-
-```
-src/pages/OptionWorldClub.tsx            -- shell w/ tabs: Feed | Chat | Categories
-src/components/club/
-  ClubGate.tsx                           -- shows upgrade CTA if !isClub
-  ClubFeed.tsx                           -- StockEdge-style post list (avatar, name, category, date, body, image, View Post)
-  ClubPostCard.tsx
-  ClubPostComposer.tsx                   -- create post (structured "Stock Idea" fields optional)
-  ClubChat.tsx                           -- WhatsApp-like chat surface
-  ClubChatMessage.tsx                    -- bubble (own = right/primary, others = left/muted)
-  ClubChatComposer.tsx                   -- text + image + send
-  ClubCategorySidebar.tsx                -- select category / chat room
-  ClubRightPanel.tsx                     -- StockEdge-style "Top Posts" side rail (reused on dashboard)
-src/hooks/
-  useClubMembership.ts                   -- wraps useSubscription -> isClub, expiresAt
-  useClubPosts.ts                        -- react-query, realtime subscribe
-  useClubChat.ts                         -- react-query + realtime channel
-```
-
-- Nav: add "Club" link in `Navbar` (badge "New"). Route added in `App.tsx` as lazy import.
-- Dashboard: add a small **Top Club Posts** rail (visible to all; blurred/upgrade CTA for non-members) — mirrors the StockEdge right panel you shared.
-- Auto-refresh: chat via Supabase realtime; feed via react-query 30s + realtime insert.
-
-### Chat UX (WhatsApp-like)
-- Sticky bottom composer, auto-scroll to newest, message bubbles with name + timestamp, image preview, reply-to snippet, unread divider, typing indicator (optional, skipped in v1).
-- Rooms = categories (General, Momentum Investing, Short Term Trading, Long Term Investing, Technical Club).
-
-## 3. Files to edit / add
-
-**New**
-- `supabase/migrations/<ts>_club_membership_and_club_feature.sql`
-- `supabase/functions/_shared/*` — no new function; extend existing.
-- `src/pages/OptionWorldClub.tsx`
-- `src/components/club/*` (list above)
-- `src/hooks/useClubMembership.ts`, `useClubPosts.ts`, `useClubChat.ts`
-
-**Edited**
-- `src/hooks/useSubscription.ts` — add `isClub`, make `isPro` inclusive of club.
-- `src/pages/Plans.tsx` — add Club card.
-- `src/components/AlternatePaymentModal.tsx` — accept `club` plan.
-- `src/hooks/useRazorpayCheckout.ts` + `create-razorpay-order` + `verify-razorpay-payment` edge functions — accept `club`.
-- `src/hooks/useSelfDeclaredPayment.ts` + `self-declared-payment` edge function — accept `club`.
-- `src/App.tsx` — route `/optionworld-club`.
-- `src/components/Navbar.tsx` + `MobileBottomNav.tsx` — Club link.
-
-## 4. Out of scope (v1)
-- Push notifications, voice/video, message reactions, per-user DMs. Group rooms only.
-- Rich stock-symbol autocomplete inside post composer (plain text + optional structured fields for now).
-
-## Confirm before I build
-- Price ₹3,500/yr, club is Pro-superset (all Pro features included) ✅
-- Route name `/optionworld-club` ok?
-- Initial chat rooms: **General, Momentum Investing, Short Term Trading, Long Term Investing, Technical Club** — ok, or different list?
-- Only admins can post "Expert recommendations" (stock ideas), regular members can chat + comment? Or all club members can post ideas?
+## Later phase (not included now)
+Education Hub, trade journal, alerts, backtesting log, stock-wide rollout, weekly strategy builder, and the remaining advanced PRD modules will not be built in this core phase.
