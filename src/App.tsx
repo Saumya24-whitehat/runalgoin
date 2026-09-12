@@ -43,6 +43,7 @@ const StrikeFlowAnalyzer = lazy(() => import("./pages/StrikeFlowAnalyzer"));
 const StrikeFlowChain = lazy(() => import("./pages/StrikeFlowChain"));
 const IvFlowSignal = lazy(() => import("./pages/IvFlowSignal"));
 const Backtest = lazy(() => import("./pages/Backtest"));
+const BacktestResults = lazy(() => import("./pages/BacktestResults"));
 const Indicator = lazy(() => import("./pages/Indicator"));
 const StrategyCharts = lazy(() => import("./pages/StrategyCharts"));
 const PremiumDecay = lazy(() => import("./pages/PremiumDecay"));
@@ -146,6 +147,7 @@ const App = () => (
                 <Route path="/strike-flow-chain" element={<StrikeFlowChain />} />
                 <Route path="/iv-flow-signal" element={<IvFlowSignal />} />
                 <Route path="/backtest" element={<Backtest />} />
+                <Route path="/backtest-results" element={<BacktestResults />} />
                 
                 <Route path="/indicator" element={<Indicator />} />
                 <Route path="/strategy-charts" element={<StrategyCharts />} />
