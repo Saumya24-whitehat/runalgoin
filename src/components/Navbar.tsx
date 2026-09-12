@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   ChevronDown,
   TrendingUp,
@@ -29,6 +29,8 @@ import {
   Shield,
   Receipt,
   BookOpen,
+  Compass,
+  Gauge,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -172,6 +174,21 @@ const baseNavItems: NavItem[] = [
     ],
   },
   {
+    label: "NitinBhaiya",
+    icon: Compass,
+    hasDropdown: true,
+    sections: [
+      {
+        title: "OPTION CHAIN INTELLIGENCE",
+        items: [
+          { icon: Activity, label: "Live Terminal", iconColor: "text-primary", path: "/nitinbhaiya" },
+          { icon: Gauge, label: "9-Step Analysis", iconColor: "text-amber-500", path: "/nitinbhaiya/analyze" },
+          { icon: Calculator, label: "Greeks & Risk", iconColor: "text-emerald-500", path: "/nitinbhaiya/greeks" },
+        ],
+      },
+    ],
+  },
+  {
     label: "Plans",
     icon: Crown,
     hasDropdown: false,
@@ -248,6 +265,10 @@ export function Navbar() {
   const { user, signOut } = useAuth();
   const { isAdmin } = useSubscription();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isItemActive = (item: NavItem) => Boolean(
+    item.path ? pathname === item.path : item.sections?.some((section) => section.items.some((entry) => entry.path && pathname === entry.path)),
+  );
 
   const navItems = useMemo(() => {
     const items = [...baseNavItems];
@@ -298,7 +319,7 @@ export function Navbar() {
                 {item.path && !item.hasDropdown ? (
                   <Link
                     to={item.path}
-                    className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-secondary text-foreground"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-secondary ${isItemActive(item) ? "bg-secondary text-primary" : "text-foreground"}`}
                   >
                     {item.icon && <item.icon className="h-4 w-4 text-primary" />}
                     <span>{item.label}</span>
@@ -306,7 +327,7 @@ export function Navbar() {
                 ) : (
                   <button
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-secondary ${
-                      activeDropdown === item.label ? "bg-secondary text-primary" : "text-foreground"
+                      activeDropdown === item.label || isItemActive(item) ? "bg-secondary text-primary" : "text-foreground"
                     }`}
                   >
                     {item.icon && <item.icon className="h-4 w-4 text-primary" />}
@@ -407,7 +428,7 @@ export function Navbar() {
                   <>
                     <button
                       onClick={() => toggleMobileDropdown(item.label)}
-                      className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg text-foreground hover:bg-secondary transition-colors w-full min-h-[44px]"
+                      className={`flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg hover:bg-secondary transition-colors w-full min-h-[44px] ${isItemActive(item) ? "bg-secondary text-primary" : "text-foreground"}`}
                     >
                       {item.icon && <item.icon className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />}
                       <span className="font-medium text-xs sm:text-sm">{item.label}</span>
@@ -431,7 +452,7 @@ export function Navbar() {
                                     <Link
                                       to={subItem.path}
                                       onClick={() => setIsMobileMenuOpen(false)}
-                                      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-xs text-foreground"
+                                      className={`flex items-center gap-2 px-3 py-2 rounded-md hover:bg-secondary transition-colors text-xs ${pathname === subItem.path ? "bg-secondary text-primary" : "text-foreground"}`}
                                     >
                                       <subItem.icon className={`h-4 w-4 ${subItem.iconColor || "text-primary"}`} />
                                       <span>{subItem.label}</span>
