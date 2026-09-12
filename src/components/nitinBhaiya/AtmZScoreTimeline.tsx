@@ -46,7 +46,7 @@ export function AtmZScoreTimeline({ symbol, expiry, date, time, refreshKey, onLa
     cache.current = new Map();
     setSnapshots(new Map());
     onLatest(null);
-  }, [symbol, expiry, date, onLatest]);
+  }, [symbol, expiry, date, refreshKey, onLatest]);
 
   useEffect(() => {
     if (!symbol || !expiry || !slots.length) return;
@@ -74,7 +74,7 @@ export function AtmZScoreTimeline({ symbol, expiry, date, time, refreshKey, onLa
   }, [symbol, expiry, date, slots]);
 
   const rows = useMemo(() => buildAtmZScoreRows(slots.map((slot) => snapshots.get(slot)).filter((row): row is AtmSnapshot => Boolean(row))), [slots, snapshots]);
-  useEffect(() => { onLatest(rows.at(-1) ?? null); }, [rows, onLatest]);
+  useEffect(() => { onLatest(rows[rows.length - 1] ?? null); }, [rows, onLatest]);
   const displayRows = [...rows].reverse();
 
   return <Card className="overflow-hidden rounded-none">
