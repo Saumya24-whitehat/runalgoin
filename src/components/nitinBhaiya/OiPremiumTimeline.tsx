@@ -3,7 +3,7 @@ import { History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatIndianNumber } from "@/lib/formatNumber";
 import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
-import { analyzeOiPremium, OiPremiumSummary } from "@/utils/oiPremiumEngine";
+import { analyzeOiPremium, OiPremiumRange, OiPremiumSummary } from "@/utils/oiPremiumEngine";
 import { ChainStrike } from "@/utils/nitinBhaiyaEngine";
 
 const allSlots = Array.from({ length: 126 }, (_, index) => {
@@ -19,16 +19,24 @@ function istNowSlot() {
 }
 
 interface TimelineRow extends OiPremiumSummary { time: string }
-interface Props { symbol: string; expiry: string; date: string; time: string; opening: ChainStrike[]; refreshKey: number }
+interface Props {
+  symbol: string;
+  expiry: string;
+  date: string;
+  time: string;
+  opening: ChainStrike[];
+  refreshKey: number;
+  onLatest?: (summary: OiPremiumSummary | null) => void;
+}
 
 const n = (value: number) => formatIndianNumber(Math.round(value));
 const signed = (value: number, decimals = 0) => `${value > 0 ? "+" : ""}${decimals ? value.toFixed(decimals) : n(value)}`;
 const tone = (value: string) => value.includes("BULLISH") ? "text-success" : value.includes("BEARISH") ? "text-destructive" : "text-muted-foreground";
 
-export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refreshKey }: Props) {
-  const [rows, setRows] = useState<Map<string, TimelineRow>>(new Map());
+export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refreshKey, onLatest }: Props) {
+  const [chains, setChains] = useState<Map<string, ChainStrike[]>>(new Map());
   const [loading, setLoading] = useState(false);
-  const cache = useRef(new Map<string, TimelineRow>());
+  const cache = useRef(new Map<string, ChainStrike[]>());
   const pending = useRef(false);
 
   const slots = useMemo(() => {
@@ -37,14 +45,14 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refresh
   }, [time, date, refreshKey]);
 
   useEffect(() => {
-    setRows(new Map());
+    setChains(new Map());
     cache.current = new Map();
   }, [symbol, expiry, date]);
 
   useEffect(() => {
     if (!symbol || !expiry || !opening.length || !slots.length || pending.current) return;
     const missing = slots.filter((slot) => !cache.current.has(slot));
-    if (!missing.length) { setRows(new Map(cache.current)); return; }
+    if (!missing.length) { setChains(new Map(cache.current)); return; }
     pending.current = true;
     setLoading(true);
     (async () => {
@@ -53,12 +61,11 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refresh
         const results = await Promise.all(batch.map(async (slot) => {
           try {
             const chain = await fetchNitinChainAt(symbol, expiry, slot, date || undefined);
-            if (!chain.length) return null;
-            return { time: slot, ...analyzeOiPremium(chain, opening) };
+            return chain.length ? { slot, chain } : null;
           } catch { return null; }
         }));
-        results.forEach((row) => { if (row) cache.current.set(row.time, row); });
-        setRows(new Map(cache.current));
+        results.forEach((item) => { if (item) cache.current.set(item.slot, item.chain); });
+        setChains(new Map(cache.current));
       }
       pending.current = false;
       setLoading(false);
@@ -66,13 +73,29 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refresh
     return () => { pending.current = false; };
   }, [symbol, expiry, date, slots, opening]);
 
-  const ordered = useMemo(() => slots.map((slot) => rows.get(slot)).filter((row): row is TimelineRow => Boolean(row)).reverse(), [slots, rows]);
+  // Sequential pass: each candle's strike window unions with everything visited earlier.
+  const ordered = useMemo(() => {
+    let range: OiPremiumRange | null = null;
+    const rows: TimelineRow[] = [];
+    slots.forEach((slot) => {
+      const chain = chains.get(slot);
+      if (!chain) return;
+      const summary = analyzeOiPremium(chain, opening, 2, range);
+      if (summary.range) range = summary.range;
+      rows.push({ time: slot, ...summary });
+    });
+    return rows;
+  }, [slots, chains, opening]);
+
+  useEffect(() => { onLatest?.(ordered.length ? ordered[ordered.length - 1] : null); }, [ordered, onLatest]);
+
+  const display = useMemo(() => [...ordered].reverse(), [ordered]);
 
   return <Card className="m-3 overflow-hidden rounded-none">
-    <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><History className="h-4 w-4" />OI + Premium · 3-Minute Table</span><span className="font-mono text-[10px] text-muted-foreground">{loading ? "Loading snapshots…" : `${ordered.length}/${slots.length} snapshots`}</span></CardTitle></CardHeader>
+    <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><History className="h-4 w-4" />OI + Premium · 3-Minute Table (cumulative strikes · time value only)</span><span className="font-mono text-[10px] text-muted-foreground">{loading ? "Loading snapshots…" : `${display.length}/${slots.length} snapshots`}</span></CardTitle></CardHeader>
     <CardContent className="p-0"><div className="max-h-[480px] overflow-auto"><table className="w-full min-w-[1120px] text-[10px]">
-      <thead className="sticky top-0 bg-muted"><tr>{["TIME (IST)", "SPOT", "ATM", "USED STRIKES", "CE COI", "CE PREMIUM Δ", "CE ACTIVITY", "PE COI", "PE PREMIUM Δ", "PE ACTIVITY", "MARKET READING"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
-      <tbody>{ordered.map((row) => <tr key={row.time} className="border-t hover:bg-muted/50">
+      <thead className="sticky top-0 bg-muted"><tr>{["TIME (IST)", "SPOT", "ATM", "USED STRIKES", "CE COI", "CE TIME VALUE Δ", "CE ACTIVITY", "PE COI", "PE TIME VALUE Δ", "PE ACTIVITY", "MARKET READING"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
+      <tbody>{display.map((row) => <tr key={row.time} className="border-t hover:bg-muted/50">
         <td className="px-1 py-1.5 text-center font-mono font-bold">{row.time.slice(0, 2)}:{row.time.slice(2)}</td>
         <td className="px-1 py-1.5 text-right font-mono">{row.spot.toFixed(2)}</td>
         <td className="px-1 py-1.5 text-right font-mono font-bold">{n(row.atm)}</td>
@@ -85,7 +108,7 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refresh
         <td className="px-1 py-1.5 text-center font-semibold">{row.peActivity}</td>
         <td className={`px-1 py-1.5 text-center font-semibold ${tone(row.reading)}`}>{row.reading}</td>
       </tr>)}
-      {!ordered.length && !loading && <tr><td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">No snapshots available yet.</td></tr>}</tbody>
+      {!display.length && !loading && <tr><td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">No snapshots available yet.</td></tr>}</tbody>
     </table></div></CardContent>
   </Card>;
 }
