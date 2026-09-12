@@ -60,7 +60,7 @@ export default function NitinBhaiyaOiPremium() {
         <Card className="overflow-hidden rounded-none">
           <CardHeader className="py-3"><CardTitle className="flex items-center gap-2 text-sm"><Activity className="h-4 w-4" />Cumulative Strike Activity (ATM ±2 · session union)</CardTitle></CardHeader>
           <CardContent className="p-0"><div className="overflow-x-auto"><table className="w-full min-w-[900px] text-[10px]">
-            <thead className="bg-muted"><tr>{["CE ACTIVITY", "CE COI", "CE TIME VALUE Δ", "STRIKE", "PE TIME VALUE Δ", "PE COI", "PE ACTIVITY"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
+            <thead className="bg-muted"><tr>{["CE ACTIVITY", "CE COI", "CE PREMIUM Δ", "STRIKE", "PE PREMIUM Δ", "PE COI", "PE ACTIVITY"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
 
             <tbody>{summary.rows.map((row) => <tr key={row.strike} className={`border-t ${row.isAtm ? "bg-[hsl(var(--oc-atm-bg))]" : "hover:bg-muted/50"}`}>
               <td className="px-1 py-1.5 text-center font-semibold">{row.ceActivity}</td>
