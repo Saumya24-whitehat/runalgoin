@@ -119,6 +119,8 @@ export default function Backtest() {
         path="/backtest"
         title="Options Signal Backtest — 1 Year Long & Short Study | OptionWorld"
         description="Ek saal ke option chain data par NitinBhaiya, IV Flow aur Strike Flow signals ka backtest — kab long karna chahiye aur kab short, weekly aur monthly expiry dono par."
+      />
+
 
       <ProFeatureGate featureName="Signal Backtest">
         <div className="space-y-3 p-2">
