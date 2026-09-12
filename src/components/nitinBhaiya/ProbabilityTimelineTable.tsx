@@ -3,6 +3,7 @@ import { History } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
 import { callTargetProbability, probabilitySentiment, putTargetProbability } from "@/utils/optionProbability";
+import { getAtmProbabilityTargets } from "@/utils/atmProbabilityTargets";
 
 const allSlots = Array.from({ length: 126 }, (_, i) => {
   const total = 9 * 60 + 15 + i * 3;
@@ -38,12 +39,10 @@ interface Props {
   date: string;
   time: string;
   days: number;
-  putTarget: number;
-  callTarget: number;
   refreshKey: number;
 }
 
-export function ProbabilityTimelineTable({ symbol, expiry, date, time, days, putTarget, callTarget, refreshKey }: Props) {
+export function ProbabilityTimelineTable({ symbol, expiry, date, time, days, refreshKey }: Props) {
   const [rows, setRows] = useState<Map<string, Row>>(new Map());
   const [loading, setLoading] = useState(false);
   const cache = useRef(new Map<string, Row>());
@@ -57,10 +56,10 @@ export function ProbabilityTimelineTable({ symbol, expiry, date, time, days, put
   useEffect(() => {
     setRows(new Map());
     cache.current = new Map();
-  }, [symbol, expiry, date, days, putTarget, callTarget]);
+  }, [symbol, expiry, date, days]);
 
   useEffect(() => {
-    if (!symbol || !expiry || !slots.length || !putTarget || !callTarget || pending.current) return;
+    if (!symbol || !expiry || !slots.length || pending.current) return;
     const missing = slots.filter((slot) => !cache.current.has(slot));
     if (!missing.length) { setRows(new Map(cache.current)); return; }
     pending.current = true;
@@ -73,6 +72,9 @@ export function ProbabilityTimelineTable({ symbol, expiry, date, time, days, put
             const chain = await fetchNitinChainAt(symbol, expiry, slot, date || undefined);
             if (!chain.length) return null;
             const spot = chain[0].spot;
+             const targets = getAtmProbabilityTargets(chain);
+             if (!targets) return null;
+             const { putTarget, callTarget } = targets;
             const nearest = (target: number) => chain.reduce((best, row) => Math.abs(row.strike - target) < Math.abs(best.strike - target) ? row : best);
             const putRow = nearest(putTarget);
             const callRow = nearest(callTarget);
@@ -96,7 +98,7 @@ export function ProbabilityTimelineTable({ symbol, expiry, date, time, days, put
       setLoading(false);
     })();
     return () => { pending.current = false; };
-  }, [symbol, expiry, slots, date, days, putTarget, callTarget]);
+  }, [symbol, expiry, slots, date, days]);
 
   const ordered = useMemo(() => slots.map((slot) => rows.get(slot)).filter((row): row is Row => Boolean(row)).reverse(), [slots, rows]);
   const pct = (value: number | null) => value === null ? "—" : `${value.toFixed(2)}%`;
