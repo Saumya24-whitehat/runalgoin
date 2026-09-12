@@ -56,7 +56,7 @@ export default function NitinBhaiyaOiPremium() {
     <SEO title="OI + Premium Analysis | OptionWorld" description="ATM plus-minus two strike OI and premium activity analysis with live and historical three-minute data." path="/nitinbhaiya/oi-premium" />
     <section className="mx-auto w-full max-w-[1500px] py-3">
       <div className="flex items-start justify-between gap-3 px-3 pb-3">
-        <div><p className="font-mono text-[10px] uppercase text-primary">NitinBhaiya Intelligence</p><h1>OI + Premium</h1><p className="text-muted-foreground">Din bhar jitni strikes par market ghooma, sabhi ka COI · sirf time value (extrinsic) change · 09:15 opening baseline.</p></div>
+        <div><p className="font-mono text-[10px] uppercase text-primary">NitinBhaiya Intelligence</p><h1>OI + Premium</h1><p className="text-muted-foreground">Din bhar jitni strikes par market ghooma, sabhi ka COI (09:15 opening baseline) · absolute premium change vs pichle din 15:30 close.</p></div>
         {state.lastRefresh && <LastRefreshBadge lastRefresh={state.lastRefresh} />}
       </div>
       <NitinControls symbols={state.symbols} expiries={state.expiries} symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} loading={state.loading} onSymbol={state.setSymbol} onExpiry={state.setExpiry} onDate={state.setDate} onTime={state.setTime} onRefresh={() => state.refresh()} />
@@ -101,7 +101,7 @@ export default function NitinBhaiyaOiPremium() {
         </div>
       </div>
 
-      <OiPremiumTimeline symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} opening={opening} refreshKey={state.lastRefresh?.getTime() ?? 0} onLatest={onLatest} />
+      <OiPremiumTimeline symbol={state.symbol} expiry={state.expiry} date={state.date} time={state.time} opening={opening} prevClose={prevClose} refreshKey={state.lastRefresh?.getTime() ?? 0} onLatest={onLatest} />
     </section>
   </PageLayout>;
 }
