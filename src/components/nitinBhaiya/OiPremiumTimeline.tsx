@@ -127,9 +127,9 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
 
   return <>
     <Card className="m-3 overflow-hidden rounded-none">
-      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />Premium Gap Chart (CE Δ − PE Δ · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Gap = CE Premium Δ minus PE Premium Δ · Anchor Avg = din ka cumulative average</span></CardTitle></CardHeader>
+      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />Premium Gap Chart (CE Δ − PE Δ · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Canvas 09:15–15:30 fixed · Gap = CE Premium Δ minus PE Premium Δ</span></CardTitle></CardHeader>
       <CardContent className="p-2">
-        {chartData.length ? <ResponsiveContainer width="100%" height={320}>
+        {chartData.length ? <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="time" tick={{ fontSize: 10 }} minTickGap={40} />
@@ -139,8 +139,27 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
             <Line type="monotone" dataKey="ceDelta" name="CE Premium Δ" stroke="hsl(0 72% 51%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
             <Line type="monotone" dataKey="peDelta" name="PE Premium Δ" stroke="hsl(142 71% 45%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
-            <Line type="monotone" dataKey="gap" name="Gap (CE Δ − PE Δ)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
-            <Line type="monotone" dataKey="anchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
+            <Line type="monotone" dataKey="premiumGap" name="Gap (CE Δ − PE Δ)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
+            <Line type="monotone" dataKey="premiumAnchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer> : <p className="px-3 py-6 text-center text-[11px] text-muted-foreground">{loading ? "Loading chart…" : "No data available."}</p>}
+      </CardContent>
+    </Card>
+    <Card className="m-3 overflow-hidden rounded-none">
+      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />COI Gap Chart (CE COI − PE COI · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Canvas 09:15–15:30 fixed · Gap = CE COI minus PE COI</span></CardTitle></CardHeader>
+      <CardContent className="p-2">
+        {chartData.length ? <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="time" tick={{ fontSize: 10 }} minTickGap={40} />
+            <YAxis tick={{ fontSize: 10 }} width={80} tickFormatter={(value: number) => formatIndianNumber(value)} />
+            <Tooltip formatter={(value: number, name: string) => [formatIndianNumber(value), name]} contentStyle={{ fontSize: 11 }} />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
+            <Line type="monotone" dataKey="ceCoi" name="CE COI" stroke="hsl(0 72% 51%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
+            <Line type="monotone" dataKey="peCoi" name="PE COI" stroke="hsl(142 71% 45%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
+            <Line type="monotone" dataKey="coiGap" name="Gap (CE COI − PE COI)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
+            <Line type="monotone" dataKey="coiAnchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer> : <p className="px-3 py-6 text-center text-[11px] text-muted-foreground">{loading ? "Loading chart…" : "No data available."}</p>}
       </CardContent>
