@@ -19,19 +19,36 @@ const tone = (value: string) => value.includes("BULLISH") ? "text-success" : val
 export default function NitinBhaiyaOiPremium() {
   const state = useNitinBhaiyaAnalysis();
   const [opening, setOpening] = useState<ChainStrike[]>([]);
+  const [prevClose, setPrevClose] = useState<ChainStrike[]>([]);
   const [latest, setLatest] = useState<OiPremiumSummary | null>(null);
 
   useEffect(() => {
-    if (!state.symbol || !state.expiry) { setOpening([]); return; }
+    if (!state.symbol || !state.expiry) { setOpening([]); setPrevClose([]); return; }
     let active = true;
-    fetchNitinChainAt(state.symbol, state.expiry, "0915", state.date || undefined)
-      .then((chain) => { if (active) setOpening(chain); })
-      .catch(() => { if (active) setOpening([]); });
+    // Previous session's 15:30 close: walk back up to 7 days (weekends/holidays have no data).
+    const load = async () => {
+      try {
+        const anchor = state.date ? new Date(`${state.date}T00:00:00`) : new Date();
+        let prev: ChainStrike[] = [];
+        for (let back = 1; back <= 7; back++) {
+          const day = new Date(anchor);
+          day.setDate(day.getDate() - back);
+          const dateStr = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, "0")}-${String(day.getDate()).padStart(2, "0")}`;
+          const chain = await fetchNitinChainAt(state.symbol, state.expiry, "1530", dateStr).catch(() => [] as ChainStrike[]);
+          if (chain.length) { prev = chain; break; }
+        }
+        const open = await fetchNitinChainAt(state.symbol, state.expiry, "0915", state.date || undefined);
+        if (!active) return;
+        setPrevClose(prev);
+        setOpening(open);
+      } catch { if (active) { setOpening([]); setPrevClose([]); } }
+    };
+    load();
     return () => { active = false; };
   }, [state.symbol, state.expiry, state.date]);
 
   const onLatest = useCallback((row: OiPremiumSummary | null) => setLatest(row), []);
-  const fallback = useMemo(() => analyzeOiPremium(state.current, opening), [state.current, opening]);
+  const fallback = useMemo(() => analyzeOiPremium(state.current, opening, prevClose), [state.current, opening, prevClose]);
   const summary = latest ?? fallback;
 
 
