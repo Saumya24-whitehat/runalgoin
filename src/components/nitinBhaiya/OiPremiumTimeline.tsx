@@ -91,19 +91,34 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
 
   useEffect(() => { onLatest?.(ordered.length ? ordered[ordered.length - 1] : null); }, [ordered, onLatest]);
 
-  // Chart series: CE/PE premium delta per candle, their gap (CE Δ − PE Δ) and the
-  // anchor average of the gap = cumulative mean from the first candle of the day.
+  // Chart series on a fixed 09:15–15:30 canvas: CE/PE premium delta and COI per
+  // candle, their gaps (CE − PE) and each gap's anchor average (cumulative mean
+  // from the day's first candle). Slots without data stay null so the line grows
+  // progressively as new candles arrive.
   const chartData = useMemo(() => {
-    let gapSum = 0;
-    return ordered.map((row, index) => {
-      const gap = row.cePremiumChange - row.pePremiumChange;
-      gapSum += gap;
+    const bySlot = new Map(ordered.map((row) => [row.time, row]));
+    let premiumGapSum = 0;
+    let coiGapSum = 0;
+    let count = 0;
+    return allSlots.map((slot) => {
+      const row = bySlot.get(slot);
+      const time = `${slot.slice(0, 2)}:${slot.slice(2)}`;
+      if (!row) return { time, ceDelta: null, peDelta: null, premiumGap: null, premiumAnchorAvg: null, ceCoi: null, peCoi: null, coiGap: null, coiAnchorAvg: null };
+      count += 1;
+      const premiumGap = row.cePremiumChange - row.pePremiumChange;
+      const coiGap = row.ceCoi - row.peCoi;
+      premiumGapSum += premiumGap;
+      coiGapSum += coiGap;
       return {
-        time: `${row.time.slice(0, 2)}:${row.time.slice(2)}`,
+        time,
         ceDelta: Number(row.cePremiumChange.toFixed(2)),
         peDelta: Number(row.pePremiumChange.toFixed(2)),
-        gap: Number(gap.toFixed(2)),
-        anchorAvg: Number((gapSum / (index + 1)).toFixed(2)),
+        premiumGap: Number(premiumGap.toFixed(2)),
+        premiumAnchorAvg: Number((premiumGapSum / count).toFixed(2)),
+        ceCoi: row.ceCoi,
+        peCoi: row.peCoi,
+        coiGap,
+        coiAnchorAvg: Number((coiGapSum / count).toFixed(0)),
       };
     });
   }, [ordered]);
@@ -112,9 +127,9 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
 
   return <>
     <Card className="m-3 overflow-hidden rounded-none">
-      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />Premium Gap Chart (CE Δ − PE Δ · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Gap = CE Premium Δ minus PE Premium Δ · Anchor Avg = din ka cumulative average</span></CardTitle></CardHeader>
+      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />Premium Gap Chart (CE Δ − PE Δ · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Canvas 09:15–15:30 fixed · Gap = CE Premium Δ minus PE Premium Δ</span></CardTitle></CardHeader>
       <CardContent className="p-2">
-        {chartData.length ? <ResponsiveContainer width="100%" height={320}>
+        {chartData.length ? <ResponsiveContainer width="100%" height={300}>
           <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis dataKey="time" tick={{ fontSize: 10 }} minTickGap={40} />
@@ -124,8 +139,27 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
             <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
             <Line type="monotone" dataKey="ceDelta" name="CE Premium Δ" stroke="hsl(0 72% 51%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
             <Line type="monotone" dataKey="peDelta" name="PE Premium Δ" stroke="hsl(142 71% 45%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
-            <Line type="monotone" dataKey="gap" name="Gap (CE Δ − PE Δ)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
-            <Line type="monotone" dataKey="anchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
+            <Line type="monotone" dataKey="premiumGap" name="Gap (CE Δ − PE Δ)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
+            <Line type="monotone" dataKey="premiumAnchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer> : <p className="px-3 py-6 text-center text-[11px] text-muted-foreground">{loading ? "Loading chart…" : "No data available."}</p>}
+      </CardContent>
+    </Card>
+    <Card className="m-3 overflow-hidden rounded-none">
+      <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><LineChartIcon className="h-4 w-4" />COI Gap Chart (CE COI − PE COI · anchor average)</span><span className="font-mono text-[10px] text-muted-foreground">Canvas 09:15–15:30 fixed · Gap = CE COI minus PE COI</span></CardTitle></CardHeader>
+      <CardContent className="p-2">
+        {chartData.length ? <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 4, left: 12 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+            <XAxis dataKey="time" tick={{ fontSize: 10 }} minTickGap={40} />
+            <YAxis tick={{ fontSize: 10 }} width={80} tickFormatter={(value: number) => formatIndianNumber(value)} />
+            <Tooltip formatter={(value: number, name: string) => [formatIndianNumber(value), name]} contentStyle={{ fontSize: 11 }} />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
+            <Line type="monotone" dataKey="ceCoi" name="CE COI" stroke="hsl(0 72% 51%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
+            <Line type="monotone" dataKey="peCoi" name="PE COI" stroke="hsl(142 71% 45%)" dot={false} strokeWidth={1.2} isAnimationActive={false} />
+            <Line type="monotone" dataKey="coiGap" name="Gap (CE COI − PE COI)" stroke="hsl(var(--primary))" dot={false} strokeWidth={1.6} isAnimationActive={false} />
+            <Line type="monotone" dataKey="coiAnchorAvg" name="Anchor Avg of Gap" stroke="hsl(var(--foreground))" strokeDasharray="6 3" dot={false} strokeWidth={1.4} isAnimationActive={false} />
           </LineChart>
         </ResponsiveContainer> : <p className="px-3 py-6 text-center text-[11px] text-muted-foreground">{loading ? "Loading chart…" : "No data available."}</p>}
       </CardContent>
