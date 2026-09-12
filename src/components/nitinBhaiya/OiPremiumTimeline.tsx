@@ -25,6 +25,7 @@ interface Props {
   date: string;
   time: string;
   opening: ChainStrike[];
+  prevClose: ChainStrike[];
   refreshKey: number;
   onLatest?: (summary: OiPremiumSummary | null) => void;
 }
@@ -33,7 +34,7 @@ const n = (value: number) => formatIndianNumber(Math.round(value));
 const signed = (value: number, decimals = 0) => `${value > 0 ? "+" : ""}${decimals ? value.toFixed(decimals) : n(value)}`;
 const tone = (value: string) => value.includes("BULLISH") ? "text-success" : value.includes("BEARISH") ? "text-destructive" : "text-muted-foreground";
 
-export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refreshKey, onLatest }: Props) {
+export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClose, refreshKey, onLatest }: Props) {
   const [chains, setChains] = useState<Map<string, ChainStrike[]>>(new Map());
   const [loading, setLoading] = useState(false);
   const cache = useRef(new Map<string, ChainStrike[]>());
