@@ -101,3 +101,92 @@ export function rollUp(rows: BacktestStatRow[]): OverallRow[] {
 
   return result.sort((a, b) => b.winRate - a.winRate);
 }
+
+export interface CoverageRow {
+  symbol: string;
+  expiry_type: string;
+  days: number;
+  candles: number;
+  from_date: string | null;
+  to_date: string | null;
+}
+
+/** Kitna data process ho chuka hai — symbol + expiry wise. */
+export async function fetchCoverage(): Promise<CoverageRow[]> {
+  const { data, error } = await supabase
+    .from("backtest_days")
+    .select("symbol, expiry_type, trade_date, candles")
+    .eq("status", "done");
+  if (error) throw error;
+  const map = new Map<string, CoverageRow>();
+  (data ?? []).forEach((row) => {
+    const key = `${row.symbol}|${row.expiry_type}`;
+    const current = map.get(key) ?? {
+      symbol: row.symbol as string,
+      expiry_type: row.expiry_type as string,
+      days: 0,
+      candles: 0,
+      from_date: null,
+      to_date: null,
+    };
+    current.days += 1;
+    current.candles += Number(row.candles ?? 0);
+    const date = row.trade_date as string;
+    if (!current.from_date || date < current.from_date) current.from_date = date;
+    if (!current.to_date || date > current.to_date) current.to_date = date;
+    map.set(key, current);
+  });
+  return [...map.values()].sort((a, b) => a.symbol.localeCompare(b.symbol) || a.expiry_type.localeCompare(b.expiry_type));
+}
+
+export interface CombinedRow extends OverallRow {
+  symbol: string;
+  expiryType: ExpiryType;
+}
+
+/** Chaar combos (2 symbol x 2 expiry) ka rolled-up result ek list me. */
+export async function fetchAllResults(symbols: string[]): Promise<CombinedRow[]> {
+  const combos = symbols.flatMap((symbol) =>
+    (["weekly", "monthly"] as ExpiryType[]).map((expiryType) => ({ symbol, expiryType })),
+  );
+  const results = await Promise.all(
+    combos.map(async (combo) => {
+      const rows = await fetchBacktestStats(combo.symbol, combo.expiryType);
+      return rollUp(rows).map((row) => ({ ...row, symbol: combo.symbol, expiryType: combo.expiryType }));
+    }),
+  );
+  return results.flat();
+}
+
+export interface EngineScore {
+  engine: string;
+  dir: string;
+  trades: number;
+  winRate: number;
+  avgFwd30: number;
+}
+
+/** Engine + direction wise overall bharosa. */
+export function engineScores(rows: CombinedRow[]): EngineScore[] {
+  const map = new Map<string, { trades: number; win: number; move: number }>();
+  rows.forEach((row) => {
+    const key = `${row.engine}|${row.dir}`;
+    const current = map.get(key) ?? { trades: 0, win: 0, move: 0 };
+    current.trades += row.trades;
+    current.win += row.winRate * row.trades;
+    current.move += row.avgFwd30 * row.trades;
+    map.set(key, current);
+  });
+  return [...map.entries()]
+    .map(([key, value]) => {
+      const [engine, dir] = key.split("|");
+      return {
+        engine,
+        dir,
+        trades: value.trades,
+        winRate: value.trades ? value.win / value.trades : 0,
+        avgFwd30: value.trades ? value.move / value.trades : 0,
+      };
+    })
+    .sort((a, b) => b.winRate - a.winRate);
+}
