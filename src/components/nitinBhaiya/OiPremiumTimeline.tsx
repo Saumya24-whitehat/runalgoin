@@ -1,0 +1,91 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { History } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatIndianNumber } from "@/lib/formatNumber";
+import { fetchNitinChainAt } from "@/services/nitinBhaiyaApi";
+import { analyzeOiPremium, OiPremiumSummary } from "@/utils/oiPremiumEngine";
+import { ChainStrike } from "@/utils/nitinBhaiyaEngine";
+
+const allSlots = Array.from({ length: 126 }, (_, index) => {
+  const total = 9 * 60 + 15 + index * 3;
+  return total <= 15 * 60 + 30 ? `${String(Math.floor(total / 60)).padStart(2, "0")}${String(total % 60).padStart(2, "0")}` : null;
+}).filter((value): value is string => Boolean(value));
+
+function istNowSlot() {
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(new Date());
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value ?? 0);
+  return `${String(hour).padStart(2, "0")}${String(Math.floor(minute / 3) * 3).padStart(2, "0")}`;
+}
+
+interface TimelineRow extends OiPremiumSummary { time: string }
+interface Props { symbol: string; expiry: string; date: string; time: string; opening: ChainStrike[]; refreshKey: number }
+
+const n = (value: number) => formatIndianNumber(Math.round(value));
+const signed = (value: number, decimals = 0) => `${value > 0 ? "+" : ""}${decimals ? value.toFixed(decimals) : n(value)}`;
+const tone = (value: string) => value.includes("BULLISH") ? "text-success" : value.includes("BEARISH") ? "text-destructive" : "text-muted-foreground";
+
+export function OiPremiumTimeline({ symbol, expiry, date, time, opening, refreshKey }: Props) {
+  const [rows, setRows] = useState<Map<string, TimelineRow>>(new Map());
+  const [loading, setLoading] = useState(false);
+  const cache = useRef(new Map<string, TimelineRow>());
+  const pending = useRef(false);
+
+  const slots = useMemo(() => {
+    const cutoff = time || (date ? "1530" : istNowSlot());
+    return allSlots.filter((slot) => slot <= cutoff);
+  }, [time, date, refreshKey]);
+
+  useEffect(() => {
+    setRows(new Map());
+    cache.current = new Map();
+  }, [symbol, expiry, date]);
+
+  useEffect(() => {
+    if (!symbol || !expiry || !opening.length || !slots.length || pending.current) return;
+    const missing = slots.filter((slot) => !cache.current.has(slot));
+    if (!missing.length) { setRows(new Map(cache.current)); return; }
+    pending.current = true;
+    setLoading(true);
+    (async () => {
+      for (let index = 0; index < missing.length; index += 4) {
+        const batch = missing.slice(index, index + 4);
+        const results = await Promise.all(batch.map(async (slot) => {
+          try {
+            const chain = await fetchNitinChainAt(symbol, expiry, slot, date || undefined);
+            if (!chain.length) return null;
+            return { time: slot, ...analyzeOiPremium(chain, opening) };
+          } catch { return null; }
+        }));
+        results.forEach((row) => { if (row) cache.current.set(row.time, row); });
+        setRows(new Map(cache.current));
+      }
+      pending.current = false;
+      setLoading(false);
+    })();
+    return () => { pending.current = false; };
+  }, [symbol, expiry, date, slots, opening]);
+
+  const ordered = useMemo(() => slots.map((slot) => rows.get(slot)).filter((row): row is TimelineRow => Boolean(row)).reverse(), [slots, rows]);
+
+  return <Card className="m-3 overflow-hidden rounded-none">
+    <CardHeader className="py-3"><CardTitle className="flex items-center justify-between text-sm"><span className="flex items-center gap-2"><History className="h-4 w-4" />OI + Premium · 3-Minute Table</span><span className="font-mono text-[10px] text-muted-foreground">{loading ? "Loading snapshots…" : `${ordered.length}/${slots.length} snapshots`}</span></CardTitle></CardHeader>
+    <CardContent className="p-0"><div className="max-h-[480px] overflow-auto"><table className="w-full min-w-[1120px] text-[10px]">
+      <thead className="sticky top-0 bg-muted"><tr>{["TIME (IST)", "SPOT", "ATM", "USED STRIKES", "CE COI", "CE PREMIUM Δ", "CE ACTIVITY", "PE COI", "PE PREMIUM Δ", "PE ACTIVITY", "MARKET READING"].map((heading) => <th key={heading} className="px-1 py-2 text-center font-semibold">{heading}</th>)}</tr></thead>
+      <tbody>{ordered.map((row) => <tr key={row.time} className="border-t hover:bg-muted/50">
+        <td className="px-1 py-1.5 text-center font-mono font-bold">{row.time.slice(0, 2)}:{row.time.slice(2)}</td>
+        <td className="px-1 py-1.5 text-right font-mono">{row.spot.toFixed(2)}</td>
+        <td className="px-1 py-1.5 text-right font-mono font-bold">{n(row.atm)}</td>
+        <td className="px-1 py-1.5 text-center font-mono">{row.strikeRange}</td>
+        <td className={row.ceCoi >= 0 ? "px-1 py-1.5 text-right font-mono text-success" : "px-1 py-1.5 text-right font-mono text-destructive"}>{signed(row.ceCoi)}</td>
+        <td className="px-1 py-1.5 text-right font-mono">{signed(row.cePremiumChange, 2)}</td>
+        <td className="px-1 py-1.5 text-center font-semibold">{row.ceActivity}</td>
+        <td className={row.peCoi >= 0 ? "px-1 py-1.5 text-right font-mono text-success" : "px-1 py-1.5 text-right font-mono text-destructive"}>{signed(row.peCoi)}</td>
+        <td className="px-1 py-1.5 text-right font-mono">{signed(row.pePremiumChange, 2)}</td>
+        <td className="px-1 py-1.5 text-center font-semibold">{row.peActivity}</td>
+        <td className={`px-1 py-1.5 text-center font-semibold ${tone(row.reading)}`}>{row.reading}</td>
+      </tr>)}
+      {!ordered.length && !loading && <tr><td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">No snapshots available yet.</td></tr>}</tbody>
+    </table></div></CardContent>
+  </Card>;
+}
