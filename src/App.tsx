@@ -83,7 +83,7 @@ const InvoiceView = lazy(() => import("./pages/InvoiceView"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OptionWorldClub = lazy(() => import("./pages/OptionWorldClub"));
-const FinalAnalyses = lazy(() => import("./pages/FinalAnalyses"));
+
 
 const queryClient = new QueryClient();
 
@@ -140,7 +140,7 @@ const App = () => (
                 <Route path="/strike-flow" element={<StrikeFlowAnalyzer />} />
                 <Route path="/strike-flow-chain" element={<StrikeFlowChain />} />
                 <Route path="/iv-flow-signal" element={<IvFlowSignal />} />
-                <Route path="/finalanalyses" element={<FinalAnalyses />} />
+                
                 <Route path="/indicator" element={<Indicator />} />
                 <Route path="/strategy-charts" element={<StrategyCharts />} />
                 <Route path="/premium-decay" element={<PremiumDecay />} />
