@@ -91,6 +91,23 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
 
   useEffect(() => { onLatest?.(ordered.length ? ordered[ordered.length - 1] : null); }, [ordered, onLatest]);
 
+  // Chart series: CE/PE premium delta per candle, their gap (CE Δ − PE Δ) and the
+  // anchor average of the gap = cumulative mean from the first candle of the day.
+  const chartData = useMemo(() => {
+    let gapSum = 0;
+    return ordered.map((row, index) => {
+      const gap = row.cePremiumChange - row.pePremiumChange;
+      gapSum += gap;
+      return {
+        time: `${row.time.slice(0, 2)}:${row.time.slice(2)}`,
+        ceDelta: Number(row.cePremiumChange.toFixed(2)),
+        peDelta: Number(row.pePremiumChange.toFixed(2)),
+        gap: Number(gap.toFixed(2)),
+        anchorAvg: Number((gapSum / (index + 1)).toFixed(2)),
+      };
+    });
+  }, [ordered]);
+
   const display = useMemo(() => [...ordered].reverse(), [ordered]);
 
   return <Card className="m-3 overflow-hidden rounded-none">
