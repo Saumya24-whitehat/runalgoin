@@ -29,11 +29,15 @@ export default function NitinBhaiyaGreeks() {
 
   const spot = state.current[0]?.spot ?? 0;
 
-  // Auto-pick highest OI strikes below (put side) and above (call side) spot
+  // Auto-pick highest OI strikes within ATM ±3 strikes (not the whole chain)
   const suggested = useMemo(() => {
     if (!state.current.length || !spot) return { put: 0, call: 0 };
-    const below = state.current.filter((row) => row.strike < spot);
-    const above = state.current.filter((row) => row.strike > spot);
+    const sorted = [...state.current].sort((a, b) => a.strike - b.strike);
+    const atmIdx = sorted.reduce((best, row, i) => Math.abs(row.strike - spot) < Math.abs(sorted[best].strike - spot) ? i : best, 0);
+    const window = sorted.slice(Math.max(0, atmIdx - 3), Math.min(sorted.length, atmIdx + 4));
+    const below = window.filter((row) => row.strike < spot);
+    const above = window.filter((row) => row.strike > spot);
+    if (!below.length || !above.length) return { put: 0, call: 0 };
     const put = below.reduce((best, row) => (row.pe.oi > (best?.pe.oi ?? 0) ? row : best), below[0])?.strike ?? 0;
     const call = above.reduce((best, row) => (row.ce.oi > (best?.ce.oi ?? 0) ? row : best), above[0])?.strike ?? 0;
     return { put, call };
