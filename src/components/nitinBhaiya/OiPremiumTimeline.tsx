@@ -149,5 +149,6 @@ export function OiPremiumTimeline({ symbol, expiry, date, time, opening, prevClo
       </tr>)}
       {!display.length && !loading && <tr><td colSpan={11} className="px-3 py-6 text-center text-muted-foreground">No snapshots available yet.</td></tr>}</tbody>
     </table></div></CardContent>
-  </Card>;
+    </Card>
+  </>;
 }
