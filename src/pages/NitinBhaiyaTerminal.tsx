@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Activity, Gauge, ShieldCheck, TriangleAlert } from "lucide-react";
 import { PageLayout } from "@/components/PageLayout";
 import { NitinControls } from "@/components/nitinBhaiya/NitinControls";
+import { NitinTimelineTable } from "@/components/nitinBhaiya/NitinTimelineTable";
 import { SignalBadge } from "@/components/nitinBhaiya/SignalBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";

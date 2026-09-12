@@ -38,8 +38,8 @@ export async function fetchNitinChainAt(symbol: string, expiry: string, time?: s
 
 export async function fetchNitinAnalysis(symbol: string, expiry: string, time?: string) {
   const [current, baselineResult] = await Promise.all([
-    fetchChain(symbol, expiry, time),
-    fetchChain(symbol, expiry, "0945").catch(() => []),
+    fetchNitinChainAt(symbol, expiry, time),
+    fetchNitinChainAt(symbol, expiry, "0945").catch(() => []),
   ]);
   return { current, baseline: baselineResult };
 }
