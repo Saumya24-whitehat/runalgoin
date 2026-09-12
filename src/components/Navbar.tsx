@@ -32,6 +32,7 @@ import {
   BookOpen,
   Compass,
   Gauge,
+  Waves,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { useAuth } from "@/contexts/AuthContext";
@@ -189,6 +190,7 @@ const baseNavItems: NavItem[] = [
           { icon: Gauge, label: "9-Step Analysis", iconColor: "text-amber-500", path: "/nitinbhaiya/analyze" },
           { icon: Calculator, label: "Greeks & Risk", iconColor: "text-emerald-500", path: "/nitinbhaiya/greeks" },
           { icon: TrendingDown, label: "Premium Decay", iconColor: "text-red-500", path: "/nitinbhaiya/premium-decay" },
+          { icon: Waves, label: "ATM Z-Score", iconColor: "text-primary", path: "/nitinbhaiya/atm" },
         ],
       },
     ],
