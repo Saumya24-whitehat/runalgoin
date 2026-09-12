@@ -23,6 +23,9 @@ serve(async (req) => {
         break;
       case 'getExpiryDates':
         url = `https://runalgo.xyz/data/getExpiryDates2.php?symbol=${encodeURIComponent(symbol)}`;
+        if (date) {
+          url += `&date=${encodeURIComponent(date)}`;
+        }
         break;
       case 'getOptionChain':
         url = `https://runalgo.xyz/data/getOptionChain.php?symbol=${encodeURIComponent(symbol)}&expiry_date=${encodeURIComponent(expiry_date)}`;
