@@ -116,6 +116,7 @@ const baseNavItems: NavItem[] = [
           { icon: LineChart, label: "Options Chart", iconColor: "text-primary", path: "/options-chart" },
           { icon: PieChart, label: "Greeks", iconColor: "text-primary", path: "/greeks-chart" },
           { icon: BarChart3, label: "IV Flow Signal", iconColor: "text-violet-500", path: "/iv-flow-signal" },
+          { icon: Link2, label: "Strike Flow Chain", iconColor: "text-emerald-500", path: "/strike-flow-chain" },
           { icon: BarChart3, label: "Signal Backtest", iconColor: "text-amber-500", path: "/backtest" },
           { icon: BarChart3, label: "Backtest Result", iconColor: "text-emerald-500", path: "/backtest-results" },
           { icon: BookOpen, label: "Trade Journal", iconColor: "text-sky-500", path: "/trade-journal" },
