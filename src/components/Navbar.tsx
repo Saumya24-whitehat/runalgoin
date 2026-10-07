@@ -178,7 +178,7 @@ const baseNavItems: NavItem[] = [
     ],
   },
   {
-    label: "NitinBhaiya",
+    label: "Option_Chain_Stat",
     icon: Compass,
     hasDropdown: true,
     sections: [
