@@ -84,6 +84,9 @@ const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 const PaymentHistory = lazy(() => import("./pages/PaymentHistory"));
 const InvoiceView = lazy(() => import("./pages/InvoiceView"));
 const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
+const IchartHome = lazy(() => import("./pages/admin/ichart/IchartHome"));
+const IchartOptionChain = lazy(() => import("./pages/admin/ichart/IchartOptionChain"));
+const IchartOIStats = lazy(() => import("./pages/admin/ichart/IchartOIStats"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const OptionWorldClub = lazy(() => import("./pages/OptionWorldClub"));
 const NitinBhaiyaTerminal = lazy(() => import("./pages/NitinBhaiyaTerminal"));
@@ -167,6 +170,9 @@ const App = () => (
                 <Route path="/plans" element={<Plans />} />
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/admin/audit-log" element={<AuditLog />} />
+                <Route path="/admin/ichart" element={<IchartHome />} />
+                <Route path="/admin/ichart/option-chain" element={<IchartOptionChain />} />
+                <Route path="/admin/ichart/oi-stats" element={<IchartOIStats />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/payments" element={<PaymentHistory />} />
                 <Route path="/invoices/:id" element={<InvoiceView />} />

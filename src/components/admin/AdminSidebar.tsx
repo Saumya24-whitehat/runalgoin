@@ -18,7 +18,9 @@ import {
   Video,
   ScrollText,
   Bell,
+  LineChart,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export type AdminSection =
   | "overview"
@@ -70,6 +72,11 @@ export function AdminSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild className="cursor-pointer">
+                  <Link to="/admin/ichart"><LineChart className="h-4 w-4" />{!collapsed && <span>iChart</span>}</Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
