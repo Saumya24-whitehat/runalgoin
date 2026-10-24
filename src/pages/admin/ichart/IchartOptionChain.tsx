@@ -12,11 +12,9 @@ const sign = (v: number) => (v > 0 ? "pos" : v < 0 ? "neg" : "");
 
 // Column order follows ichart's Calls side (outer → strike). Puts side is mirrored.
 type ColDef = { key: string; label: string; get: (s: Side, strike: number, spot: number, isCall: boolean) => { text: string; cls?: string } };
-const buildUp = (s: Side, ltpUp: boolean) => s.coi > 0 ? (ltpUp ? "Long Buildup" : "Short Buildup") : s.coi < 0 ? (ltpUp ? "Short Covering" : "Long Unwinding") : "";
 const intrinsic = (strike: number, spot: number, isCall: boolean) => Math.max(0, isCall ? spot - strike : strike - spot);
 
 const COLS: ColDef[] = [
-  { key: "buildup", label: "Build Up", get: (s, k, sp, c) => { const ext = s.ltp - intrinsic(k, sp, c); const t = buildUp(s, ext >= 0 && s.ltp > 0); return { text: t, cls: t.startsWith("Long B") || t.startsWith("Short C") ? "pos" : t ? "neg" : "" }; } },
   { key: "vega", label: "Vega", get: (s) => ({ text: s.vega.toFixed(2) }) },
   { key: "theta", label: "Theta", get: (s) => ({ text: s.theta.toFixed(2) }) },
   { key: "gamma", label: "Gamma", get: (s) => ({ text: s.gamma.toFixed(4) }) },
@@ -30,7 +28,7 @@ const COLS: ColDef[] = [
   { key: "ext", label: "Ext Val", get: (s, k, sp, c) => ({ text: Math.max(0, s.ltp - intrinsic(k, sp, c)).toFixed(2) }) },
   { key: "ltp", label: "LTP", get: (s) => ({ text: s.ltp.toFixed(2) }) },
 ];
-const DEFAULT = new Set(["buildup", "iv", "oichg", "oi", "volume", "ltp"]);
+const DEFAULT = new Set(["iv", "oichg", "oi", "volume", "ltp"]);
 
 export default function IchartOptionChain() {
   const s = useIchartChain();
