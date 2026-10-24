@@ -1,0 +1,1 @@
+- iChart rebuild lives under /admin/ichart (src/pages/admin/ichart, src/components/ichart): pages are built one at a time from the original ichart PHP in the uploaded opt.7z, with ichart CSS scoped under `.ichart`, and data mapped to OptionWorld functions in src/services/ichartApi.ts — keeps the ichart look separate from the OptionWorld theme.
