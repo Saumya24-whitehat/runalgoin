@@ -428,6 +428,14 @@ export const ICHART_MENU: IchartMenuNode[] = [
    {
     "label": "My Account",
     "to": null
+   },
+   {
+    "label": "API Document",
+    "to": "/admin/ichart/api-docs"
+   },
+   {
+    "label": "Didn't Get API",
+    "to": "/admin/ichart/missing-api"
    }
   ]
  },
