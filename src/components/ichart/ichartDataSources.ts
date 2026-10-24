@@ -55,4 +55,22 @@ export const ICHART_DATA_SOURCES: IchartDataSource[] = [
     ],
     missing: [],
   },
+  {
+    page: "Symbol Dashboard",
+    route: "/admin/ichart/symbol-dashboard",
+    ichartEndpoint: "getSymbolDashboard_v6.php, getFutureChartApi_SD.php, getOptionChainData_commFunc_v2.php, getTrendingOIAndOIchg_commFunc.php",
+    sources: [
+      { fn: "option-chain", url: `${RA}/getOptionChain.php`, fields: "strike, CE/PE OI, prev OI, LTP, IV, spot", calc: "Total CE/PE OI & OI Chg, PE−CE diff (trend Bullish if >0), max OI / OI Chg strikes, PCR = PE OI / CE OI, IV = ATM CE/PE avg, Max Pain. Chain/OI charts = ATM ±10 strikes. Trending = top 5 by CE+PE OI and by |CE+PE COI|." },
+      { fn: "future-buildup", url: `${RA}/future_buildup.php`, fields: "symbol, price, price %, OI, OI %", calc: "Futures table rows: first 3 futures expiries, matched by symbol." },
+      { fn: "pcr-data", url: `${RA} (PCR data, 3-min)`, fields: "time, Future", calc: "Price chart = Future price per 3 min." },
+    ],
+    missing: [
+      { data: "Futures volume", ichartUses: "Volume column", fallback: "-" },
+      { data: "Fair price, lot size", ichartUses: "Below futures table", fallback: "-" },
+      { data: "Rollover, MWPL", ichartUses: "Gauges", fallback: "Empty gauge, '-'" },
+      { data: "IVR / IVP", ichartUses: "Under gauges", fallback: "-" },
+      { data: "Index futures in buildup list", ichartUses: "Futures table for indices", fallback: "'-' if symbol not in list" },
+      { data: "Futures OHLC candles", ichartUses: "Highstock candle price chart", fallback: "Line of 3-min Future price" },
+    ],
+  },
 ];

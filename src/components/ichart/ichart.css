@@ -95,3 +95,34 @@ table.optionchain .neg { color: #F44336; }
   .ichart #main-menu { display: none; } .ichart #main-menu.open { display: block; }
   .ichart .sm-blue li:hover > ul, .ichart .sm-blue li:focus-within > ul { display: block; }
 }
+
+/* ===== Symbol Dashboard (SymbolDashboard.php, symbolDashboard_v13.css) ===== */
+.ichart-sd { padding: 1rem .5rem; }
+@media (min-width: 768px) { .ichart-sd { padding: 1rem 2.25rem; } }
+.ichart-sd .sd-form { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end; }
+.ichart-sd .sd-radio { display: flex; gap: 6px; align-items: center; font-size: 14px; padding: 8px 0; }
+.ichart-sd .sd-field { display: flex; flex-direction: column; font-size: 12px; color: #3f51b5; text-align: center; min-width: 140px; }
+.ichart-sd .sd-field select, .ichart-sd .sd-field input { border: 0; border-bottom: 1px solid rgba(0,0,0,.12); font-size: 15px; padding: 4px 0; color: #000; background: transparent; outline: none; }
+.ichart-sd .sd-row { display: grid; gap: 1rem; padding: 1rem; }
+@media (min-width: 1024px) { .ichart-sd .sd-top { grid-template-columns: 2fr 3fr; } .ichart-sd .sd-two { grid-template-columns: 1fr 1fr; } }
+.ichart-sd .sd-box { background: #fff; border-radius: 1.5rem; padding: .75rem; box-shadow: 0 0 10px rgba(119,93,93,.2), 0 10px 15px -3px #d1d5db; }
+.ichart-sd .sd-gauges { display: grid; gap: 1rem; }
+@media (min-width: 1024px) { .ichart-sd .sd-gauges { grid-template-columns: 5fr 6fr; } }
+.ichart-sd .sd-gauge-grid { display: grid; grid-template-columns: 1fr 1fr; border: 2px solid #f3f4f6; border-radius: .75rem; }
+.ichart-sd .sd-gauge { display: flex; flex-direction: column; align-items: center; padding: 4px; }
+.ichart-sd .sd-gauge p { font-family: ui-monospace, monospace; font-weight: 700; font-size: .875rem; color: #000; }
+.ichart-sd .sd-gauge-val { font-size: 13px; font-weight: 700; margin-top: -30px; }
+.ichart-sd .sd-kv { display: flex; flex-wrap: wrap; gap: 12px; padding: 10px; font-size: 13px; }
+.ichart-sd .sd-kv h6 { font-weight: 600; }
+.ichart-sd .sd-mono, .ichart-sd .sd-lists li { font-family: ui-monospace, monospace; font-weight: 700; color: #000; font-size: 13px; padding: .5rem 0; }
+.ichart-sd .sd-lists { display: flex; gap: 1rem; justify-content: space-between; }
+.ichart-sd .sd-lists span { font-weight: 400; }
+.ichart-sd .sd-h1 { font-family: ui-monospace, monospace; font-weight: 700; font-size: 1rem; color: #000; padding: .5rem 1.25rem; }
+.ichart-sd table.sd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ichart-sd table.sd-table th, .ichart-sd table.sd-table td { border: 1px solid #dee2e6; padding: 6px 10px; text-align: center; white-space: nowrap; }
+.ichart-sd table.sd-table th { background: #f8f9fa; font-weight: 600; position: sticky; top: 0; }
+.ichart-sd table.sd-oc td.strike { background: #e2d87f; font-weight: 700; }
+.ichart-sd table.sd-oc tr.atm td { border-top: 2px solid #F44336; border-bottom: 2px solid #F44336; }
+.ichart-sd table.sd-oc tbody tr:hover td { background: #BFCFFF; }
+.ichart-sd .sd-two-in { display: grid; gap: 1rem; }
+@media (min-width: 1024px) { .ichart-sd .sd-two-in { grid-template-columns: 1fr 1fr; } }
