@@ -15,7 +15,7 @@ export const ICHART_MENU: IchartMenuNode[] = [
    },
    {
     "label": "Symbol Dashboard",
-    "to": null
+    "to": "/admin/ichart/symbol-dashboard"
    },
    {
     "label": "Futures Chart",

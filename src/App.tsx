@@ -87,6 +87,7 @@ const AuditLog = lazy(() => import("./pages/admin/AuditLog"));
 const IchartHome = lazy(() => import("./pages/admin/ichart/IchartHome"));
 const IchartOptionChain = lazy(() => import("./pages/admin/ichart/IchartOptionChain"));
 const IchartOIStats = lazy(() => import("./pages/admin/ichart/IchartOIStats"));
+const IchartSymbolDashboard = lazy(() => import("./pages/admin/ichart/IchartSymbolDashboard"));
 const IchartApiDocs = lazy(() => import("./pages/admin/ichart/IchartApiDocs"));
 const IchartMissingApi = lazy(() => import("./pages/admin/ichart/IchartMissingApi"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -175,6 +176,7 @@ const App = () => (
                 <Route path="/admin/ichart" element={<IchartHome />} />
                 <Route path="/admin/ichart/option-chain" element={<IchartOptionChain />} />
                 <Route path="/admin/ichart/oi-stats" element={<IchartOIStats />} />
+                <Route path="/admin/ichart/symbol-dashboard" element={<IchartSymbolDashboard />} />
                 <Route path="/admin/ichart/api-docs" element={<IchartApiDocs />} />
                 <Route path="/admin/ichart/missing-api" element={<IchartMissingApi />} />
                 <Route path="/profile" element={<Profile />} />
