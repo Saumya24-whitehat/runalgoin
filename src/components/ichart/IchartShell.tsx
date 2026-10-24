@@ -1,11 +1,10 @@
 import { ReactNode, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
-import { PageLayout } from "@/components/PageLayout";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import "./ichart.css";
 
-export function IchartShell({ title, children, back = true }: { title: string; children: ReactNode; back?: boolean }) {
+export function IchartShell({ title, children }: { title: string; children: ReactNode; back?: boolean }) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [allowed, setAllowed] = useState<boolean | null>(null);
@@ -19,20 +18,18 @@ export function IchartShell({ title, children, back = true }: { title: string; c
     });
   }, [user, loading, navigate]);
 
-  if (!allowed) return <PageLayout showFooter={false}><div className="p-6 text-muted-foreground">Checking access…</div></PageLayout>;
+  if (!allowed) return <div className="ichart p-6">Checking access…</div>;
 
   return (
-    <PageLayout showFooter={false}>
-      <section className="mx-auto w-full max-w-[1600px] py-3">
-        <div className="flex items-center gap-3 border-b px-3 pb-2">
-          {back && <Link to="/admin/ichart" className="text-muted-foreground hover:text-foreground" aria-label="Back"><ArrowLeft className="h-4 w-4" /></Link>}
-          <div>
-            <p className="font-mono text-[10px] uppercase text-primary">Admin · iChart</p>
-            <h1 className="text-base font-semibold">{title}</h1>
-          </div>
-        </div>
-        {children}
-      </section>
-    </PageLayout>
+    <div className="ichart">
+      <nav className="ichart-menubar">
+        <NavLink to="/admin" end>Admin</NavLink>
+        <NavLink to="/admin/ichart" end>Home</NavLink>
+        <NavLink to="/admin/ichart/option-chain">Option Chain</NavLink>
+        <NavLink to="/admin/ichart/oi-stats">Option OI Stats</NavLink>
+      </nav>
+      <h1 className="ichart-title">{title}</h1>
+      {children}
+    </div>
   );
 }
