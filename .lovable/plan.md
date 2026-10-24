@@ -1,36 +1,45 @@
-# Match the iChart page layout to the original PHP
+# iChart Page 1: Home (`/opt/index.php`), exact copy
 
-Going by the original `OptionChain.php` and `OptionOIStats.php`, the layout (not just the colours and fonts) will now be copied exactly.
+Only this one page is being built right now. Option Chain and OI Stats will be redone one at a time later, only when you say so.
 
-## Common (both pages)
-- Top: ichart's blue **SmartMenus** dropdown menu (Home / Futures / Options / Strategies / Tools / Live Tools / Help), built from `MenuList.json`. Pages that are already built will open. The rest will show "Coming soon".
-- Below it, a `pageHeading` title, same as ichart.
-- **Filter row, in ichart's order and style** (Material-style floating-label selects):
-  `( ) Latest  ( ) Historical [date + time]` → `Select Symbol` (Indices / Stocks optgroups) → `Expiry Date` → `( ) Near ATM Strikes [7, step 2]` → `( ) Near ATM Strikes fixed [3]` + `Center Strike` dropdown → `( ) All Strikes`.
-- Right side info line: `Futures | Spot | IV | Max Pain | PCR`, same as `FuturesData / SpotPriceData / IVIVRIVPMPPCRData`.
+## Original layout (from `index.php` + `public_symbol_Dashboard.css` + `publicDashboard_v22.js`)
+```text
+[ Blue SmartMenus top menu: Home | Futures | Options | Strategies | Tools | Live Tools | Help | Profile ]  (dropdowns from MenuList.json)
 
-## Option Chain page
-- Toolbar above the table: **Lots / Qty / Value** buttons, ichart's blue **Call/Put column toggle buttons**, **L / Cr** checkbox, and a ⚙ column-visibility menu (same column list as ichart).
-- Table: Calls (green) and Puts (red) headers, the full column order from the original. Calls side runs `Build Up, Trend, Time, Vega, Theta, Gamma, Delta, IV Chg%, IV Chg, IV, OI Chg%, OI Chg, OI, Vol Chg%, Vol Chg, Volume, Int Val, Ext Val, OH/OL, Open, High, Low, LTP Chg%, LTP Chg, LTP, VWAP, Bid, Ask`. Then the khaki columns `Strike Price, PE-CE OI, PE-CE OI Chg`, then the Puts side mirrored.
-- ichart highlight rules:
-  - Call side: max OI Chg is light red `#FFBFC0`, most negative OI Chg is green `#90EE90`.
-  - Put side: max OI Chg and max OI are green, most negative OI Chg is light red.
-  - Max volume on both sides is light blue `#ADD8E6`.
-  - ITM cells are grey, and ATM is marked.
-- Below the table, a **Totals** table, same as ichart: `Stat | Calls | Puts | Net` → Total OI, Total OI Chg, Total Volume, Total LB/SB/SC/LU OI.
-- **Build Up / Trend, LTP Chg, IV Chg, Vol Chg, Time** will be filled by comparing with the previous 3-minute data (and the previous day's 15:30 close).
-  - Build Up uses ichart's LB/SB/SC/LU codes.
-  - Trend is Bullish/Bearish.
-- **Open/High/Low, OH/OL, VWAP, Bid/Ask** aren't in our data. Those columns will be off by default and will show "-".
+Row 1 (xl: 11 columns)
+[ NIFTY-<expiry>  Price (spline) + OI (area)  4 cols ] [ BANKNIFTY-<expiry>  same  4 cols ] [ Gauges  3 cols ]
+  data line below each chart (LTP, change, OI, OI change)    NIFTY: PCR gauge | IV gauge
+                                                           BANKNIFTY: PCR gauge | IV gauge
+Row 2 (4 columns)  each box = "<< Title >>" with left/right shift arrows + horizontal bar chart (Top 5)
+[ Long Buildup ] [ Short Covering ] [ Short Buildup ] [ Long Unwinding ]
+Row 3
+[ Price Gainers ] [ Price Losers ] [ OI Gainers ] [ OI Losers ]
+Row 4
+[ IVR ] [ IVP ]
 
-## Option OI Stats page
-- Same filter row, plus ichart's `Select interval`, Lots checkbox, `Show legend` and `Show tooltip` checkboxes, and `Auto update range`.
-- The three charts in the original order, rebuilt as close as possible to Highcharts:
-  1. **OI chart** (`oichart_hc`): Call/Put OI bars per strike, with Spot/ATM/Max Pain plot lines, and title and subtitle like ichart.
-  2. **OI Change chart** (`oichangechart_hc`): Call/Put OI Chg bars.
-  3. **Total OI chart** (`totaloi_hc`): total Call vs Put OI and OI Chg.
+Footer: blue bottom-nav  "© year, ..."  Contact Us | About Us | Privacy Policy
+```
+- White boxes with rounded corners and the `box-shadow-all` shadow, a monospace bold title, and the light grey page background. Everything is copied from `public_symbol_Dashboard.css`.
+- The original Tailwind grid sizes (`xl:col-span-4/4/3`, `lg:grid-cols-4`) stay the same.
+- The `<<` / `>>` arrows on each bar box page through the list 5 at a time, like ichart.
+- The footer name changes to OptionWorld. The Contact, About and Privacy links will go to our own pages.
+
+## Data mapping (ichart API → OptionWorld)
+| Box | ichart source | OptionWorld data |
+|---|---|---|
+| NIFTY / BANKNIFTY Price + OI chart | `getDataForPublicDashboard_v17.php` (futures price + OI per minute) | `pcr-data` timeline: Future price + total OI per 3 minutes |
+| PCR gauges | same | `pcr-data` latest PCR (OI) |
+| IV gauges | same | ATM CE/PE average IV from `option-chain` |
+| Long/Short Buildup, Short Covering, Long Unwinding | same | `future-buildup` |
+| Price Gainers/Losers, OI Gainers/Losers | same | sorted from the same `future-buildup` list (price change %, OI change %) |
+| IVR / IVP | same | not in our data, so the box stays the same but shows "Data not available" |
+
+- In the price chart, OI will be the total option OI (call + put), because we don't have futures OI per minute.
+- Auto refresh every 1 minute, matching our other pages.
 
 ## Technical details
-- Rewrite `IchartShell` (SmartMenus-style dropdown nav), `IchartControls` (radio and floating-label layout), and both pages. Extend `ichart.css` with the original `mdl-*`, `pageHeading`, `cv-row`, `btncls` and `summary` styles taken from the PHP `<style>` blocks.
-- Extend `useIchartChain` to also fetch the previous 3-minute snapshot and the previous day's 15:30 close, for the change columns and Build Up.
-- After the build, take a Playwright screenshot of each page and compare it side by side with the original layout.
+- Rewrite `IchartShell`: ichart's SmartMenus blue dropdown nav and the bottom-nav footer, with the `sm-blue` CSS copied from `sm-core-css.css` + `blue.css`.
+- New `src/pages/admin/ichart/IchartHome.tsx`, plus small components `IchartPriceOiChart`, `IchartGauge` (radial, like the ApexCharts radialBar) and `IchartTopBars` (horizontal bars with paging). Built with Recharts, styled like Highcharts and ApexCharts.
+- Copy the needed rules from `public_symbol_Dashboard.css` into `ichart.css`, kept inside the `.ichart` section only.
+- The Option Chain and OI Stats routes stay as they are and are not touched in this step.
+- After the build, check it with a Playwright screenshot.
