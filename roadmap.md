@@ -1,11 +1,10 @@
-# Roadmap
+# Roadmap — iChart rebuild
 
-- [x] Add NitinBhaiya desktop and mobile navigation group.
-- [x] Add shared option-chain signal and confluence engine.
-- [x] Add Live Terminal page.
-- [x] Add guided 9-Step Analysis page.
-- [x] Add Greeks & Risk calculator page.
-- [x] Validate build, live pages, and mobile layout.
-- [x] Add ATM-only normalized Z-score page with 3-minute time-wise analysis.
-- [x] Use per-candle ATM-based target strikes on the Greeks probability page and timeline.
-- [x] Add NitinBhaiya OI + Premium ATM ±2 live/historical analysis page.
+- [x] API Document + Didn't Get API pages (Profile menu)
+- [ ] Batch 1: Option Chain, OI Stats → original PHP layout
+- [ ] Batch 2: Options pages (Straddle, Multi Strike OI, Cumulative OI, OI Change, Premium Decay, IV, Max Pain, PCR)
+- [ ] Batch 3: Futures pages
+- [ ] Batch 4: Strategies & Tools
+- [ ] Batch 5: Live Tools
+- [ ] Batch 6: Help & Profile pages
+- Rule: every new page adds an entry in ichartDataSources.ts
