@@ -1,0 +1,45 @@
+/* Scoped copy of icharts.in styling (from opt/OptionChain.php, OptionStyle.css, blue.css). Intentionally not themed: UI must match ichart. */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=PT+Sans+Narrow:wght@400;700&display=swap");
+
+.ichart { font-family: "Roboto", "Helvetica", "Arial", sans-serif; background: #fff; color: #333; min-height: 100vh; font-size: 13px; }
+.ichart-menubar { background: #3092c0; background: linear-gradient(to bottom, #3298c8 0%, #2e8cb8 100%); font-family: "PT Sans Narrow", "Arial Narrow", Arial, sans-serif; }
+.ichart-menubar a { color: #fff; font-size: 16px; padding: 10px 16px; display: inline-block; border-right: 1px solid #2b82ac; }
+.ichart-menubar a:hover, .ichart-menubar a.active { background: #006188; }
+.ichart-title { font-size: 20px; font-weight: 400; color: #333; padding: 10px 12px 4px; }
+.ichart-controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; padding: 6px 12px 10px; }
+.ichart-controls label { display: flex; flex-direction: column; font-size: 11px; color: rgba(0,0,0,.54); }
+.ichart-controls select, .ichart-controls input { border: 0; border-bottom: 1px solid rgba(0,0,0,.12); padding: 4px 2px; font-size: 13px; color: #000; background: #fff; min-width: 90px; outline: none; }
+.ichart-controls select:focus, .ichart-controls input:focus { border-bottom: 2px solid #3f51b5; }
+.ichart-btn { background: #1890CC; color: #fff; border: 0; border-radius: 2px; padding: 6px 16px; font-size: 13px; font-weight: 500; text-transform: uppercase; min-width: 64px; box-shadow: 0 2px 2px 0 rgba(0,0,0,.14), 0 3px 1px -2px rgba(0,0,0,.2), 0 1px 5px 0 rgba(0,0,0,.12); cursor: pointer; }
+.ichart-btn:hover { background: #008ed4; }
+.ichart-btn.outline { background: #fff; color: rgb(63,81,181); }
+.ichart-info { padding: 0 12px 6px; font-size: 12px; color: #333; display: flex; gap: 18px; flex-wrap: wrap; }
+.ichart-info b { color: #000; }
+
+table.optionchain { table-layout: auto; font-family: "Roboto", sans-serif; font-size: 11.5px; color: #333; border-collapse: collapse; background: #fff; line-height: 20px; width: 99.6%; margin: 0 auto; }
+table.optionchain th, table.optionchain td { padding: 3px; border: 1px solid #ddd; text-align: center; white-space: nowrap; }
+table.optionchain thead th { background: #f1f1f1; color: rgba(0,0,0,.54); font-weight: 700; font-size: 11px; }
+table.optionchain thead th.calls { background: #7BC862; color: #fff; border: none; }
+table.optionchain thead th.puts { background: #dc143c; color: #fff; border: none; }
+table.optionchain .khaki-background, table.optionchain .strikecolumnhighlight { background: #e2d87f !important; color: #000; font-weight: 700; }
+table.optionchain td.itmhighlight { background: #e8e8e8; }
+table.optionchain tbody tr:hover td { background: #BFCFFF !important; }
+table.optionchain tr.atm td { border-top: 2px solid #F44336; border-bottom: 2px solid #F44336; }
+table.optionchain .pos { color: #008000; }
+table.optionchain .neg { color: #F44336; }
+
+.ichart-columns { padding: 4px 12px; font-size: 11px; display: flex; flex-wrap: wrap; gap: 10px; }
+.ichart-columns label { display: flex; gap: 3px; align-items: center; }
+.ichart-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0; margin: 0 12px 10px; border: 1px solid #ddd; }
+.ichart-cards div { padding: 6px 8px; border: 1px solid #eee; }
+.ichart-cards p:first-child { font-size: 11px; color: rgba(0,0,0,.54); }
+.ichart-cards p:last-child { font-size: 15px; font-weight: 700; color: #000; }
+.ichart-panel { border: 1px solid #ddd; background: #fff; box-shadow: 0 2px 2px 0 rgba(0,0,0,.14); }
+.ichart-panel h3 { background: #f1f1f1; padding: 6px 10px; font-size: 13px; font-weight: 500; }
+.ichart-group { border: 1px solid #ddd; }
+.ichart-group h3 { background: #3092c0; color: #fff; font-family: "PT Sans Narrow", Arial, sans-serif; font-size: 16px; padding: 6px 10px; }
+.ichart-group li { border-bottom: 1px solid #eee; padding: 5px 10px; font-size: 13px; display: flex; justify-content: space-between; }
+.ichart-group a { color: #1890CC; }
+.ichart-group a:hover { text-decoration: underline; }
+.ichart-group .soon { color: #999; font-size: 11px; }
+.ichart-error { color: #F44336; padding: 6px 12px; }

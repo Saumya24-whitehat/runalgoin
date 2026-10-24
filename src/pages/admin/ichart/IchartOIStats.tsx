@@ -1,12 +1,14 @@
 import { useMemo, useState } from "react";
 import { Bar, BarChart, CartesianGrid, Legend, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { IchartShell } from "@/components/ichart/IchartShell";
-import { NitinControls } from "@/components/nitinBhaiya/NitinControls";
-import { LastRefreshBadge } from "@/components/LastRefreshBadge";
+import { IchartControls } from "@/components/ichart/IchartControls";
 import { useIchartChain } from "@/hooks/useIchartChain";
 import { computeMaxPain, findAtm } from "@/services/ichartApi";
 import { formatIndianNumber } from "@/lib/formatNumber";
 
+// ichart colours (Calls green / Puts red), intentionally not themed.
+const CALL = "#7BC862";
+const PUT = "#dc143c";
 const n = (v: number) => formatIndianNumber(Math.round(v));
 
 export default function IchartOIStats() {
@@ -16,43 +18,37 @@ export default function IchartOIStats() {
   const rows = useMemo(() => { const i = s.rows.findIndex((r) => r.strike === atm); return s.rows.slice(Math.max(0, i - range), i + range + 1); }, [s.rows, atm, range]);
   const maxPain = useMemo(() => computeMaxPain(s.rows), [s.rows]);
   const t = useMemo(() => rows.reduce((a, r) => ({ ceOi: a.ceOi + r.ce.oi, peOi: a.peOi + r.pe.oi, ceCoi: a.ceCoi + r.ce.coi, peCoi: a.peCoi + r.pe.coi }), { ceOi: 0, peOi: 0, ceCoi: 0, peCoi: 0 }), [rows]);
-  const data = rows.map((r) => ({ strike: r.strike, "Call OI": r.ce.oi, "Put OI": r.pe.oi, "Call Chg OI": r.ce.coi, "Put Chg OI": r.pe.coi }));
+  const data = rows.map((r) => ({ strike: r.strike, "Call OI": r.ce.oi, "Put OI": r.pe.oi, "Call OI Chg": r.ce.coi, "Put OI Chg": r.pe.coi }));
   const cards: [string, string][] = [
-    ["Spot", s.rows[0]?.spot?.toFixed(2) ?? "—"], ["ATM", atm ? n(atm) : "—"], ["Max Pain", maxPain ? n(maxPain) : "—"],
-    ["Call OI", n(t.ceOi)], ["Put OI", n(t.peOi)], ["PCR (OI)", t.ceOi ? (t.peOi / t.ceOi).toFixed(2) : "—"],
-    ["Call Chg OI", n(t.ceCoi)], ["Put Chg OI", n(t.peCoi)], ["PCR (Chg OI)", t.ceCoi ? (t.peCoi / t.ceCoi).toFixed(2) : "—"],
+    ["Spot Price", s.rows[0]?.spot?.toFixed(2) ?? "-"], ["ATM Strike", atm ? String(atm) : "-"], ["Max Pain", maxPain ? String(maxPain) : "-"],
+    ["Total Call OI", n(t.ceOi)], ["Total Put OI", n(t.peOi)], ["PCR (OI)", t.ceOi ? (t.peOi / t.ceOi).toFixed(2) : "-"],
+    ["Call OI Chg", n(t.ceCoi)], ["Put OI Chg", n(t.peCoi)], ["PCR (OI Chg)", t.ceCoi ? (t.peCoi / t.ceCoi).toFixed(2) : "-"],
   ];
   const chart = (title: string, a: string, b: string) => (
-    <div className="border bg-card p-2">
-      <p className="mb-1 text-xs font-semibold">{title}</p>
-      <ResponsiveContainer width="100%" height={300}>
-        <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis dataKey="strike" tick={{ fontSize: 10 }} />
-          <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => formatIndianNumber(v)} width={70} />
-          <Tooltip formatter={(v: number) => n(v)} contentStyle={{ background: "hsl(var(--card))", fontSize: 11 }} />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
-          {atm ? <ReferenceLine x={atm} stroke="hsl(var(--primary))" strokeDasharray="4 4" /> : null}
-          <Bar dataKey={a} fill="hsl(var(--destructive))" />
-          <Bar dataKey={b} fill="hsl(var(--success))" />
+    <div className="ichart-panel">
+      <h3>{title}</h3>
+      <ResponsiveContainer width="100%" height={320}>
+        <BarChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <CartesianGrid stroke="#e6e6e6" vertical={false} />
+          <XAxis dataKey="strike" tick={{ fontSize: 11, fill: "#666" }} />
+          <YAxis tick={{ fontSize: 11, fill: "#666" }} tickFormatter={(v) => formatIndianNumber(v)} width={75} />
+          <Tooltip formatter={(v: number) => n(v)} contentStyle={{ background: "#fff", border: "1px solid #ccc", fontSize: 12 }} />
+          <Legend wrapperStyle={{ fontSize: 12 }} />
+          {atm ? <ReferenceLine x={atm} stroke="#F44336" strokeDasharray="4 4" label={{ value: "ATM", fill: "#F44336", fontSize: 11 }} /> : null}
+          <Bar dataKey={a} fill={CALL} />
+          <Bar dataKey={b} fill={PUT} />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
   return (
     <IchartShell title="Option OI Stats">
-      <NitinControls symbols={s.symbols} expiries={s.expiries} symbol={s.symbol} expiry={s.expiry} date={s.date} time={s.time} loading={s.loading} onSymbol={s.setSymbol} onExpiry={s.setExpiry} onDate={s.setDate} onTime={s.setTime} onRefresh={() => s.refresh()} />
-      <div className="flex items-center gap-4 border-b px-3 py-2 text-xs">
-        <label className="flex items-center gap-1">Strikes ±<input type="number" min={3} max={40} value={range} onChange={(e) => setRange(Number(e.target.value) || 10)} className="w-14 border bg-background px-1 text-base md:text-xs" /></label>
-        {s.lastRefresh && <LastRefreshBadge lastRefresh={s.lastRefresh} />}
-      </div>
-      {s.error && <p className="p-3 text-destructive">{s.error}</p>}
-      <div className="grid grid-cols-3 gap-px border-b bg-border md:grid-cols-9">
-        {cards.map(([l, v]) => <div key={l} className="bg-card p-2"><p className="text-[10px] uppercase text-muted-foreground">{l}</p><p className="font-mono text-sm font-bold">{v}</p></div>)}
-      </div>
-      <div className="grid gap-3 p-3 lg:grid-cols-2">
+      <IchartControls s={s} extra={<label>Strikes (±)<input type="number" min={3} max={40} value={range} onChange={(e) => setRange(Number(e.target.value) || 10)} /></label>} />
+      {s.error && <p className="ichart-error">{s.error}</p>}
+      <div className="ichart-cards">{cards.map(([l, v]) => <div key={l}><p>{l}</p><p>{v}</p></div>)}</div>
+      <div style={{ display: "grid", gap: 12, padding: "0 12px 12px", gridTemplateColumns: "repeat(auto-fit, minmax(420px, 1fr))" }}>
         {chart("Open Interest", "Call OI", "Put OI")}
-        {chart("Change in Open Interest", "Call Chg OI", "Put Chg OI")}
+        {chart("Change in Open Interest", "Call OI Chg", "Put OI Chg")}
       </div>
     </IchartShell>
   );
